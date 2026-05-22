@@ -7,6 +7,10 @@ AI(GPT · Claude) 협업으로 진행한 **3대 주요 프로젝트**의 진행 
 
 🔗 **https://gmpark-creator.github.io/project-dashboard/**
 
+Codex 독립 리뷰판:
+
+🔗 **https://gmpark-creator.github.io/project-dashboard/codex/**
+
 링크를 아는 사람만 접속 — 개인 보고서용이라 따로 공유하지 않으면 노출은 거의 없다.
 (로컬에서 볼 땐 `index.html` 더블클릭)
 

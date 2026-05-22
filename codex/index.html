@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Codex 프로젝트 리뷰 보고서</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Codex 프로젝트 리뷰 보고서 홈">
+        <span class="brand-mark"></span>
+        <span>
+          <strong>Codex Review Board</strong>
+          <small>3개 프로젝트 결과물 검토 보고서</small>
+        </span>
+      </a>
+      <nav aria-label="외부 링크">
+        <a href="../index.html">Claude Report</a>
+        <a href="https://gmpark-creator.github.io/project-dashboard/">Claude Live</a>
+        <a href="https://github.com/gmpark-creator/project-dashboard">Repo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="overview" aria-labelledby="page-title">
+        <div>
+          <p class="kicker">2026-05-22 KST · Codex independent review</p>
+          <h1 id="page-title">클로드 보고서를 검토한 뒤 다시 만든 프로젝트 결과 보고서</h1>
+          <p class="lead">
+            선박 트래킹, 스포츠 하이라이트/매치 트래커, 태양계 시뮬레이터를 같은 기준으로 재검토했다.
+            이 페이지는 결과물 링크, 실제 접근 상태, Codex 리뷰, 다음 액션을 한 화면에서 비교한다.
+          </p>
+        </div>
+        <aside class="decision-panel" aria-label="종합 판단">
+          <span>종합 판단</span>
+          <strong>2개 공개 운영 · 1개 보류</strong>
+          <p>선박과 태양계는 계속 확장 가치가 있고, 스포츠는 데이터 라이선스 경로가 정해질 때까지 제품화 판단을 멈추는 편이 맞다.</p>
+        </aside>
+      </section>
+
+      <section class="scoreboard" aria-label="프로젝트 요약">
+        <div id="summary-cards" class="summary-grid"></div>
+      </section>
+
+      <section class="workbench" aria-label="프로젝트 상세 리뷰">
+        <aside class="project-rail">
+          <div class="section-title">
+            <span>Projects</span>
+            <strong>검토 대상</strong>
+          </div>
+          <div id="project-tabs" class="project-tabs"></div>
+        </aside>
+
+        <article class="detail-panel">
+          <div class="detail-header">
+            <div>
+              <p id="detail-label" class="kicker"></p>
+              <h2 id="detail-title"></h2>
+              <p id="detail-summary"></p>
+            </div>
+            <div id="detail-status" class="status-pill"></div>
+          </div>
+
+          <div class="meta-grid" id="meta-grid"></div>
+
+          <div class="review-grid">
+            <section>
+              <h3>Codex 리뷰</h3>
+              <div id="review-list" class="note-list"></div>
+            </section>
+            <section>
+              <h3>리스크</h3>
+              <div id="risk-list" class="note-list risk"></div>
+            </section>
+          </div>
+
+          <section class="evidence-section">
+            <div class="section-title row">
+              <span>Evidence</span>
+              <strong>결과물 프리뷰</strong>
+            </div>
+            <div id="preview-switcher" class="preview-switcher"></div>
+            <div class="preview-frame-wrap">
+              <iframe id="preview-frame" title="프로젝트 결과물 프리뷰" loading="lazy"></iframe>
+            </div>
+            <a id="preview-open" class="open-link" target="_blank" rel="noopener">새 탭에서 결과물 열기</a>
+          </section>
+        </article>
+      </section>
+
+      <section class="matrix" aria-labelledby="matrix-title">
+        <div class="section-title row">
+          <span>Audit Matrix</span>
+          <strong id="matrix-title">클로드 보고서 대비 Codex 개선점</strong>
+        </div>
+        <div id="matrix-grid" class="matrix-grid"></div>
+      </section>
+
+      <section class="next-actions" aria-labelledby="next-title">
+        <div class="section-title row">
+          <span>Next</span>
+          <strong id="next-title">다음 작업 큐</strong>
+        </div>
+        <ol id="action-list"></ol>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
