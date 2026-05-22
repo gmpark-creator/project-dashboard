@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>INST EXTRACTOR 브리핑</title>
+  <style>
+    :root {
+      --ink: #15202b;
+      --muted: #607083;
+      --line: rgba(21, 32, 43, 0.14);
+      --teal: #169c86;
+      --blue: #2864a6;
+      --magenta: #ba3f86;
+      --amber: #d18a10;
+      --panel: rgba(255, 255, 255, 0.86);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(22, 156, 134, 0.18), transparent 34%),
+        linear-gradient(225deg, rgba(186, 63, 134, 0.16), transparent 34%),
+        linear-gradient(315deg, rgba(209, 138, 16, 0.14), transparent 36%),
+        #f5f7fb;
+      font-family: "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+    }
+
+    main {
+      width: min(1120px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 36px 0 54px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .metric,
+    .step,
+    .command {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 22px 64px rgba(40, 54, 74, 0.09);
+    }
+
+    .hero-copy {
+      padding: 28px;
+    }
+
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: clamp(36px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin-bottom: 0;
+      color: #425163;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .status {
+      padding: 24px;
+      background:
+        linear-gradient(140deg, rgba(22, 156, 134, 0.13), rgba(40, 100, 166, 0.1)),
+        var(--panel);
+    }
+
+    .status strong {
+      display: block;
+      margin: 10px 0 8px;
+      font-size: 32px;
+      line-height: 1.05;
+    }
+
+    .status p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      padding: 15px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .panel h2 {
+      margin-bottom: 14px;
+      font-size: 22px;
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 12px;
+      padding: 13px;
+      background: #ffffff;
+    }
+
+    .step span {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      color: white;
+      font-weight: 900;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .step p,
+    li {
+      color: #4a596b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .command {
+      overflow: hidden;
+      margin-top: 10px;
+      background: #101722;
+      color: #f1f5f9;
+    }
+
+    .command header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #a7b4c4;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    ul {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .accent {
+      border-left: 5px solid var(--magenta);
+    }
+
+    a {
+      color: var(--blue);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="panel hero-copy">
+        <p class="kicker">Project 04 / Audio AI Tool</p>
+        <h1>INST EXTRACTOR</h1>
+        <p class="lead">
+          음원 파일에서 보컬 stem을 제거하고 반주용 inst WAV를 생성하는 변환 프로그램.
+          현재 백엔드 분리 로직은 구현됐고, 다음 단계는 집 데스크탑 GPU에서 실제 음원으로 품질을 검증하는 것이다.
+        </p>
+      </div>
+      <aside class="panel status">
+        <p class="kicker">Current Gate</p>
+        <strong>실음원 검증 대기</strong>
+        <p>
+          FastAPI와 Demucs 연결은 준비됐다. RTX 4060 Ti 환경에서 CUDA PyTorch가 잡히는지 확인한 뒤
+          실제 업로드 파일로 결과 WAV를 들어봐야 한다.
+        </p>
+      </aside>
+    </section>
+
+    <section class="metrics" aria-label="프로젝트 지표">
+      <div class="metric"><span>Backend</span><strong>FastAPI</strong></div>
+      <div class="metric"><span>Separation</span><strong>Demucs</strong></div>
+      <div class="metric"><span>Acceleration</span><strong>CUDA</strong></div>
+      <div class="metric"><span>Output</span><strong>WAV inst</strong></div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>구현된 흐름</h2>
+        <div class="steps">
+          <div class="step">
+            <span>1</span>
+            <p><strong>음원 업로드</strong>브라우저에서 파일과 모델을 선택해 `POST /extract`로 전달한다.</p>
+          </div>
+          <div class="step">
+            <span>2</span>
+            <p><strong>모델 로드</strong>`get_model(model_name)`로 Demucs 모델을 가져오고 GPU/CPU를 자동 선택한다.</p>
+          </div>
+          <div class="step">
+            <span>3</span>
+            <p><strong>Stem 분리</strong>`apply_model()`로 vocals, drums, bass, other 등 stem을 분리한다.</p>
+          </div>
+          <div class="step">
+            <span>4</span>
+            <p><strong>Inst 저장</strong>vocals를 제외한 나머지 stem을 합산해 `outputs` 폴더에 WAV로 저장한다.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel accent">
+        <h2>집 데스크탑 실행</h2>
+        <p class="lead">
+          프로젝트 폴더에서 아래 두 줄만 실행하도록 스크립트를 준비했다.
+        </p>
+        <div class="command">
+          <header><span>PowerShell</span><span>Windows / Python 3.11</span></header>
+          <pre>.\scripts\setup_windows_desktop.ps1
+.\scripts\run_server.ps1</pre>
+        </div>
+        <ul>
+          <li>실행 안내: <code>NEXT_DESKTOP_STEPS.md</code></li>
+          <li>AI 공유 메모: <code>CODEX_TO_CLAUDE.md</code></li>
+          <li>저장소: <a href="https://github.com/gmpark-creator/inst-extractor" target="_blank" rel="noopener">github.com/gmpark-creator/inst-extractor</a></li>
+        </ul>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,32 +1,17 @@
-# 프로젝트 대시보드
+# Project Dashboard
 
-AI(GPT · Claude) 협업으로 진행한 **3대 주요 프로젝트**의 진행 기록 · 타임라인 · 상태를
-한눈에 볼 수 있는 웹 기반 인터랙션 대시보드(보고서).
+공개 프로젝트 운영 리포트 저장소.
 
-## 웹에서 보기
+## 주요 URL
 
-🔗 **https://gmpark-creator.github.io/project-dashboard/**
+- 메인 인덱스: https://gmpark-creator.github.io/project-dashboard/
+- Codex 운영 리포트: https://gmpark-creator.github.io/project-dashboard/codex/
+- INST EXTRACTOR 브리핑: https://gmpark-creator.github.io/project-dashboard/codex/inst-extractor/
+- 2D Match Tracker: https://gmpark-creator.github.io/project-dashboard/match-tracker/
 
-Codex 운영 리포트:
+## 현재 포함 프로젝트
 
-🔗 **https://gmpark-creator.github.io/project-dashboard/codex/**
-
-링크를 아는 사람만 접속 — 개인 보고서용이라 따로 공유하지 않으면 노출은 거의 없다.
-(로컬에서 볼 땐 `index.html` 더블클릭)
-
-## 구성
-
-- 단일 HTML 파일 — Tailwind CSS + Lucide 아이콘(CDN)
-- 좌측 프로젝트 탭 / 우측 상세(타임라인·카드)로 부드럽게 전환
-- 상태 태그(완성·진행 중·보류), 가로/세로 타임라인, 기술 스택·이슈 카드
-
-## 데이터 수정 방법
-
-`index.html` 상단 `<script>` 안의 **`PROJECTS` 객체**만 고치면 화면이 자동으로 갱신된다.
-(날짜는 `YYYY-MM-DD`, status는 `completed` / `in-progress` / `paused`)
-
-## 수록 프로젝트
-
-1. **AIS Ship Tracker** — 실시간 선박 추적·모니터링 시스템
-2. **Sports Highlight Generator** — AI 기반 스포츠 하이라이트 생성 엔진
-3. **Solar System Simulator** — 3D 실시간 태양계 시뮬레이터 ([라이브](https://gmpark-creator.github.io/solar-system/))
+1. AIS Ship Tracker
+2. Sports Highlight Generator
+3. Solar System Simulator
+4. INST EXTRACTOR

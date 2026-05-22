@@ -9,7 +9,7 @@ function healthMeta(health) {
     strong: { label: '운영 가능', tone: 'strong' },
     paused: { label: '보류 판단', tone: 'paused' },
     active: { label: '개발 중', tone: 'active' },
-  }[health];
+  }[health] || { label: '검토 중', tone: 'active' };
 }
 
 function renderSummary() {
@@ -60,7 +60,7 @@ function renderDetail() {
   activePreviewIndex = Math.min(activePreviewIndex, project.links.length - 1);
   const preview = project.links[activePreviewIndex];
 
-  $('#detail-label').textContent = `${project.order} · ${project.name}`;
+  $('#detail-label').textContent = `${project.order} / ${project.name}`;
   $('#detail-title').textContent = project.label;
   $('#detail-summary').textContent = project.summary;
   $('#detail-status').className = `status-pill ${meta.tone}`;
@@ -68,7 +68,7 @@ function renderDetail() {
 
   $('#meta-grid').innerHTML = [
     ['판단', project.verdict],
-    ['스택', project.stack.join(' · ')],
+    ['스택', project.stack.join(' / ')],
     ['결과물', project.links.map((link) => `${link.label} (${link.probe})`).join(' / ')],
   ].map(([key, value]) => `
     <div class="meta-card">
@@ -88,7 +88,7 @@ function renderDetail() {
   $('#preview-switcher').innerHTML = project.links.map((link, index) => `
     <button class="${index === activePreviewIndex ? 'is-active' : ''}" data-preview="${index}">
       <strong>${link.label}</strong>
-      <span>${link.probe} · ${link.note}</span>
+      <span>${link.probe} / ${link.note}</span>
     </button>
   `).join('');
 

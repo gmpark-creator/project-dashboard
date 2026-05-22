@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Codex 프로젝트 리뷰 보고서</title>
+  <title>Codex 프로젝트 운영 리포트</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="./index.html" aria-label="Codex 프로젝트 리뷰 보고서 홈">
+      <a class="brand" href="./index.html" aria-label="Codex 프로젝트 운영 리포트">
         <span class="brand-mark"></span>
         <span>
           <strong>Project Command Board</strong>
-          <small>3개 프로젝트 운영 리포트</small>
+          <small>4개 프로젝트 운영 리포트</small>
         </span>
       </a>
       <nav aria-label="외부 링크">
@@ -27,17 +27,20 @@
     <main>
       <section class="overview" aria-labelledby="page-title">
         <div>
-          <p class="kicker">2026-05-22 KST · Project command report</p>
-          <h1 id="page-title">3개 프로젝트 결과물 운영 보고서</h1>
+          <p class="kicker">2026-05-22 KST / Project command report</p>
+          <h1 id="page-title">4개 프로젝트 결과물 운영 보고서</h1>
           <p class="lead">
-            선박 트래킹, 스포츠 하이라이트/매치 트래커, 태양계 시뮬레이터를 같은 기준으로 정리했다.
-            이 페이지는 결과물 링크, 실제 접근 상태, 프로젝트 리뷰, 리스크, 다음 액션을 한 화면에서 비교한다.
+            선박 트래킹, 스포츠 하이라이트, 태양계 시뮬레이터, 음원 inst 추출기를 같은 기준으로 정리했다.
+            이 페이지는 실행 가능한 결과물, 현재 판단, 리스크, 다음 액션을 한 화면에서 비교하기 위한 운영 보드다.
           </p>
         </div>
         <aside class="decision-panel" aria-label="종합 판단">
           <span>종합 판단</span>
-          <strong>2개 공개 운영 · 1개 보류</strong>
-          <p>선박과 태양계는 계속 확장 가치가 있고, 스포츠는 데이터 라이선스 경로가 정해질 때까지 제품화 판단을 멈추는 편이 맞다.</p>
+          <strong>1개 운영 안정 / 2개 개발 중 / 1개 데이터 보류</strong>
+          <p>
+            AIS는 운영 상태가 가장 안정적이다. 태양계와 inst 추출기는 검증을 이어갈 가치가 있고,
+            스포츠 프로젝트는 데이터 라이선스 경로가 확정될 때까지 범위를 보수적으로 유지한다.
+          </p>
         </aside>
       </section>
 
@@ -80,11 +83,11 @@
           <section class="evidence-section">
             <div class="section-title row">
               <span>Evidence</span>
-              <strong>결과물 프리뷰</strong>
+              <strong>결과물 미리보기</strong>
             </div>
             <div id="preview-switcher" class="preview-switcher"></div>
             <div class="preview-frame-wrap">
-              <iframe id="preview-frame" title="프로젝트 결과물 프리뷰" loading="lazy"></iframe>
+              <iframe id="preview-frame" title="프로젝트 결과물 미리보기" loading="lazy"></iframe>
             </div>
             <a id="preview-open" class="open-link" target="_blank" rel="noopener">새 탭에서 결과물 열기</a>
           </section>
@@ -102,7 +105,7 @@
       <section class="next-actions" aria-labelledby="next-title">
         <div class="section-title row">
           <span>Next</span>
-          <strong id="next-title">다음 작업 큐</strong>
+          <strong id="next-title">다음 작업</strong>
         </div>
         <ol id="action-list"></ol>
       </section>

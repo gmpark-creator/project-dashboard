@@ -16,6 +16,7 @@
   --coral: #df5d4b;
   --lime: #6a9d2f;
   --magenta: #ba3f86;
+  --teal: #169c86;
   --sun: #e3a22b;
 }
 
@@ -247,7 +248,7 @@ h1 {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -278,6 +279,10 @@ h1 {
 
 .summary-card.project-solar::before {
   background: linear-gradient(90deg, var(--sun), var(--coral), var(--blue));
+}
+
+.summary-card.project-inst::before {
+  background: linear-gradient(90deg, var(--teal), var(--blue), var(--magenta));
 }
 
 .summary-card:hover,
@@ -360,6 +365,10 @@ h1 {
   background: linear-gradient(90deg, var(--sun), var(--coral), var(--blue));
 }
 
+.project-inst .progress span {
+  background: linear-gradient(90deg, var(--teal), var(--blue), var(--magenta));
+}
+
 .workbench {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
@@ -426,6 +435,10 @@ h1 {
   box-shadow: inset 4px 0 0 var(--sun);
 }
 
+.project-tab.project-inst.is-active {
+  box-shadow: inset 4px 0 0 var(--teal);
+}
+
 .project-tab span {
   display: grid;
   place-items: center;
@@ -449,6 +462,10 @@ h1 {
 .project-tab.project-solar span {
   background: var(--sun);
   color: #241707;
+}
+
+.project-tab.project-inst span {
+  background: var(--teal);
 }
 
 .project-tab strong,
@@ -746,7 +763,7 @@ h1 {
 }
 
 .matrix article:nth-child(4)::before {
-  background: linear-gradient(90deg, var(--blue), var(--violet));
+  background: linear-gradient(90deg, var(--teal), var(--blue), var(--violet));
 }
 
 .matrix h3 {
@@ -807,7 +824,7 @@ h1 {
   }
 
   .project-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
