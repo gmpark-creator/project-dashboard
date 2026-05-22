@@ -116,7 +116,7 @@ const PROJECTS = [
     subtitle: '트래킹 데이터 기반 2D 매치 시각화 · 하이라이트 엔진',
     icon: 'trophy',
     platform: '웹 애플리케이션',
-    status: 'in-progress',
+    status: 'paused',
     start: '2026-02-20',          // ← 예시 날짜 (실제 값으로 수정)
     latest: '2026-05-22',
     progress: 78,
@@ -130,17 +130,31 @@ const PROJECTS = [
           + '파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 '
           + '뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
     stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS', 'EPTS 트래킹 데이터'],
+    directorNote: {
+      author: 'G.M.PARK',
+      date: '2026-05-22',
+      text: '본 프로젝트는 「실제 경기의 선수·공 위치 데이터를 확보해 2D로 재현한다」는 목표 아래 진행해 왔다. '
+          + '기획 초기 자문(GPT) 단계에서는 경기 데이터 수집이 가능하다는 전제로 출발했고, 디렉터는 이 데이터 확보 문제의 해결을 요구했다. '
+          + '그러나 실제 개발 단계에서 다음 장벽이 확인됐다 — 선수·공의 연속 광학 트래킹 데이터는 리그 공식 트래킹 업체가 '
+          + '구단·방송사에 유료로만 판매하는 비공개 상업 데이터이며, 웹상에 공개돼 있지 않다. 따라서 무료·합법 경로로 확보 가능한 '
+          + '연속 트래킹은 Metrica Sports가 연구용으로 공개한 익명 샘플 몇 경기(및 SkillCorner 공개 소수 경기)에 한정되며, '
+          + '임의의 최신 경기를 경기 종료 직후 트래킹 데이터로 확보하는 것은 유료 라이선스 없이는 구조적으로 불가능함이 드러났다. '
+          + '즉 초기 GPT 자문이 가능하다고 본 「데이터 수집」은 실제로는 Metrica 기본 샘플을 벗어나는 순간 성립하지 않는다. '
+          + '이에 디렉터 판단으로, 데이터 수급 경로(유료 트래킹 라이선스 도입 또는 이벤트 데이터 기반 재설계)가 정해질 때까지 본 프로젝트의 개발을 잠정 보류한다.'
+    },
     issues: [
       { type:'완료', title:'2D 매치 트래커 프로토타입 완성', desc:'트래킹 데이터를 2D 경기장에 시각화 — 재생·타임라인·득점 마커·선수 클릭 분석.' },
       { type:'완료', title:'데이터 기반 방식으로 방향 전환', desc:'영상 CV 추출 대신 웨어러블 위치 데이터 기반으로 전환 — 구현 난도·라이선스 부담 감소.' },
-      { type:'완료', title:'실측 25Hz 광학 트래킹 적용', desc:'Metrica Sports 공개 실측 경기 데이터를 연동 — 재구성이 아닌 실제 트래킹. (임의 최신 경기의 연속 트래킹은 비공개 상업데이터)' }
+      { type:'완료', title:'실측 25Hz 광학 트래킹 적용', desc:'Metrica Sports 공개 실측 경기 데이터를 연동 — 재구성이 아닌 실제 트래킹. (임의 최신 경기의 연속 트래킹은 비공개 상업데이터)' },
+      { type:'보류', title:'데이터 수급 장벽 — 개발 잠정 보류', desc:'임의 최신 경기의 선수 연속 광학 트래킹은 비공개 상업 데이터로 웹에 존재하지 않음. 무료·합법 확보 범위는 Metrica 기본 공개 샘플 몇 경기에 한정. 데이터 수급 경로 확정 시까지 디렉터 결정으로 보류.' }
     ],
     milestones: [
       { date:'2026-02-20', title:'프로젝트 시작', desc:'스포츠 하이라이트 엔진 컨셉 정의' },
       { date:'2026-04-22', title:'설계 수렴', desc:'데이터 기반 2D 점 시각화 방향으로 정리' },
       { date:'2026-05-22', title:'트래킹 데이터 방식 확정', desc:'영상 CV → 웨어러블/EPTS 위치 데이터 기반으로 전환' },
       { date:'2026-05-22', title:'2D 매치 트래커 프로토타입', desc:'경기장·재생·타임라인·선수 분석 UI 완성' },
-      { date:'2026-05-22', title:'실측 트래킹 데이터 적용', desc:'Metrica Sports 공개 25Hz 광학 트래킹 — 실측 경기 데이터로 구동' }
+      { date:'2026-05-22', title:'실측 트래킹 데이터 적용', desc:'Metrica Sports 공개 25Hz 광학 트래킹 — 실측 경기 데이터로 구동' },
+      { date:'2026-05-22', title:'개발 잠정 보류 (디렉터 결정)', desc:'데이터 수급 장벽 확인 — 광학 트래킹 데이터 확보 경로 미정으로 개발 잠정 중단' }
     ]
   },
   {
@@ -380,6 +394,20 @@ function renderDetail(p) {
       </div>
     </section>` : '';
 
+  const directorBlock = p.directorNote ? `
+    <section class="reveal mt-7 rounded-2xl border border-violet-200 border-l-4 border-l-violet-500
+             bg-violet-50/60 p-6 shadow-sm" style="animation-delay:60ms">
+      <div class="flex items-center gap-2.5 mb-3">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-violet-100 text-violet-600">
+          <i data-lucide="gavel" class="w-[18px] h-[18px]"></i></span>
+        <div>
+          <h3 class="text-[14px] font-bold text-slate-800">디렉터 총평 · 개발 잠정 보류</h3>
+          <p class="text-[11px] text-slate-500">개발자 디렉터 ${p.directorNote.author} · ${fmtD(p.directorNote.date)}</p>
+        </div>
+      </div>
+      <p class="text-[13px] text-slate-700 leading-relaxed">${p.directorNote.text}</p>
+    </section>` : '';
+
   const chip = (icon, label, val) => `
     <div class="flex items-center gap-2.5 rounded-xl bg-white ring-1 ring-slate-200 px-3.5 py-2.5 shadow-sm">
       <i data-lucide="${icon}" class="w-4 h-4 text-indigo-500"></i>
@@ -425,6 +453,8 @@ function renderDetail(p) {
       </div>
       <p class="text-[13.5px] text-slate-600 leading-relaxed mt-5 max-w-3xl">${p.summary}</p>
     </header>
+
+    ${directorBlock}
 
     <!-- 가로형 타임라인 바 -->
     <section class="reveal mt-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" style="animation-delay:80ms">
