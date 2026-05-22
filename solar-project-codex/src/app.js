@@ -11,6 +11,14 @@ const MOON_RADIUS_KM = 1_737.4;
 const OBLIQUITY_DEG = 23.4392911;
 const EPOCH_2000_JAN_0 = Date.UTC(1999, 11, 31, 0, 0, 0);
 const BASE_SIMULATION_MS = new Date(2026, 4, 22, 0, 0, 0).getTime();
+const PLANET_TEXTURE_BASE = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';
+const PLANET_TEXTURES = {
+  earthDay: `${PLANET_TEXTURE_BASE}earth_atmos_2048.jpg`,
+  earthNormal: `${PLANET_TEXTURE_BASE}earth_normal_2048.jpg`,
+  earthClouds: `${PLANET_TEXTURE_BASE}earth_clouds_1024.png`,
+  earthLights: `${PLANET_TEXTURE_BASE}earth_lights_2048.png`,
+  moon: `${PLANET_TEXTURE_BASE}moon_1024.jpg`,
+};
 
 const SCALES = {
   visual: {
@@ -536,6 +544,27 @@ function canvasTexture(width, height, painter) {
   return texture;
 }
 
+const textureLoader = new THREE.TextureLoader();
+textureLoader.setCrossOrigin('anonymous');
+
+function loadTexture(url, options, onLoad) {
+  textureLoader.load(
+    url,
+    (texture) => {
+      texture.colorSpace = options?.color === false ? THREE.NoColorSpace : THREE.SRGBColorSpace;
+      texture.anisotropy = 12;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.needsUpdate = true;
+      onLoad(texture);
+    },
+    undefined,
+    () => {
+      console.warn(`Texture failed to load: ${url}`);
+    },
+  );
+}
+
 function makeSunTexture() {
   const rand = seededRandom(1001);
   return canvasTexture(1024, 512, (ctx, width, height) => {
@@ -652,7 +681,7 @@ function makeMoonTexture() {
 
 function makePlanetTexture(planet) {
   const rand = seededRandom(planet.seed);
-  return canvasTexture(1024, 512, (ctx, width, height) => {
+  return canvasTexture(2048, 1024, (ctx, width, height) => {
     const base = ctx.createLinearGradient(0, 0, width, height);
     base.addColorStop(0, planet.accentColor);
     base.addColorStop(0.42, planet.baseColor);
@@ -661,27 +690,98 @@ function makePlanetTexture(planet) {
     ctx.fillRect(0, 0, width, height);
 
     if (planet.banded) {
-      for (let y = 0; y < height; y += 18 + rand() * 18) {
-        const alpha = 0.12 + rand() * 0.28;
-        ctx.fillStyle = rand() > 0.45 ? `rgba(255,245,220,${alpha})` : `rgba(80,48,32,${alpha})`;
-        ctx.fillRect(0, y, width, 8 + rand() * 22);
+      for (let y = 0; y < height; y += 8 + rand() * 16) {
+        const alpha = 0.08 + rand() * 0.32;
+        const warm = rand() > 0.38;
+        const wave = Math.sin(y * 0.028) * 18;
+        ctx.fillStyle = warm ? `rgba(255,238,200,${alpha})` : `rgba(78,50,36,${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= width; x += 64) {
+          ctx.lineTo(x, y + Math.sin(x * 0.012 + y * 0.02) * 7 + wave);
+        }
+        ctx.lineTo(width, y + 14 + rand() * 26);
+        ctx.lineTo(0, y + 14 + rand() * 26);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      if (planet.id === 'jupiter') {
+        const spotX = width * 0.68;
+        const spotY = height * 0.58;
+        const spot = ctx.createRadialGradient(spotX, spotY, 10, spotX, spotY, 150);
+        spot.addColorStop(0, 'rgba(185,82,44,0.95)');
+        spot.addColorStop(0.42, 'rgba(191,94,53,0.78)');
+        spot.addColorStop(1, 'rgba(191,94,53,0)');
+        ctx.fillStyle = spot;
+        ctx.beginPath();
+        ctx.ellipse(spotX, spotY, 184, 68, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (planet.id === 'saturn') {
+        ctx.fillStyle = 'rgba(255,252,226,0.18)';
+        for (let y = height * 0.22; y < height * 0.82; y += 26) {
+          ctx.fillRect(0, y, width, 5 + rand() * 7);
+        }
       }
     } else {
-      for (let i = 0; i < 80; i += 1) {
+      for (let i = 0; i < 190; i += 1) {
         const x = rand() * width;
         const y = rand() * height;
-        const radius = 8 + rand() * 48;
+        const radius = 8 + rand() * 72;
         const detail = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        detail.addColorStop(0, `rgba(255,255,255,${0.06 + rand() * 0.12})`);
+        detail.addColorStop(0, rand() > 0.48 ? `rgba(255,255,255,${0.06 + rand() * 0.18})` : `rgba(0,0,0,${0.05 + rand() * 0.16})`);
         detail.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = detail;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      if (planet.id === 'mercury') {
+        for (let i = 0; i < 120; i += 1) {
+          const x = rand() * width;
+          const y = rand() * height;
+          const r = 7 + rand() * 38;
+          ctx.strokeStyle = 'rgba(32,29,26,0.34)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(255,247,230,0.08)';
+          ctx.beginPath();
+          ctx.arc(x - r * 0.22, y - r * 0.22, r * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      if (planet.id === 'venus') {
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = 'rgba(255,244,196,0.32)';
+        ctx.lineWidth = 18;
+        for (let i = 0; i < 24; i += 1) {
+          const y = (i / 24) * height;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          for (let x = 0; x <= width; x += 80) {
+            ctx.lineTo(x, y + Math.sin(x * 0.01 + i) * 32);
+          }
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
     }
 
     if (planet.id === 'mars') {
+      ctx.fillStyle = 'rgba(65,29,22,0.36)';
+      ctx.beginPath();
+      ctx.ellipse(width * 0.54, height * 0.54, width * 0.22, 38, -0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,222,167,0.16)';
+      ctx.beginPath();
+      ctx.ellipse(width * 0.28, height * 0.36, width * 0.14, 64, 0.08, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = 'rgba(245,238,210,0.88)';
       ctx.beginPath();
       ctx.ellipse(width * 0.5, 0, width * 0.4, 36, 0, 0, Math.PI * 2);
@@ -706,7 +806,8 @@ function makeGlowTexture() {
 }
 
 function makeRingTexture() {
-  return canvasTexture(512, 64, (ctx, width, height) => {
+  const rand = seededRandom(7111);
+  return canvasTexture(1024, 96, (ctx, width, height) => {
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, 'rgba(222,198,142,0)');
     gradient.addColorStop(0.14, 'rgba(222,198,142,0.28)');
@@ -719,6 +820,11 @@ function makeRingTexture() {
     gradient.addColorStop(1, 'rgba(222,198,142,0)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
+    for (let x = 0; x < width; x += 3) {
+      const alpha = 0.04 + rand() * 0.16;
+      ctx.fillStyle = rand() > 0.12 ? `rgba(255,246,214,${alpha})` : `rgba(33,24,18,${alpha})`;
+      ctx.fillRect(x, 0, 1 + rand() * 3, height);
+    }
   });
 }
 
@@ -862,20 +968,69 @@ const earthAxis = new THREE.Group();
 earthAxis.rotation.z = -OBLIQUITY_DEG * DEG;
 earthSystem.add(earthAxis);
 
+const earthMaterial = new THREE.MeshStandardMaterial({
+  map: makeEarthTexture(),
+  roughness: 0.78,
+  metalness: 0.02,
+  emissive: 0x071426,
+  emissiveIntensity: 0.08,
+  normalScale: new THREE.Vector2(0.74, 0.74),
+});
+
 const earthMesh = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 96, 64),
-  new THREE.MeshStandardMaterial({
-    map: makeEarthTexture(),
-    roughness: 0.92,
-    metalness: 0,
-    emissive: 0x071426,
-    emissiveIntensity: 0.08,
-  }),
+  new THREE.SphereGeometry(1, 128, 96),
+  earthMaterial,
 );
 earthMesh.castShadow = true;
 earthMesh.receiveShadow = true;
 earthMesh.userData.bodyId = 'earth';
 earthAxis.add(earthMesh);
+
+const earthCloudMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.72,
+  roughness: 1,
+  metalness: 0,
+  depthWrite: false,
+});
+const earthClouds = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 128, 96),
+  earthCloudMaterial,
+);
+earthClouds.castShadow = true;
+earthAxis.add(earthClouds);
+
+const earthNightMaterial = new THREE.MeshBasicMaterial({
+  transparent: true,
+  opacity: 0,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+const earthNightLights = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 128, 96),
+  earthNightMaterial,
+);
+earthAxis.add(earthNightLights);
+
+loadTexture(PLANET_TEXTURES.earthDay, { color: true }, (texture) => {
+  earthMaterial.map = texture;
+  earthMaterial.needsUpdate = true;
+});
+loadTexture(PLANET_TEXTURES.earthNormal, { color: false }, (texture) => {
+  earthMaterial.normalMap = texture;
+  earthMaterial.needsUpdate = true;
+});
+loadTexture(PLANET_TEXTURES.earthClouds, { color: true }, (texture) => {
+  earthCloudMaterial.map = texture;
+  earthCloudMaterial.alphaMap = texture;
+  earthCloudMaterial.needsUpdate = true;
+});
+loadTexture(PLANET_TEXTURES.earthLights, { color: true }, (texture) => {
+  earthNightMaterial.map = texture;
+  earthNightMaterial.opacity = 0.22;
+  earthNightMaterial.needsUpdate = true;
+});
 
 const earthAtmosphere = new THREE.Mesh(
   new THREE.SphereGeometry(1, 64, 48),
@@ -897,25 +1052,34 @@ const earthAxisLine = new THREE.Line(
 earthAxis.add(earthAxisLine);
 
 const moonMesh = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 64, 48),
+  new THREE.SphereGeometry(1, 96, 72),
   new THREE.MeshStandardMaterial({
     map: makeMoonTexture(),
     roughness: 1,
     metalness: 0,
+    bumpScale: 0.028,
   }),
 );
+loadTexture(PLANET_TEXTURES.moon, { color: true }, (texture) => {
+  moonMesh.material.map = texture;
+  moonMesh.material.bumpMap = texture;
+  moonMesh.material.needsUpdate = true;
+});
 moonMesh.castShadow = true;
 moonMesh.receiveShadow = true;
 moonMesh.userData.bodyId = 'moon';
 scene.add(moonMesh);
 
-const planetGeometry = new THREE.SphereGeometry(1, 64, 48);
+const planetGeometry = new THREE.SphereGeometry(1, 96, 72);
 const planetMeshes = Object.fromEntries(PLANET_DEFS.map((planet) => {
+  const texture = makePlanetTexture(planet);
   const mesh = new THREE.Mesh(
     planetGeometry,
     new THREE.MeshStandardMaterial({
-      map: makePlanetTexture(planet),
-      roughness: 0.96,
+      map: texture,
+      bumpMap: planet.banded || planet.id === 'uranus' || planet.id === 'neptune' ? null : texture,
+      bumpScale: planet.id === 'mars' ? 0.055 : 0.025,
+      roughness: planet.banded ? 0.88 : 0.94,
       metalness: 0,
       emissive: new THREE.Color(planet.orbitColor).multiplyScalar(0.08),
       emissiveIntensity: 0.18,
@@ -930,7 +1094,7 @@ const planetMeshes = Object.fromEntries(PLANET_DEFS.map((planet) => {
 }));
 
 const saturnRing = new THREE.Mesh(
-  new THREE.RingGeometry(1.38, 2.18, 128),
+  new THREE.RingGeometry(1.34, 2.32, 224),
   new THREE.MeshBasicMaterial({
     map: makeRingTexture(),
     color: 0xffffff,
@@ -1209,6 +1373,8 @@ function applyScale() {
   sunMesh.scale.setScalar(scale.sunRadius);
   sunGlow.scale.setScalar(scale.sunGlow);
   earthMesh.scale.setScalar(scale.earthRadius);
+  earthClouds.scale.setScalar(scale.earthRadius * 1.018);
+  earthNightLights.scale.setScalar(scale.earthRadius * 1.006);
   earthAtmosphere.scale.setScalar(Math.max(scale.earthRadius * 1.18, scale.earthGlow));
   earthAxisLine.scale.setScalar(Math.max(scale.earthRadius, scale.earthGlow));
   moonMesh.scale.setScalar(scale.moonRadius);
@@ -1305,11 +1471,14 @@ function updateScene(state, now) {
   const labelLift = Math.max(scale.earthRadius, scale.earthGlow);
   const focusTarget = bodyPositionUnits(focusMode, state, scale);
   const focusRadius = bodyRadiusUnits(focusMode, scale);
+  const earthRotation = -state.gmst * DEG;
 
   earthSystem.position.copy(earthPosition);
   moonMesh.position.copy(moonPosition);
   moonMesh.lookAt(earthPosition);
-  earthMesh.rotation.y = -state.gmst * DEG;
+  earthMesh.rotation.y = earthRotation;
+  earthNightLights.rotation.y = earthRotation;
+  earthClouds.rotation.y = earthRotation + state.days * 0.022;
 
   moonOrbit.position.copy(earthPosition);
   moonOrbit.visible = orbitsVisible;
