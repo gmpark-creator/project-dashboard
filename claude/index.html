@@ -3,256 +3,558 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>프로젝트 진행 보고서 — Claude 버전</title>
+<title>프로젝트 대시보드 — Claude 버전 보고서</title>
+
+<!-- Tailwind CSS (Play CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide 아이콘 -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #eef1f7; --card: #ffffff; --ink: #1f2733; --sub: #5b6678;
-    --line: #e2e6ee; --indigo: #4f46e5;
-    --green: #15a34a; --blue: #2563eb; --amber: #d97706; --violet: #7c3aed;
-  }
-  body {
-    font-family: "Pretendard", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
-    color: var(--ink); line-height: 1.6;
-    background:
-      radial-gradient(820px 460px at 12% -4%, rgba(79,70,229,.10), transparent 70%),
-      radial-gradient(680px 420px at 96% 4%, rgba(37,99,235,.09), transparent 72%),
-      var(--bg);
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 50px 22px 70px; }
-
-  /* ── 헤더 ── */
-  header { margin-bottom: 26px; }
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 7px;
-    font-size: 11.5px; font-weight: 800; letter-spacing: .12em;
-    color: var(--indigo); text-transform: uppercase; margin-bottom: 12px;
-  }
-  .eyebrow .badge {
-    background: var(--indigo); color: #fff; padding: 3px 9px;
-    border-radius: 999px; letter-spacing: .04em;
-  }
-  h1 { font-size: clamp(27px, 5vw, 38px); line-height: 1.18; letter-spacing: -.01em; }
-  .lede { margin-top: 10px; color: var(--sub); font-size: 14px; max-width: 620px; }
-  .meta { margin-top: 12px; font-size: 12px; color: #8a93a6; }
-
-  /* ── 요약 칩 ── */
-  .summary {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-    margin: 22px 0 30px;
-  }
-  .chip {
-    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
-    padding: 14px 12px; text-align: center;
-  }
-  .chip .num { font-size: 25px; font-weight: 800; line-height: 1; }
-  .chip .cap { font-size: 11.5px; color: var(--sub); margin-top: 6px; font-weight: 600; }
-  @media (max-width: 560px) { .summary { grid-template-columns: repeat(2, 1fr); } }
-
-  /* ── 프로젝트 카드 ── */
-  .card {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 16px; padding: 22px 22px 20px; margin-bottom: 16px;
-    border-left: 5px solid var(--c, var(--indigo));
-    box-shadow: 0 10px 30px rgba(40,54,80,.05);
-  }
-  .card-top { display: flex; align-items: flex-start; gap: 14px; }
-  .ord {
-    font-size: 13px; font-weight: 800; color: #fff; background: var(--c);
-    min-width: 34px; height: 34px; border-radius: 9px;
-    display: grid; place-items: center; flex-shrink: 0;
-  }
-  .card-head { flex: 1; min-width: 0; }
-  .card-head h2 { font-size: 18px; font-weight: 800; }
-  .card-head .label { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
-  .status {
-    flex-shrink: 0; font-size: 11.5px; font-weight: 800;
-    padding: 5px 11px; border-radius: 999px;
-    color: var(--c); background: color-mix(in srgb, var(--c) 12%, white);
-    border: 1px solid color-mix(in srgb, var(--c) 30%, white);
-  }
-
-  /* 진행바 */
-  .bar-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 12px; }
-  .bar { flex: 1; height: 7px; border-radius: 99px; background: #eaedf3; overflow: hidden; }
-  .bar > i { display: block; height: 100%; border-radius: 99px; background: var(--c); }
-  .pct { font-size: 12.5px; font-weight: 800; color: var(--c); min-width: 38px; text-align: right; }
-
-  .desc { font-size: 13.5px; color: #3a4759; }
-
-  .note {
-    margin-top: 12px; padding: 12px 14px; border-radius: 11px;
-    background: color-mix(in srgb, var(--c) 7%, white);
-    border: 1px solid color-mix(in srgb, var(--c) 22%, white);
-    font-size: 12.8px; color: #3a4759;
-  }
-  .note .nh {
-    font-weight: 800; color: var(--c); font-size: 11.5px;
-    letter-spacing: .03em; margin-bottom: 4px; display: block;
-  }
-
-  .stack { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .stack span {
-    font-size: 11px; font-weight: 600; color: var(--sub);
-    background: #f1f3f8; border: 1px solid var(--line);
-    padding: 3px 9px; border-radius: 7px;
-  }
-
-  .links { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
-  .links a {
-    font-size: 12.5px; font-weight: 700; text-decoration: none;
-    color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 35%, white);
-    background: color-mix(in srgb, var(--c) 6%, white);
-    padding: 7px 13px; border-radius: 9px;
-    display: inline-flex; align-items: center; gap: 6px;
-    transition: background .14s ease;
-  }
-  .links a:hover { background: color-mix(in srgb, var(--c) 14%, white); }
-  .links a .ext { font-size: 11px; opacity: .6; }
-
-  footer {
-    margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line);
-    font-size: 11.5px; color: #8a93a6; text-align: center;
-  }
+  body { background:
+    radial-gradient(1000px 520px at 82% -10%, rgba(99,102,241,0.13), transparent 70%),
+    radial-gradient(820px 460px at 0% 108%, rgba(139,92,246,0.11), transparent 70%),
+    #f1f4f9; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes reveal { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+  .reveal { opacity:0; animation: reveal .55s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes growbar { from { width:0; } }
+  .growbar { animation: growbar 1s cubic-bezier(.2,.7,.2,1); }
 </style>
 </head>
-<body>
-<div class="wrap">
 
-  <header>
-    <div class="eyebrow"><span class="badge">CLAUDE 버전</span> 프로젝트 진행 보고서</div>
-    <h1>프로젝트 진행 보고서</h1>
-    <p class="lede">
-      현재 진행 중인 4개 프로젝트의 결과물·상태·다음 단계를 정리한 보고서입니다.
-      Claude 트랙이 독립적으로 작성했습니다.
-    </p>
-    <p class="meta">기준일 2026-05-22 · 작성 Claude · Codex 트랙 보고서는 별도</p>
-  </header>
+<body class="min-h-screen text-slate-700 antialiased selection:bg-indigo-200/60">
 
-  <section class="summary">
-    <div class="chip"><div class="num">4</div><div class="cap">전체 프로젝트</div></div>
-    <div class="chip"><div class="num" style="color:var(--green)">1</div><div class="cap">운영 공개</div></div>
-    <div class="chip"><div class="num" style="color:var(--blue)">2</div><div class="cap">진행 중</div></div>
-    <div class="chip"><div class="num" style="color:var(--violet)">1</div><div class="cap">개발 보류</div></div>
-  </section>
+<div class="flex min-h-screen">
 
-  <!-- 01 · AIS -->
-  <article class="card" style="--c:var(--green)">
-    <div class="card-top">
-      <div class="ord">01</div>
-      <div class="card-head">
-        <h2>AIS Ship Tracker</h2>
-        <div class="label">실시간 선박 위치 추적 웹앱</div>
+  <!-- ===== 좌측 사이드바 ===== -->
+  <aside class="w-[290px] shrink-0 border-r border-slate-200 bg-white/85 backdrop-blur
+               flex flex-col fixed h-screen z-20">
+    <div class="px-6 pt-7 pb-5 border-b border-slate-200">
+      <div class="flex items-center gap-3">
+        <div class="grid place-items-center w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500
+                    shadow-lg shadow-indigo-300/50">
+          <i data-lucide="layout-dashboard" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-[15px] font-extrabold text-slate-900 leading-tight">프로젝트 대시보드</h1>
+          <p class="text-[11px] text-slate-400">Claude 트랙 진행 보고서 · 2026.05.22</p>
+        </div>
       </div>
-      <div class="status">운영 공개</div>
     </div>
-    <div class="bar-row"><div class="bar"><i style="width:100%"></i></div><div class="pct">100%</div></div>
-    <p class="desc">
-      관리 대상 선단의 선박을 지도 위에서 실시간으로 추적하는 웹앱. 운영 노선에 따라
-      ops-main / kyowa-line-ops 두 버전으로 Vercel에 배포되어 운영 중입니다.
-    </p>
-    <div class="note">
-      <span class="nh">현황</span>
-      운영 안정 단계. 이번 점검에서, 형이 Vercel로 배포한 구조라 수정 작업을 하려면
-      연결된 GitHub 저장소 접근 권한이 필요함을 확인했습니다. 권한 확보 시 수정 가능.
-    </div>
-    <div class="stack"><span>Next.js</span><span>React</span><span>TypeScript</span><span>Leaflet</span><span>Vercel</span></div>
-    <div class="links">
-      <a href="https://ais.vercel.co.kr/ops-main" target="_blank" rel="noopener">ops-main 운영판 <span class="ext">↗</span></a>
-      <a href="https://ais.vercel.co.kr/kyowa-line-ops" target="_blank" rel="noopener">kyowa-line-ops <span class="ext">↗</span></a>
-    </div>
-  </article>
 
-  <!-- 02 · Sports -->
-  <article class="card" style="--c:var(--violet)">
-    <div class="card-top">
-      <div class="ord">02</div>
-      <div class="card-head">
-        <h2>Sports Highlight Generator</h2>
-        <div class="label">트래킹 데이터 기반 2D 매치 시각화</div>
-      </div>
-      <div class="status">개발 잠정 보류</div>
-    </div>
-    <div class="bar-row"><div class="bar"><i style="width:78%"></i></div><div class="pct">78%</div></div>
-    <p class="desc">
-      선수·공의 위치 데이터를 2D 경기장에 재생하는 매치 트래커. 매치 트래커에
-      Metrica Sports 공개 실측 25Hz 광학 트래킹 데이터를 적용했습니다.
-    </p>
-    <div class="note">
-      <span class="nh">디렉터 총평 · 개발 잠정 보류 (G.M.PARK)</span>
-      임의의 최신 경기에 대한 선수 연속 광학 트래킹 데이터는 리그 공식 업체가
-      구단·방송사에 유료로만 판매하는 비공개 상업 데이터로, 무료·합법 경로로는
-      Metrica 공개 샘플 외에 확보가 불가능함이 확인됨. 데이터 수급 경로(유료
-      라이선스 도입 또는 이벤트 데이터 기반 재설계)가 정해질 때까지 개발을 잠정 보류.
-    </div>
-    <div class="stack"><span>HTML5 Canvas</span><span>JavaScript</span><span>Tailwind CSS</span><span>Metrica 실측 데이터</span></div>
-    <div class="links">
-      <a href="https://gmpark-creator.github.io/project-dashboard/match-tracker/" target="_blank" rel="noopener">2D 매치 트래커 <span class="ext">↗</span></a>
-    </div>
-  </article>
+    <nav id="projList" class="flex-1 overflow-y-auto px-3.5 py-4 space-y-2"></nav>
 
-  <!-- 03 · Solar -->
-  <article class="card" style="--c:var(--blue)">
-    <div class="card-top">
-      <div class="ord">03</div>
-      <div class="card-head">
-        <h2>Solar System Simulator</h2>
-        <div class="label">실시간 3D 천체 시뮬레이터</div>
-      </div>
-      <div class="status">두 버전 비교 공개</div>
+    <div class="px-5 py-4 border-t border-slate-200">
+      <p class="text-[11px] font-semibold text-slate-400 mb-2.5 tracking-wide">전체 현황</p>
+      <div id="summary" class="grid grid-cols-3 gap-2"></div>
+      <p class="mt-4 text-[10.5px] text-slate-400">개인 열람용 · 최근 업데이트 2026.05.22</p>
     </div>
-    <div class="bar-row"><div class="bar"><i style="width:92%"></i></div><div class="pct">92%</div></div>
-    <p class="desc">
-      태양·행성·달을 날짜 기반으로 배치하는 실시간 3D 천체 시뮬레이터. 같은
-      Step 1~4 설계를 Claude·Codex 두 버전으로 독립 구현해 한 랜딩에서 비교 공개합니다.
-    </p>
-    <div class="note">
-      <span class="nh">이번 작업 (Claude 버전)</span>
-      연 단위 시간 이동을 "즉시 점프"에서 "시간 흐름 연속 재생"으로 개선.
-      «1년 / 1년» 버튼을 누르면 1년치 시간이 약 3초에 걸쳐 재생되며 행성 공전을
-      눈으로 따라가면서 과거·미래로 이동합니다. 누를수록 무제한으로 더 멀리 진행.
-    </div>
-    <div class="stack"><span>Three.js</span><span>WebGL</span><span>JavaScript</span><span>GitHub Pages</span></div>
-    <div class="links">
-      <a href="https://gmpark-creator.github.io/solar-system/" target="_blank" rel="noopener">두 버전 비교 (랜딩) <span class="ext">↗</span></a>
-      <a href="https://gmpark-creator.github.io/solar-system/claude/" target="_blank" rel="noopener">Claude 버전 <span class="ext">↗</span></a>
-      <a href="https://gmpark-creator.github.io/solar-system/codex/" target="_blank" rel="noopener">Codex 버전 <span class="ext">↗</span></a>
-    </div>
-  </article>
+  </aside>
 
-  <!-- 04 · Inst Extractor -->
-  <article class="card" style="--c:var(--amber)">
-    <div class="card-top">
-      <div class="ord">04</div>
-      <div class="card-head">
-        <h2>INST EXTRACTOR</h2>
-        <div class="label">고음질 반주(Inst) 추출기</div>
-      </div>
-      <div class="status">집 데스크탑 검증 대기</div>
-    </div>
-    <div class="bar-row"><div class="bar"><i style="width:68%"></i></div><div class="pct">68%</div></div>
-    <p class="desc">
-      음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 웹앱. 4번째 신규
-      프로젝트로, 믹싱 콘솔 콘셉트 UI와 demucs AI 분리 엔진으로 구성됩니다.
-    </p>
-    <div class="note">
-      <span class="nh">현황 · AI 릴레이 협업</span>
-      Claude 1차 빌드(믹싱 콘솔 UI + FastAPI 골격) → Codex 2차 빌드(demucs 분리
-      로직 구현) → Claude 홈 PC 세팅 준비까지 완료. 레포의 HANDOFF.md 릴레이 로그로
-      인수인계 중. 다음 단계는 집 데스크탑(RTX 4060 Ti)에서의 실음원 추출 검증입니다.
-    </div>
-    <div class="stack"><span>Python 3.12</span><span>FastAPI</span><span>Demucs</span><span>PyTorch CUDA</span><span>HTML5 UI</span></div>
-    <div class="links">
-      <a href="https://github.com/gmpark-creator/inst-extractor" target="_blank" rel="noopener">GitHub 저장소 (비공개) <span class="ext">↗</span></a>
-    </div>
-  </article>
-
-  <footer>
-    프로젝트 진행 보고서 · Claude 버전 · 2026-05-22<br />
-    Codex 트랙은 별도 보고서를 운영합니다 — 두 트랙은 서로 침범하지 않고 독립 진행됩니다.
-  </footer>
+  <!-- ===== 우측 상세 패널 ===== -->
+  <main class="flex-1 ml-[290px] min-w-0">
+    <div id="detail" class="max-w-5xl mx-auto px-8 py-9"></div>
+  </main>
 
 </div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   ▼▼▼  프로젝트 데이터 — 이 부분만 고치면 화면이 바뀝니다  ▼▼▼
+   · status : 'completed'(완성) | 'in-progress'(진행 중) | 'paused'(보류)
+   · 날짜   : 'YYYY-MM-DD'
+   · issues[].type : '완료' | '이슈' | '보류'
+   · preview : 결과물 미리보기
+       - { type:'embed',  items:[{url:'...',label:'...'}] }        → 페이지 안에 라이브 삽입
+       - { type:'images', items:[{src:'previews/x.png',label:'...'}] } → 스크린샷 표시
+   ════════════════════════════════════════════════════════════════ */
+const PROJECTS = [
+  {
+    id: 'ais',
+    name: 'AIS Ship Tracker',
+    subtitle: '실시간 선박 위치 추적 웹 앱',
+    icon: 'ship',
+    platform: '웹 앱 · Vercel 배포',
+    status: 'completed',
+    start: '2025-09-15',          // ← 예시 날짜 (실제 값으로 수정)
+    latest: '2025-12-20',         // ← 예시 날짜 (실제 값으로 수정)
+    progress: 100,
+    link: 'https://ais.vercel.co.kr/ops-main',
+    preview: { type:'embed', items:[
+      { url:'https://ais.vercel.co.kr/ops-main',       label:'ops-main — PEL · MAGE · OCEAN ACE' },
+      { url:'https://ais.vercel.co.kr/kyowa-line-ops', label:'kyowa-line-ops — KYOWA LINE' }
+    ]},
+    summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱. '
+           + '운영 노선에 따라 두 가지 버전으로 배포돼 있다.',
+    method: 'Next.js·React로 UI를 구성하고 Leaflet 지도 위에 선박을 마커로 렌더링한다. '
+          + '선박 선택 시 MMSI·속도(SOG)·침로(COG)·항행 상태를 사이드바에 표시하며, '
+          + 'Vercel에 두 노선 버전(ops-main / kyowa-line-ops)으로 배포했다.',
+    stack: ['Next.js', 'React', 'TypeScript', 'Leaflet', 'Vercel'],
+    versions: [
+      { name: 'ops-main', desc: 'PEL · MAGE · OCEAN ACE 선단 추적 — ais.vercel.co.kr/ops-main' },
+      { name: 'kyowa-line-ops', desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' }
+    ],
+    issues: [
+      { type:'완료', title:'지도 기반 실시간 선박 추적 구현', desc:'Leaflet 지도에 선박 마커·항행 정보를 실시간 표시.' },
+      { type:'완료', title:'2개 노선 버전 Vercel 배포', desc:'ops-main / kyowa-line-ops 두 버전을 웹에 배포해 운영 중.' },
+      { type:'이슈', title:'위치 데이터 소스 정식화 검토', desc:'추후 정식 서비스로 다듬을 경우 합법적 AIS 데이터 API 연동을 함께 검토 예정.' },
+      { type:'이슈', title:'수정 작업엔 레포 접근 권한 필요', desc:'형이 Vercel로 배포한 구조 — 코드 수정 시 연결된 GitHub 저장소 협업자 권한 확보가 선행되어야 함을 확인(2026-05-22).' }
+    ],
+    milestones: [
+      { date:'2025-09-15', title:'프로젝트 시작', desc:'선단 선박 목록·데이터 구조 정의' },
+      { date:'2025-10-10', title:'지도 + 선박 마커', desc:'Leaflet 지도에 선박 렌더링' },
+      { date:'2025-11-15', title:'상세 사이드바 + 자동 갱신', desc:'선박별 정보 패널·주기적 위치 갱신' },
+      { date:'2025-12-20', title:'2개 노선 버전 배포', desc:'ops-main / kyowa-line-ops Vercel 배포' }
+    ]
+  },
+  {
+    id: 'sports',
+    name: 'Sports Highlight Generator',
+    subtitle: '트래킹 데이터 기반 2D 매치 시각화 · 하이라이트 엔진',
+    icon: 'trophy',
+    platform: '웹 애플리케이션',
+    status: 'paused',
+    start: '2026-02-20',          // ← 예시 날짜 (실제 값으로 수정)
+    latest: '2026-05-22',
+    progress: 78,
+    link: 'https://gmpark-creator.github.io/project-dashboard/match-tracker/',
+    preview: { type:'embed', height:600, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/match-tracker/', label:'2D 매치 트래커' }
+    ]},
+    summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를 2D 경기장 위에 재생하는 '
+           + '매치 시뮬레이터. 이를 토대로 하이라이트 장면을 자동 추출하는 것이 최종 목표.',
+    method: '웨어러블 센서(EPTS/GPS) 트래킹 데이터 — 선수 22명과 공의 시간대별 X·Y 좌표 — 를 '
+          + '파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 '
+          + '뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
+    stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS', 'EPTS 트래킹 데이터'],
+    directorNote: {
+      author: 'G.M.PARK',
+      date: '2026-05-22',
+      text: '본 프로젝트는 「실제 경기의 선수·공 위치 데이터를 확보해 2D로 재현한다」는 목표 아래 진행해 왔다. '
+          + '기획 초기 자문(GPT) 단계에서는 경기 데이터 수집이 가능하다는 전제로 출발했고, 디렉터는 이 데이터 확보 문제의 해결을 요구했다. '
+          + '그러나 실제 개발 단계에서 다음 장벽이 확인됐다 — 선수·공의 연속 광학 트래킹 데이터는 리그 공식 트래킹 업체가 '
+          + '구단·방송사에 유료로만 판매하는 비공개 상업 데이터이며, 웹상에 공개돼 있지 않다. 따라서 무료·합법 경로로 확보 가능한 '
+          + '연속 트래킹은 Metrica Sports가 연구용으로 공개한 익명 샘플 몇 경기(및 SkillCorner 공개 소수 경기)에 한정되며, '
+          + '임의의 최신 경기를 경기 종료 직후 트래킹 데이터로 확보하는 것은 유료 라이선스 없이는 구조적으로 불가능함이 드러났다. '
+          + '즉 초기 GPT 자문이 가능하다고 본 「데이터 수집」은 실제로는 Metrica 기본 샘플을 벗어나는 순간 성립하지 않는다. '
+          + '이에 디렉터 판단으로, 데이터 수급 경로(유료 트래킹 라이선스 도입 또는 이벤트 데이터 기반 재설계)가 정해질 때까지 본 프로젝트의 개발을 잠정 보류한다.'
+    },
+    issues: [
+      { type:'완료', title:'2D 매치 트래커 프로토타입 완성', desc:'트래킹 데이터를 2D 경기장에 시각화 — 재생·타임라인·득점 마커·선수 클릭 분석.' },
+      { type:'완료', title:'데이터 기반 방식으로 방향 전환', desc:'영상 CV 추출 대신 웨어러블 위치 데이터 기반으로 전환 — 구현 난도·라이선스 부담 감소.' },
+      { type:'완료', title:'실측 25Hz 광학 트래킹 적용', desc:'Metrica Sports 공개 실측 경기 데이터를 연동 — 재구성이 아닌 실제 트래킹. (임의 최신 경기의 연속 트래킹은 비공개 상업데이터)' },
+      { type:'보류', title:'데이터 수급 장벽 — 개발 잠정 보류', desc:'임의 최신 경기의 선수 연속 광학 트래킹은 비공개 상업 데이터로 웹에 존재하지 않음. 무료·합법 확보 범위는 Metrica 기본 공개 샘플 몇 경기에 한정. 데이터 수급 경로 확정 시까지 디렉터 결정으로 보류.' }
+    ],
+    milestones: [
+      { date:'2026-02-20', title:'프로젝트 시작', desc:'스포츠 하이라이트 엔진 컨셉 정의' },
+      { date:'2026-04-22', title:'설계 수렴', desc:'데이터 기반 2D 점 시각화 방향으로 정리' },
+      { date:'2026-05-22', title:'트래킹 데이터 방식 확정', desc:'영상 CV → 웨어러블/EPTS 위치 데이터 기반으로 전환' },
+      { date:'2026-05-22', title:'2D 매치 트래커 프로토타입', desc:'경기장·재생·타임라인·선수 분석 UI 완성' },
+      { date:'2026-05-22', title:'실측 트래킹 데이터 적용', desc:'Metrica Sports 공개 25Hz 광학 트래킹 — 실측 경기 데이터로 구동' },
+      { date:'2026-05-22', title:'개발 잠정 보류 (디렉터 결정)', desc:'데이터 수급 장벽 확인 — 광학 트래킹 데이터 확보 경로 미정으로 개발 잠정 중단' }
+    ]
+  },
+  {
+    id: 'solar',
+    name: 'Solar System Simulator',
+    subtitle: '3D 실시간 태양계 시뮬레이터',
+    icon: 'orbit',
+    platform: '웹 애플리케이션',
+    status: 'in-progress',
+    start: '2026-05-21',
+    latest: '2026-05-22',
+    progress: 92,
+    link: 'https://gmpark-creator.github.io/solar-system/',
+    preview: { type:'embed', height:520, items:[
+      { url:'https://gmpark-creator.github.io/solar-system/claude/', label:'태양계 — Claude 버전' },
+      { url:'https://gmpark-creator.github.io/solar-system/codex/',  label:'태양계 — Codex 버전' }
+    ]},
+    summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
+           + '같은 Step 1~4 설계를 Claude·Codex 두 버전으로 독립 구현해 한 랜딩에서 비교 공개한다.',
+    method: 'Three.js로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 각 천체 위치를 '
+          + '수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 고도화했고, '
+          + '이후 Claude·Codex 두 버전으로 갈라 비교 배포했다.',
+    stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
+    issues: [
+      { type:'완료', title:'날짜 기반 천체력 엔진', desc:'8행성 공전주기를 실제값 대비 오차 최대 0.22%로 재현.' },
+      { type:'완료', title:'지구–달 정밀 동기화 + 조석 계산', desc:'달 섭동항 12개 반영, 그 위에 조석(물때) 계산을 구축.' },
+      { type:'완료', title:'Claude·Codex 두 버전 비교 공개', desc:'같은 설계를 두 AI가 독립 구현 — /claude/ /codex/ 로 분리 배포, 랜딩에서 선택.' },
+      { type:'완료', title:'시간 흐름 재생 타임머신 (Claude 버전)', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생하도록 변경 — 과거·미래로 무제한 진행.' }
+    ],
+    milestones: [
+      { date:'2026-05-21', title:'Step 1 — 태양·지구·달 실시간', desc:'우주 배경·카메라 조작·실시간 자전/공전' },
+      { date:'2026-05-21', title:'Step 2 — 8행성 + 케플러 천체력', desc:'전 행성 확장, 토성 고리, 지구 NASA 텍스처' },
+      { date:'2026-05-22', title:'Step 3 — 조석(물때) 계산', desc:'조석 팽대부 3D, 물때 패널, 48h 조석곡선' },
+      { date:'2026-05-22', title:'Step 4 — 인터랙션·비주얼 고도화', desc:'타임머신, 클릭 포커싱, 정보 UI, 그림자' },
+      { date:'2026-05-22', title:'Claude·Codex 두 버전 비교 배포', desc:'같은 설계의 두 독립 구현을 랜딩에서 선택' },
+      { date:'2026-05-22', title:'시간 흐름 재생 타임머신', desc:'Claude 버전 — 연 단위 이동을 연속 재생 방식으로 개선' }
+    ]
+  },
+  {
+    id: 'inst',
+    name: 'INST EXTRACTOR',
+    subtitle: '고음질 반주(Inst) 추출기 · 음원 보컬 제거',
+    icon: 'music',
+    platform: '웹 앱 + 로컬 서버',
+    status: 'in-progress',
+    start: '2026-05-22',
+    latest: '2026-05-22',
+    progress: 68,
+    link: 'https://github.com/gmpark-creator/inst-extractor',
+    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 신규 프로젝트. '
+           + '믹싱 콘솔 콘셉트 UI와 demucs AI 분리 엔진으로 구성된다.',
+    method: '프론트엔드는 믹싱 콘솔 다크 UI(사무실 데모 모드 포함), 백엔드는 FastAPI + demucs. '
+          + 'Claude 1차 빌드(UI·API 골격) → Codex 2차 빌드(demucs 분리 로직) → Claude 홈 PC 세팅 준비 순으로 '
+          + 'AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행했다.',
+    stack: ['Python 3.12', 'FastAPI', 'Demucs', 'PyTorch CUDA', 'HTML5 · Tailwind'],
+    issues: [
+      { type:'완료', title:'Claude 1차 빌드 — UI + API 골격', desc:'믹싱 콘솔 UI(사무실 데모 모드 포함) + FastAPI /extract 엔드포인트 골격.' },
+      { type:'완료', title:'Codex 2차 빌드 — demucs 분리 로직', desc:'separate_instrumental() 구현 — CUDA/CPU 자동 분기, vocals 제외 합산, WAV 저장.' },
+      { type:'완료', title:'홈 PC 세팅 준비', desc:'집 데스크탑(RTX 4060 Ti)용 입문자 가이드 + 자동 설치 스크립트 준비.' },
+      { type:'이슈', title:'집 데스크탑 실음원 검증 대기', desc:'RTX 4060 Ti에서 실제 음원으로 보컬 제거 품질·처리 시간·VRAM 확인 필요.' }
+    ],
+    milestones: [
+      { date:'2026-05-22', title:'레포 초기 빌드 (Claude)', desc:'프로젝트 #4 신설 — UI + FastAPI 골격 + 인수인계 문서' },
+      { date:'2026-05-22', title:'demucs 분리 로직 구현 (Codex)', desc:'AI 릴레이로 인수 — 핵심 분리 함수 구현' },
+      { date:'2026-05-22', title:'홈 PC 세팅 준비 (Claude)', desc:'집 데스크탑 실음원 검증용 자동 세팅 일체 준비' }
+    ]
+  }
+];
+/* ▲▲▲  데이터 끝  ▲▲▲ */
+
+// ===== 상태 / 타입 메타 (밝은 테마) =====
+const STATUS = {
+  'completed':   { label:'완성',    en:'Completed',   dot:'bg-emerald-500',
+    badge:'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', bar:'from-emerald-500 to-teal-400' },
+  'in-progress': { label:'진행 중', en:'In Progress', dot:'bg-amber-500',
+    badge:'bg-amber-50 text-amber-700 ring-1 ring-amber-200',       bar:'from-amber-500 to-orange-400' },
+  'paused':      { label:'보류',    en:'Paused',      dot:'bg-violet-500',
+    badge:'bg-violet-50 text-violet-700 ring-1 ring-violet-200',    bar:'from-violet-500 to-fuchsia-400' }
+};
+const ITYPE = {
+  '완료': { cls:'bg-emerald-50 text-emerald-700 ring-emerald-200', icon:'check-circle-2' },
+  '이슈': { cls:'bg-amber-50 text-amber-700 ring-amber-200',       icon:'alert-triangle' },
+  '보류': { cls:'bg-violet-50 text-violet-700 ring-violet-200',    icon:'pause-circle' }
+};
+
+// ===== 헬퍼 =====
+const $ = s => document.querySelector(s);
+function parseD(s) { return new Date(s + 'T00:00:00'); }
+function fmtD(s) {
+  const d = parseD(s);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+}
+function durationText(a, b) {
+  const days = Math.round((parseD(b) - parseD(a)) / 86400000);
+  if (days < 1) return '1일';
+  if (days < 31) return days + '일';
+  const m = Math.round(days / 30.44);
+  return m < 12 ? '약 ' + m + '개월' : '약 ' + (days/365.25).toFixed(1) + '년';
+}
+function stackIcon(t) {
+  const s = t.toLowerCase();
+  if (/three|webgl|3d/.test(s)) return 'box';
+  if (/electron/.test(s)) return 'app-window';
+  if (/next|react/.test(s)) return 'atom';
+  if (/vercel|github|pages|배포/.test(s)) return 'git-branch';
+  if (/script|html|css|type/.test(s)) return 'code';
+  if (/python/.test(s)) return 'terminal';
+  if (/leaflet|map|지도/.test(s)) return 'map';
+  if (/ai|모델|파이프/.test(s)) return 'cpu';
+  if (/영상|video/.test(s)) return 'film';
+  return 'box';
+}
+
+// ===== 사이드바 =====
+let activeId = 'solar';
+function renderSidebar() {
+  $('#projList').innerHTML = PROJECTS.map(p => {
+    const st = STATUS[p.status];
+    const on = p.id === activeId;
+    return `
+    <button data-id="${p.id}"
+      class="proj-btn group w-full text-left rounded-xl p-3 flex items-center gap-3 transition-all duration-200
+             ${on ? 'bg-indigo-50 ring-1 ring-indigo-200 shadow-sm'
+                  : 'hover:bg-slate-100'}">
+      <div class="grid place-items-center w-10 h-10 rounded-lg shrink-0 transition-colors
+                  ${on ? 'bg-indigo-500 text-white shadow-md shadow-indigo-300/50'
+                       : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'}">
+        <i data-lucide="${p.icon}" class="w-5 h-5"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] font-semibold truncate ${on ? 'text-indigo-900' : 'text-slate-700'}">${p.name}</p>
+        <p class="text-[11px] text-slate-400 truncate">${p.subtitle}</p>
+      </div>
+      <span class="w-2 h-2 rounded-full shrink-0 ${st.dot}"></span>
+    </button>`;
+  }).join('');
+  $('#projList').querySelectorAll('.proj-btn').forEach(b =>
+    b.addEventListener('click', () => selectProject(b.dataset.id)));
+}
+function renderSummary() {
+  const cnt = { completed:0, 'in-progress':0, paused:0 };
+  PROJECTS.forEach(p => cnt[p.status]++);
+  const cell = (n, label, color) => `
+    <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 px-2 py-2.5 text-center">
+      <div class="text-lg font-extrabold ${color}">${n}</div>
+      <div class="text-[10px] text-slate-400 mt-0.5">${label}</div>
+    </div>`;
+  $('#summary').innerHTML =
+    cell(cnt.completed,'완성','text-emerald-600') +
+    cell(cnt['in-progress'],'진행 중','text-amber-600') +
+    cell(cnt.paused,'보류','text-violet-600');
+}
+
+// ===== 결과물 미리보기 =====
+function resultBlock(p) {
+  const pv = p.preview;
+  if (!pv) return '';
+  let body, note;
+  if (pv.type === 'embed') {
+    const multi = pv.items.length > 1;
+    const h = pv.height || (multi ? 380 : 460);
+    body = pv.items.map(it => `
+      <div class="mb-5 last:mb-0">
+        ${multi ? `<div class="flex items-center gap-1.5 mb-2 text-[12.5px] font-bold text-slate-700">
+          <i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i>${it.label}</div>` : ''}
+        <div class="rounded-xl overflow-hidden ring-1 ring-slate-200 bg-slate-900">
+          <iframe src="${it.url}" loading="lazy" title="${it.label}"
+                  class="w-full block" style="height:${h}px;border:0"></iframe>
+        </div>
+        <a href="${it.url}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 mt-2 text-[12px] font-semibold text-indigo-600 hover:text-indigo-500">
+          <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>새 탭에서 열기 — ${it.url}</a>
+      </div>`).join('');
+    note = '웹 앱이라 보고서 페이지 안에서 바로 실행됩니다.';
+  } else {
+    body = `<div class="grid sm:grid-cols-2 gap-4">` + pv.items.map(it => {
+      const fname = it.src.split('/').pop();
+      return `
+      <figure class="rounded-xl overflow-hidden ring-1 ring-slate-200 bg-slate-50">
+        <img src="${it.src}" alt="${it.label}" class="w-full block bg-slate-100"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div style="display:none" class="flex-col items-center justify-center gap-2 h-48 text-center px-5">
+          <i data-lucide="image-plus" class="w-7 h-7 text-slate-300"></i>
+          <p class="text-[11.5px] text-slate-400 leading-relaxed">
+            스크린샷 대기 중 — <code class="text-slate-500 text-[10.5px]">previews/${fname}</code><br>
+            이 파일명으로 저장하면 여기에 자동 표시됩니다</p>
+        </div>
+        <figcaption class="px-3 py-2 text-[12px] font-semibold text-slate-600 bg-white border-t border-slate-200
+                           flex items-center gap-1.5">
+          <i data-lucide="image" class="w-3.5 h-3.5 text-indigo-500"></i>${it.label}</figcaption>
+      </figure>`;
+    }).join('') + `</div>`;
+    note = '개발용 앱이라 실행 화면 스크린샷으로 표시합니다.';
+  }
+  return `
+    <section class="reveal mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" style="animation-delay:170ms">
+      <div class="flex items-center gap-2.5 mb-1">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="monitor-play" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">결과물 미리보기</h3>
+      </div>
+      <p class="text-[11.5px] text-slate-400 mb-4 ml-[42px]">${note}</p>
+      ${body}
+    </section>`;
+}
+
+// ===== 상세 패널 =====
+function renderDetail(p) {
+  const st = STATUS[p.status];
+  const span = Math.max(1, parseD(p.latest) - parseD(p.start));
+
+  const dots = p.milestones.map(m => {
+    const f = Math.min(100, Math.max(0, (parseD(m.date) - parseD(p.start)) / span * 100));
+    return `<div class="absolute -top-[7px] w-4 h-4 rounded-full bg-white ring-2 ring-slate-300
+                 hover:ring-indigo-400 hover:scale-125 transition-all cursor-default shadow-sm"
+                 style="left:calc(${f}% - 8px)" title="${m.date} · ${m.title}"></div>`;
+  }).join('');
+
+  const stack = p.stack.map(t => `
+    <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 ring-1 ring-slate-200
+                 px-2.5 py-1.5 text-[12px] text-slate-600 font-medium">
+      <i data-lucide="${stackIcon(t)}" class="w-3.5 h-3.5 text-indigo-500"></i>${t}
+    </span>`).join('');
+
+  const issues = p.issues.map(it => {
+    const m = ITYPE[it.type];
+    return `
+    <div class="flex gap-3.5 rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-3.5">
+      <span class="grid place-items-center w-9 h-9 rounded-lg shrink-0 ring-1 ${m.cls}">
+        <i data-lucide="${m.icon}" class="w-[18px] h-[18px]"></i>
+      </span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[10.5px] font-bold px-1.5 py-0.5 rounded ring-1 ${m.cls}">${it.type}</span>
+          <p class="text-[13px] font-semibold text-slate-800">${it.title}</p>
+        </div>
+        <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">${it.desc}</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  const timeline = p.milestones.map((m, i) => {
+    const last = i === p.milestones.length - 1;
+    return `
+    <div class="relative pl-8 ${last ? '' : 'pb-5'}">
+      ${last ? '' : '<div class="absolute left-[7px] top-4 bottom-0 w-px bg-slate-200"></div>'}
+      <div class="absolute left-0 top-1 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${st.bar} ring-4 ring-white shadow"></div>
+      <p class="text-[11px] font-semibold text-indigo-600">${fmtD(m.date)}</p>
+      <p class="text-[13.5px] font-semibold text-slate-800 mt-0.5">${m.title}</p>
+      <p class="text-[12px] text-slate-500 mt-0.5">${m.desc}</p>
+    </div>`;
+  }).join('');
+
+  const versionsBlock = p.versions ? `
+    <section class="reveal lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm
+             hover:shadow-md transition-shadow" style="animation-delay:350ms">
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="layers-3" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">운영 버전</h3>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        ${p.versions.map(v => `
+          <div class="rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="git-fork" class="w-4 h-4 text-indigo-500"></i>
+              <p class="text-[13px] font-bold text-slate-800">${v.name}</p>
+            </div>
+            <p class="text-[12px] text-slate-500 mt-1.5 leading-relaxed">${v.desc}</p>
+          </div>`).join('')}
+      </div>
+    </section>` : '';
+
+  const directorBlock = p.directorNote ? `
+    <section class="reveal mt-7 rounded-2xl border border-violet-200 border-l-4 border-l-violet-500
+             bg-violet-50/60 p-6 shadow-sm" style="animation-delay:60ms">
+      <div class="flex items-center gap-2.5 mb-3">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-violet-100 text-violet-600">
+          <i data-lucide="gavel" class="w-[18px] h-[18px]"></i></span>
+        <div>
+          <h3 class="text-[14px] font-bold text-slate-800">디렉터 총평 · 개발 잠정 보류</h3>
+          <p class="text-[11px] text-slate-500">개발자 디렉터 ${p.directorNote.author} · ${fmtD(p.directorNote.date)}</p>
+        </div>
+      </div>
+      <p class="text-[13px] text-slate-700 leading-relaxed">${p.directorNote.text}</p>
+    </section>` : '';
+
+  const chip = (icon, label, val) => `
+    <div class="flex items-center gap-2.5 rounded-xl bg-white ring-1 ring-slate-200 px-3.5 py-2.5 shadow-sm">
+      <i data-lucide="${icon}" class="w-4 h-4 text-indigo-500"></i>
+      <div><p class="text-[10px] text-slate-400 leading-none">${label}</p>
+        <p class="text-[13px] font-semibold text-slate-800 mt-1">${val}</p></div>
+    </div>`;
+
+  const card = (icon, title, body, delay, span2) => `
+    <section class="reveal ${span2 ? 'lg:col-span-2' : ''} rounded-2xl border border-slate-200 bg-white
+             p-6 shadow-sm hover:shadow-md transition-shadow" style="animation-delay:${delay}ms">
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="${icon}" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">${title}</h3>
+      </div>${body}
+    </section>`;
+
+  $('#detail').innerHTML = `
+    <!-- 히어로 -->
+    <header class="reveal" style="animation-delay:0ms">
+      <div class="flex items-start gap-5 flex-wrap">
+        <div class="grid place-items-center w-16 h-16 rounded-2xl bg-gradient-to-br ${st.bar} shadow-lg shadow-slate-300/60">
+          <i data-lucide="${p.icon}" class="w-8 h-8 text-white"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h2 class="text-[26px] font-extrabold text-slate-900 leading-tight">${p.name}</h2>
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-bold px-2.5 py-1 rounded-full ${st.badge}">
+              <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>${st.label} · ${st.en}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap mt-1.5">
+            <p class="text-[13.5px] text-slate-500">${p.subtitle}</p>
+            <span class="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-100 ring-1 ring-slate-200
+                         rounded-full px-2 py-0.5">
+              <i data-lucide="monitor" class="w-3 h-3"></i>${p.platform}</span>
+          </div>
+        </div>
+        ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition-colors
+                 px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-indigo-300/50">
+          <i data-lucide="external-link" class="w-4 h-4"></i>라이브 보기</a>` : ''}
+      </div>
+      <p class="text-[13.5px] text-slate-600 leading-relaxed mt-5 max-w-3xl">${p.summary}</p>
+    </header>
+
+    ${directorBlock}
+
+    <!-- 가로형 타임라인 바 -->
+    <section class="reveal mt-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" style="animation-delay:80ms">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-[13px] font-bold text-slate-700 flex items-center gap-2">
+          <i data-lucide="git-commit-horizontal" class="w-4 h-4 text-indigo-500"></i>진행 타임라인</h3>
+        <span class="text-[12px] font-semibold ${st.badge.split(' ')[1]}">진척도 ${p.progress}%</span>
+      </div>
+      <div class="relative mt-5 mb-1">
+        <div class="h-2.5 rounded-full bg-slate-200"></div>
+        <div class="growbar absolute top-0 h-2.5 rounded-full bg-gradient-to-r ${st.bar}"
+             style="width:${p.progress}%"></div>
+        ${dots}
+      </div>
+      <div class="flex justify-between text-[11.5px] text-slate-400 mt-3">
+        <span class="flex items-center gap-1"><i data-lucide="play" class="w-3 h-3"></i>${fmtD(p.start)}</span>
+        <span class="flex items-center gap-1">${fmtD(p.latest)}<i data-lucide="flag" class="w-3 h-3"></i></span>
+      </div>
+    </section>
+
+    <!-- 퀵 스탯 -->
+    <div class="reveal grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4" style="animation-delay:140ms">
+      ${chip('calendar-clock','진행 기간', durationText(p.start, p.latest))}
+      ${chip('milestone','마일스톤', p.milestones.length + '단계')}
+      ${chip('layers','기술 스택', p.stack.length + '종')}
+      ${chip('activity','현재 상태', st.label)}
+    </div>
+
+    <!-- 결과물 미리보기 -->
+    ${resultBlock(p)}
+
+    <!-- 카드 그리드 -->
+    <div class="grid lg:grid-cols-2 gap-5 mt-5">
+      ${card('workflow','진행 방식',
+        `<p class="text-[13px] text-slate-600 leading-relaxed">${p.method}</p>`, 200)}
+      ${card('layers','기술 스택',
+        `<div class="flex flex-wrap gap-2">${stack}</div>`, 260)}
+      ${versionsBlock}
+      ${card('clipboard-list','핵심 이슈 · 완료 내역',
+        `<div class="grid sm:grid-cols-2 gap-3">${issues}</div>`, 320, true)}
+      ${card('git-commit-vertical','프로젝트 마일스톤',
+        `<div class="mt-1">${timeline}</div>`, 380, true)}
+    </div>
+
+    <p class="text-[11px] text-slate-400 text-center mt-8">
+      AI 협업 진행 보고서 · GPT × Claude &nbsp;|&nbsp; 데이터는 코드 상단 <code class="text-slate-500">PROJECTS</code> 객체에서 수정
+    </p>`;
+
+  lucide.createIcons();
+}
+
+// ===== 프로젝트 선택 =====
+function selectProject(id) {
+  activeId = id;
+  renderSidebar();
+  renderDetail(PROJECTS.find(p => p.id === id));
+  window.scrollTo({ top:0, behavior:'smooth' });
+  lucide.createIcons();
+}
+
+// ===== 초기화 =====
+renderSidebar();
+renderSummary();
+selectProject(activeId);
+lucide.createIcons();
+</script>
 </body>
 </html>
