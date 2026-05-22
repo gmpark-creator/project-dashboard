@@ -17,3 +17,10 @@
 2. Sports Highlight Generator
 3. Solar System Simulator
 4. INST EXTRACTOR
+
+## 최신 반영
+
+- 태양계 Codex / Claude 공개 비교 경로 분리
+- 태양계 1년 전후 이동을 시간 흐름형 재생 방식으로 변경
+- 태양계 Codex 버전 행성 텍스처 품질 개선
+- INST EXTRACTOR 집 데스크탑 실행 인수인계 문서와 스크립트 반영

@@ -1,7 +1,7 @@
 import { reportData } from './report-data.js';
 
 const $ = (selector) => document.querySelector(selector);
-let activeProjectId = reportData.projects[0].id;
+let activeProjectId = reportData.projects[2].id;
 let activePreviewIndex = 0;
 
 function healthMeta(health) {

@@ -15,11 +15,11 @@ https://gmpark-creator.github.io/project-dashboard/codex/
 
 ## 이번 업데이트
 
-- 4번 프로젝트 `INST EXTRACTOR` 추가
-- 3번 태양계 프로젝트를 `Solar Project - Codex`, `Solar Project - Claude` 공개 경로로 분리
-- 집 데스크탑 실행 안내를 보고서에 반영
-- `codex/inst-extractor/index.html` 정적 브리핑 페이지 추가
-- 기존 3개 프로젝트 요약, 리스크, 다음 액션을 4개 프로젝트 체계로 재정렬
+- 태양계 `Solar Project - Codex`, `Solar Project - Claude` 공개 경로 반영
+- 태양계 1년 전후 이동을 즉시 점프가 아닌 시간 흐름형 재생으로 반영
+- Codex 태양계 버전의 지구/행성 텍스처 개선 내역 반영
+- INST EXTRACTOR 집 데스크탑 실행 안내와 인수인계 상태 반영
+- 보고서 본문과 버튼 라벨의 깨진 문자열 정리
 
 ## 데이터 수정 위치
 
