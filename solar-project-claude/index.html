@@ -779,6 +779,9 @@ function updateSidebar(key) {
 // ===== HUD / 조석 패널 =====
 const $ = id => document.getElementById(id);
 const SPEEDS = [-31557600,-2629800,-604800,-86400,-3600,-60,-1, 1,60,3600,86400,604800,2629800,31557600];
+const TIME_TRAVEL_YEAR_SECONDS = 9;
+const TIME_TRAVEL_MIN_SECONDS = 2.2;
+const TIME_TRAVEL_MAX_SECONDS = 14;
 let speedIndex = SPEEDS.indexOf(1);
 function speedLabel(v) {
   const a=Math.abs(v); let s;
@@ -802,7 +805,9 @@ function updateHUD(st,now) {
   lastHud = now;
   $('tmDate').textContent = ymd(simTime);
   $('hudTime').textContent = st.date.toLocaleString('ko-KR',{ dateStyle:'short', timeStyle:'medium' });
-  $('hudSpeed').textContent = paused ? '⏸ 일시정지' : speedLabel(SPEEDS[speedIndex]);
+  $('hudSpeed').textContent = timeTravel
+    ? (timeTravel.direction < 0 ? '과거로 재생' : '미래로 재생')
+    : (paused ? '⏸ 일시정지' : speedLabel(SPEEDS[speedIndex]));
   $('hudFocus').textContent = focusKey==='system' ? '태양계 전체' : INFO[focusKey].name;
   $('hudRot').textContent = st.rotDeg.toFixed(1)+'°';
   $('hudPhase').textContent = st.phaseName+' · '+Math.round(st.illum*100)+'%';
@@ -933,6 +938,7 @@ LOCATIONS.forEach((L,idx)=>{ const o=document.createElement('option'); o.value=i
 tideLocSel.onchange = () => { curLoc=LOCATIONS[+tideLocSel.value]; drawTideCurve(true); };
 
 let paused = false;
+let timeTravel = null;
 function togglePause() {
   paused=!paused;
   $('btnPause').textContent = paused?'▶ 재생':'⏸ 정지';
@@ -942,7 +948,7 @@ $('btnPause').onclick = togglePause;
 
 const slider=$('speedSlider');
 function syncSpeed() { slider.value=speedIndex; $('speedVal').textContent=speedLabel(SPEEDS[speedIndex]); }
-slider.oninput = () => { speedIndex=+slider.value; $('speedVal').textContent=speedLabel(SPEEDS[speedIndex]); };
+slider.oninput = () => { timeTravel=null; speedIndex=+slider.value; $('speedVal').textContent=speedLabel(SPEEDS[speedIndex]); };
 
 $('btnScale').onclick = () => {
   scaleMode = scaleMode==='visual'?'real':'visual';
@@ -964,21 +970,33 @@ $('btnView').onclick = () => startFocus(focusKey,false);
 $('sbBack').onclick = () => startFocus('system',false);
 
 // 타임머신 — 날짜 점프
-function jump(unit,amt) {
+function travelTarget(unit,amt) {
   const d=new Date(simTime);
   if (unit==='week') d.setDate(d.getDate()+amt*7);
   else if (unit==='month') d.setMonth(d.getMonth()+amt);
   else if (unit==='year') d.setFullYear(d.getFullYear()+amt);
-  simTime = d.getTime();
+  return d.getTime();
+}
+function startTimeTravel(targetMs) {
+  if (!Number.isFinite(targetMs) || targetMs===simTime) return;
+  const deltaMs=targetMs-simTime;
+  const years=Math.abs(deltaMs)/(365.2425*86400000);
+  const duration=Math.min(TIME_TRAVEL_MAX_SECONDS,Math.max(TIME_TRAVEL_MIN_SECONDS,years*TIME_TRAVEL_YEAR_SECONDS));
+  timeTravel={ targetMs, direction:Math.sign(deltaMs), velocityMsPerSecond:deltaMs/duration };
+  paused=false;
+  $('btnPause').classList.remove('on');
+}
+function jump(unit,amt) {
+  startTimeTravel(travelTarget(unit,amt));
 }
 for (const b of document.querySelectorAll('#tmBtns button[data-u]'))
   b.onclick = () => jump(b.dataset.u,+b.dataset.a);
-$('tmReset').onclick = () => { simTime=Date.now(); speedIndex=SPEEDS.indexOf(1); syncSpeed(); if(paused)togglePause(); };
+$('tmReset').onclick = () => { timeTravel=null; simTime=Date.now(); speedIndex=SPEEDS.indexOf(1); syncSpeed(); if(paused)togglePause(); };
 
 addEventListener('keydown', e=>{
   if (e.code==='Space'){ e.preventDefault(); togglePause(); }
-  else if (e.code==='ArrowRight'){ speedIndex=Math.min(SPEEDS.length-1,speedIndex+1); syncSpeed(); }
-  else if (e.code==='ArrowLeft'){ speedIndex=Math.max(0,speedIndex-1); syncSpeed(); }
+  else if (e.code==='ArrowRight'){ timeTravel=null; speedIndex=Math.min(SPEEDS.length-1,speedIndex+1); syncSpeed(); }
+  else if (e.code==='ArrowLeft'){ timeTravel=null; speedIndex=Math.max(0,speedIndex-1); syncSpeed(); }
   else if (e.key==='r'||e.key==='R') startFocus(focusKey,false);
 });
 addEventListener('resize', ()=>{
@@ -1002,7 +1020,18 @@ function animate() {
   const now=performance.now();
   let dt=(now-prevT)/1000; prevT=now;
   if (dt>0.1) dt=0.1;
-  if (!paused) simTime += dt*1000*SPEEDS[speedIndex];
+  if (timeTravel && !paused) {
+    const nextSimTime=simTime+dt*timeTravel.velocityMsPerSecond;
+    const reached=timeTravel.direction>0 ? nextSimTime>=timeTravel.targetMs : nextSimTime<=timeTravel.targetMs;
+    if (reached) {
+      simTime=timeTravel.targetMs;
+      timeTravel=null;
+      speedIndex=SPEEDS.indexOf(1);
+      syncSpeed();
+    } else {
+      simTime=nextSimTime;
+    }
+  } else if (!paused) simTime += dt*1000*SPEEDS[speedIndex];
 
   const st=computeState(new Date(simTime));
   updateScene(st);

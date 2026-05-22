@@ -38,6 +38,9 @@ const SCALES = {
 const SPEEDS = [-604800, -86400, -21600, -3600, -600, -60, -10, -1, 1, 10, 60, 100, 600, 3600, 21600, 86400, 604800];
 const TIMELINE_SPAN_DAYS = 730;
 const TIMELINE_RECENTER_THRESHOLD_DAYS = 700;
+const TRAVEL_SECONDS_PER_YEAR = 9;
+const TRAVEL_MIN_SECONDS = 2.2;
+const TRAVEL_MAX_SECONDS = 14;
 
 const PLANET_DEFS = [
   {
@@ -1006,6 +1009,7 @@ let lastSolarOrbitBucket = Number.NaN;
 let firstFrameRendered = false;
 let timeInputFocused = false;
 let cameraTween = null;
+let calendarTravel = null;
 
 function currentScale() {
   return SCALES[scaleMode];
@@ -1048,6 +1052,7 @@ function updateTimeControls() {
 
 function setSimulationTime(ms, options = {}) {
   if (!Number.isFinite(ms)) return;
+  if (!options.keepTravel) calendarTravel = null;
   simulationMs = ms;
   if (options.recenter) recenterTimeline(ms);
   if (options.pause) paused = true;
@@ -1058,6 +1063,7 @@ function setSimulationTime(ms, options = {}) {
 }
 
 function jumpToLive() {
+  calendarTravel = null;
   simulationMs = Date.now();
   recenterTimeline(simulationMs);
   speedIndex = SPEEDS.indexOf(1);
@@ -1071,12 +1077,34 @@ function resetToBaseDate() {
   setSimulationTime(BASE_SIMULATION_MS, { resume: true, recenter: true });
 }
 
-function shiftCalendar({ days = 0, months = 0, years = 0 }) {
+function calendarTarget({ days = 0, months = 0, years = 0 }) {
   const date = new Date(simulationMs);
   if (years) date.setFullYear(date.getFullYear() + years);
   if (months) date.setMonth(date.getMonth() + months);
   if (days) date.setDate(date.getDate() + days);
-  setSimulationTime(date.getTime(), { resume: true, recenter: true });
+  return date.getTime();
+}
+
+function startCalendarTravel(targetMs) {
+  if (!Number.isFinite(targetMs) || targetMs === simulationMs) return;
+  const deltaMs = targetMs - simulationMs;
+  const years = Math.abs(deltaMs) / (365.2425 * DAY_MS);
+  const durationSeconds = Math.min(
+    TRAVEL_MAX_SECONDS,
+    Math.max(TRAVEL_MIN_SECONDS, years * TRAVEL_SECONDS_PER_YEAR),
+  );
+  calendarTravel = {
+    targetMs,
+    direction: Math.sign(deltaMs),
+    velocityMsPerSecond: deltaMs / durationSeconds,
+  };
+  paused = false;
+  setButtonStates();
+  updateTimeControls();
+}
+
+function shiftCalendar({ days = 0, months = 0, years = 0 }) {
+  startCalendarTravel(calendarTarget({ days, months, years }));
 }
 
 function applyJumpToken(token) {
@@ -1398,7 +1426,9 @@ function updateHud(state, now) {
   readouts.date.textContent = localDateValue(state.date.getTime());
   readouts.local.textContent = localFormatter.format(state.date);
   readouts.utc.textContent = state.date.toISOString().replace('T', ' ').slice(0, 19);
-  readouts.speed.textContent = paused ? '정지' : speedLabel(SPEEDS[speedIndex]);
+  readouts.speed.textContent = calendarTravel
+    ? (calendarTravel.direction < 0 ? '과거로 재생' : '미래로 재생')
+    : (paused ? '정지' : speedLabel(SPEEDS[speedIndex]));
   readouts.gmst.textContent = `${state.gmst.toFixed(2)}°`;
   readouts.phase.textContent = `${moonPhaseName(state.phaseAngle)} ${Math.round(state.illumination * 100)}%`;
   readouts.moonDistance.textContent = formatKm(state.earthMoonKm);
@@ -1407,6 +1437,7 @@ function updateHud(state, now) {
 }
 
 function changeSpeed(delta) {
+  calendarTravel = null;
   speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, speedIndex + delta));
   setButtonStates();
   updateTimeControls();
@@ -1415,6 +1446,7 @@ function changeSpeed(delta) {
 function setSpeedValue(value) {
   const index = SPEEDS.indexOf(value);
   if (index === -1) return;
+  calendarTravel = null;
   speedIndex = index;
   setButtonStates();
   updateTimeControls();
@@ -1535,7 +1567,21 @@ function animate(now) {
   if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) deltaSeconds = 0;
   deltaSeconds = Math.min(deltaSeconds, 0.1);
 
-  if (!paused) {
+  if (calendarTravel && !paused) {
+    const nextSimulationMs = simulationMs + deltaSeconds * calendarTravel.velocityMsPerSecond;
+    const reached = calendarTravel.direction > 0
+      ? nextSimulationMs >= calendarTravel.targetMs
+      : nextSimulationMs <= calendarTravel.targetMs;
+    if (reached) {
+      simulationMs = calendarTravel.targetMs;
+      calendarTravel = null;
+      speedIndex = SPEEDS.indexOf(1);
+      paused = false;
+      setButtonStates();
+    } else {
+      simulationMs = nextSimulationMs;
+    }
+  } else if (!paused) {
     simulationMs += deltaSeconds * 1000 * SPEEDS[speedIndex];
   }
 
