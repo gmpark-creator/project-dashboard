@@ -88,13 +88,13 @@ export const reportData = {
       links: [
         {
           label: 'Codex 버전',
-          url: './solar-codex/index.html',
-          probe: 'Local build',
+          url: '../solar-project-codex/',
+          probe: 'GitHub Pages',
           note: '모듈 구조와 날짜 기반 UI',
         },
         {
           label: '비교 버전',
-          url: 'https://gmpark-creator.github.io/solar-system/',
+          url: '../solar-project-claude/',
           probe: 'HTTP 200',
           note: '단일 HTML 배포 버전',
         },
