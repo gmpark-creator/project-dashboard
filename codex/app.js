@@ -16,7 +16,7 @@ function renderSummary() {
   $('#summary-cards').innerHTML = reportData.projects.map((project) => {
     const meta = healthMeta(project.health);
     return `
-      <button class="summary-card ${project.id === activeProjectId ? 'is-active' : ''}" data-project="${project.id}">
+      <button class="summary-card project-${project.id} ${project.id === activeProjectId ? 'is-active' : ''}" data-project="${project.id}">
         <span class="order">${project.order}</span>
         <span class="state ${meta.tone}">${project.state}</span>
         <strong>${project.label}</strong>
@@ -37,7 +37,7 @@ function renderTabs() {
   $('#project-tabs').innerHTML = reportData.projects.map((project) => {
     const meta = healthMeta(project.health);
     return `
-      <button class="project-tab ${project.id === activeProjectId ? 'is-active' : ''}" data-project="${project.id}">
+      <button class="project-tab project-${project.id} ${project.id === activeProjectId ? 'is-active' : ''}" data-project="${project.id}">
         <span>${project.order}</span>
         <strong>${project.name}</strong>
         <small>${meta.label}</small>
