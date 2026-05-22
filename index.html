@@ -121,7 +121,7 @@ const PROJECTS = [
     latest: '2026-05-22',
     progress: 70,
     link: 'https://gmpark-creator.github.io/project-dashboard/match-tracker/',
-    preview: { type:'embed', height:560, items:[
+    preview: { type:'embed', height:600, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/match-tracker/', label:'2D 매치 트래커' }
     ]},
     summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를 2D 경기장 위에 재생하는 '
@@ -133,13 +133,14 @@ const PROJECTS = [
     issues: [
       { type:'완료', title:'2D 매치 트래커 프로토타입 완성', desc:'트래킹 데이터를 2D 경기장에 시각화 — 재생·타임라인·득점 마커·선수 클릭 분석.' },
       { type:'완료', title:'데이터 기반 방식으로 방향 전환', desc:'영상 CV 추출 대신 웨어러블 위치 데이터 기반으로 전환 — 구현 난도·라이선스 부담 감소.' },
-      { type:'이슈', title:'실제 트래킹 데이터 확보', desc:'현재는 가상 EPTS 데이터로 구동. 실제 경기 데이터 수급 경로 확정이 필요.' }
+      { type:'이슈', title:'연속 트래킹은 재구성(추정)', desc:'팀·스코어·득점·시각은 실제 경기 사실. 선수의 연속 움직임은 그 사실을 앵커로 한 재구성 — 실측 트래킹은 상업 데이터라 미확보.' }
     ],
     milestones: [
       { date:'2026-02-20', title:'프로젝트 시작', desc:'스포츠 하이라이트 엔진 컨셉 정의' },
       { date:'2026-04-22', title:'설계 수렴', desc:'데이터 기반 2D 점 시각화 방향으로 정리' },
       { date:'2026-05-22', title:'트래킹 데이터 방식 확정', desc:'영상 CV → 웨어러블/EPTS 위치 데이터 기반으로 전환' },
-      { date:'2026-05-22', title:'2D 매치 트래커 프로토타입', desc:'경기장·재생·타임라인·선수 분석 UI 완성' }
+      { date:'2026-05-22', title:'2D 매치 트래커 프로토타입', desc:'경기장·재생·타임라인·선수 분석 UI 완성' },
+      { date:'2026-05-22', title:'실제 경기 2건 반영', desc:'알 나스르 4-1 다막 · 아스날 1-0 번리 — 45+45분 재구성' }
     ]
   },
   {

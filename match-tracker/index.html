@@ -3,18 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>2D 매치 트래커 — 웨어러블 트래킹 데이터 시각화</title>
+<title>2D 매치 트래커 — 실제 경기 기반 재구성</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html,body{height:100%;}
   body{background:#0f1320;}
-  /* 타임라인 슬라이더 */
   #timeline{ -webkit-appearance:none; appearance:none; height:8px; border-radius:8px;
     background:#2b3550; outline:none; cursor:pointer; }
   #timeline::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px;
     border-radius:50%; background:#10b981; border:3px solid #d1fae5; cursor:grab; box-shadow:0 2px 6px #0008; }
-  #timeline::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; background:#10b981;
-    border:3px solid #d1fae5; cursor:grab; }
+  #timeline::-moz-range-thumb{ width:18px;height:18px;border-radius:50%;background:#10b981;border:3px solid #d1fae5; }
+  select{ background:#222a40; color:#e8ecf4; border:1px solid #3a4a6a; }
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:#2b3550;border-radius:8px;}
 </style>
@@ -24,431 +23,459 @@
 <div class="h-screen flex flex-col">
 
   <!-- ===== 헤더 ===== -->
-  <header class="shrink-0 flex items-center justify-between px-5 py-2.5 bg-[#161b2e] border-b border-slate-800">
-    <div class="flex items-center gap-2.5">
-      <div class="grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+  <header class="shrink-0 flex items-center justify-between px-5 py-2 bg-[#161b2e] border-b border-slate-800 gap-3">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shrink-0">
         <span class="text-lg">⚽</span>
       </div>
-      <div>
-        <h1 class="text-[14px] font-extrabold text-white leading-tight">2D 매치 트래커</h1>
-        <p class="text-[10.5px] text-slate-500">웨어러블(EPTS/GPS) 트래킹 데이터 시각화</p>
+      <div class="min-w-0">
+        <h1 class="text-[13px] font-extrabold text-white leading-tight">2D 매치 트래커</h1>
+        <p id="compInfo" class="text-[10px] text-slate-500 truncate">—</p>
       </div>
+      <select id="matchSel" class="ml-2 rounded-lg text-[11.5px] px-2 py-1.5 shrink-0"></select>
     </div>
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2.5 text-[15px] font-bold">
-        <span class="text-[#e2403a]">레드 FC</span>
-        <span id="score" class="px-3 py-0.5 rounded-md bg-slate-800 text-white tabular-nums">0 : 0</span>
-        <span class="text-[#3667d6]">블루 FC</span>
+    <div class="flex items-center gap-4 shrink-0">
+      <div class="flex items-center gap-2 text-[14px] font-bold">
+        <span id="homeName" class="text-right">—</span>
+        <span id="score" class="px-2.5 py-0.5 rounded-md bg-slate-800 text-white tabular-nums">0 : 0</span>
+        <span id="awayName">—</span>
       </div>
-      <div class="text-right">
-        <div id="clock" class="text-[16px] font-extrabold text-white tabular-nums leading-none">00:00</div>
-        <div class="text-[9.5px] text-slate-500">경기 시간</div>
+      <div class="text-right w-[112px]">
+        <div id="clock" class="text-[15px] font-extrabold text-white tabular-nums leading-none">전반 00:00</div>
+        <div class="text-[9px] text-slate-500">경기 시계</div>
       </div>
     </div>
   </header>
 
-  <!-- ===== 본문: 경기장 + 사이드패널 ===== -->
+  <!-- ===== 본문 ===== -->
   <div class="flex-1 flex min-h-0">
     <div id="pitchWrap" class="flex-1 min-w-0 p-3">
       <canvas id="pitch" class="w-full h-full rounded-xl"></canvas>
     </div>
-
-    <aside class="w-[270px] shrink-0 bg-[#161b2e] border-l border-slate-800 overflow-y-auto p-4">
+    <aside class="w-[268px] shrink-0 bg-[#161b2e] border-l border-slate-800 overflow-y-auto p-4">
       <div id="panel"></div>
     </aside>
   </div>
 
-  <!-- ===== 하단: 타임라인 + 컨트롤 ===== -->
-  <footer class="shrink-0 bg-[#161b2e] border-t border-slate-800 px-5 py-3">
-    <div class="flex items-center gap-4">
-      <button id="playBtn" class="grid place-items-center w-11 h-11 rounded-full bg-emerald-500
-              hover:bg-emerald-400 transition-colors text-white text-lg shrink-0">▶</button>
-
+  <!-- ===== 하단 컨트롤 ===== -->
+  <footer class="shrink-0 bg-[#161b2e] border-t border-slate-800 px-5 py-2.5">
+    <div class="flex items-center gap-3.5">
+      <button id="playBtn" class="grid place-items-center w-10 h-10 rounded-full bg-emerald-500
+              hover:bg-emerald-400 transition-colors text-white text-base shrink-0">▶</button>
       <div class="flex items-center gap-1 shrink-0">
-        <span class="text-[10.5px] text-slate-500 mr-1">배속</span>
-        <button data-spd="1"  class="spd px-2 py-1 rounded text-[11px] bg-slate-800">1×</button>
+        <span class="text-[10px] text-slate-500 mr-0.5">배속</span>
         <button data-spd="2"  class="spd px-2 py-1 rounded text-[11px] bg-slate-800">2×</button>
-        <button data-spd="4"  class="spd px-2 py-1 rounded text-[11px] bg-emerald-600">4×</button>
-        <button data-spd="8"  class="spd px-2 py-1 rounded text-[11px] bg-slate-800">8×</button>
+        <button data-spd="6"  class="spd px-2 py-1 rounded text-[11px] bg-emerald-600">6×</button>
+        <button data-spd="16" class="spd px-2 py-1 rounded text-[11px] bg-slate-800">16×</button>
+        <button data-spd="40" class="spd px-2 py-1 rounded text-[11px] bg-slate-800">40×</button>
       </div>
-
-      <span id="tCur" class="text-[12px] text-slate-300 tabular-nums shrink-0 w-11 text-right">00:00</span>
-
+      <span id="tCur" class="text-[11.5px] text-slate-300 tabular-nums shrink-0 w-24 text-right">전반 00:00</span>
       <div class="relative flex-1">
         <div id="markers" class="absolute -top-2 left-0 right-0 h-0 pointer-events-none"></div>
-        <input id="timeline" type="range" min="0" max="1800" step="0.5" value="0" class="w-full" />
+        <input id="timeline" type="range" min="0" max="100" step="0.5" value="0" class="w-full" />
       </div>
-
-      <span id="tEnd" class="text-[12px] text-slate-500 tabular-nums shrink-0">30:00</span>
+      <span id="tEnd" class="text-[11.5px] text-slate-500 tabular-nums shrink-0">—</span>
     </div>
-    <p class="text-[10px] text-slate-600 mt-1.5 ml-[60px]">
-      ● 타임라인의 노란 마커 = 득점 장면. 클릭하면 전후 10초가 재생됩니다. · 경기장의 선수를 클릭하면 상세 데이터가 표시됩니다.
+    <p class="text-[9.5px] text-slate-600 mt-1 ml-[56px]">
+      노란 마커 = 실제 득점 장면(클릭 시 전후 10초 재생) · 선수 클릭 = 상세 데이터 · 회색 선 = 하프타임
     </p>
   </footer>
-
 </div>
 
 <script>
 /* ============================================================
-   2D 매치 트래커 — 웨어러블(EPTS/GPS) 트래킹 데이터 시각화
-   · AIS Ship Tracker 와 동일 메커니즘: 시계열 위치 데이터 → 2D 평면에 렌더
-   · 데이터 스키마 (한 프레임):
-       { t: 초, ball:{x,y}, players:[ {pid, x, y, speed} × 22 ] }
-       좌표 x∈0~105m, y∈0~68m (FIFA 규격 경기장) / speed: m/s
+   2D 매치 트래커 — 실제 경기 사실 기반 재구성
+   · 팀·스코어·득점자·득점 시각·포메이션·선발명단 = 실제 공개 데이터
+   · 선수/공의 연속 좌표 = 그 사실을 앵커로 한 재구성(추정) — 실측 트래킹 아님
+   · 데이터 스키마(프레임): { t초, ball{x,y}, players[{pid,x,y,speed}×22] }
+     좌표 x∈0~105m · y∈0~68m · speed m/s
    ============================================================ */
 
-// ===== 경기 설정 =====
-const PITCH = { L: 105, W: 68 };
-const DUR = 1800, DT = 0.5;                 // 30분 경기, 0.5초 간격 샘플
-const NF = Math.round(DUR / DT) + 1;        // 3601 프레임
+const PITCH = { L:105, W:68 };
+const DT = 0.5, ST1 = 2, ST2 = 6;          // 하프별 추가시간(분)
 
-// 4-3-3 포메이션 (경기장 비율 0~1, x=상대 골 방향)
-const FORM = [
-  { role:'GK', x:0.04, y:0.50, num:1 },
-  { role:'DF', x:0.20, y:0.16, num:2 }, { role:'DF', x:0.17, y:0.39, num:3 },
-  { role:'DF', x:0.17, y:0.61, num:4 }, { role:'DF', x:0.20, y:0.84, num:5 },
-  { role:'MF', x:0.40, y:0.28, num:6 }, { role:'MF', x:0.37, y:0.50, num:8 },
-  { role:'MF', x:0.40, y:0.72, num:7 },
-  { role:'FW', x:0.62, y:0.24, num:11 }, { role:'FW', x:0.66, y:0.50, num:9 },
-  { role:'FW', x:0.62, y:0.76, num:10 }
+// ===== 포메이션 템플릿 (슬롯 11개, x=상대골 방향 0~1) =====
+const FORMATIONS = {
+  '4-3-3':[
+    {r:'GK',x:.05,y:.50},
+    {r:'DF',x:.21,y:.16},{r:'DF',x:.18,y:.39},{r:'DF',x:.18,y:.61},{r:'DF',x:.21,y:.84},
+    {r:'MF',x:.41,y:.28},{r:'MF',x:.38,y:.50},{r:'MF',x:.41,y:.72},
+    {r:'FW',x:.64,y:.25},{r:'FW',x:.67,y:.50},{r:'FW',x:.64,y:.75} ],
+  '4-4-1-1':[
+    {r:'GK',x:.05,y:.50},
+    {r:'DF',x:.21,y:.16},{r:'DF',x:.18,y:.39},{r:'DF',x:.18,y:.61},{r:'DF',x:.21,y:.84},
+    {r:'MF',x:.43,y:.14},{r:'MF',x:.40,y:.40},{r:'MF',x:.40,y:.60},{r:'MF',x:.43,y:.86},
+    {r:'MF',x:.58,y:.50},{r:'FW',x:.70,y:.50} ],
+  '5-4-1':[
+    {r:'GK',x:.05,y:.50},
+    {r:'DF',x:.20,y:.10},{r:'DF',x:.17,y:.30},{r:'DF',x:.16,y:.50},{r:'DF',x:.17,y:.70},{r:'DF',x:.20,y:.90},
+    {r:'MF',x:.40,y:.18},{r:'MF',x:.38,y:.40},{r:'MF',x:.38,y:.60},{r:'MF',x:.40,y:.82},
+    {r:'FW',x:.60,y:.50} ],
+  '4-2-3-1':[
+    {r:'GK',x:.05,y:.50},
+    {r:'DF',x:.21,y:.16},{r:'DF',x:.18,y:.39},{r:'DF',x:.18,y:.61},{r:'DF',x:.21,y:.84},
+    {r:'MF',x:.36,y:.38},{r:'MF',x:.36,y:.62},
+    {r:'MF',x:.55,y:.26},{r:'MF',x:.52,y:.50},{r:'MF',x:.55,y:.74},
+    {r:'FW',x:.70,y:.50} ]
+};
+function genericLineup(prefix, n){
+  const out=[]; for(let i=0;i<n;i++) out.push({ num:i+1, name:prefix+' '+(i+1)+'번' });
+  return out;
+}
+
+// ===== 실제 경기 데이터 (공개 사실) =====
+const MATCHES = [
+  {
+    id:'alnassr', seed:520261,
+    comp:'사우디 프로리그 2025-26 · 34R', date:'2026-05-21',
+    note:'알 나스르가 다막을 꺾고 우승을 확정 — 호날두의 첫 사우디 리그 우승.',
+    home:{ name:'알 나스르', color:'#f4c430', formation:'4-4-1-1', lineup:[
+      {num:24,name:'벤투'},{num:26,name:'이니고 마르티네스'},{num:5,name:'알아므리'},
+      {num:3,name:'시마칸'},{num:12,name:'부샬'},{num:10,name:'마네'},
+      {num:23,name:'아이만 야히아'},{num:17,name:'알카이바리'},{num:21,name:'코망'},
+      {num:79,name:'주앙 펠릭스'},{num:7,name:'호날두'} ]},
+    away:{ name:'다막', color:'#dadde2', formation:'5-4-1',
+      lineup:[...genericLineup('다막',10), {num:9,name:'실라'}] },
+    goals:[
+      {min:34,team:'home',scorer:'마네'},   {min:52,team:'home',scorer:'코망'},
+      {min:58,team:'away',scorer:'실라',pen:true},
+      {min:63,team:'home',scorer:'호날두'}, {min:81,team:'home',scorer:'호날두'} ]
+  },
+  {
+    id:'arsenal', seed:520262,
+    comp:'프리미어리그 2025-26 · 37R', date:'2026-05-18',
+    note:'아스날이 번리를 1-0으로 꺾고 22년 만의 EPL 우승에 다가선 결정적 1승.',
+    home:{ name:'아스날', color:'#e2403a', formation:'4-3-3', lineup:[
+      {num:1,name:'라야'},{num:2,name:'살리바'},{num:3,name:'모스케라'},
+      {num:6,name:'가브리에우'},{num:33,name:'칼라피오리'},{num:8,name:'외데고르'},
+      {num:10,name:'에제'},{num:41,name:'라이스'},{num:7,name:'사카'},
+      {num:19,name:'트로사르'},{num:29,name:'하베르츠'} ]},
+    away:{ name:'번리', color:'#4a78c8', formation:'4-2-3-1',
+      lineup:genericLineup('번리',11) },
+    goals:[ {min:37,team:'home',scorer:'하베르츠'} ]
+  }
 ];
-const ROLE_KR = { GK:'골키퍼', DF:'수비수', MF:'미드필더', FW:'공격수' };
 
-// ===== 시드 난수 (재현 가능한 가상 데이터) =====
+// ===== 시드 난수 =====
 function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
   let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
   return ((t^t>>>14)>>>0)/4294967296; }; }
 
-// ===== 가상 트래킹 데이터 생성 (절차적 시뮬레이션) =====
-function generateMatch(){
-  const rng = mulberry32(20260522);
+// ===== 경기 데이터 생성 (실제 득점에 앵커한 재구성) =====
+function buildMatch(def){
+  const rng = mulberry32(def.seed);
+  const P1 = (45+ST1)*60, P2 = (45+ST2)*60, TOTAL = P1+P2;
+  const NF = Math.round(TOTAL/DT)+1;
+  const htFrame = Math.round(P1/DT);
+
   const players = [];
-  FORM.forEach(s => players.push({ team:'home', num:s.num, role:s.role,
-    bx:s.x*PITCH.L, by:s.y*PITCH.W }));
-  FORM.forEach(s => players.push({ team:'away', num:s.num, role:s.role,
-    bx:(1-s.x)*PITCH.L, by:(1-s.y)*PITCH.W }));
-  players.forEach((p,i) => { p.pid=i; p.name=(p.team==='home'?'레드 FC':'블루 FC')+' '+p.num+'번'; });
+  for(const side of ['home','away']){
+    const tm = def[side], slots = FORMATIONS[tm.formation];
+    slots.forEach((s,k)=>{
+      const fx = side==='home'? s.x : 1-s.x;
+      const fy = side==='home'? s.y : 1-s.y;
+      const lp = tm.lineup[k] || { num:k+1, name:'?' };
+      players.push({ pid:players.length, team:side, role:s.r, num:lp.num, name:lp.name,
+        bx:fx*PITCH.L, by:fy*PITCH.W });
+    });
+  }
+  const goals = def.goals.map(g=>({ ...g,
+    playTime: g.min<=45 ? g.min*60 : P1+(g.min-45)*60 }))
+    .sort((a,b)=>a.playTime-b.playTime);
 
-  // 예정 득점 (타임라인 마커로 표시됨) — 최종 3:2
-  const scheduled = [
-    { t:380,  team:'home' }, { t:690,  team:'away' }, { t:1080, team:'home' },
-    { t:1410, team:'away' }, { t:1660, team:'home' }
-  ];
-  const highlights = [];
-
-  const px = players.map(p=>p.bx), py = players.map(p=>p.by);
-  let ball = { x:52.5, y:34 }, bt = { x:52.5, y:34 };
-  let nextRetarget = 0, possession = 'home', gi = 0, kickoff = 0;
-  const frames = [];
+  const bx=new Float32Array(NF), by=new Float32Array(NF);
+  const px=new Float32Array(NF*22), py=new Float32Array(NF*22), ps=new Float32Array(NF*22);
+  const cx=players.map(p=>p.bx), cy=players.map(p=>p.by);
+  let ball={x:52.5,y:34}, bt={x:52.5,y:34}, nextRT=0, possession='home', gi=0, kickoff=0;
+  const highlights=[];
 
   for(let f=0; f<NF; f++){
-    const t = f*DT;
-    const goal = gi<scheduled.length ? scheduled[gi] : null;
-    const attacking = goal && t > goal.t-16;
-
-    if(goal && t>=goal.t){            // 득점 성사
-      const fwds = players.filter(p=>p.team===goal.team && p.role==='FW');
-      const scorer = fwds[Math.floor(rng()*fwds.length)];
-      highlights.push({ atSec:goal.t, team:goal.team, scorer:scorer.num,
-        label:(goal.team==='home'?'레드 FC':'블루 FC')+' '+scorer.num+'번 골' });
-      gi++; ball={x:52.5,y:34}; bt={x:52.5,y:34};
-      possession = goal.team==='home'?'away':'home'; kickoff = 16;
+    const t=f*DT;
+    if(f===htFrame){
+      ball={x:52.5,y:34}; bt={x:52.5,y:34};
+      for(let i=0;i<22;i++){ cx[i]=players[i].bx; cy[i]=players[i].by; }
+      possession = rng()<0.5?'home':'away'; kickoff=16;
     }
-    if(attacking){                    // 골 직전 — 득점팀이 골문으로 몰고감
+    const goal = gi<goals.length?goals[gi]:null;
+    const attacking = goal && t>goal.playTime-16;
+    if(goal && t>=goal.playTime){
+      highlights.push({ playTime:goal.playTime, min:goal.min, team:goal.team,
+        scorer:goal.scorer, pen:!!goal.pen });
+      gi++; ball={x:52.5,y:34}; bt={x:52.5,y:34};
+      possession = goal.team==='home'?'away':'home'; kickoff=16;
+    }
+    if(attacking){
       possession = goal.team;
       bt.x = (goal.team==='home'?100:5) + (rng()-0.5)*8;
       bt.y = 34 + (rng()-0.5)*30;
-    } else if(t>=nextRetarget){       // 평시 — 공 타겟 갱신
-      nextRetarget = t + 3 + rng()*5;
+    } else if(t>=nextRT){
+      nextRT = t + 3 + rng()*5;
       if(rng()<0.28) possession = possession==='home'?'away':'home';
       const dir = possession==='home'?1:-1;
-      bt.x = Math.max(4, Math.min(101, ball.x + dir*(8+rng()*34)));
-      bt.y = Math.max(4, Math.min(64, 34 + (rng()-0.5)*52));
+      bt.x = Math.max(4,Math.min(101, ball.x + dir*(8+rng()*34)));
+      bt.y = Math.max(4,Math.min(64, 34+(rng()-0.5)*52));
     }
-    // 공 이동
     let dx=bt.x-ball.x, dy=bt.y-ball.y, d=Math.hypot(dx,dy)||1;
     let step=Math.min(d,(attacking?17:11)*DT);
     ball.x+=dx/d*step; ball.y+=dy/d*step;
 
-    // 팀별 공 최근접 선수 (압박)
     const near={home:-1,away:-1}, nd={home:1e9,away:1e9};
     for(let i=0;i<22;i++){
-      const dd=Math.hypot(px[i]-ball.x,py[i]-ball.y), tm=players[i].team;
+      const dd=Math.hypot(cx[i]-ball.x,cy[i]-ball.y), tm=players[i].team;
       if(dd<nd[tm]){ nd[tm]=dd; near[tm]=i; }
     }
-    // 선수 이동
-    const fp=[];
     for(let i=0;i<22;i++){
       const p=players[i]; let tx,ty,maxv;
       if(p.role==='GK'){
         tx = p.team==='home'?4.5:100.5;
         ty = Math.max(20,Math.min(48, 34+(ball.y-34)*0.5)); maxv=4;
       } else if(i===near[p.team] && nd[p.team]<26){
-        tx=ball.x; ty=ball.y; maxv=7.8;                   // 공 압박
+        tx=ball.x; ty=ball.y; maxv=7.8;
       } else {
-        tx = p.bx + (ball.x-52.5)*0.55 + (rng()-0.5)*4;   // 팀 전체가 공 쪽으로 슬라이드
+        tx = p.bx + (ball.x-52.5)*0.55 + (rng()-0.5)*4;
         ty = p.by + (ball.y-34)*0.22  + (rng()-0.5)*4;
         maxv = 3.2 + rng()*2.4;
       }
-      if(kickoff>0){ tx=p.bx; ty=p.by; maxv=5; }          // 킥오프 후 포메이션 복귀
+      if(kickoff>0){ tx=p.bx; ty=p.by; maxv=5; }
       tx=Math.max(2,Math.min(103,tx)); ty=Math.max(2,Math.min(66,ty));
-      let mx=tx-px[i], my=ty-py[i], md=Math.hypot(mx,my);
+      let mx=tx-cx[i], my=ty-cy[i], md=Math.hypot(mx,my);
       const s=Math.min(md, maxv*DT);
-      if(md>0.01){ px[i]+=mx/md*s; py[i]+=my/md*s; }
-      fp.push({ pid:i, x:+px[i].toFixed(2), y:+py[i].toFixed(2), speed:+(s/DT).toFixed(2) });
+      if(md>0.01){ cx[i]+=mx/md*s; cy[i]+=my/md*s; }
+      const idx=f*22+i;
+      px[idx]=cx[i]; py[idx]=cy[i]; ps[idx]=s/DT;
     }
     if(kickoff>0) kickoff--;
-    frames.push({ t, ball:{x:+ball.x.toFixed(2),y:+ball.y.toFixed(2)}, players:fp });
+    bx[f]=ball.x; by[f]=ball.y;
   }
-
-  // 누적 이동거리 · 최고 속도 사전계산
-  const cumDist=[], maxSpd=[];
-  for(let i=0;i<22;i++){ cumDist.push(new Float64Array(NF)); maxSpd.push(0); }
+  const cum=new Float32Array(NF*22), maxSpd=new Float32Array(22);
   for(let f=1;f<NF;f++){
     for(let i=0;i<22;i++){
-      const a=frames[f-1].players[i], b=frames[f].players[i];
-      cumDist[i][f] = cumDist[i][f-1] + Math.hypot(b.x-a.x, b.y-a.y);
-      if(b.speed>maxSpd[i]) maxSpd[i]=b.speed;
+      const a=(f-1)*22+i, b=f*22+i;
+      cum[b]=cum[a]+Math.hypot(px[b]-px[a],py[b]-py[a]);
+      if(ps[b]>maxSpd[i])maxSpd[i]=ps[b];
     }
   }
-  return { players, frames, highlights, cumDist, maxSpd };
+  return { def, players, P1, P2, TOTAL, NF, bx,by,px,py,ps, cum, maxSpd, highlights };
 }
 
-const M = generateMatch();
+const MD = MATCHES.map(buildMatch);
+let curIdx = 0;
+const cur = () => MD[curIdx];
 
-// ===== 시각별 상태 보간 =====
+// ===== 보간 / 조회 =====
 function getState(mt){
-  mt=Math.max(0,Math.min(DUR,mt));
-  const fi=mt/DT; let i0=Math.floor(fi); if(i0>NF-2)i0=NF-2;
-  const fr=fi-i0, A=M.frames[i0], B=M.frames[i0+1];
-  const L=(a,b)=>a+(b-a)*fr;
+  const m=cur(); mt=Math.max(0,Math.min(m.TOTAL,mt));
+  const fi=mt/DT; let i0=Math.floor(fi); if(i0>m.NF-2)i0=m.NF-2;
+  const fr=fi-i0, L=(a,b)=>a+(b-a)*fr;
   const players=[];
   for(let i=0;i<22;i++){
-    const a=A.players[i], b=B.players[i];
-    players.push({ pid:i, x:L(a.x,b.x), y:L(a.y,b.y), speed:L(a.speed,b.speed) });
+    const a=i0*22+i, b=(i0+1)*22+i;
+    players.push({ pid:i, x:L(m.px[a],m.px[b]), y:L(m.py[a],m.py[b]), speed:L(m.ps[a],m.ps[b]) });
   }
-  return { ball:{x:L(A.ball.x,B.ball.x), y:L(A.ball.y,B.ball.y)}, players, fi:i0 };
+  return { ball:{x:L(m.bx[i0],m.bx[i0+1]),y:L(m.by[i0],m.by[i0+1])}, players, fi:i0 };
 }
 function cumDistAt(pid,mt){
-  const fi=Math.max(0,Math.min(NF-2,mt/DT)), i0=Math.floor(fi), fr=fi-i0;
-  const c=M.cumDist[pid]; return c[i0]+(c[i0+1]-c[i0])*fr;
+  const m=cur(); const fi=Math.max(0,Math.min(m.NF-2,mt/DT)), i0=Math.floor(fi), fr=fi-i0;
+  const a=i0*22+pid, b=(i0+1)*22+pid; return m.cum[a]+(m.cum[b]-m.cum[a])*fr;
 }
-function scoreAt(mt){
-  let h=0,a=0;
-  for(const g of M.highlights) if(g.atSec<=mt){ g.team==='home'?h++:a++; }
-  return [h,a];
+function scoreAt(mt){ let h=0,a=0;
+  for(const g of cur().highlights) if(g.playTime<=mt){ g.team==='home'?h++:a++; }
+  return [h,a]; }
+
+// ===== 시계 라벨 (전반/후반, 45+ / 90+) =====
+const pad = n => String(n|0).padStart(2,'0');
+function clockLabel(mt){
+  const m=cur();
+  if(mt<=m.P1){
+    if(mt<=2700) return '전반 '+pad(mt/60)+':'+pad(mt%60);
+    const e=mt-2700; return '전반 45+'+pad(e/60)+':'+pad(e%60);
+  } else {
+    const base=2700+(mt-m.P1);
+    if(base<=5400) return '후반 '+pad(base/60)+':'+pad(base%60);
+    const e=base-5400; return '후반 90+'+pad(e/60)+':'+pad(e%60);
+  }
 }
-const fmt = s => { s=Math.max(0,s|0); return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
 
 // ===== Canvas / 경기장 =====
 const cv=document.getElementById('pitch'), ctx=cv.getContext('2d');
 const pitchCache=document.createElement('canvas');
 let pr={x:0,y:0,w:0,h:0}, DPR=1;
-
 function layout(){
   const wrap=document.getElementById('pitchWrap');
   DPR=Math.min(devicePixelRatio||1,2);
   const cw=wrap.clientWidth-24, ch=wrap.clientHeight-24;
-  cv.width=cw*DPR; cv.height=ch*DPR;
-  cv.style.width=cw+'px'; cv.style.height=ch+'px';
-  // 105:68 비율 유지하며 여백 두고 배치
-  const pad=18*DPR, aw=cv.width-pad*2, ah=cv.height-pad*2;
+  cv.width=cw*DPR; cv.height=ch*DPR; cv.style.width=cw+'px'; cv.style.height=ch+'px';
+  const pad=16*DPR, aw=cv.width-pad*2, ah=cv.height-pad*2;
   let w=aw, h=w*68/105; if(h>ah){ h=ah; w=h*105/68; }
   pr={ x:(cv.width-w)/2, y:(cv.height-h)/2, w, h };
   drawPitchCache();
 }
-const m2x = mx => pr.x + mx/PITCH.L*pr.w;
-const m2y = my => pr.y + my/PITCH.W*pr.h;
-const mScale = () => pr.w/PITCH.L;
-
+const m2x=mx=>pr.x+mx/PITCH.L*pr.w, m2y=my=>pr.y+my/PITCH.W*pr.h, mS=()=>pr.w/PITCH.L;
 function drawPitchCache(){
   pitchCache.width=cv.width; pitchCache.height=cv.height;
-  const g=pitchCache.getContext('2d'), S=mScale();
-  // 잔디 + 줄무늬
+  const g=pitchCache.getContext('2d'), S=mS();
   g.fillStyle='#1f7a3e'; g.fillRect(0,0,cv.width,cv.height);
-  const stripes=12, sw=pr.w/stripes;
-  for(let i=0;i<stripes;i++){
-    g.fillStyle = i%2 ? '#2e8b46' : '#288040';
-    g.fillRect(pr.x+i*sw, 0, sw+1, cv.height);
-  }
-  g.strokeStyle='rgba(255,255,255,0.82)'; g.lineWidth=Math.max(1.5,2*DPR);
-  g.lineJoin='round';
-  const line=(x1,y1,x2,y2)=>{ g.beginPath(); g.moveTo(m2x(x1),m2y(y1)); g.lineTo(m2x(x2),m2y(y2)); g.stroke(); };
-  const rect=(x1,y1,x2,y2)=>{ g.strokeRect(m2x(x1),m2y(y1),(x2-x1)*S,(y2-y1)*S); };
-  // 외곽 + 하프라인
+  for(let i=0;i<12;i++){ g.fillStyle=i%2?'#2e8b46':'#288040';
+    g.fillRect(pr.x+i*pr.w/12,pr.y,pr.w/12+1,pr.h); }
+  g.strokeStyle='rgba(255,255,255,0.82)'; g.lineWidth=Math.max(1.5,2*DPR); g.lineJoin='round';
+  const line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(m2x(x1),m2y(y1));g.lineTo(m2x(x2),m2y(y2));g.stroke();};
+  const rect=(x1,y1,x2,y2)=>g.strokeRect(m2x(x1),m2y(y1),(x2-x1)*S,(y2-y1)*S);
   rect(0,0,105,68); line(52.5,0,52.5,68);
-  // 센터서클 + 스팟
   g.beginPath(); g.arc(m2x(52.5),m2y(34),9.15*S,0,7); g.stroke();
-  const dot=(x,y)=>{ g.fillStyle='rgba(255,255,255,0.82)'; g.beginPath();
-    g.arc(m2x(x),m2y(y),2.2*DPR,0,7); g.fill(); };
+  const dot=(x,y)=>{g.fillStyle='rgba(255,255,255,0.82)';g.beginPath();g.arc(m2x(x),m2y(y),2.2*DPR,0,7);g.fill();};
   dot(52.5,34); dot(11,34); dot(94,34);
-  // 페널티/골 박스
   rect(0,13.84,16.5,54.16); rect(88.5,13.84,105,54.16);
   rect(0,24.84,5.5,43.16);  rect(99.5,24.84,105,43.16);
-  // 페널티 아크
   g.beginPath(); g.arc(m2x(11),m2y(34),9.15*S,-0.927,0.927); g.stroke();
   g.beginPath(); g.arc(m2x(94),m2y(34),9.15*S,Math.PI-0.927,Math.PI+0.927); g.stroke();
-  // 골대
-  g.lineWidth=Math.max(2,3*DPR);
-  rect(-2,30.34,0,37.66); rect(105,30.34,107,37.66);
+  g.lineWidth=Math.max(2,3*DPR); rect(-2,30.34,0,37.66); rect(105,30.34,107,37.66);
 }
 
-// ===== 선택 상태 / 재생 상태 =====
-let matchTime=0, playing=false, speed=4, selPid=null, replayStop=null;
+// ===== 상태 =====
+let matchTime=0, playing=false, speed=6, selPid=null, replayStop=null;
 
 function drawFrame(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.drawImage(pitchCache,0,0);
-  const st=getState(matchTime), S=mScale();
-
-  // 선택 선수 동선
+  const m=cur(), st=getState(matchTime), S=mS();
   if(selPid!==null){
-    ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=2*DPR; ctx.beginPath();
-    let started=false;
-    for(let f=0; f<=st.fi; f+=4){
-      const p=M.frames[f].players[selPid], X=m2x(p.x), Y=m2y(p.y);
-      started?ctx.lineTo(X,Y):ctx.moveTo(X,Y); started=true;
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2*DPR; ctx.beginPath();
+    let on=false;
+    for(let f=0;f<=st.fi;f+=4){
+      const X=m2x(m.px[f*22+selPid]), Y=m2y(m.py[f*22+selPid]);
+      on?ctx.lineTo(X,Y):ctx.moveTo(X,Y); on=true;
     }
     ctx.stroke();
   }
-
-  // 선수
-  const pr_=2.0*S;
+  const R=2.0*S;
   for(const p of st.players){
-    const meta=M.players[p.pid], X=m2x(p.x), Y=m2y(p.y);
-    let col = meta.team==='home' ? '#e2403a' : '#3667d6';
-    if(meta.role==='GK') col = meta.team==='home' ? '#f0a431' : '#21b6b6';
-    if(p.pid===selPid){                       // 선택 강조 링
-      ctx.beginPath(); ctx.arc(X,Y,pr_+5*DPR,0,7);
-      ctx.strokeStyle='#fff'; ctx.lineWidth=3*DPR; ctx.stroke();
+    const meta=m.players[p.pid], X=m2x(p.x), Y=m2y(p.y);
+    const col = meta.role==='GK' ? '#39d353' : m.def[meta.team].color;
+    if(p.pid===selPid){
+      ctx.beginPath(); ctx.arc(X,Y,R+5*DPR,0,7); ctx.strokeStyle='#fff'; ctx.lineWidth=3*DPR; ctx.stroke();
     }
-    ctx.beginPath(); ctx.arc(X,Y,pr_,0,7);
-    ctx.fillStyle=col; ctx.fill();
-    ctx.lineWidth=1.5*DPR; ctx.strokeStyle='rgba(0,0,0,0.45)'; ctx.stroke();
-    ctx.fillStyle='#fff'; ctx.font='bold '+(2.0*S)+'px sans-serif';
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(meta.num, X, Y);
+    ctx.beginPath(); ctx.arc(X,Y,R,0,7); ctx.fillStyle=col; ctx.fill();
+    ctx.lineWidth=1.5*DPR; ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.stroke();
+    ctx.font='bold '+(1.9*S)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.lineWidth=2.6*DPR; ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.strokeText(meta.num,X,Y);
+    ctx.fillStyle='#fff'; ctx.fillText(meta.num,X,Y);
   }
-  // 공
-  const bx=m2x(st.ball.x), by=m2y(st.ball.y);
-  ctx.beginPath(); ctx.arc(bx,by,1.1*S,0,7);
-  ctx.fillStyle='#f4d23a'; ctx.fill();
+  const bX=m2x(st.ball.x), bY=m2y(st.ball.y);
+  ctx.beginPath(); ctx.arc(bX,bY,1.1*S,0,7); ctx.fillStyle='#f4d23a'; ctx.fill();
   ctx.lineWidth=1.4*DPR; ctx.strokeStyle='#3a2e00'; ctx.stroke();
 }
 
-// ===== UI 갱신 =====
 const $=id=>document.getElementById(id);
 function syncUI(){
-  $('clock').textContent=fmt(matchTime);
-  $('tCur').textContent=fmt(matchTime);
+  $('clock').textContent=clockLabel(matchTime);
+  $('tCur').textContent=clockLabel(matchTime);
   const sc=scoreAt(matchTime);
   $('score').textContent=sc[0]+' : '+sc[1];
-  if(!draggingTL) $('timeline').value=matchTime;
+  if(!dragTL) $('timeline').value=matchTime;
   if(selPid!==null) renderPanel();
 }
 
 // ===== 사이드 패널 =====
 function renderPanel(){
-  const box=$('panel');
+  const m=cur(), box=$('panel');
   if(selPid===null){
     box.innerHTML=`
-      <h2 class="text-[13px] font-bold text-white mb-3">경기 정보</h2>
-      <div class="space-y-2 text-[12px]">
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#e2403a"></span>레드 FC (홈)</div>
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#3667d6"></span>블루 FC (원정)</div>
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#f0a431"></span>골키퍼</div>
+      <h2 class="text-[13px] font-bold text-white mb-1">${m.def.home.name} vs ${m.def.away.name}</h2>
+      <p class="text-[10.5px] text-slate-500 mb-3">${m.def.comp} · ${m.def.date}</p>
+      <div class="p-2.5 rounded-lg bg-slate-800/60 text-[11px] text-slate-300 leading-relaxed mb-3">${m.def.note}</div>
+      <div class="space-y-1.5 text-[11.5px]">
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${m.def.home.color}"></span>${m.def.home.name} · ${m.def.home.formation}</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${m.def.away.color}"></span>${m.def.away.name} · ${m.def.away.formation}</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#39d353"></span>골키퍼</div>
         <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#f4d23a"></span>공</div>
       </div>
-      <div class="mt-4 p-3 rounded-lg bg-slate-800/60 text-[11px] text-slate-400 leading-relaxed">
-        경기장의 <b class="text-slate-200">선수(원)를 클릭</b>하면 현재 속도·총 이동거리·동선이 여기 표시됩니다.<br><br>
-        데이터: 22명 + 공의 0.5초 간격 X·Y 좌표 시계열 (가상 EPTS 트래킹).
+      <div class="mt-3 p-2.5 rounded-lg bg-amber-900/25 ring-1 ring-amber-700/40 text-[10.5px] text-amber-300/90 leading-relaxed">
+        ⚠ 팀·스코어·득점자·시각은 <b>실제 경기 사실</b>. 선수 개개인의 연속 움직임은 그 사실을 앵커로 한 <b>재구성(추정)</b>이며 실측 트래킹 데이터가 아닙니다.
       </div>`;
     return;
   }
-  const meta=M.players[selPid], st=getState(matchTime);
-  const cur=st.players[selPid];
+  const meta=m.players[selPid], st=getState(matchTime), cu=st.players[selPid];
   const dist=cumDistAt(selPid,matchTime);
-  const col = meta.role==='GK' ? (meta.team==='home'?'#f0a431':'#21b6b6')
-                               : (meta.team==='home'?'#e2403a':'#3667d6');
-  const stat=(label,val,unit)=>`
-    <div class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 px-3 py-2.5">
-      <div class="text-[10px] text-slate-500">${label}</div>
-      <div class="text-[17px] font-extrabold text-white tabular-nums">${val}
-        <span class="text-[11px] font-medium text-slate-400">${unit}</span></div>
-    </div>`;
+  const col = meta.role==='GK' ? '#39d353' : m.def[meta.team].color;
+  const ROLE={GK:'골키퍼',DF:'수비',MF:'미드필더',FW:'공격수'};
+  const stat=(l,v,u)=>`<div class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 px-3 py-2">
+      <div class="text-[10px] text-slate-500">${l}</div>
+      <div class="text-[16px] font-extrabold text-white tabular-nums">${v}<span class="text-[10px] font-medium text-slate-400"> ${u}</span></div></div>`;
   box.innerHTML=`
     <div class="flex items-center gap-2.5 mb-3">
       <div class="grid place-items-center w-11 h-11 rounded-full text-white font-extrabold text-[15px]"
            style="background:${col}">${meta.num}</div>
-      <div>
-        <div class="text-[13px] font-bold text-white">${meta.name}</div>
-        <div class="text-[11px] text-slate-400">${ROLE_KR[meta.role]} · ${meta.team==='home'?'홈':'원정'}</div>
-      </div>
+      <div><div class="text-[13px] font-bold text-white">${meta.name}</div>
+        <div class="text-[11px] text-slate-400">${ROLE[meta.role]} · ${m.def[meta.team].name}</div></div>
     </div>
     <div class="grid grid-cols-2 gap-2">
-      ${stat('현재 속도',(cur.speed*3.6).toFixed(1),'km/h')}
+      ${stat('현재 속도',(cu.speed*3.6).toFixed(1),'km/h')}
       ${stat('총 이동거리',(dist/1000).toFixed(2),'km')}
-      ${stat('최고 속도',(M.maxSpd[selPid]*3.6).toFixed(1),'km/h')}
-      ${stat('현재 좌표',cur.x.toFixed(0)+','+cur.y.toFixed(0),'m')}
+      ${stat('최고 속도',(m.maxSpd[selPid]*3.6).toFixed(1),'km/h')}
+      ${stat('현재 좌표',cu.x.toFixed(0)+','+cu.y.toFixed(0),'m')}
     </div>
     <div class="mt-3 p-2.5 rounded-lg bg-emerald-900/30 ring-1 ring-emerald-700/40 text-[11px] text-emerald-300">
-      ◍ 이 선수의 <b>동선</b>이 경기장에 흰 선으로 표시됩니다 (현재 시점까지).
-    </div>
-    <button id="deselect" class="mt-3 w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700
-            text-[12px] text-slate-300 transition-colors">선택 해제</button>`;
+      ◍ 이 선수의 <b>동선</b>이 경기장에 흰 선으로 표시됩니다.</div>
+    <button id="deselect" class="mt-3 w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-[12px] text-slate-300">선택 해제</button>`;
   $('deselect').onclick=()=>{ selPid=null; renderPanel(); };
 }
 
-// ===== 타임라인 마커 (득점) =====
+// ===== 타임라인 마커 =====
 function buildMarkers(){
-  const box=$('markers'); box.innerHTML='';
-  for(const g of M.highlights){
-    const m=document.createElement('div');
-    m.className='absolute w-3.5 h-3.5 rounded-full bg-amber-400 ring-2 ring-amber-200 '
-              + 'cursor-pointer pointer-events-auto hover:scale-125 transition-transform';
-    m.style.left='calc('+(g.atSec/DUR*100)+'% - 7px)';
-    m.title=fmt(g.atSec)+'  '+g.label+' — 클릭 시 전후 10초 재생';
-    m.onclick=()=>{ matchTime=Math.max(0,g.atSec-10); replayStop=g.atSec+10;
+  const m=cur(), box=$('markers'); box.innerHTML='';
+  const ht=document.createElement('div');
+  ht.className='absolute top-2 w-0.5 h-3 bg-slate-500';
+  ht.style.left=(m.P1/m.TOTAL*100)+'%';
+  ht.title='하프타임';
+  box.appendChild(ht);
+  for(const g of m.highlights){
+    const el=document.createElement('div');
+    el.className='absolute w-3.5 h-3.5 rounded-full bg-amber-400 ring-2 ring-amber-200 '
+              +'cursor-pointer pointer-events-auto hover:scale-125 transition-transform';
+    el.style.left='calc('+(g.playTime/m.TOTAL*100)+'% - 7px)';
+    el.title=g.min+"' "+m.def[g.team].name+' '+g.scorer+(g.pen?' (PK)':'')+' 골 — 클릭 시 전후 10초 재생';
+    el.onclick=()=>{ matchTime=Math.max(0,g.playTime-10); replayStop=g.playTime+10;
       setSpeed(2); playing=true; updatePlayBtn(); };
-    box.appendChild(m);
+    box.appendChild(el);
   }
 }
 
 // ===== 컨트롤 =====
-function updatePlayBtn(){ $('playBtn').textContent = playing?'❚❚':'▶'; }
-function setSpeed(s){
-  speed=s;
+function updatePlayBtn(){ $('playBtn').textContent=playing?'❚❚':'▶'; }
+function setSpeed(s){ speed=s;
   document.querySelectorAll('.spd').forEach(b=>{
-    b.classList.toggle('bg-emerald-600', +b.dataset.spd===s);
-    b.classList.toggle('bg-slate-800', +b.dataset.spd!==s);
-  });
-}
+    b.classList.toggle('bg-emerald-600',+b.dataset.spd===s);
+    b.classList.toggle('bg-slate-800',+b.dataset.spd!==s); }); }
 $('playBtn').onclick=()=>{
-  if(matchTime>=DUR) matchTime=0;
-  playing=!playing; replayStop=null; updatePlayBtn();
-};
-document.querySelectorAll('.spd').forEach(b=> b.onclick=()=>setSpeed(+b.dataset.spd));
-
-let draggingTL=false;
-$('timeline').addEventListener('input',e=>{ draggingTL=true; matchTime=+e.target.value;
-  replayStop=null; syncUI(); });
-$('timeline').addEventListener('change',()=>{ draggingTL=false; });
-
-// 선수 클릭 (히트 테스트)
+  if(matchTime>=cur().TOTAL) matchTime=0;
+  playing=!playing; replayStop=null; updatePlayBtn(); };
+document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>setSpeed(+b.dataset.spd));
+let dragTL=false;
+$('timeline').addEventListener('input',e=>{ dragTL=true; matchTime=+e.target.value; replayStop=null; syncUI(); });
+$('timeline').addEventListener('change',()=>{ dragTL=false; });
 cv.addEventListener('click',e=>{
-  const rect=cv.getBoundingClientRect();
-  const cx=(e.clientX-rect.left)*(cv.width/rect.width);
-  const cy=(e.clientY-rect.top)*(cv.height/rect.height);
-  const st=getState(matchTime);
-  let best=null, bd=3.0;                       // 3m 이내 최근접
+  const rc=cv.getBoundingClientRect();
+  const cxp=(e.clientX-rc.left)*(cv.width/rc.width), cyp=(e.clientY-rc.top)*(cv.height/rc.height);
+  const st=getState(matchTime); let best=null,bd=3.0;
   for(const p of st.players){
-    const dm=Math.hypot((cx-m2x(p.x))/mScale(), (cy-m2y(p.y))/mScale());
+    const dm=Math.hypot((cxp-m2x(p.x))/mS(),(cyp-m2y(p.y))/mS());
     if(dm<bd){ bd=dm; best=p.pid; }
   }
   selPid=best; renderPanel();
 });
+addEventListener('resize',layout);
 
-addEventListener('resize',()=>{ layout(); });
+// ===== 경기 전환 =====
+function loadMatch(idx){
+  curIdx=idx; matchTime=0; playing=false; selPid=null; replayStop=null;
+  const m=cur();
+  $('compInfo').textContent=m.def.comp+' · '+m.def.date;
+  $('homeName').textContent=m.def.home.name; $('homeName').style.color=m.def.home.color;
+  $('awayName').textContent=m.def.away.name; $('awayName').style.color=m.def.away.color;
+  $('tEnd').textContent=clockLabel(m.TOTAL);
+  $('timeline').max=m.TOTAL;
+  buildMarkers(); renderPanel(); updatePlayBtn();
+}
 
 // ===== 메인 루프 =====
 let last=performance.now();
@@ -457,15 +484,23 @@ function loop(now){
   if(playing){
     matchTime+=dt*speed;
     if(replayStop!==null && matchTime>=replayStop){ playing=false; replayStop=null; updatePlayBtn(); }
-    if(matchTime>=DUR){ matchTime=DUR; playing=false; updatePlayBtn(); }
+    if(matchTime>=cur().TOTAL){ matchTime=cur().TOTAL; playing=false; updatePlayBtn(); }
   }
   drawFrame(); syncUI();
   requestAnimationFrame(loop);
 }
 
 // ===== 초기화 =====
-$('tEnd').textContent=fmt(DUR);
-layout(); buildMarkers(); setSpeed(4); renderPanel(); updatePlayBtn();
+const sel=$('matchSel');
+MATCHES.forEach((mt,i)=>{
+  const hg=mt.goals.filter(g=>g.team==='home').length;
+  const ag=mt.goals.filter(g=>g.team==='away').length;
+  const o=document.createElement('option'); o.value=i;
+  o.textContent=mt.home.name+' '+hg+'-'+ag+' '+mt.away.name;
+  sel.appendChild(o);
+});
+sel.onchange=()=>loadMatch(+sel.value);
+layout(); setSpeed(6); loadMatch(0);
 requestAnimationFrame(loop);
 </script>
 </body>
