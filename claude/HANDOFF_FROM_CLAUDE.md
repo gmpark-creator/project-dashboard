@@ -8,6 +8,18 @@
 >
 > **데이터 정확도 등급: 97% → ~99.5%** 로 향상.
 
+> **🔄 2026-05-24 최종 갱신** — 「Ultimate Web3D」 통합 레이어 추가:
+>
+> 1. **인류 탐사선 5기** — Voyager 1(169 AU) · Voyager 2(141 AU) · New Horizons(58 AU) · Parker Solar(코로나 타원) · JWST(L2). 각각 sprite + 라벨 + INFO + 셀렉터 + 클릭 가능. 「🛰 탐사선」 토글
+> 2. **화성 로버 2기** — Perseverance(예제로) · Curiosity(게일). 화성 mesh의 자식 sprite — 화성 포커스 시에만 표시
+> 3. **지구-태양 라그랑주 L1~L5** — 매 프레임 지구 위치 기반 동적 계산. L4·L5는 ±60° Y축 회전. 홀로그래픽 십자 마커
+> 4. **목성 트로이 군집** — L4·L5에 각 2,400 입자, 목성 angle에 따라 매 프레임 회전
+> 5. **카모오알레와** — 자체 Keplerian (a=1.0014, e=0.1031, i=7.78°), 지구 시점 말발굽 궤도
+> 6. **오무아무아** — 쌍곡선 케플러 솔버 (`e*sinh(F) - F = Mh` 뉴턴 반복), 미리 그린 path
+> 7. **Planet Nine** — Caltech 모델 (a=600 AU, e=0.30, i=22°), LineDashedMaterial 점선 궤도
+> 8. **OBJ_BY_KEY** 통합 매핑 → bodyWorldPos·computeFocusOffset·adjustCameraExtents 모두 분기 통합
+> 9. **셀렉터 구분자** (──) + `o.disabled = true` 처리
+
 > **🔄 2026-05-24 추가 갱신** — 고해상 행성 텍스처 + 주요 위성 11개 추가:
 >
 > 1. **7행성 NASA 텍스처** (jsDelivr/threex.planets) — 디퓨즈 + 범프 맵 적용. 절차적 텍스처는 폴백으로 유지

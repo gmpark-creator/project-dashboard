@@ -201,6 +201,9 @@
   <button id="btnTide" title="조석 시각화">🌊 조석</button>
   <button id="btnLabels" title="이름표 On/Off">🏷 이름표</button>
   <button id="btnMoons" title="모든 위성 표시 (기본: 행성 포커싱 시에만)">🌙 위성</button>
+  <button id="btnProbes" title="인류 탐사선 (보이저·뉴 호라이즌스·파커·JWST)">🛰 탐사선</button>
+  <button id="btnLagrange" title="라그랑주 점 L1~L5 + 공궤도 천체">⚖ 라그랑주</button>
+  <button id="btnExotic" title="성간 천체 + 가상 행성 (오무아무아·Planet Nine)">👽 미지</button>
   <button id="btnView" title="시점 리셋 (R)">🎯 뷰</button>
 </div>
 
@@ -1019,6 +1022,511 @@ function applyRegionVisualScales() {
   regionVis.oortLabel.position.copy(dirO).multiplyScalar(or2 * 1.05);
 }
 
+// ============================================================
+// 인류 탐사선·라그랑주·공궤도·성간/미지 천체 통합 레이어
+//   범주 토글: 🛰 탐사선 / ⚖ 라그랑주·공궤도 / 👽 성간·미지
+//   객체 키는 OBJ_BY_KEY에 등록되어 bodyWorldPos/computeFocusOffset에서 공통 핸들링
+// ============================================================
+const OBJ_BY_KEY = {};                              // 모든 신규 객체의 통합 매핑
+
+// 공통 라벨 텍스처 생성 — 짧은 이름용 (256x64)
+function makeProbeLabel(text) { return makeLabelTexture(text); }
+
+// 작은 발광 sprite (탐사선·라그랑주 마커용)
+function makeGlowSprite(color, withCross) {
+  const s=128, c=document.createElement('canvas'); c.width=c.height=s;
+  const x=c.getContext('2d');
+  const col=new THREE.Color(color), r=col.r*255|0, g=col.g*255|0, b=col.b*255|0;
+  const grad=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  grad.addColorStop(0,'rgba(255,255,255,1)');
+  grad.addColorStop(0.25,`rgba(${r},${g},${b},0.85)`);
+  grad.addColorStop(0.6,`rgba(${r},${g},${b},0.2)`);
+  grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  x.fillStyle=grad; x.fillRect(0,0,s,s);
+  if (withCross) {
+    x.strokeStyle=`rgba(${r},${g},${b},0.95)`;
+    x.lineWidth=1.5;
+    x.beginPath(); x.moveTo(s*0.2,s/2); x.lineTo(s*0.8,s/2);
+    x.moveTo(s/2,s*0.2); x.lineTo(s/2,s*0.8); x.stroke();
+  }
+  return canvasTex(c);
+}
+
+// ---- 인류 탐사선 데이터 ----
+const PROBE_DATA = [
+  { key:'voyager1', name:'보이저 1호', shortLabel:'Voyager 1', type:'static_au',
+    auDistance:169.0, direction:new THREE.Vector3(0.39, 0.86,-0.32), color:0x88ddff,
+    stats:[['발사일','1977-09-05'],['임무','목성·토성 + 성간 진출'],['태양 거리','약 169 AU (2026)'],
+      ['속도','약 17 km/s'],['헬리오스피어 통과','2012-08-25']],
+    desc:'1977년 발사된 NASA 행성 탐사선. 2012년 인류 최초로 헬리오스피어를 벗어나 성간 공간에 진입했다. 골든 레코드에 인류 메시지를 담아 외계인에게 보낸 첫 우주선.' },
+  { key:'voyager2', name:'보이저 2호', shortLabel:'Voyager 2', type:'static_au',
+    auDistance:141.0, direction:new THREE.Vector3(0.51,-0.78, 0.36), color:0x88c8e8,
+    stats:[['발사일','1977-08-20'],['임무','외행성 그랜드 투어'],['태양 거리','약 141 AU (2026)'],
+      ['속도','약 15 km/s'],['헬리오스피어 통과','2018-11-05'],['특이점','유일한 천왕성·해왕성 직접 탐사']],
+    desc:'보이저 1호의 자매선. 유일하게 천왕성(1986)과 해왕성(1989)을 근접 비행했으며, 2018년 헬리오스피어를 벗어났다. 남쪽 황도 방향으로 진행 중.' },
+  { key:'newhorizons', name:'뉴 호라이즌스호', shortLabel:'New Horizons', type:'static_au',
+    auDistance:58.0, direction:new THREE.Vector3(0.81, 0.18, 0.55), color:0xffd88a,
+    stats:[['발사일','2006-01-19'],['명왕성 근접','2015-07-14'],['아로코스 근접','2019-01-01'],
+      ['태양 거리','약 58 AU (2026)'],['속도','약 14 km/s']],
+    desc:'명왕성을 처음으로 가까이 비행한 NASA 우주선. 명왕성 후 카이퍼 벨트의 아로코스를 탐사했고, 현재 카이퍼 벨트 안을 비행 중이다.' },
+  { key:'parker', name:'파커 솔라 프로브', shortLabel:'Parker Solar', type:'eccentric_orbit',
+    a:0.388, e:0.804, periPeriod:88.5, orbitInclin:3.4, color:0xff9966,
+    stats:[['발사일','2018-08-12'],['임무','태양 코로나 직접 진입'],['근일점','0.046 AU (약 690만 km)'],
+      ['이심률','e ≈ 0.80'],['공전 주기','약 88일'],['최고 속도','약 192 km/s (인류 최고)']],
+    desc:'태양에 가장 가까이 접근한 우주선. 수성 궤도 안쪽까지 들어가 태양 코로나 내부를 직접 측정한다. 매우 길쭉한 타원 궤도로 태양을 88일마다 한 바퀴 돈다.' },
+  { key:'jwst', name:'제임스 웹 우주 망원경', shortLabel:'JWST', type:'earth_l2', color:0xfff0d0,
+    stats:[['발사일','2021-12-25'],['임무','적외선 우주 관측'],['위치','지구-태양 L2 헤일로 궤도'],
+      ['지구와 거리','약 150만 km (≈0.01 AU)'],['주반사경','6.5m (18 황금 육각형)'],
+      ['운영','NASA · ESA · CSA']],
+    desc:'2021년 발사된 차세대 우주 망원경. 지구-태양 L2 라그랑주 점에서 헤일로 궤도를 돌며 적외선으로 우주 초기·외계 행성·은하를 관측한다. -233°C에서 운용.' }
+];
+
+const probeObjs = {};
+function buildProbes() {
+  for (const PR of PROBE_DATA) {
+    PR.direction.normalize();
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:makeGlowSprite(PR.color, false), transparent:true,
+      blending:THREE.AdditiveBlending, depthWrite:false }));
+    sp.userData.bodyKey = PR.key;
+    scene.add(sp);
+    const lb = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:makeProbeLabel(PR.shortLabel), transparent:true, depthWrite:false }));
+    scene.add(lb);
+    lb.userData.bodyKey = PR.key;
+    probeObjs[PR.key] = { PR, sprite:sp, label:lb, currentOpacity:0, targetOpacity:0 };
+    OBJ_BY_KEY[PR.key] = { kind:'probe', obj: probeObjs[PR.key] };
+    // INFO 등록
+    INFO[PR.key] = { name: PR.name, type:'인류 탐사선', accent:'#'+new THREE.Color(PR.color).getHexString(),
+      stats: PR.stats, desc: PR.desc };
+  }
+}
+buildProbes();
+
+// ---- 지구-태양 라그랑주 점 L1~L5 (지구 위치 기반 매 프레임 갱신) ----
+const lagrangeObjs = {};
+const LAGRANGE_KEYS = [
+  { k:'L1', name:'L1 (태양 쪽)',   color:0xff88dd,
+    desc:'태양과 지구 사이의 균형점. 지구로부터 태양 방향으로 약 150만 km (≈ 0.01 AU). SOHO·DSCOVR 같은 태양 관측 위성이 이곳에 배치된다.' },
+  { k:'L2', name:'L2 (반대편)',    color:0xff88dd,
+    desc:'지구를 사이에 두고 태양 반대편 균형점. 지구로부터 약 150만 km 떨어져 있고, 햇빛이 차단되어 적외선 관측에 이상적 — JWST·플랑크·가이아가 이곳에 있다.' },
+  { k:'L3', name:'L3 (태양 너머)', color:0xff88dd,
+    desc:'태양에 대해 지구의 정반대편, 지구 궤도 위에 있는 균형점. 항상 태양에 가려 지구에서 보이지 않는다.' },
+  { k:'L4', name:'L4 (앞 60°)',    color:0xffbb55,
+    desc:'태양·지구와 정삼각형을 이루는 안정 균형점. 지구 궤도 60° 앞쪽에 위치하며, 작은 천체가 안정적으로 머물 수 있다.' },
+  { k:'L5', name:'L5 (뒤 60°)',    color:0xffbb55,
+    desc:'L4의 대칭점. 지구 궤도 60° 뒤쪽의 안정 균형점.' }
+];
+const L_AXIS_Y = new THREE.Vector3(0,1,0);
+const lagrangeGroup = new THREE.Group(); scene.add(lagrangeGroup);
+
+for (const Lp of LAGRANGE_KEYS) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowSprite(Lp.color, true), transparent:true,
+    blending:THREE.AdditiveBlending, depthWrite:false }));
+  sp.userData.bodyKey = Lp.k;
+  lagrangeGroup.add(sp);
+  const lb = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeLabelTexture(Lp.k), transparent:true, depthWrite:false }));
+  lagrangeGroup.add(lb);
+  lb.userData.bodyKey = Lp.k;
+  lagrangeObjs[Lp.k] = { meta:Lp, sprite:sp, label:lb };
+  OBJ_BY_KEY[Lp.k] = { kind:'lagrange', obj: lagrangeObjs[Lp.k] };
+  INFO[Lp.k] = { name: '라그랑주 점 '+Lp.k, type:'지구-태양 라그랑주 평형점',
+    accent:'#'+new THREE.Color(Lp.color).getHexString(),
+    stats:[['시스템','지구-태양 (Earth-Sun)'],['위치 유형',Lp.k==='L4'||Lp.k==='L5'?'안정 (Stable)':'불안정 (Unstable)'],
+      ['지구와 거리', Lp.k==='L1'||Lp.k==='L2'?'≈ 150만 km':Lp.k==='L3'?'≈ 2 AU (태양 너머)':'1 AU (60° 위치)'],
+      ['주요 임무 / 천체', Lp.k==='L1'?'SOHO, DSCOVR':Lp.k==='L2'?'JWST, 플랑크, 가이아':Lp.k==='L4'||Lp.k==='L5'?'트로이 소행성 가능 영역':'(가시 영역 아님)']],
+    desc: Lp.desc };
+}
+
+function updateLagrangePoints() {
+  const eh = bodyObjs.earth.group.position;
+  const dist = eh.length();
+  if (dist < 0.01) return;
+  const dir = eh.clone().normalize();
+  const L_OFFSET = 0.01;
+  lagrangeObjs.L1.sprite.position.copy(dir).multiplyScalar(dist * (1 - L_OFFSET));
+  lagrangeObjs.L2.sprite.position.copy(dir).multiplyScalar(dist * (1 + L_OFFSET));
+  lagrangeObjs.L3.sprite.position.copy(dir).multiplyScalar(-dist * 1.0007);
+  lagrangeObjs.L4.sprite.position.copy(eh).applyAxisAngle(L_AXIS_Y,  Math.PI/3);
+  lagrangeObjs.L5.sprite.position.copy(eh).applyAxisAngle(L_AXIS_Y, -Math.PI/3);
+  for (const Lp of LAGRANGE_KEYS) {
+    const o = lagrangeObjs[Lp.k];
+    const cd = camera.position.distanceTo(o.sprite.position);
+    o.sprite.scale.setScalar(Math.max(2.0, cd * 0.014));
+    o.label.position.copy(o.sprite.position);
+    o.label.position.y += cd * 0.025;
+    o.label.scale.set(cd * 0.04, cd * 0.01, 1);
+  }
+}
+
+// ---- 목성 트로이 소행성 점 구름 (L4/L5) ----
+const TROJAN_PARTICLES = 2400;
+function buildTrojanCloud(sign) {
+  const pos = new Float32Array(TROJAN_PARTICLES*3);
+  const col = new Float32Array(TROJAN_PARTICLES*3);
+  for (let i=0; i<TROJAN_PARTICLES; i++) {
+    // L4/L5 부근에 펴짐 (양옆으로 ±30°, 두께도)
+    const angOff = (Math.random()-0.5) * Math.PI/3;   // ±30°
+    const rNoise = 0.85 + Math.random()*0.30;          // 목성 거리의 0.85~1.15
+    const zNoise = (Math.random()-0.5) * 0.6;          // 두께
+    const baseAng = sign * Math.PI/3 + angOff;         // L4 = +60°, L5 = -60°
+    pos[i*3]   = Math.cos(baseAng) * rNoise;
+    pos[i*3+1] = zNoise * 0.2;
+    pos[i*3+2] = Math.sin(baseAng) * rNoise;
+    // 회색~황갈색
+    const b = 0.55 + Math.random()*0.25;
+    col[i*3]   = b * 0.95;
+    col[i*3+1] = b * 0.82;
+    col[i*3+2] = b * 0.62;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col,3));
+  const mat = new THREE.PointsMaterial({ size:1.5, sizeAttenuation:false, vertexColors:true,
+    transparent:true, opacity:0.75, depthWrite:false });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  return points;
+}
+const trojanL4 = buildTrojanCloud(+1);
+const trojanL5 = buildTrojanCloud(-1);
+
+function updateTrojans() {
+  const jp = bodyObjs.jupiter.group.position;
+  // 목성 위치를 기준 좌표로 사용 — 트로이 점은 L4/L5에 해당
+  // 단순화: 트로이 점 구름의 자체 좌표는 unit circle 기반이므로, 목성 거리만큼 스케일
+  const jR = jp.length();
+  trojanL4.scale.setScalar(jR);
+  trojanL5.scale.setScalar(jR);
+  // Y 회전 — 트로이 점은 항상 목성과 같은 회전 각도에 있어야 함
+  // L4 점 구름의 평균 angle = baseAng (cos/sin) — 목성 angle만큼 추가 회전
+  const jupAngle = Math.atan2(jp.z, jp.x);
+  // 트로이 구름은 baseAng = ±60° 기준으로 생성됨, 목성 angle만큼 더 회전 필요
+  // → scene-level 회전: 목성 angle을 atan2(x,z)로 받으면 Y축 회전각이 -angle (Y-up 좌표계)
+  // 단순화: 회전을 Y축 기준으로 적용
+  trojanL4.rotation.y = -jupAngle + Math.PI/2;   // 좌표 보정
+  trojanL5.rotation.y = -jupAngle + Math.PI/2;
+}
+
+INFO['trojans_jupiter'] = { name:'목성 트로이 소행성군', type:'공궤도 천체 · 목성 L4/L5',
+  accent:'#c9a87c',
+  stats:[['위치','목성 궤도 위 ±60° (L4·L5)'],['총 알려진 천체','13,000+ 개'],
+    ['L4 그룹','「그리스 진영」 - 헥토르 등 大型 천체'],['L5 그룹','「트로이 진영」 - 파트로클로스 등'],
+    ['특징','목성과 같은 각속도로 함께 공전']],
+  desc:'목성과 같은 궤도를 따라 ±60° 앞뒤에 머무는 소행성 무리. 라그랑주 안정점 L4·L5에 갇혀 목성과 동일한 각속도로 공전한다. 트로이 전쟁의 영웅 이름을 따라 명명됐다.' };
+OBJ_BY_KEY['trojans_jupiter'] = { kind:'trojans', obj: { trojanL4, trojanL5 } };
+
+// ---- 카모오알레와 (지구의 준위성, 1:1 공명) ----
+// a=1.0014, e=0.1031, i=7.78° — 자체 케플러 계산
+const KAMO = {
+  key:'kamooalewa', name:'카모오알레와 (Kamoʻoalewa)',
+  el:{ a:1.0014, e:0.1031, i:7.78, w:286.94, N:66.51, M0:223.18 },
+  meanMotion: 360/365.93,   // deg/day, 거의 1년
+  color:0xc09080
+};
+const kamoObj = (() => {
+  const mat = new THREE.MeshStandardMaterial({ color:KAMO.color, roughness:1, metalness:0, transparent:true, opacity:1 });
+  const m = new THREE.Mesh(moonSphereGeo, mat);
+  m.scale.setScalar(0.08);    // 매우 작음 (실제 ~40m)
+  m.userData.bodyKey = KAMO.key;
+  scene.add(m);
+  const lb = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeLabelTexture('카모오알레와'), transparent:true, depthWrite:false }));
+  lb.userData.bodyKey = KAMO.key;
+  scene.add(lb);
+  return { mesh:m, label:lb };
+})();
+OBJ_BY_KEY[KAMO.key] = { kind:'kamooalewa', obj: kamoObj };
+INFO[KAMO.key] = { name:'카모오알레와 (Kamoʻoalewa)', type:'지구 준위성 · 1:1 공명 공궤도',
+  accent:'#c09080',
+  stats:[['지름','약 40~100 m'],['공전 주기','거의 정확히 1년 (1:1 공명)'],
+    ['궤도 (a/e/i)','1.0014 AU / 0.1031 / 7.78°'],
+    ['지구와의 관계','지구 시점에서 말발굽(horseshoe) 궤도'],
+    ['발견','2016년 (Pan-STARRS 1)'],
+    ['특이점','달 분출 잔해 후보 — 달과 같은 광물 조성']],
+  desc:'지구와 1:1 궤도 공명을 이루는 작은 소행성. 헬리오센트릭에서는 일반적인 케플러 궤도지만 지구 시점에서 보면 말발굽(horseshoe) 모양 궤도를 그린다. 2021년 분광 분석에서 달 표면 광물과 같은 성분이 발견되어 「달에서 떨어진 조각」 가설이 제기됐다.' };
+
+function updateKamooalewa(d) {
+  const e=KAMO.el.e, a=KAMO.el.a;
+  const M = rev(KAMO.el.M0 + KAMO.meanMotion * d);
+  let E = M*DEG + e*Math.sin(M*DEG)*(1+e*Math.cos(M*DEG));
+  for (let k=0; k<8; k++) { const dE=(E-e*Math.sin(E)-M*DEG)/(1-e*Math.cos(E)); E-=dE; if(Math.abs(dE)<1e-7) break; }
+  const xv=a*(Math.cos(E)-e), yv=a*Math.sqrt(1-e*e)*Math.sin(E);
+  const w=KAMO.el.w, N=KAMO.el.N, i=KAMO.el.i;
+  const v = Math.atan2(yv, xv) * RAD;
+  const r = Math.sqrt(xv*xv + yv*yv);
+  const xh = r*(cosd(N)*cosd(v+w) - sind(N)*sind(v+w)*cosd(i));
+  const yh = r*(sind(N)*cosd(v+w) + cosd(N)*sind(v+w)*cosd(i));
+  const zh = r*(sind(v+w)*sind(i));
+  const pos = sceneScale(new THREE.Vector3(xh, zh, -yh));
+  kamoObj.mesh.position.copy(pos);
+  kamoObj.label.position.copy(pos);
+  const cd = camera.position.distanceTo(pos);
+  kamoObj.label.position.y += cd * 0.03;
+  kamoObj.label.scale.set(cd*0.06, cd*0.015, 1);
+}
+
+// ---- 오무아무아 ('Oumuamua) — 쌍곡선 궤도 (e > 1) ----
+// 실측: q=0.2559 AU, e=1.1995, i=122.74°, 근일점 통과 2017-09-09
+// 단순화: 쌍곡선 경로를 미리 N개 점으로 그리고, simTime에 따라 한 점에서 다음으로 이동
+const OUMU = {
+  key:'oumuamua', name:'오무아무아 (ʻOumuamua)',
+  q:0.2559, e:1.1995, i:122.74, peri_w:241.81, asc_N:24.60,
+  periEpoch: Date.UTC(2017, 8, 9),    // 2017-09-09 근일점
+  color:0xffaaee
+};
+function buildOumuamuaPath() {
+  const N = 400;
+  const pts = [];
+  const e = OUMU.e, q = OUMU.q;
+  const a = q / (1-e);    // a<0 for hyperbolic
+  // hyperbolic true anomaly range: -ν∞ ~ +ν∞ where ν∞ = acos(-1/e)
+  const nuInf = Math.acos(-1/e);
+  const margin = 0.985;   // 점근선 직전까지
+  for (let i=0; i<N; i++) {
+    const t = i/(N-1);
+    const nu = (t * 2 - 1) * nuInf * margin;
+    const r = Math.abs(a) * (e*e - 1) / (1 + e * Math.cos(nu));
+    // 궤도 평면 → 황도 변환
+    const w=OUMU.peri_w, Nn=OUMU.asc_N, inc=OUMU.i;
+    const cosNuW = Math.cos(nu + w*DEG);
+    const sinNuW = Math.sin(nu + w*DEG);
+    const xh = r * (Math.cos(Nn*DEG)*cosNuW - Math.sin(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+    const yh = r * (Math.sin(Nn*DEG)*cosNuW + Math.cos(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+    const zh = r * (sinNuW * Math.sin(inc*DEG));
+    pts.push(new THREE.Vector3(xh, zh, -yh));
+  }
+  return pts;
+}
+const oumuPathAU = buildOumuamuaPath();
+const oumuPathGeo = new THREE.BufferGeometry().setFromPoints(oumuPathAU.map(sceneScale));
+const oumuPath = new THREE.Line(oumuPathGeo,
+  new THREE.LineBasicMaterial({ color:0xffaaee, transparent:true, opacity:0.55 }));
+scene.add(oumuPath);
+
+const oumuMat = new THREE.MeshStandardMaterial({ color:OUMU.color, roughness:0.9, metalness:0.1, transparent:true, opacity:1 });
+const oumuMesh = new THREE.Mesh(moonSphereGeo, oumuMat);
+oumuMesh.scale.set(0.18, 0.05, 0.05);    // 길쭉한 cigar (실제 모양)
+oumuMesh.userData.bodyKey = OUMU.key;
+scene.add(oumuMesh);
+const oumuLabel = new THREE.Sprite(new THREE.SpriteMaterial({
+  map:makeLabelTexture('오무아무아'), transparent:true, depthWrite:false }));
+oumuLabel.userData.bodyKey = OUMU.key;
+scene.add(oumuLabel);
+OBJ_BY_KEY[OUMU.key] = { kind:'oumuamua', obj: { mesh:oumuMesh, label:oumuLabel, path:oumuPath } };
+INFO[OUMU.key] = { name:'오무아무아 (ʻOumuamua)', type:'성간 천체 · 쌍곡선 궤도 (e=1.1995)',
+  accent:'#ffaaee',
+  stats:[['발견','2017-10-19 (Pan-STARRS 1)'],
+    ['이심률','e = 1.1995 (쌍곡선)'],['근일점','q = 0.256 AU'],
+    ['궤도 경사','122.74° (역행)'],['근일점 통과','2017-09-09'],
+    ['크기','약 100×35×35 m (시가 모양)'],
+    ['특징','인류가 발견한 첫 성간 천체']],
+  desc:'2017년 발견된 인류 최초의 성간 천체. 쌍곡선 궤도(e>1)로 태양계 바깥에서 들어와 한 번 태양을 스쳐 지나간 뒤 영구히 빠져나갔다. 비정상적인 가속도와 시가 모양 형태로 「외계 우주선 가설」까지 제기됐던 신비한 천체.' };
+
+function updateOumuamua() {
+  // simTime - periEpoch (일 단위) → 쌍곡선 mean anomaly Mh
+  // Mh = e*sinh(F) - F (hyperbolic Kepler) — 수치 해
+  const days = (simTime - OUMU.periEpoch) / 86400000;
+  const e = OUMU.e, q = OUMU.q, a = q/(1-e);
+  const n = Math.sqrt(1 / Math.pow(Math.abs(a), 3));   // mean motion (1/day in AU/year units)
+  const Mh = n * days * 0.0172;    // k=0.0172 (radian per day, gauss const)
+  // F: e*sinh(F) - F = Mh
+  let F = Mh, dF;
+  for (let k=0; k<32; k++) {
+    dF = (e*Math.sinh(F) - F - Mh) / (e*Math.cosh(F) - 1);
+    F -= dF; if (Math.abs(dF) < 1e-10) break;
+  }
+  const nuInf = Math.acos(-1/e);
+  // true anomaly nu (hyperbolic)
+  const nu = 2 * Math.atan2(Math.sqrt(e+1)*Math.sinh(F/2), Math.sqrt(e-1)*Math.cosh(F/2));
+  const r = Math.abs(a) * (e*e - 1) / (1 + e * Math.cos(nu));
+  const w=OUMU.peri_w, Nn=OUMU.asc_N, inc=OUMU.i;
+  const cosNuW = Math.cos(nu + w*DEG), sinNuW = Math.sin(nu + w*DEG);
+  const xh = r * (Math.cos(Nn*DEG)*cosNuW - Math.sin(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+  const yh = r * (Math.sin(Nn*DEG)*cosNuW + Math.cos(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+  const zh = r * (sinNuW * Math.sin(inc*DEG));
+  // 궤도 위치를 시뮬레이션 좌표로 (단, 점근선 너머는 path 끝점에 고정)
+  const auPos = (Number.isFinite(xh) && Math.abs(nu) < nuInf*0.99)
+    ? new THREE.Vector3(xh, zh, -yh)
+    : oumuPathAU[nu > 0 ? oumuPathAU.length-1 : 0];
+  const pos = sceneScale(auPos);
+  oumuMesh.position.copy(pos);
+  oumuLabel.position.copy(pos);
+  const cd = camera.position.distanceTo(pos);
+  oumuLabel.position.y += cd * 0.03;
+  oumuLabel.scale.set(cd*0.06, cd*0.015, 1);
+}
+
+// ---- Planet Nine (가상 9번째 행성, Caltech Brown/Batygin 모델) ----
+const P9 = {
+  key:'planetnine', name:'Planet Nine (가상)',
+  a:600, e:0.30, i:22, peri_w:150, asc_N:90, M0:60,
+  meanMotion: 360 / (Math.pow(600, 1.5) * 365.25),   // 케플러 3법칙: T = a^1.5 yr
+  color:0x5566ff
+};
+function buildPlanetNinePath() {
+  const N = 256;
+  const pts = [];
+  const e = P9.e, a = P9.a;
+  for (let i=0; i<N; i++) {
+    const M = i/N * 360;
+    let E = M*DEG + e*Math.sin(M*DEG)*(1+e*Math.cos(M*DEG));
+    for (let k=0; k<8; k++) { const dE=(E-e*Math.sin(E)-M*DEG)/(1-e*Math.cos(E)); E-=dE; if(Math.abs(dE)<1e-7) break; }
+    const xv = a*(Math.cos(E)-e), yv = a*Math.sqrt(1-e*e)*Math.sin(E);
+    const v = Math.atan2(yv,xv);
+    const r = Math.sqrt(xv*xv+yv*yv);
+    const w=P9.peri_w, Nn=P9.asc_N, inc=P9.i;
+    const cosNuW = Math.cos(v + w*DEG), sinNuW = Math.sin(v + w*DEG);
+    const xh = r * (Math.cos(Nn*DEG)*cosNuW - Math.sin(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+    const yh = r * (Math.sin(Nn*DEG)*cosNuW + Math.cos(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+    const zh = r * (sinNuW * Math.sin(inc*DEG));
+    pts.push(new THREE.Vector3(xh, zh, -yh));
+  }
+  pts.push(pts[0]);   // close loop
+  return pts;
+}
+const p9PathAU = buildPlanetNinePath();
+const p9PathGeo = new THREE.BufferGeometry().setFromPoints(p9PathAU.map(v => {
+  // Planet Nine 거리는 600 AU 정도 — 오르트 같은 강한 압축 사용
+  const L = v.length();
+  if (L < 1e-9) return v.clone();
+  const mag = scaleMode==='visual' ? AU_UNITS * Math.pow(L, OORT_DIST_POW) : AU_UNITS * L;
+  return v.clone().multiplyScalar(mag / L);
+}));
+const p9PathMat = new THREE.LineDashedMaterial({ color:0x6677ee, transparent:true,
+  opacity:0.55, dashSize:80, gapSize:50 });
+const p9Path = new THREE.Line(p9PathGeo, p9PathMat);
+p9Path.computeLineDistances();
+scene.add(p9Path);
+
+const p9Mat = new THREE.MeshStandardMaterial({ color:P9.color, roughness:0.7, metalness:0.2, transparent:true, opacity:1 });
+const p9Mesh = new THREE.Mesh(unitGeo, p9Mat);
+p9Mesh.scale.setScalar(3.0);
+p9Mesh.userData.bodyKey = P9.key;
+scene.add(p9Mesh);
+const p9Label = new THREE.Sprite(new THREE.SpriteMaterial({
+  map:makeLabelTexture('Planet Nine'), transparent:true, depthWrite:false }));
+p9Label.userData.bodyKey = P9.key;
+scene.add(p9Label);
+OBJ_BY_KEY[P9.key] = { kind:'planetnine', obj: { mesh:p9Mesh, label:p9Label, path:p9Path } };
+INFO[P9.key] = { name:'Planet Nine (제9행성 - 가상)', type:'가설 행성 · Caltech 이론 모델',
+  accent:'#6677ee',
+  stats:[['상태','이론적 예측 (아직 직접 관측 안 됨)'],
+    ['추정 질량','지구의 5~10배'],['궤도 반장축 a','약 400~800 AU (시뮬레이션: 600)'],
+    ['이심률 e','약 0.2~0.5 (시뮬레이션: 0.30)'],['궤도 기울기 i','약 15~30° (시뮬레이션: 22°)'],
+    ['공전 주기','약 14,700년'],['제안','Caltech의 마이크 브라운·콘스탄틴 바티긴 (2016)']],
+  desc:'카이퍼 벨트 외곽 천체들의 정렬된 궤도 군집 현상을 설명하기 위해 가설로 제안된 9번째 거대 행성. Caltech의 브라운·바티긴 팀이 2016년 통계적 증거를 발표한 이래 여러 천문대가 직접 관측을 시도하고 있다.' };
+
+function updatePlanetNine(d) {
+  const e = P9.e, a = P9.a;
+  const M = rev(P9.M0 + P9.meanMotion * d);
+  let E = M*DEG + e*Math.sin(M*DEG)*(1+e*Math.cos(M*DEG));
+  for (let k=0; k<8; k++) { const dE=(E-e*Math.sin(E)-M*DEG)/(1-e*Math.cos(E)); E-=dE; if(Math.abs(dE)<1e-7) break; }
+  const xv = a*(Math.cos(E)-e), yv = a*Math.sqrt(1-e*e)*Math.sin(E);
+  const v = Math.atan2(yv,xv), r = Math.sqrt(xv*xv+yv*yv);
+  const w=P9.peri_w, Nn=P9.asc_N, inc=P9.i;
+  const cosNuW = Math.cos(v + w*DEG), sinNuW = Math.sin(v + w*DEG);
+  const xh = r * (Math.cos(Nn*DEG)*cosNuW - Math.sin(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+  const yh = r * (Math.sin(Nn*DEG)*cosNuW + Math.cos(Nn*DEG)*sinNuW*Math.cos(inc*DEG));
+  const zh = r * (sinNuW * Math.sin(inc*DEG));
+  const auPos = new THREE.Vector3(xh, zh, -yh);
+  // 오르트와 동일 강한 압축
+  const L = auPos.length();
+  const mag = scaleMode==='visual' ? AU_UNITS * Math.pow(L, OORT_DIST_POW) : AU_UNITS * L;
+  const pos = auPos.multiplyScalar(mag / L);
+  p9Mesh.position.copy(pos);
+  p9Label.position.copy(pos);
+  const cd = camera.position.distanceTo(pos);
+  p9Label.position.y += cd * 0.025;
+  p9Label.scale.set(cd*0.07, cd*0.0175, 1);
+}
+
+// ---- 화성 로버 핀 (Mars 표면, mars 포커스 시에만 표시) ----
+const MARS_ROVERS = [
+  { key:'perseverance', name:'퍼서비어런스', lat:18.44, lon:77.45, color:0xff4444,
+    stats:[['착륙','2021-02-18'],['착륙지','예제로 분화구 (Jezero Crater)'],
+      ['임무','고대 생명 흔적 + 시료 채취'],['특이점','마스 헬리콥터 인제뉴이티 동반'],['상태','활동 중']],
+    desc:'NASA의 화성 로버. 고대 호수였던 예제로 분화구를 탐사 중이며, 생명 흔적이 있을 만한 토양 시료를 미래 회수 임무용으로 채취·저장한다.' },
+  { key:'curiosity', name:'큐리오시티', lat:-4.59, lon:137.44, color:0xff8844,
+    stats:[['착륙','2012-08-06'],['착륙지','게일 분화구 (Gale Crater)'],
+      ['임무','과거 거주가능성 평가 + 지질학 탐사'],['활동 기간','13년+ (예상의 12배)'],['상태','활동 중']],
+    desc:'NASA가 보낸 자동차 크기의 화성 로버. 게일 분화구의 샤프 산을 오르며 과거 화성에 물과 생명이 존재했을 환경 조건을 입증해왔다.' }
+];
+
+function latLonToUnitVec(lat, lon) {
+  const phi = (90 - lat) * DEG, theta = lon * DEG;
+  return new THREE.Vector3(
+    Math.sin(phi) * Math.cos(theta),
+    Math.cos(phi),
+    Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+const roverObjs = {};
+for (const R of MARS_ROVERS) {
+  // 핀은 화성 mesh의 자식 (회전하면 함께 회전)
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeGlowSprite(R.color, true), transparent:true,
+    blending:THREE.AdditiveBlending, depthWrite:false }));
+  sp.userData.bodyKey = R.key;
+  sp.position.copy(latLonToUnitVec(R.lat, R.lon)).multiplyScalar(1.02);   // mesh 반경 1 + 살짝 위
+  bodyObjs.mars.mesh.add(sp);
+  const lb = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeLabelTexture(R.name), transparent:true, depthWrite:false }));
+  lb.userData.bodyKey = R.key;
+  lb.position.copy(sp.position).multiplyScalar(1.12);
+  bodyObjs.mars.mesh.add(lb);
+  sp.visible = false; lb.visible = false;
+  roverObjs[R.key] = { R, sprite:sp, label:lb };
+  OBJ_BY_KEY[R.key] = { kind:'rover', obj: roverObjs[R.key] };
+  INFO[R.key] = { name:R.name, type:'화성 로버 · NASA',
+    accent:'#'+new THREE.Color(R.color).getHexString(),
+    stats:R.stats, desc:R.desc };
+}
+
+function updateRovers() {
+  // 화성 mesh 크기가 변하므로 핀 크기도 매번 보정
+  const marsR = planetRadius(EARTH.constructor === Object ? PLANETS.find(p=>p.key==='mars') : null) || 1;
+}
+
+// 탐사선 위치 갱신
+function updateProbes(d) {
+  for (const PR of PROBE_DATA) {
+    const obj = probeObjs[PR.key];
+    let pos;
+    if (PR.type === 'static_au') {
+      // 태양으로부터 정적 위치, 매우 천천히 이동 (시각화 단순화)
+      const auPos = PR.direction.clone().multiplyScalar(PR.auDistance);
+      pos = sceneScale(auPos);
+    } else if (PR.type === 'eccentric_orbit') {
+      // 단순 케플러 — 근일점이 코로나에 근접한 타원
+      const M = (d / PR.periPeriod) * 360 % 360;
+      const e = PR.e, a = PR.a;
+      let E = M*DEG + e*Math.sin(M*DEG)*(1+e*Math.cos(M*DEG));
+      for (let k=0;k<8;k++){ const dE=(E-e*Math.sin(E)-M*DEG)/(1-e*Math.cos(E)); E-=dE; if(Math.abs(dE)<1e-7) break; }
+      const xv=a*(Math.cos(E)-e), yv=a*Math.sqrt(1-e*e)*Math.sin(E);
+      const cosI = Math.cos(PR.orbitInclin*DEG), sinI = Math.sin(PR.orbitInclin*DEG);
+      pos = sceneScale(new THREE.Vector3(xv, yv*sinI, -yv*cosI));
+    } else if (PR.type === 'earth_l2') {
+      // 지구 위치 + 태양 반대 방향으로 0.01 AU
+      const eh = bodyObjs.earth.group.position.clone();
+      const dir = eh.clone().normalize();
+      pos = eh.clone().add(dir.multiplyScalar(eh.length() * 0.01));
+    }
+    obj.sprite.position.copy(pos);
+    obj.label.position.copy(pos);
+    // 카메라 거리 비례 크기 + opacity
+    const cd = camera.position.distanceTo(pos);
+    obj.sprite.scale.setScalar(Math.max(2.5, cd * 0.018));
+    obj.label.position.y += cd * 0.04;
+    obj.label.scale.set(cd * 0.07, cd * 0.0175, 1);
+    obj.sprite.material.opacity = obj.currentOpacity;
+    obj.label.material.opacity = obj.currentOpacity * (labelsOn ? 1 : 0);
+  }
+}
+
 // 영역 윤곽선·메시·라벨 토글 — 카이퍼/오르트 선택 시에만 표시
 function setOuterRegionVisible(focusKey) {
   const showK = (focusKey === 'kuiper');
@@ -1455,6 +1963,15 @@ function bodyWorldPos(key,out) {
   if (starSystemObjs[key]) return out.copy(starSystemObjs[key].sprite.position);
   // 주요 위성 — mesh의 world position (행성과 함께 이동)
   if (MOON_BY_KEY[key]) return MOON_BY_KEY[key].moonObj.mesh.getWorldPosition(out);
+  // 신규 카테고리 (탐사선/라그랑주/카모오/오무아무아/P9/로버)
+  if (OBJ_BY_KEY[key]) {
+    const e = OBJ_BY_KEY[key];
+    if (e.kind === 'probe' || e.kind === 'lagrange') return out.copy(e.obj.sprite.position);
+    if (e.kind === 'rover') return e.obj.sprite.getWorldPosition(out);   // mars mesh의 자식 → world 좌표
+    if (e.kind === 'kamooalewa' || e.kind === 'oumuamua' || e.kind === 'planetnine')
+      return out.copy(e.obj.mesh.position);
+    if (e.kind === 'trojans') return out.set(0,0,0);   // 시스템 중심
+  }
   return out.copy(bodyObjs[key].group.position);
 }
 
@@ -1490,6 +2007,19 @@ function computeFocusOffset(key) {
     const r = Math.max(m.mesh.scale.x * 8 + 0.4, 0.6);
     return new THREE.Vector3(r*0.32, r*0.46, r*1.3);
   }
+  // 신규 카테고리 — 객체 크기에 맞춰 가까이서 보기
+  if (OBJ_BY_KEY[key]) {
+    const e = OBJ_BY_KEY[key];
+    let r = 20;
+    if (e.kind === 'probe') r = 30;
+    else if (e.kind === 'lagrange') r = 25;
+    else if (e.kind === 'rover') r = planetRadius(PLANETS.find(p=>p.key==='mars')) * 3 + 0.5;
+    else if (e.kind === 'kamooalewa') r = 3;
+    else if (e.kind === 'oumuamua')   r = 5;
+    else if (e.kind === 'planetnine') r = 25;
+    else if (e.kind === 'trojans')    r = bodyObjs.jupiter.group.position.length() * 1.4;
+    return new THREE.Vector3(r*0.25, r*0.45, r*1.0);
+  }
   let r = radiusOf(key)*7 + 3;
   if (key==='earth') r = Math.max(r, 60*moonDistFactor()*1.7);
   if (key==='saturn') r *= 1.6;
@@ -1515,6 +2045,17 @@ function adjustCameraExtents(key) {
   } else if (key === 'threebody_centauri') {
     if (scaleMode === 'visual') { needFar = 60000;     needMax = 45000; }   // 항성 거리 visual ≈ 5,150
     else                        { needFar = 6e7;       needMax = 4.5e7; }   // real ≈ 19,345,480
+  } else if (key === 'voyager1' || key === 'voyager2' || key === 'newhorizons') {
+    // 탐사선은 30~170 AU 범위
+    if (scaleMode === 'visual') { needFar = 30000;     needMax = 20000; }
+    else                        { needFar = 200000;    needMax = 140000; }
+  } else if (key === 'planetnine') {
+    // P9 600 AU 오르트 압축
+    if (scaleMode === 'visual') { needFar = 60000;     needMax = 40000; }
+    else                        { needFar = 6e7;       needMax = 4.5e7; }
+  } else if (key === 'oumuamua') {
+    if (scaleMode === 'visual') { needFar = 20000;     needMax = 12000; }
+    else                        { needFar = 80000;     needMax = 60000; }
   }
   if (camera.far !== needFar) {
     camera.far = needFar;
@@ -1529,6 +2070,7 @@ function startFocus(key,instant) {
   adjustCameraExtents(key);                                     // far/maxDistance 먼저 확장
   setOuterRegionVisible(key);                                   // 카이퍼/오르트 윤곽선·라벨 토글
   updateMoonsVisibility();                                      // 위성 페이드 인/아웃 트리거
+  applyCategoryVisibility();                                    // 탐사선·라그랑주·미지 그룹 가시성
   focusOffset.copy(computeFocusOffset(key));
   updateSidebar(key);
   bodyWorldPos(key,_fp);
@@ -1923,6 +2465,13 @@ for (const planetKey of Object.keys(MOON_DATA)) {
     clickable.push(m.label);
   }
 }
+// 탐사선·라그랑주·로버·카모오알레와·오무아무아·Planet Nine — 모두 클릭 가능
+for (const PR of PROBE_DATA)   { clickable.push(probeObjs[PR.key].sprite, probeObjs[PR.key].label); }
+for (const Lp of LAGRANGE_KEYS) { clickable.push(lagrangeObjs[Lp.k].sprite, lagrangeObjs[Lp.k].label); }
+for (const R of MARS_ROVERS)   { clickable.push(roverObjs[R.key].sprite, roverObjs[R.key].label); }
+clickable.push(kamoObj.mesh, kamoObj.label);
+clickable.push(oumuMesh, oumuLabel);
+clickable.push(p9Mesh, p9Label);
 let pdown = null;
 renderer.domElement.addEventListener('pointerdown', e=>{ pdown={ x:e.clientX, y:e.clientY, t:performance.now() }; });
 renderer.domElement.addEventListener('pointerup', e=>{
@@ -1967,12 +2516,40 @@ const FOCUS_LIST=[
   ['triton',   '    └ 트리톤'],
   ['kuiper','☄ 카이퍼 벨트'],
   ['oort','🌫 오르트 구름'],
+  ['__sep_probes','──── 🛰 인류 탐사선 ────'],
+  ['voyager1','보이저 1호 (Voyager 1) · 169 AU'],
+  ['voyager2','보이저 2호 (Voyager 2) · 141 AU'],
+  ['newhorizons','뉴 호라이즌스호 · 58 AU'],
+  ['parker','파커 솔라 프로브 · 코로나 궤도'],
+  ['jwst','제임스 웹 우주 망원경 · L2'],
+  ['__sep_rovers','──── 🚀 화성 로버 ────'],
+  ['perseverance','퍼서비어런스 (예제로 분화구)'],
+  ['curiosity','큐리오시티 (게일 분화구)'],
+  ['__sep_lag','──── ⚖ 라그랑주 점 (지구-태양) ────'],
+  ['L1','L1 (태양 쪽)'],['L2','L2 (반대편)'],['L3','L3 (태양 너머)'],
+  ['L4','L4 (앞 60°)'],['L5','L5 (뒤 60°)'],
+  ['__sep_co','──── 🌀 공궤도 천체 ────'],
+  ['trojans_jupiter','목성 트로이 소행성군 (L4·L5)'],
+  ['kamooalewa','카모오알레와 (지구 준위성)'],
+  ['__sep_exo','──── 👽 성간·미지 ────'],
+  ['oumuamua','오무아무아 (성간 천체, 쌍곡선)'],
+  ['planetnine','Planet Nine (가상, ~600 AU)'],
+  ['__sep_star','──── ⭐ 외계 항성계 ────'],
   ['hailmary_eridani','📡 프로젝트 헤일메리 - 40 에리다니 A'],
   ['threebody_centauri','🌑 삼체 - 알파 센타우리']
 ];
 const focusSel=$('focusSel');
-for (const [k,l] of FOCUS_LIST){ const o=document.createElement('option'); o.value=k; o.textContent=l; if(k==='earth')o.selected=true; focusSel.appendChild(o); }
-focusSel.onchange = () => startFocus(focusSel.value,false);
+for (const [k,l] of FOCUS_LIST){
+  const o=document.createElement('option');
+  o.value=k; o.textContent=l;
+  if (k.startsWith('__sep')) { o.disabled = true; o.style.fontWeight='bold'; o.style.color='#8b97b4'; o.style.background='#0a1020'; }
+  if (k==='earth') o.selected=true;
+  focusSel.appendChild(o);
+}
+focusSel.onchange = () => {
+  if (focusSel.value.startsWith('__sep')) return;            // 구분자는 무시
+  startFocus(focusSel.value, false);
+};
 
 const tideLocSel=$('tideLoc');
 LOCATIONS.forEach((L,idx)=>{
@@ -2016,6 +2593,44 @@ $('btnMoons').onclick = () => {
   $('btnMoons').classList.toggle('on', showAllMoons);
   updateMoonsVisibility();
 };
+
+// 새 카테고리 토글 — 인류 탐사선·라그랑주·미지 천체
+let showProbes = false, showLagrange = false, showExotic = false;
+function applyCategoryVisibility() {
+  // 탐사선: 토글 || 해당 키 포커스
+  for (const PR of PROBE_DATA) {
+    const obj = probeObjs[PR.key];
+    obj.targetOpacity = (showProbes || focusKey === PR.key) ? 1 : 0;
+  }
+  // 라그랑주 + 공궤도 그룹: 토글 || 그룹 내 어느 한 키라도 포커스
+  const lagrangeKeys = ['L1','L2','L3','L4','L5','trojans_jupiter','kamooalewa'];
+  const showLag = showLagrange || lagrangeKeys.includes(focusKey);
+  for (const Lp of LAGRANGE_KEYS) {
+    lagrangeObjs[Lp.k].sprite.visible = showLag;
+    lagrangeObjs[Lp.k].label.visible  = showLag && labelsOn;
+  }
+  trojanL4.visible = showLag;
+  trojanL5.visible = showLag;
+  kamoObj.mesh.visible  = showLag;
+  kamoObj.label.visible = showLag && labelsOn;
+  // 미지: 오무아무아 + Planet Nine
+  const showExo = showExotic || focusKey === 'oumuamua' || focusKey === 'planetnine';
+  oumuMesh.visible  = showExo;
+  oumuLabel.visible = showExo && labelsOn;
+  oumuPath.visible  = showExo;
+  p9Mesh.visible    = showExo;
+  p9Label.visible   = showExo && labelsOn;
+  p9Path.visible    = showExo;
+  // 화성 로버: 화성 포커스 시 또는 로버 직접 포커스 시
+  const showRovers = focusKey === 'mars' || focusKey === 'perseverance' || focusKey === 'curiosity';
+  for (const R of MARS_ROVERS) {
+    roverObjs[R.key].sprite.visible = showRovers;
+    roverObjs[R.key].label.visible  = showRovers && labelsOn;
+  }
+}
+$('btnProbes').onclick   = () => { showProbes   = !showProbes;   $('btnProbes').classList.toggle('on', showProbes);     applyCategoryVisibility(); };
+$('btnLagrange').onclick = () => { showLagrange = !showLagrange; $('btnLagrange').classList.toggle('on', showLagrange); applyCategoryVisibility(); };
+$('btnExotic').onclick   = () => { showExotic   = !showExotic;   $('btnExotic').classList.toggle('on', showExotic);     applyCategoryVisibility(); };
 $('btnView').onclick = () => startFocus(focusKey,false);
 $('sbBack').onclick = () => startFocus('system',false);
 
@@ -2086,6 +2701,13 @@ function animate() {
   const st=computeState(new Date(simTime));
   updateScene(st);
   if (tideOn) { const ts=tideState(st); updateOcean(ts); updateTideUI(ts,now); }
+  // 새 카테고리 위치 갱신 — 매 프레임
+  updateProbes(st.d);
+  updateLagrangePoints();
+  updateTrojans();
+  updateKamooalewa(st.d);
+  updateOumuamua();
+  updatePlanetNine(st.d);
 
   // 카메라 — 부드러운 이동(트윈) 또는 초점 추적
   bodyWorldPos(focusKey,_fp);
@@ -2106,6 +2728,14 @@ function animate() {
   updateRegionLabels();
   updateMoonFade(dt);
   updateMoonLabels();
+  // 탐사선 페이드
+  for (const PR of PROBE_DATA) {
+    const o = probeObjs[PR.key];
+    const cur = o.currentOpacity, tgt = o.targetOpacity;
+    o.currentOpacity = Math.abs(cur-tgt)<0.001 ? tgt : cur + (tgt-cur)*Math.min(1, dt*4);
+    o.sprite.visible = o.currentOpacity > 0.02;
+    o.label.visible  = o.currentOpacity > 0.02 && labelsOn;
+  }
   renderer.render(scene,camera);
   updateHUD(st,now);
   updateMoonWidget(now);
