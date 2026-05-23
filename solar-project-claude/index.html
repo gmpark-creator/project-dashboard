@@ -1224,6 +1224,107 @@ function buildTrojanCloud(sign) {
 const trojanL4 = buildTrojanCloud(+1);
 const trojanL5 = buildTrojanCloud(-1);
 
+// ── 트로이 영역 바운딩 호(arc) — 선택 시에만 표시 ──
+// 입자 분포와 같은 baseAng(±π/3) + 30° 반폭 사용해 입자와 정확히 겹침
+function buildTrojanUnitArc(sign) {
+  const baseAng = sign * Math.PI / 3;     // ±60° (L4·L5)
+  const halfArc = Math.PI / 6;            // 30° (전체 60° 폭)
+  const segs = 64;
+  const innerR = 0.92, outerR = 1.08;     // 목성 거리의 92~108%
+  const verts = [], idx = [];
+  for (let i=0; i<=segs; i++) {
+    const t = i / segs;
+    const ang = baseAng - halfArc + halfArc * 2 * t;
+    const cx = Math.cos(ang), sx = Math.sin(ang);
+    verts.push(innerR*cx, 0, innerR*sx);
+    verts.push(outerR*cx, 0, outerR*sx);
+  }
+  for (let i=0; i<segs; i++) {
+    const a = i*2;
+    idx.push(a, a+1, a+2, a+1, a+3, a+2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+const trojanL4Arc = new THREE.Mesh(buildTrojanUnitArc(+1),
+  new THREE.MeshBasicMaterial({ color:0xd0a86c, transparent:true, opacity:0.12,
+    side:THREE.DoubleSide, depthWrite:false }));
+const trojanL5Arc = new THREE.Mesh(buildTrojanUnitArc(-1),
+  new THREE.MeshBasicMaterial({ color:0xc090c8, transparent:true, opacity:0.12,
+    side:THREE.DoubleSide, depthWrite:false }));
+trojanL4Arc.visible = false; trojanL5Arc.visible = false;
+scene.add(trojanL4Arc); scene.add(trojanL5Arc);
+
+// 호 외곽선 — 가장자리 강조
+function buildTrojanArcOutline(sign) {
+  const baseAng = sign * Math.PI / 3;
+  const halfArc = Math.PI / 6;
+  const segs = 64;
+  const innerR = 0.92, outerR = 1.08;
+  const pts = [];
+  for (let i=0; i<=segs; i++) {
+    const ang = baseAng - halfArc + halfArc * 2 * (i/segs);
+    pts.push(new THREE.Vector3(outerR*Math.cos(ang), 0, outerR*Math.sin(ang)));
+  }
+  for (let i=segs; i>=0; i--) {
+    const ang = baseAng - halfArc + halfArc * 2 * (i/segs);
+    pts.push(new THREE.Vector3(innerR*Math.cos(ang), 0, innerR*Math.sin(ang)));
+  }
+  return new THREE.BufferGeometry().setFromPoints(pts);
+}
+const trojanL4Outline = new THREE.LineLoop(buildTrojanArcOutline(+1),
+  new THREE.LineBasicMaterial({ color:0xd0a86c, transparent:true, opacity:0.65 }));
+const trojanL5Outline = new THREE.LineLoop(buildTrojanArcOutline(-1),
+  new THREE.LineBasicMaterial({ color:0xc090c8, transparent:true, opacity:0.65 }));
+trojanL4Outline.visible = false; trojanL5Outline.visible = false;
+scene.add(trojanL4Outline); scene.add(trojanL5Outline);
+
+// L4·L5 라벨 (depthTest off로 행성 뒤에 있어도 보임)
+const trojanL4Label = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeRegionLabelTexture('L4 · 그리스 진영 — 트로이 군집'),
+  transparent:true, depthWrite:false, depthTest:false }));
+trojanL4Label.renderOrder = 998;
+trojanL4Label.visible = false;
+scene.add(trojanL4Label);
+
+const trojanL5Label = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeRegionLabelTexture('L5 · 트로이 진영 — 트로이 군집'),
+  transparent:true, depthWrite:false, depthTest:false }));
+trojanL5Label.renderOrder = 998;
+trojanL5Label.visible = false;
+scene.add(trojanL5Label);
+
+function updateTrojanArcs() {
+  if (!trojanL4Arc.visible && !trojanL4Outline.visible) return;
+  const jp = bodyObjs.jupiter.group.position;
+  const jR = jp.length();
+  if (jR < 0.01) return;
+  const jupAngle = Math.atan2(jp.z, jp.x);
+  // 입자 분포와 동일한 회전 보정 사용 (입자와 정확히 겹치도록)
+  const rotY = -jupAngle + Math.PI/2;
+  trojanL4Arc.scale.setScalar(jR);     trojanL4Arc.rotation.y = rotY;
+  trojanL5Arc.scale.setScalar(jR);     trojanL5Arc.rotation.y = rotY;
+  trojanL4Outline.scale.setScalar(jR); trojanL4Outline.rotation.y = rotY;
+  trojanL5Outline.scale.setScalar(jR); trojanL5Outline.rotation.y = rotY;
+  // 라벨 — 호 중심 위치에 (입자와 동일 좌표계로 회전 후 위치)
+  // L4 입자 중심: baseAng = +π/3, world position은 (Math.cos(jupAngle + π/3) * jR, 0, ...)
+  // 단, 입자 회전이 rotY = -jupAngle + π/2라서 실제 world position이 다름
+  // 입자와 같은 변환 적용: (cos(baseAng), 0, sin(baseAng)) × rotation.y=rotY × scale=jR
+  const _vec = new THREE.Vector3();
+  for (const sp of [['L4', +1, trojanL4Label], ['L5', -1, trojanL5Label]]) {
+    const baseAng = sp[1] * Math.PI / 3;
+    _vec.set(Math.cos(baseAng), 0, Math.sin(baseAng));
+    _vec.applyAxisAngle(new THREE.Vector3(0,1,0), rotY);
+    _vec.multiplyScalar(jR);
+    sp[2].position.copy(_vec);
+    const cd = camera.position.distanceTo(_vec);
+    sp[2].scale.set(Math.max(40, cd * 0.18), Math.max(8, cd * 0.03), 1);
+  }
+}
+
 function updateTrojans() {
   const jp = bodyObjs.jupiter.group.position;
   // 목성 위치를 기준 좌표로 사용 — 트로이 점은 L4/L5에 해당
@@ -1852,20 +1953,28 @@ function updateProbes(d) {
   }
 }
 
-// 영역 윤곽선·메시·라벨 토글 — 카이퍼/오르트 선택 시에만 표시
+// 영역 윤곽선·메시·라벨 토글 — 카이퍼/오르트/트로이 선택 시에만 표시
 function setOuterRegionVisible(focusKey) {
   const showK = (focusKey === 'kuiper');
   const showO = (focusKey === 'oort');
+  const showT = (focusKey === 'trojans_jupiter');                  // 신규: 목성 트로이 영역
   regionVis.kuiperInner.visible          = showK;
   regionVis.kuiperOuter.visible          = showK;
-  regionVis.kuiperScatteredOuter.visible = showK;     // 산란 원반 외곽선
+  regionVis.kuiperScatteredOuter.visible = showK;
   regionVis.kuiperRing.visible           = showK;
-  regionVis.kuiperScatteredRing.visible  = showK;     // 산란 원반 평면 띠
+  regionVis.kuiperScatteredRing.visible  = showK;
   regionVis.kuiperLabel.visible          = showK;
   regionVis.oortInner.visible = showO;
   regionVis.oortOuter.visible = showO;
   regionVis.oortShell.visible = showO;
   regionVis.oortLabel.visible = showO;
+  // 트로이 영역 호·외곽선·라벨 — 「목성 트로이 소행성군」 선택 시에만
+  trojanL4Arc.visible      = showT;
+  trojanL5Arc.visible      = showT;
+  trojanL4Outline.visible  = showT;
+  trojanL5Outline.visible  = showT;
+  trojanL4Label.visible    = showT && labelsOn;
+  trojanL5Label.visible    = showT && labelsOn;
 }
 
 // ===== 태양 (글로우 + 자체발광) =====
@@ -2342,7 +2451,7 @@ function computeFocusOffset(key) {
     else if (e.kind === 'kamooalewa') r = 3;
     else if (e.kind === 'oumuamua')   r = 5;
     else if (e.kind === 'planetnine') r = 25;
-    else if (e.kind === 'trojans')    r = bodyObjs.jupiter.group.position.length() * 1.4;
+    else if (e.kind === 'trojans')    r = bodyObjs.jupiter.group.position.length() * 1.8;   // L4·L5 호 전체 시야 확보
     else if (e.kind === 'gargantua')  r = GARG_DISK_OUTER * 2.2;
     else if (e.kind === 'wormhole')   r = 18;
     else if (e.kind === 'interstellar') r = 70;
@@ -3066,6 +3175,7 @@ function animate() {
   try { updateProbes(st.d); }       catch(e) { if(!window._errProbes){ console.warn('updateProbes:',e); window._errProbes=1; } }
   try { updateLagrangePoints(); }   catch(e) { if(!window._errLag){    console.warn('updateLagrange:',e); window._errLag=1; } }
   try { updateTrojans(); }          catch(e) { if(!window._errTro){    console.warn('updateTrojans:',e); window._errTro=1; } }
+  try { updateTrojanArcs(); }       catch(e) { if(!window._errTroArc){ console.warn('updateTrojanArcs:',e); window._errTroArc=1; } }
   try { updateKamooalewa(st.d); }   catch(e) { if(!window._errKamo){   console.warn('updateKamo:',e); window._errKamo=1; } }
   try { updateOumuamua(); }         catch(e) { if(!window._errOum){    console.warn('updateOumuamua:',e); window._errOum=1; } }
   try { updatePlanetNine(st.d); }   catch(e) { if(!window._errP9){     console.warn('updatePlanetNine:',e); window._errP9=1; } }
