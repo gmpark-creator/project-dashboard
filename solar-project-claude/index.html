@@ -1930,9 +1930,9 @@ const wormholeMat = new THREE.ShaderMaterial({
     varying vec2 vUv;
     uniform float uTime;
     void main() {
-      // 회전하는 격자 패턴 (홀로그래픽 텍스처)
-      float gridU = abs(fract(vUv.x * 24.0 + uTime * 0.30) - 0.5);
-      float gridV = abs(fract(vUv.y * 12.0 - uTime * 0.20) - 0.5);
+      // 격자 패턴 — 시간 흐름 매우 천천히 (눈 피로 방지)
+      float gridU = abs(fract(vUv.x * 24.0 + uTime * 0.04) - 0.5);
+      float gridV = abs(fract(vUv.y * 12.0 - uTime * 0.025) - 0.5);
       float line = 1.0 - smoothstep(0.0, 0.04, min(gridU, gridV));
       // 프레넬 (가장자리 발광)
       float fresnel = pow(1.0 - max(0.0, dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
@@ -1966,8 +1966,9 @@ function updateWormhole(d, t) {
   const offset = saturnPos.length() * 0.06 + 8;
   wormhole.position.copy(saturnPos).add(dir.multiplyScalar(offset));
   wormhole.position.y += 2;
-  wormhole.rotation.y += 0.02;
-  wormhole.rotation.x = Math.sin(t * 0.4) * 0.15;
+  // 회전 매우 천천히 — 박사님 눈 피로 방지 (이전 0.02 / sin*0.15 → 부드럽게)
+  wormhole.rotation.y += 0.0028;
+  wormhole.rotation.x = Math.sin(t * 0.08) * 0.05;
   wormholeUniforms.uTime.value = t;
   wormholeLabel.position.copy(wormhole.position);
   const cd = camera.position.distanceTo(wormhole.position);
