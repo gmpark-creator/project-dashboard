@@ -2701,13 +2701,13 @@ function animate() {
   const st=computeState(new Date(simTime));
   updateScene(st);
   if (tideOn) { const ts=tideState(st); updateOcean(ts); updateTideUI(ts,now); }
-  // 새 카테고리 위치 갱신 — 매 프레임
-  updateProbes(st.d);
-  updateLagrangePoints();
-  updateTrojans();
-  updateKamooalewa(st.d);
-  updateOumuamua();
-  updatePlanetNine(st.d);
+  // 새 카테고리 위치 갱신 — 각 함수를 try로 격리해 부분 에러가 전체 중단을 막음
+  try { updateProbes(st.d); }       catch(e) { if(!window._errProbes){ console.warn('updateProbes:',e); window._errProbes=1; } }
+  try { updateLagrangePoints(); }   catch(e) { if(!window._errLag){    console.warn('updateLagrange:',e); window._errLag=1; } }
+  try { updateTrojans(); }          catch(e) { if(!window._errTro){    console.warn('updateTrojans:',e); window._errTro=1; } }
+  try { updateKamooalewa(st.d); }   catch(e) { if(!window._errKamo){   console.warn('updateKamo:',e); window._errKamo=1; } }
+  try { updateOumuamua(); }         catch(e) { if(!window._errOum){    console.warn('updateOumuamua:',e); window._errOum=1; } }
+  try { updatePlanetNine(st.d); }   catch(e) { if(!window._errP9){     console.warn('updatePlanetNine:',e); window._errP9=1; } }
 
   // 카메라 — 부드러운 이동(트윈) 또는 초점 추적
   bodyWorldPos(focusKey,_fp);
