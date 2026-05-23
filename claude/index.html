@@ -173,20 +173,23 @@ const PROJECTS = [
     progress: 99,
     link: 'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/',
     preview: { type:'embed', height:520, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/', label:'태양계 — Claude 버전' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-codex/',  label:'태양계 — Codex 버전' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/', label:'태양계 시뮬레이터' }
     ]},
     summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
-           + '같은 Step 1~4 설계를 Claude·Codex 두 버전으로 독립 구현해 한 랜딩에서 비교 공개한다. '
-           + '5월 23일 이후 외태양계 영역(카이퍼·오르트)·외계 항성계·부산 기준 실시간 달 위젯까지 확장.',
-    method: 'Three.js로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 각 천체 위치를 '
-          + '수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 고도화했고, '
-          + '이후 Claude·Codex 두 버전으로 갈라 비교 배포. Claude 버전은 외태양계·외계 항성계·실시간 달 위젯으로 확장 중.',
+           + '초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나, '
+           + 'WebGL/GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단해 '
+           + 'Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류·TDZ 진단 등 디버깅 서포트 역할로 전환. '
+           + '외태양계 영역(카이퍼·오르트)·외계 항성계·인터스텔라 영화 시스템·부산 실시간 달 위젯까지 확장.',
+    method: 'Three.js + 커스텀 GLSL ShaderMaterial로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 '
+          + '각 천체 위치를 수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 '
+          + '고도화. 협업 체제 전환 후 Claude는 메인 구현 라인(텍스처·셰이더·UI·인터랙션)을 담당하고, '
+          + 'Codex는 정밀 코드 진단(예: 3단 TDZ 에러를 GPT가 정확히 짚어 Claude가 즉시 fix)으로 '
+          + '문제 발생 시 보조 라인에서 빠른 해결 — AI 협업의 강점 분리·역할 분담 모델.',
     stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
     issues: [
       { type:'완료', title:'날짜 기반 천체력 엔진', desc:'8행성 공전주기를 실제값 대비 오차 최대 0.22%로 재현.' },
       { type:'완료', title:'지구–달 정밀 동기화 + 조석 계산', desc:'달 섭동항 12개 반영, 그 위에 조석(물때) 계산을 구축.' },
-      { type:'완료', title:'Claude·Codex 두 버전 비교 공개', desc:'같은 설계를 두 AI가 독립 구현 — /claude/ /codex/ 로 분리 배포, 랜딩에서 선택.' },
+      { type:'완료', title:'AI 협업 체제 전환 — Claude 단일 구현 + Codex 디버깅 서포트', desc:'프로젝트 초기: Claude·Codex 듀얼 트랙으로 동일 설계 독립 구현 → /claude/ /codex/ 분리 배포. 진행 중 WebGL·GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단 → Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류 진단·TDZ 분석 등 디버깅 서포트 역할로 전환 (AI 강점 분리 모델).' },
       { type:'완료', title:'시간 흐름 재생 타임머신 (Claude 버전)', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생하도록 변경 — 과거·미래로 무제한 진행.' },
       { type:'완료', title:'외태양계 영역 시각화 (Claude · 2026-05-23 / 24 정밀화)', desc:'카이퍼 메인 벨트(30~50 AU) + 산란 원반 Scattered Disk(50~1,000 AU) 입자 + 외곽 윤곽선 + 반투명 평면 띠. 오르트 구름(2,000~100,000 AU) 입자 구형 쉘 + 반투명 sphere shell. 「초점」 메뉴 선택 시에만 표시. NASA 카이퍼 영역 분류(메인+산란)를 전부 반영.' },
       { type:'완료', title:'외계 항성계 추가 (Claude · 2026-05-23 / 24 정밀화)', desc:'「프로젝트 헤일메리」 40 에리다니 A — Gaia DR3 측정값 16.340 ± 0.010 광년(5.010 pc · 약 1,033,359 AU · 154.6조 km). 「삼체」 α Centauri AB 4.344 광년(1.3319 pc · 약 274,719 AU · 41.1조 km), Proxima C 4.2465 광년. 항성간 거리는 visual 모드에서 L^0.35로 압축, real 모드에서는 camera.far 동적 확장.' },
@@ -201,7 +204,7 @@ const PROJECTS = [
       { date:'2026-05-21', title:'Step 2 — 8행성 + 케플러 천체력', desc:'전 행성 확장, 토성 고리, 지구 NASA 텍스처' },
       { date:'2026-05-22', title:'Step 3 — 조석(물때) 계산', desc:'조석 팽대부 3D, 물때 패널, 48h 조석곡선' },
       { date:'2026-05-22', title:'Step 4 — 인터랙션·비주얼 고도화', desc:'타임머신, 클릭 포커싱, 정보 UI, 그림자' },
-      { date:'2026-05-22', title:'Claude·Codex 두 버전 비교 배포', desc:'같은 설계의 두 독립 구현을 랜딩에서 선택' },
+      { date:'2026-05-22', title:'AI 협업 체제 전환 — Claude 단일 구현 라인 + Codex 디버깅 서포트', desc:'프론트엔드 비주얼 우위로 Claude 일원화, Codex는 코드 진단 서포트로 역할 분담' },
       { date:'2026-05-22', title:'시간 흐름 재생 타임머신', desc:'Claude 버전 — 연 단위 이동을 연속 재생 방식으로 개선' },
       { date:'2026-05-23', title:'외태양계 영역 시각화', desc:'카이퍼 벨트·오르트 구름 입자 + 윤곽선·반투명 메시 + 거리 라벨, 「초점」 메뉴 연동' },
       { date:'2026-05-23', title:'외계 항성계 (헤일메리·삼체)', desc:'40 에리다니 A + 알파 센타우리 실제 거리 반영, 카메라 인터스텔라 줌' },
