@@ -16,6 +16,7 @@
 > 9. 후속 fix #2: 웜홀 회전·셰이더 감속 (회전 0.0006, 진동 = 0, 셰이더 흐름 0.008/0.005)
 > 10. 후속 fix #3: 웜홀 천문학 사실 기반 재작성 (deep space + 별 분광형 4종 + Einstein Ring)
 > 11. 후속 fix #4: 탐사선 3D 모델 (Voyager 큰 접시·RTG, Parker 태양 가리개, NH 작은 접시) + 항적 점선 + 방향 화살표
+> 12. 후속 fix #5: NASA Eyes 공식 실사 임베드 (시뮬레이터 「📡 NASA Eyes」 토글 + 보고서 preview 추가 iframe, focusKey → NASA_EYES_MAP으로 해당 객체 자동 이동)
 >
 > ★ 핵심 디버깅 스토리: Phase 2 직후 3단 TDZ 에러 → GPT 진단 → Claude 즉시 fix
 >   1차 normalize → 2차 moonSphereGeo TDZ → 3차 bodyObjs TDZ

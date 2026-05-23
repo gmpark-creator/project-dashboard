@@ -20,6 +20,7 @@
 
 ## 최신 반영
 
+- 태양계 Claude 버전 — NASA Eyes 공식 실사 임베드 (JPL 자산): 시뮬레이터 「📡 NASA Eyes」 토글 버튼 + 보고서 preview에 NASA Eyes iframe 항목 추가. 현재 focus 객체에 따라 NASA Eyes도 자동 이동 (NASA_EYES_MAP)
 - 태양계 Claude 버전 — 인류 탐사선 3D 모델 (sprite 점 → Voyager 큰 접시·RTG·Mag 붐 / Parker 태양 가리개·패널 / NewHorizons 작은 접시 / JWST 황금 6각형) + 항적 점선(과거 청·미래 주황) + 방향 화살표
 - 태양계 Claude 버전 — 태양 GLSL 셰이더(granulation·sunspot·limb darkening) + 가스 행성 atmospheric halo(목·토·천왕·해왕 Fresnel) + 위성 4종 카테고리 GLSL(Cratered·Volcanic·Icy·Hazy)
 - 태양계 Claude 버전 — 두 블랙홀 분리 GLSL: 가르강튀아(영화 인터스텔라, view-warp + Einstein Ring + 청색편이) / 사건의 지평선(EHT M87*, 사실 기반 + Doppler crescent)
