@@ -21,6 +21,8 @@
 ## 최신 반영
 
 - 태양계 Claude 버전 — 인류 탐사선·라그랑주·공궤도·성간/미지 천체 통합 레이어 추가 (Voyager 1·2 / New Horizons / Parker Solar / JWST / 화성 로버 2기 / 지구-태양 L1~L5 동적 / 목성 트로이 군집 / 카모오알레와 1:1 공명 / 오무아무아 쌍곡선 / Planet Nine 가상). 「🛰 탐사선」「⚖ 라그랑주」「👽 미지」 UI 토글 3개로 카테고리 표시. 셀렉터 그룹 구분자
+- 태양계 Claude 버전 — Phase 2: 「인터스텔라」 영화 시스템 통합 (가르강튀아 GLSL 블랙홀 + 웜홀 + 밀러·맨·에드먼즈 행성). Custom GLSL ShaderMaterial로 케플러 회전·fBm 플라즈마 노이즈·Doppler 빔잉·휘어진 lensing halo 실시간 렌더
+- 태양계 Claude 버전 — Phase 1: 화성 로버 완전 제거 (박사님 지시), 라그랑주 L1~L5 depthTest:false + renderOrder 강화로 지구 뒤로 안 가려짐, JWST 황금 6각형 mesh + halo로 차별화
 - 태양계 Claude 버전 — 위성 셀렉터 계층화 + 클릭 정보: 「초점」 메뉴에 위성 11개 행성 아래 들여쓰기(└), INFO 등록으로 셀렉터/mesh/라벨 클릭 시 사이드바 정보 표시. 위성 라벨을 mesh 본체 크기 비례(meshR×1.6 위, ×3.2 크기)로 본체에 근접하게 보정
 - 태양계 Claude 버전 — 고해상 행성 텍스처(7행성 NASA 출처, jsDelivr/threex.planets) + 주요 위성 11개 추가 (포보스·데이모스·갈릴레오 4 · 타이탄·레아·티타니아·오베론·트리톤). 가시성 이중 로직: 행성 포커스 자동 표시 + 「🌙 위성」 전역 토글, opacity 페이드 트윈
 - 태양계 Claude 버전 — NASA/Gaia DR3 팩트체크 정밀화: 40 에리다니 A 16.45 → 16.340 광년, α Cen 4.37 → 4.344 광년, 카이퍼 영역에 산란 원반(Scattered Disk, 50~1,000 AU) 입자·윤곽 추가. 정확도 97% → ~99.5%
