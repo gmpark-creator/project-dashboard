@@ -203,6 +203,69 @@ const SYNODIC = 29.530589, MEAN_MOON_KM = 384400, SUN_TIDE_RATIO = 0.46;
 const OCEAN_SHELL = 0.14, OCEAN_EXAG = 0.16;
 const CAM_TWEEN_DUR = 1.1;   // 카메라 이동 시간(초)
 
+// ── 외태양계(Outer Solar System) 영역 상수 — 실제 천문값 ──
+const KUIPER_INNER_AU = 30,   KUIPER_OUTER_AU = 50;       // 카이퍼 벨트: 해왕성 궤도~50 AU
+const KUIPER_THICKNESS_AU = 3;                            // 평면 두께 ±1.5 AU
+const KUIPER_PARTICLES = 9000;
+const OORT_INNER_AU = 2000,   OORT_OUTER_AU = 100000;     // 오르트 구름: 2,000~100,000 AU
+const OORT_PARTICLES = 3500;
+const OORT_DIST_POW = 0.35;                               // 오르트 전용 추가 압축 지수 (visual 모드)
+const TWEEN_LONG_DUR = 2.6;                               // 오르트 이동 시 긴 트윈
+const TWEEN_MID_DUR  = 1.8;                               // 카이퍼 이동 시 중간 트윈
+const TWEEN_INTERSTELLAR_DUR = 3.4;                       // 외계 항성계 이동 시 더 긴 트윈
+
+// ── 별 거리 단위 환산 ──
+const LY_TO_AU = 63241.077;                               // 1 광년 = 63,241.077 AU
+const LY_TO_KM = 9.4607e12;                               // 1 광년 = 9.4607 × 10¹² km
+
+// ── 외계 항성계 (소설/영화 등장) ──
+// 실제 천문학적 거리·종류 그대로 반영. 천구상의 정확한 좌표 대신 시각적 분리만 위해 임의 방향 사용.
+const STAR_SYSTEMS = [
+  {
+    key:'hailmary_eridani',
+    fullName:'프로젝트 헤일메리 - 40 Eridani',
+    shortLabel:'헤일메리 · 40 Eridani',
+    distLY:16.3,                                          // 광년
+    colorHex:0xffa566,                                    // K형 주황색
+    dirUnit:new THREE.Vector3( 0.62, 0.18, -0.76),        // 시뮬레이션 좌표상 임의 방향
+    info:{
+      type:'외계 항성계 (소설) · K형 주계열성 + 백색왜성 + 적색왜성',
+      accent:'#ffa566',
+      stats:[
+        ['시스템 분류','삼중성계 (40 Eri A/B/C)'],
+        ['지구와 거리','16.3 광년'],
+        ['지구와 거리(AU)','약 1,030,830 AU'],
+        ['지구와 거리(km)','약 154조 km'],
+        ['작품','앤디 위어 「프로젝트 헤일메리」'],
+        ['역할','외계인 로키(에리디안)의 모항성']
+      ],
+      desc:'소설·영화 「프로젝트 헤일메리」에서 외계인 로키(에리디안)가 살고 있는 별. 실제로 존재하는 40 Eridani 항성계로, K형 주계열성·백색왜성·적색왜성으로 구성된 삼중성계다. 지구에서 16.3광년 떨어져 있다.'
+    }
+  },
+  {
+    key:'threebody_centauri',
+    fullName:'삼체 - 알파 센타우리',
+    shortLabel:'삼체 · α Centauri',
+    distLY:4.37,
+    colorHex:0xffe48a,                                    // G형 노란색
+    dirUnit:new THREE.Vector3(-0.42, -0.08, 0.90),
+    info:{
+      type:'외계 항성계 (소설) · G형 + K형 + M형 삼중성계',
+      accent:'#ffe48a',
+      stats:[
+        ['시스템 분류','삼중성계 (α Cen A/B + Proxima C)'],
+        ['지구와 거리','4.37 광년'],
+        ['지구와 거리(AU)','약 276,363 AU'],
+        ['지구와 거리(km)','약 41.3조 km'],
+        ['작품','류츠신 「삼체」'],
+        ['역할','삼체 문명의 모항성계']
+      ],
+      desc:'중국 SF 「삼체」 시리즈의 무대가 되는 항성계. 실제 태양과 가장 가까운 항성계 알파 센타우리에 해당하며, 세 별의 카오스 궤도로 인해 행성의 환경이 격변하여 「삼체 문명」이 절멸 위기에 처한다는 설정이다.'
+    }
+  }
+];
+for (const S of STAR_SYSTEMS) S.distAU = S.distLY * LY_TO_AU;
+
 const TEXBASE = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';
 const TEX = {
   earthDay: TEXBASE+'earth_atmos_2048.jpg', earthNormal: TEXBASE+'earth_normal_2048.jpg',
@@ -266,18 +329,39 @@ const PLANETS = [
 const EARTH = PLANETS.find(p => p.key==='earth');
 for (const P of PLANETS) { P.periodDays = 360/P.el.M[1]; P.periodYears = P.periodDays/365.25; }
 
-// 사이드바 프로필 (8행성 + 태양 + 달)
+// 사이드바 프로필 (8행성 + 태양 + 달 + 외태양계 영역 2종)
 const INFO = { sun: { name:'태양', type:'중심별 · G형 주계열성', accent:'#ffb13b',
     stats:[['지름','1,392,700 km'],['표면 온도','약 5,500°C'],['나이','약 46억 년'],['질량 비중','태양계의 99.86%']],
     desc:'태양계 질량의 대부분을 차지하는 중심별. 중심부의 수소 핵융합으로 빛과 열을 만들어 모든 행성을 비춘다.' },
   moon: { name:'달', type:'지구의 자연위성', accent:'#cfcfcf',
     stats:[['지름','3,474 km'],['공전 주기','27.32일'],['지구와 거리','평균 384,400 km'],['특징','조석 고정(앞면만 보임)']],
-    desc:'지구의 유일한 자연위성. 지구 바다의 밀물·썰물(조석)을 일으키는 주역이며, 늘 같은 면만 지구를 향한다.' } };
+    desc:'지구의 유일한 자연위성. 지구 바다의 밀물·썰물(조석)을 일으키는 주역이며, 늘 같은 면만 지구를 향한다.' },
+  kuiper: { name:'카이퍼 벨트', type:'외태양계 천체 영역 · 원반형 띠', accent:'#9ec3ff',
+    stats:[
+      ['형태','도넛(원반) 모양 띠'],
+      ['태양 거리','약 30 ~ 50 AU'],
+      ['거리(km)','약 44.9억 ~ 74.8억 km'],
+      ['주요 천체','명왕성, 하우메아, 마케마케 등']
+    ],
+    desc:'해왕성 궤도(약 30 AU) 바깥부터 50 AU까지 펼쳐진 도넛 모양의 띠. 얼음과 암석으로 이루어진 미행성체·왜소행성(명왕성 포함)이 무리지어 분포한다. 단주기 혜성의 주요 발원지.' },
+  oort: { name:'오르트 구름', type:'태양계 최외곽 · 구형 껍질', accent:'#a8d8ff',
+    stats:[
+      ['형태','구형 껍질(spherical shell)'],
+      ['태양 거리','약 2,000 ~ 100,000 AU'],
+      ['거리(km)','약 3,000억 ~ 15조 km'],
+      ['주요 천체','장주기 혜성의 발원지']
+    ],
+    desc:'태양계 전체를 구형으로 둘러싸는 가설 영역. 약 2,000 AU부터 10만 AU에 걸쳐 분포하며, 태양 중력이 사실상 닿는 마지막 경계. 헤일밥 같은 장주기 혜성이 이곳에서 기원한다고 여겨진다.' } };
 for (const P of PLANETS) {
   INFO[P.key] = { name:P.name, type:'행성 · '+(P.style==='gas'?'가스형':'암석형'),
     accent:'#'+new THREE.Color(P.style==='gas'?(P.palette?0xd8c79a:P.color):P.color).getHexString(),
     stats:[['지름',P.info.dia],['공전 주기',periodStr(P)],['자전 주기',P.info.rot],['위성',P.info.moons]],
     desc:P.info.desc };
+}
+// 외계 항성계도 동일 스키마로 INFO에 등록
+for (const S of STAR_SYSTEMS) {
+  INFO[S.key] = { name:S.fullName, type:S.info.type, accent:S.info.accent,
+    stats:S.info.stats, desc:S.info.desc };
 }
 
 // ===== 천문 계산 =====
@@ -549,6 +633,246 @@ function makeLabelTexture(text) {
   scene.add(new THREE.Points(geo,new THREE.PointsMaterial({ size:1.6,sizeAttenuation:false,vertexColors:true,transparent:true })));
 })();
 
+// ============================================================
+// 외태양계 영역 — 카이퍼 벨트 + 오르트 구름
+// ----------------------------------------------
+//   • AU 단위 원위치(rawAU)를 별도 버퍼에 저장 → 스케일 모드 토글마다 재계산
+//   • 카이퍼: ecliptic(X-Z) 평면 위주의 토러스 분포, 두께 ±1.5 AU
+//   • 오르트: 균일 구형 쉘 (반경 균일 밀도 위해 r³ 분포 사용)
+//   • 오르트는 visual 모드에서도 강한 압축(L^0.35) 적용 — 카메라 절단면 안에 수용
+// ============================================================
+const outerRegions = { kuiper:null, oort:null };
+
+function buildKuiperBelt() {
+  const N = KUIPER_PARTICLES;
+  const innerAU = KUIPER_INNER_AU, outerAU = KUIPER_OUTER_AU;
+  const rawAU = new Float32Array(N*3);   // AU 좌표 원본 — 스케일 모드 변경 시 변환의 입력
+  const pos   = new Float32Array(N*3);
+  const col   = new Float32Array(N*3);
+
+  for (let i=0; i<N; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    // 면적 비례 분포 (균일 밀도) — sqrt(u·(r₂²-r₁²)+r₁²)
+    const u = Math.random();
+    const rAU = Math.sqrt(u*(outerAU*outerAU - innerAU*innerAU) + innerAU*innerAU);
+    // 황도면 기준 두께 (Y 방향)
+    const yAU = (Math.random() - 0.5) * KUIPER_THICKNESS_AU;
+
+    rawAU[i*3]   = rAU * Math.cos(angle);
+    rawAU[i*3+1] = yAU;
+    rawAU[i*3+2] = rAU * Math.sin(angle);
+
+    // 색: 회청색 위주, 일부 황갈색 — 얼음/암석 혼합 표현
+    const t = Math.random();
+    if (t < 0.62) {
+      col[i*3]   = 0.55 + Math.random()*0.20;
+      col[i*3+1] = 0.68 + Math.random()*0.18;
+      col[i*3+2] = 0.85 + Math.random()*0.15;
+    } else {
+      col[i*3]   = 0.78 + Math.random()*0.18;
+      col[i*3+1] = 0.62 + Math.random()*0.15;
+      col[i*3+2] = 0.45 + Math.random()*0.10;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.6, sizeAttenuation: false, vertexColors: true,
+    transparent: true, opacity: 0.78, depthWrite: false
+  });
+  const points = new THREE.Points(geo, mat);
+  points.userData = { bodyKey:'kuiper', rawAU };
+  scene.add(points);
+  return points;
+}
+
+function buildOortCloud() {
+  const N = OORT_PARTICLES;
+  const innerAU = OORT_INNER_AU, outerAU = OORT_OUTER_AU;
+  const rawAU = new Float32Array(N*3);
+  const pos   = new Float32Array(N*3);
+  const col   = new Float32Array(N*3);
+
+  for (let i=0; i<N; i++) {
+    // 구 내부 균일 밀도 → r은 cbrt(u·(R₂³-R₁³)+R₁³)
+    const u = Math.random();
+    const rAU = Math.cbrt(u*(outerAU**3 - innerAU**3) + innerAU**3);
+    // 구면 균일 분포
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2*Math.random() - 1);
+    const sp = Math.sin(phi);
+
+    rawAU[i*3]   = rAU * sp * Math.cos(theta);
+    rawAU[i*3+1] = rAU * Math.cos(phi);
+    rawAU[i*3+2] = rAU * sp * Math.sin(theta);
+
+    // 색: 옅은 청백 — 혜성 얼음 핵 분위기
+    const b = 0.72 + Math.random()*0.28;
+    col[i*3]   = b * 0.86;
+    col[i*3+1] = b * 0.93;
+    col[i*3+2] = b;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.7, sizeAttenuation: false, vertexColors: true,
+    transparent: true, opacity: 0.55, depthWrite: false
+  });
+  const points = new THREE.Points(geo, mat);
+  points.userData = { bodyKey:'oort', rawAU };
+  scene.add(points);
+  return points;
+}
+
+outerRegions.kuiper = buildKuiperBelt();
+outerRegions.oort   = buildOortCloud();
+
+// ============================================================
+// 영역 윤곽선 + 라벨 (선택 시에만 표시)
+//   • 카이퍼: 내부/외부 두 원(LineLoop) — 도넛 띠의 안팎 경계 표시
+//   • 오르트: 와이어프레임 구 두 개 — 구형 쉘의 안팎 경계
+//   • 라벨: 영역 외곽 한 점에 배치, 카메라 거리에 비례해 픽셀 크기 유지
+// ============================================================
+function makeRegionLabelTexture(text) {
+  const c=document.createElement('canvas'); c.width=384; c.height=64;
+  const x=c.getContext('2d');
+  x.font='bold 27px "Malgun Gothic",sans-serif'; x.textAlign='center'; x.textBaseline='middle';
+  x.lineWidth=7; x.strokeStyle='rgba(0,0,0,0.92)'; x.strokeText(text,192,34);
+  x.fillStyle='#dceaff'; x.fillText(text,192,34);
+  return canvasTex(c);
+}
+
+function buildOuterRegionVisuals() {
+  // ── 단위 원(XZ 평면) — 카이퍼용 ──
+  const segs = 128;
+  const ringPts = [];
+  for (let i=0; i<=segs; i++) {
+    const a = i/segs * Math.PI * 2;
+    ringPts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
+  }
+  const circleGeoA = new THREE.BufferGeometry().setFromPoints(ringPts);
+  const circleGeoB = new THREE.BufferGeometry().setFromPoints(ringPts);
+
+  const kuiperMat = new THREE.LineBasicMaterial({ color:0x9ec3ff, transparent:true, opacity:0.85 });
+  const kuiperInner = new THREE.LineLoop(circleGeoA, kuiperMat);
+  const kuiperOuter = new THREE.LineLoop(circleGeoB, kuiperMat);
+  kuiperInner.visible = false; kuiperOuter.visible = false;
+  scene.add(kuiperInner); scene.add(kuiperOuter);
+
+  const kuiperLabel = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeRegionLabelTexture('카이퍼 벨트  30 – 50 AU'),
+    transparent:true, depthWrite:false }));
+  kuiperLabel.visible = false;
+  scene.add(kuiperLabel);
+
+  // ── 오르트: 와이어프레임 구 (내부/외부 경계) ──
+  const sphereWire = new THREE.SphereGeometry(1, 36, 18);
+  const oortMatOuter = new THREE.LineBasicMaterial({ color:0xa8d8ff, transparent:true, opacity:0.22 });
+  const oortMatInner = new THREE.LineBasicMaterial({ color:0xa8d8ff, transparent:true, opacity:0.42 });
+  const oortOuter = new THREE.LineSegments(new THREE.WireframeGeometry(sphereWire), oortMatOuter);
+  const oortInner = new THREE.LineSegments(new THREE.WireframeGeometry(sphereWire), oortMatInner);
+  oortOuter.visible = false; oortInner.visible = false;
+  scene.add(oortOuter); scene.add(oortInner);
+
+  const oortLabel = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeRegionLabelTexture('오르트 구름  2,000 – 100,000 AU'),
+    transparent:true, depthWrite:false }));
+  oortLabel.visible = false;
+  scene.add(oortLabel);
+
+  return { kuiperInner, kuiperOuter, kuiperLabel, oortInner, oortOuter, oortLabel };
+}
+const regionVis = buildOuterRegionVisuals();
+
+// 영역 외곽 반경 계산 — 스케일 모드에 맞춰 (visual은 카이퍼/오르트별로 다른 압축)
+function outerRegionRadius(AU, isOort) {
+  if (scaleMode === 'visual') {
+    return AU_UNITS * Math.pow(AU, isOort ? OORT_DIST_POW : DIST_POW);
+  }
+  return AU_UNITS * AU;
+}
+
+// ============================================================
+// 외계 항성계 (헤일메리·삼체) — 빛나는 별 sprite + 텍스트 라벨
+// ============================================================
+function makeStarSpriteTexture(hexColor) {
+  const s=256, c=document.createElement('canvas'); c.width=c.height=s;
+  const x=c.getContext('2d');
+  const col = new THREE.Color(hexColor);
+  const r=col.r*255|0, g=col.g*255|0, b=col.b*255|0;
+  const grad = x.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+  grad.addColorStop(0,    'rgba(255,255,255,1)');
+  grad.addColorStop(0.10, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.28, `rgba(${r},${g},${b},0.70)`);
+  grad.addColorStop(0.60, `rgba(${r},${g},${b},0.18)`);
+  grad.addColorStop(1.0,  `rgba(${r},${g},${b},0)`);
+  x.fillStyle=grad; x.fillRect(0,0,s,s);
+  return canvasTex(c);
+}
+
+const starSystemObjs = {};
+for (const SS of STAR_SYSTEMS) {
+  SS.dirUnit.normalize();
+  const tex = makeStarSpriteTexture(SS.colorHex);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:tex, color:0xffffff, transparent:true,
+    blending:THREE.AdditiveBlending, depthWrite:false }));
+  sp.userData.bodyKey = SS.key;
+  scene.add(sp);
+
+  // 라벨 — 기존 라벨 시스템(labelObjs)과 동일 픽셀-거리 비례 갱신 패턴
+  const labelSp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:makeRegionLabelTexture(SS.shortLabel), transparent:true, depthWrite:false }));
+  scene.add(labelSp);
+
+  starSystemObjs[SS.key] = { SS, sprite:sp, label:labelSp };
+}
+
+// 항성계 위치/라벨 스케일 적용 — applyScales 안에서 호출됨
+function applyStarSystemScales() {
+  for (const SS of STAR_SYSTEMS) {
+    const obj = starSystemObjs[SS.key];
+    // 오르트와 동일한 압축 지수 사용 (visual mode) — 천체 거리 일관성
+    const r = scaleMode==='visual' ? AU_UNITS * Math.pow(SS.distAU, OORT_DIST_POW)
+                                   : AU_UNITS * SS.distAU;
+    obj.sprite.position.copy(SS.dirUnit).multiplyScalar(r);
+  }
+}
+
+// 영역 윤곽선 + 라벨 위치/스케일 — applyScales 안에서 호출됨
+function applyRegionVisualScales() {
+  const kr1 = outerRegionRadius(KUIPER_INNER_AU, false);
+  const kr2 = outerRegionRadius(KUIPER_OUTER_AU, false);
+  regionVis.kuiperInner.scale.setScalar(kr1);
+  regionVis.kuiperOuter.scale.setScalar(kr2);
+  // 카이퍼 라벨 — 외곽 + 살짝 위쪽
+  const dirK = new THREE.Vector3(0.62, 0.20, 0.78).normalize();
+  regionVis.kuiperLabel.position.copy(dirK).multiplyScalar(kr2 * 1.08);
+
+  const or1 = outerRegionRadius(OORT_INNER_AU, true);
+  const or2 = outerRegionRadius(OORT_OUTER_AU, true);
+  regionVis.oortInner.scale.setScalar(or1);
+  regionVis.oortOuter.scale.setScalar(or2);
+  const dirO = new THREE.Vector3(0.45, 0.50, 0.55).normalize();
+  regionVis.oortLabel.position.copy(dirO).multiplyScalar(or2 * 1.05);
+}
+
+// 영역 윤곽선·라벨 토글 — 카이퍼/오르트 선택 시에만 표시
+function setOuterRegionVisible(focusKey) {
+  const showK = (focusKey === 'kuiper');
+  const showO = (focusKey === 'oort');
+  regionVis.kuiperInner.visible = showK;
+  regionVis.kuiperOuter.visible = showK;
+  regionVis.kuiperLabel.visible = showK;
+  regionVis.oortInner.visible = showO;
+  regionVis.oortOuter.visible = showO;
+  regionVis.oortLabel.visible = showO;
+}
+
 // ===== 태양 (글로우 + 자체발광) =====
 const unitGeo = new THREE.SphereGeometry(1,48,32);
 const earthGeo = new THREE.SphereGeometry(1,64,48);
@@ -690,6 +1014,22 @@ for (const P of PLANETS) buildLabel(P.key,P.name);
 buildLabel('moon','달');
 
 // ===== 스케일 적용 =====
+// 외태양계 파티클 1점당 스케일 변환 — sceneScale을 1점에 인라인 적용 (성능 보호)
+function rescaleOuterRegion(points, pow) {
+  const rawAU = points.userData.rawAU;
+  const arr   = points.geometry.attributes.position.array;
+  for (let i=0; i<rawAU.length; i+=3) {
+    const x=rawAU[i], y=rawAU[i+1], z=rawAU[i+2];
+    const L = Math.sqrt(x*x + y*y + z*z);
+    if (L < 1e-9) { arr[i]=arr[i+1]=arr[i+2]=0; continue; }
+    const mag = scaleMode==='visual' ? AU_UNITS * Math.pow(L, pow) : AU_UNITS * L;
+    const f = mag / L;
+    arr[i]=x*f; arr[i+1]=y*f; arr[i+2]=z*f;
+  }
+  points.geometry.attributes.position.needsUpdate = true;
+  points.geometry.computeBoundingSphere();
+}
+
 function applyScales() {
   sunMesh.scale.setScalar(sunRadius());
   glow.scale.setScalar(sunRadius()*4.2);
@@ -705,6 +1045,12 @@ function applyScales() {
   moonMesh.scale.setScalar(moonRadius());
   moonOrbitGroup.scale.setScalar(moonDistFactor());
   rebuildOrbits();
+  // 외태양계 영역 — 카이퍼는 기존 DIST_POW, 오르트는 더 강한 압축
+  rescaleOuterRegion(outerRegions.kuiper, DIST_POW);
+  rescaleOuterRegion(outerRegions.oort,   OORT_DIST_POW);
+  // 영역 윤곽선 + 외계 항성계 위치
+  applyRegionVisualScales();
+  applyStarSystemScales();
 }
 
 // ===== 씬 갱신 =====
@@ -730,13 +1076,38 @@ const easeInOut = t => t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 
 function bodyWorldPos(key,out) {
   if (key==='moon') return moonMesh.getWorldPosition(out);
-  if (key==='sun'||key==='system') return out.set(0,0,0);
+  // 외태양계 영역과 태양/시스템은 모두 태양 중심(0,0,0)을 타겟으로 함
+  if (key==='sun'||key==='system'||key==='kuiper'||key==='oort') return out.set(0,0,0);
+  // 외계 항성계 — 별 sprite 위치
+  if (starSystemObjs[key]) return out.copy(starSystemObjs[key].sprite.position);
   return out.copy(bodyObjs[key].group.position);
 }
+
+// 외태양계 영역의 카메라 거리(visual/real 모드 모두 자연스럽게)
+function outerRegionCamR(midAU, pow) {
+  return scaleMode==='visual' ? AU_UNITS * Math.pow(midAU, pow) * 1.55
+                              : AU_UNITS * midAU * 1.55;
+}
+
 function computeFocusOffset(key) {
   if (key==='system') {
     const far=(bodyObjs.neptune.group.position.length()||500)*1.3;
     return new THREE.Vector3(far*0.05,far*0.6,far*1.0);
+  }
+  if (key==='kuiper') {
+    // 카이퍼 벨트 외곽 살짝 위에서 바라보기 (반경 중간값 40 AU 기준)
+    const r = outerRegionCamR(40, DIST_POW);
+    return new THREE.Vector3(r*0.18, r*0.55, r*0.95);
+  }
+  if (key==='oort') {
+    // 오르트 구름 외곽에서 전체 쉘 조망 (반경 평균 60,000 AU 기준)
+    const r = outerRegionCamR(60000, OORT_DIST_POW);
+    return new THREE.Vector3(r*0.12, r*0.48, r*0.95);
+  }
+  if (starSystemObjs[key]) {
+    // 외계 항성계 — 별 sprite에서 약간 떨어진 위치 (작은 거리, 별 자체에 가까이)
+    const r = 90;
+    return new THREE.Vector3(r*0.25, r*0.45, r*1.0);
   }
   let r = radiusOf(key)*7 + 3;
   if (key==='earth') r = Math.max(r, 60*moonDistFactor()*1.7);
@@ -744,24 +1115,83 @@ function computeFocusOffset(key) {
   if (key==='sun') r = sunRadius()*4.5;
   return new THREE.Vector3(r*0.32,r*0.46,r*1.3);
 }
+
+// 카메라 절단면(far) + OrbitControls.maxDistance 를 초점 영역 크기에 맞춰 동적 조정
+function adjustCameraExtents(key) {
+  // 기본
+  let needFar = 80000;
+  let needMax = 60000;
+  if (key === 'kuiper') {
+    if (scaleMode === 'visual') { needFar = 20000;     needMax = 12000; }
+    else                        { needFar = 80000;     needMax = 60000; }
+  } else if (key === 'oort') {
+    if (scaleMode === 'visual') { needFar = 60000;     needMax = 40000; }
+    else                        { needFar = 1.2e7;     needMax = 9e6; }   // 실제 비율 모드에서 오르트가 보이도록 대형화
+  } else if (key === 'hailmary_eridani') {
+    if (scaleMode === 'visual') { needFar = 60000;     needMax = 45000; }   // 항성 거리 visual ≈ 9,200
+    else                        { needFar = 2e8;       needMax = 1.5e8; }   // real ≈ 72,158,100
+  } else if (key === 'threebody_centauri') {
+    if (scaleMode === 'visual') { needFar = 60000;     needMax = 45000; }   // 항성 거리 visual ≈ 5,150
+    else                        { needFar = 6e7;       needMax = 4.5e7; }   // real ≈ 19,345,480
+  }
+  if (camera.far !== needFar) {
+    camera.far = needFar;
+    camera.updateProjectionMatrix();
+  }
+  controls.maxDistance = needMax;
+}
+
 function startFocus(key,instant) {
   focusKey = key;
   if (focusSel.value!==key) focusSel.value = key;
+  adjustCameraExtents(key);                                     // far/maxDistance 먼저 확장
+  setOuterRegionVisible(key);                                   // 카이퍼/오르트 윤곽선·라벨 토글
   focusOffset.copy(computeFocusOffset(key));
   updateSidebar(key);
   bodyWorldPos(key,_fp);
+  // 영역에 따라 트윈 시간 가변 — 외계 항성계는 가장 길게, 오르트는 길게, 카이퍼는 중간, 그 외 기본
+  const dur = starSystemObjs[key]   ? TWEEN_INTERSTELLAR_DUR
+            : key==='oort'          ? TWEEN_LONG_DUR
+            : key==='kuiper'        ? TWEEN_MID_DUR
+            : CAM_TWEEN_DUR;
   if (instant) {
     camTween = null; controls.enabled = true;
     controls.target.copy(_fp);
     camera.position.copy(_fp).add(focusOffset);
     prevFocus.copy(_fp);
   } else {
-    camTween = { t:0, startPos:camera.position.clone(), startTarget:controls.target.clone() };
+    camTween = { t:0, dur, startPos:camera.position.clone(), startTarget:controls.target.clone() };
     controls.enabled = false;
   }
 }
 
 // ===== 사이드바 =====
+// AU·km 동적 포맷터 — 큰 수는 ×10ⁿ 표기, 작은 수는 소수점
+function fmtAU(v) {
+  if (v >= 10000) return v.toLocaleString('ko-KR', {maximumFractionDigits:0})+' AU';
+  if (v >= 100)   return v.toLocaleString('ko-KR', {maximumFractionDigits:1})+' AU';
+  return v.toFixed(2)+' AU';
+}
+function fmtKM(v) {
+  const km = v * AU_KM;
+  if (km >= 1e12) return (km/1e12).toLocaleString('ko-KR',{maximumFractionDigits:2})+'조 km';
+  if (km >= 1e8)  return (km/1e8 ).toLocaleString('ko-KR',{maximumFractionDigits:1})+'억 km';
+  if (km >= 1e4)  return (km/1e4 ).toLocaleString('ko-KR',{maximumFractionDigits:1})+'만 km';
+  return Math.round(km).toLocaleString('ko-KR')+' km';
+}
+
+// 외태양계 영역과 지구 사이의 동적 거리 범위(AU) 계산
+function outerRegionEarthDist(key) {
+  const earthAU = computeState(new Date(simTime)).bodies.earth.r;   // 태양–지구 현재 거리 (AU)
+  const inAU  = key==='kuiper' ? KUIPER_INNER_AU : OORT_INNER_AU;
+  const outAU = key==='kuiper' ? KUIPER_OUTER_AU : OORT_OUTER_AU;
+  return {
+    earthAU,
+    nearAU: Math.max(0, inAU - earthAU),    // 같은 방향에 있을 때 (최단)
+    farAU:  outAU + earthAU                 // 반대 방향에 있을 때 (최장)
+  };
+}
+
 function updateSidebar(key) {
   const sb=$('sidebar');
   if (key==='system') { sb.classList.remove('show'); return; }
@@ -770,8 +1200,21 @@ function updateSidebar(key) {
   $('sbName').style.color = I.accent;
   $('sbType').textContent = I.type;
   $('sbAccent').style.background = I.accent;
-  $('sbStats').innerHTML = I.stats.map(([k,v]) =>
+  let statsHtml = I.stats.map(([k,v]) =>
     `<div class="sbStat"><span>${k}</span><b>${v}</b></div>`).join('');
+
+  // 카이퍼·오르트: 지구와의 동적 거리 stat 추가
+  if (key==='kuiper' || key==='oort') {
+    const d = outerRegionEarthDist(key);
+    statsHtml +=
+      `<div class="sbStat"><span>지구와 거리(최근)</span>`+
+        `<b>${fmtAU(d.nearAU)} · ${fmtKM(d.nearAU)}</b></div>`+
+      `<div class="sbStat"><span>지구와 거리(최원)</span>`+
+        `<b>${fmtAU(d.farAU)} · ${fmtKM(d.farAU)}</b></div>`+
+      `<div class="sbStat"><span>지구–태양 (참고)</span>`+
+        `<b>${fmtAU(d.earthAU)} · ${fmtKM(d.earthAU)}</b></div>`;
+  }
+  $('sbStats').innerHTML = statsHtml;
   $('sbDesc').textContent = I.desc;
   sb.classList.add('show');
 }
@@ -894,6 +1337,31 @@ function updateLabels() {
   }
 }
 
+// 외계 항성계 본체 + 라벨 — 카메라 거리에 비례한 일정 픽셀 크기 유지
+function updateStarSystemVisuals() {
+  for (const SS of STAR_SYSTEMS) {
+    const obj = starSystemObjs[SS.key];
+    const cd = camera.position.distanceTo(obj.sprite.position);
+    // 별 본체: 너무 작아지지 않게 최소값 보장, 거리에 비례해 픽셀 크기 유지
+    obj.sprite.scale.setScalar(Math.max(45, cd * 0.05));
+    // 라벨: 별 위쪽에, 가로:세로 6:1 비율 (텍스트 라벨 캔버스 384x64)
+    obj.label.visible = labelsOn;
+    obj.label.position.copy(obj.sprite.position);
+    obj.label.position.y += cd * 0.06;
+    obj.label.scale.set(cd * 0.20, cd * 0.0334, 1);
+  }
+}
+
+// 카이퍼/오르트 영역 라벨 — 카메라 거리 비례 (가로:세로 6:1)
+function updateRegionLabels() {
+  for (const key of ['kuiperLabel','oortLabel']) {
+    const sp = regionVis[key];
+    if (!sp.visible) continue;
+    const cd = camera.position.distanceTo(sp.position);
+    sp.scale.set(cd * 0.22, cd * 0.0367, 1);
+  }
+}
+
 // ===== 조석 표시 토글 =====
 let tideOn = true;
 function setTide(on) {
@@ -913,6 +1381,12 @@ const clickable = [];
 for (const P of PLANETS) clickable.push(bodyObjs[P.key].mesh);
 clickable.push(moonMesh, sunMesh);
 for (const L of labelObjs) clickable.push(L.sprite);
+// 외계 항성계 — 별 sprite 자체와 그 라벨도 클릭 가능
+for (const SS of STAR_SYSTEMS) {
+  clickable.push(starSystemObjs[SS.key].sprite);
+  clickable.push(starSystemObjs[SS.key].label);
+  starSystemObjs[SS.key].label.userData.bodyKey = SS.key;
+}
 let pdown = null;
 renderer.domElement.addEventListener('pointerdown', e=>{ pdown={ x:e.clientX, y:e.clientY, t:performance.now() }; });
 renderer.domElement.addEventListener('pointerup', e=>{
@@ -928,7 +1402,10 @@ renderer.domElement.addEventListener('pointerup', e=>{
 // ===== UI 구성 =====
 const FOCUS_LIST=[['system','🌌 태양계 전체'],['sun','☀ 태양'],['mercury','수성'],['venus','금성'],
   ['earth','🌍 지구'],['moon','🌙 달'],['mars','화성'],['jupiter','목성'],['saturn','토성'],
-  ['uranus','천왕성'],['neptune','해왕성']];
+  ['uranus','천왕성'],['neptune','해왕성'],
+  ['kuiper','☄ 카이퍼 벨트'],['oort','🌫 오르트 구름'],
+  ['hailmary_eridani','📡 프로젝트 헤일메리 - 40 Eridani'],
+  ['threebody_centauri','🌑 삼체 - 알파 센타우리']];
 const focusSel=$('focusSel');
 for (const [k,l] of FOCUS_LIST){ const o=document.createElement('option'); o.value=k; o.textContent=l; if(k==='earth')o.selected=true; focusSel.appendChild(o); }
 focusSel.onchange = () => startFocus(focusSel.value,false);
@@ -1040,7 +1517,7 @@ function animate() {
   // 카메라 — 부드러운 이동(트윈) 또는 초점 추적
   bodyWorldPos(focusKey,_fp);
   if (camTween) {
-    camTween.t = Math.min(1, camTween.t + dt/CAM_TWEEN_DUR);
+    camTween.t = Math.min(1, camTween.t + dt/(camTween.dur || CAM_TWEEN_DUR));
     const e = easeInOut(camTween.t);
     camera.position.lerpVectors(camTween.startPos, _fp.clone().add(focusOffset), e);
     controls.target.lerpVectors(camTween.startTarget, _fp, e);
@@ -1052,9 +1529,17 @@ function animate() {
   }
   controls.update();
   updateLabels();
+  updateStarSystemVisuals();
+  updateRegionLabels();
   renderer.render(scene,camera);
   updateHUD(st,now);
+  // 카이퍼/오르트가 선택된 상태에서는 지구 위치 변동에 따라 사이드바 stat 갱신 (0.5초 폴링)
+  if ((focusKey==='kuiper' || focusKey==='oort') && now-lastOuterSbUpdate > 500) {
+    lastOuterSbUpdate = now;
+    updateSidebar(focusKey);
+  }
 }
+let lastOuterSbUpdate = 0;
 
 $('loading').remove();
 animate();
