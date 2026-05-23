@@ -1913,38 +1913,102 @@ function updateEHT(dt, t) {
 // ============================================================
 // 웜홀 (토성 근처) — 클릭 시 카메라가 가르강튀아로 워프
 // ============================================================
+// ============================================================
+// 웜홀 GLSL 셰이더 — 「인터스텔라」 영화 시그니처 재현
+//   • 구형 sphere에 「웜홀 너머 우주」가 비치는 느낌
+//   • Procedural 별 + 가장자리 렌즈링 빛 휨
+//   • Fresnel 기반 강한 청록 윤곽 발광
+//   • 시간 흐름 매우 느림 (박사님 눈 피로 방지)
+// ============================================================
 const wormholeUniforms = { uTime: { value: 0 } };
 const wormholeMat = new THREE.ShaderMaterial({
   uniforms: wormholeUniforms,
   vertexShader: `
     varying vec3 vNormal;
-    varying vec2 vUv;
+    varying vec3 vPos;
+    varying vec3 vViewDir;
     void main() {
       vNormal = normalize(normalMatrix * normal);
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vPos = position;
+      vec4 mvp = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-mvp.xyz);
+      gl_Position = projectionMatrix * mvp;
     }
   `,
   fragmentShader: `
     varying vec3 vNormal;
-    varying vec2 vUv;
+    varying vec3 vPos;
+    varying vec3 vViewDir;
     uniform float uTime;
+
+    // 3D 해시·노이즈 (Procedural 별을 위함)
+    float hash3(vec3 p) { return fract(sin(dot(p, vec3(12.989, 78.233, 45.164))) * 43758.5453); }
+    float noise3(vec3 p) {
+      vec3 i = floor(p), f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(mix(hash3(i+vec3(0,0,0)), hash3(i+vec3(1,0,0)), f.x),
+            mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
+        mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x),
+            mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y),
+        f.z);
+    }
+    float fbm3(vec3 p) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 4; i++) { v += a * noise3(p); p *= 2.0; a *= 0.5; }
+      return v;
+    }
+
     void main() {
-      // 격자 패턴 — 거의 정적 (박사님 눈 피로 방지, 흐름 사실상 멈춤 수준)
-      float gridU = abs(fract(vUv.x * 24.0 + uTime * 0.008) - 0.5);
-      float gridV = abs(fract(vUv.y * 12.0 - uTime * 0.005) - 0.5);
-      float line = 1.0 - smoothstep(0.0, 0.04, min(gridU, gridV));
-      // 프레넬 (가장자리 발광)
-      float fresnel = pow(1.0 - max(0.0, dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
-      vec3 col = vec3(0.4, 0.7, 1.0) * (line * 0.8 + fresnel * 0.7);
-      col += vec3(0.6, 0.9, 1.0) * fresnel * 0.5;
-      gl_FragColor = vec4(col, fresnel * 0.85 + line * 0.6);
+      // === Fresnel — 가장자리 정도 ===
+      float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), 2.2);
+      float rimGlow = pow(fresnel, 1.5);
+
+      // === 웜홀 너머 별 (procedural) — sphere 표면에 박혀있는 듯 ===
+      // 가장자리에 가까울수록 별이 휘어짐 (gravitational lensing)
+      vec3 starP = vPos * 5.5;
+      starP += vNormal * fresnel * 0.8;   // 가장자리에서 휨
+      float starN = noise3(starP);
+      // 별 점 — 노이즈 고점만 밝게
+      float starBright = smoothstep(0.78, 0.88, starN);
+      // 별이 길게 늘어나는 효과 (방향성 증가)
+      float stretchN = noise3(starP * 0.5 + uTime * 0.01);
+      float stretch = smoothstep(0.70, 0.85, stretchN);
+
+      // === 큰 swirling pattern (웜홀 내부 흐름) ===
+      vec3 swirlP = vPos * 1.5 + vec3(0.0, uTime * 0.01, 0.0);
+      float swirl = fbm3(swirlP);
+
+      // === 색감 — 「인터스텔라」 영화 시그니처 푸르스름·청록 ===
+      vec3 deepBlue = vec3(0.04, 0.10, 0.28);    // 안쪽 깊은 청 (웜홀 내부)
+      vec3 midCyan  = vec3(0.20, 0.55, 0.85);    // 중간 시안
+      vec3 edgeBri  = vec3(0.65, 0.92, 1.00);    // 가장자리 밝은 청백
+      vec3 col = mix(deepBlue, midCyan, fresnel * 0.55);
+      col = mix(col, edgeBri, rimGlow);
+
+      // 큰 swirling 추가 (내부 어두운 흐름)
+      col *= 0.75 + swirl * 0.45;
+
+      // === 별 추가 — 가장자리에서 더 진한 ===
+      col += vec3(1.00, 0.95, 0.88) * starBright * (0.6 + fresnel * 0.8);
+      col += vec3(0.55, 0.85, 1.00) * stretch * fresnel * 0.4;
+
+      // === 강한 가장자리 발광 ring (렌즈링) ===
+      col += vec3(0.50, 0.82, 1.00) * rimGlow * 0.65;
+
+      // 알파 — 안쪽은 적당히 보이고, 가장자리는 강한 발광
+      float alpha = 0.85 + fresnel * 0.15;
+
+      gl_FragColor = vec4(col, alpha);
     }
   `,
-  transparent: true, blending: THREE.AdditiveBlending,
-  depthWrite: false, side: THREE.DoubleSide
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  side: THREE.FrontSide      // 진짜 sphere — 안쪽 안 보임
 });
-const wormhole = new THREE.Mesh(new THREE.SphereGeometry(2.5, 48, 24), wormholeMat);
+// 웜홀 크기 키움 (2.5 → 5) — 영화에서 토성보다 크게 보이는 인상
+const wormhole = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 32), wormholeMat);
 wormhole.userData.bodyKey = 'wormhole';
 scene.add(wormhole);
 const wormholeLabel = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -1963,9 +2027,10 @@ function updateWormhole(d, t) {
   if (!bodyObjs.saturn) return;
   const saturnPos = bodyObjs.saturn.group.position;
   const dir = saturnPos.length() > 0.01 ? saturnPos.clone().normalize() : new THREE.Vector3(1,0,0);
-  const offset = saturnPos.length() * 0.06 + 8;
+  // 웜홀이 커진 만큼(2.5→5) 토성에서 더 떨어진 위치로
+  const offset = saturnPos.length() * 0.08 + 14;
   wormhole.position.copy(saturnPos).add(dir.multiplyScalar(offset));
-  wormhole.position.y += 2;
+  wormhole.position.y += 4;
   // 회전 거의 정지 — 박사님 눈 피로 완전 방지 (흔들림·진동 제거, 매우 느린 자전만)
   wormhole.rotation.y += 0.0006;        // 이전 0.0028의 1/4.5 (사실상 거의 멈춤)
   wormhole.rotation.x = 0;              // x축 진동 완전 제거 (어지러움 원인)
@@ -2881,7 +2946,7 @@ function computeFocusOffset(key) {
     else if (e.kind === 'trojans')    r = bodyObjs.jupiter.group.position.length() * 1.8;   // L4·L5 호 전체 시야 확보
     else if (e.kind === 'gargantua')  r = GARG_DISK_OUTER * 2.2;
     else if (e.kind === 'eht')        r = EHT_DISK_OUTER * 2.4;
-    else if (e.kind === 'wormhole')   r = 18;
+    else if (e.kind === 'wormhole')   r = 35;
     else if (e.kind === 'interstellar') r = 70;
     return new THREE.Vector3(r*0.25, r*0.45, r*1.0);
   }
