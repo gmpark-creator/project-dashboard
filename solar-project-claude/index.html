@@ -1762,6 +1762,143 @@ function updateGargantua(dt, t) {
 }
 
 // ============================================================
+// 사건의 지평선 (과학적 실증) — Event Horizon Telescope M87* 기반
+// 가르강튀아와 차별화:
+//   • 영화적 view-warp 없음 — EHT 사진은 정면에서 관측된 도넛 형태
+//   • Doppler 약하게 (~1.3배, 가르강튀아는 7배)
+//   • Photon Ring 강조 (가장 안쪽 가는 빛 원)
+//   • 색감: 따뜻한 오렌지 ring (M87* 발표 사진의 톤)
+//   • 노이즈 약하게 — 더 매끄러운 표면
+// ============================================================
+const EHT_POS = new THREE.Vector3(400000, -50000, 200000);
+const EHT_HORIZON_R = 60;
+const EHT_DISK_INNER = 65;
+const EHT_DISK_OUTER = 180;
+
+const ehtGroup = new THREE.Group();
+ehtGroup.position.copy(EHT_POS);
+scene.add(ehtGroup);
+
+// 1) Event Horizon — 검은 그림자
+const ehtHorizon = new THREE.Mesh(
+  new THREE.SphereGeometry(EHT_HORIZON_R, 64, 32),
+  new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide })
+);
+ehtHorizon.userData.bodyKey = 'eht_blackhole';
+ehtGroup.add(ehtHorizon);
+
+// 2) Accretion Disk — EHT 차별화 셰이더
+const ehtDiskUniforms = { uTime: { value: 0 } };
+const ehtDiskMat = new THREE.ShaderMaterial({
+  uniforms: ehtDiskUniforms,
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec2 vUv;
+    uniform float uTime;
+
+    // === 노이즈 (가르강튀아보다 부드럽게, 4 옥타브) ===
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float noise(vec2 p) {
+      vec2 i = floor(p), f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i),              hash(i + vec2(1.0, 0.0)), u.x),
+                 mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+    }
+    float fbm(vec2 p) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 4; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+      return v;
+    }
+
+    void main() {
+      vec2 uv = vUv - 0.5;
+      float r = length(uv) * 2.0;
+      float theta = atan(uv.y, uv.x);
+
+      // === Kepler 회전 (가르강튀아보다 느림 — EHT 관측 정적 인상) ===
+      float vel = uTime * 0.18 / max(0.3, r);
+
+      // === 노이즈 — 가르강튀아보다 부드럽고 차분 ===
+      float n = fbm(vec2(theta * 3.0 + vel, r * 2.5));
+      float plasma = 0.55 + n * 0.55;
+
+      // === 색감 — M87* EHT 사진 톤 (따뜻한 오렌지 ring) ===
+      vec3 deepOrange = vec3(0.95, 0.42, 0.10);     // 안쪽 진한 오렌지
+      vec3 midOrange  = vec3(1.00, 0.62, 0.22);     // 중간 밝은 오렌지
+      vec3 fadeOrange = vec3(0.50, 0.18, 0.05);     // 바깥쪽 페이드
+      vec3 col = mix(deepOrange, midOrange, smoothstep(0.05, 0.30, r));
+      col      = mix(col,        fadeOrange, smoothstep(0.30, 0.90, r));
+      col *= plasma;
+
+      // === Photon Ring — 가장 안쪽 가는 ring (EHT 시그니처) ===
+      float photon = smoothstep(0.045, 0.065, r) * (1.0 - smoothstep(0.065, 0.10, r));
+      col += vec3(1.4, 1.1, 0.7) * photon * 0.85;
+
+      // === 약한 Doppler 비대칭 — 한쪽 약 30% 더 밝음 (EHT M87 관측 사실 반영) ===
+      float weakDoppler = 0.75 + 0.30 * sin(theta);
+      col *= weakDoppler;
+
+      // === 가장자리 fade ===
+      float edgeAlpha = smoothstep(1.0, 0.92, r) * smoothstep(0.0, 0.04, r);
+      float alpha = edgeAlpha * (0.65 + plasma * 0.25);
+
+      gl_FragColor = vec4(col, alpha);
+    }
+  `,
+  side: THREE.DoubleSide,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const ehtDisk = new THREE.Mesh(
+  new THREE.RingGeometry(EHT_DISK_INNER, EHT_DISK_OUTER, 192, 1),
+  ehtDiskMat
+);
+ehtDisk.rotation.x = -Math.PI / 2;
+ehtDisk.userData.bodyKey = 'eht_blackhole';
+ehtGroup.add(ehtDisk);
+
+// EHT 라벨
+const ehtLabel = new THREE.Sprite(new THREE.SpriteMaterial({
+  map:makeLabelTexture('사건의 지평선 (EHT M87*)'), transparent:true, depthWrite:false, depthTest:false }));
+ehtLabel.userData.bodyKey = 'eht_blackhole';
+ehtLabel.renderOrder = 998;
+ehtGroup.add(ehtLabel);
+ehtLabel.position.y = EHT_DISK_OUTER * 0.55;
+
+OBJ_BY_KEY['eht_blackhole'] = { kind:'eht', obj: { group: ehtGroup, label: ehtLabel } };
+INFO['eht_blackhole'] = {
+  name:'사건의 지평선 (과학적 실증)',
+  type:'EHT 관측 블랙홀 · M87* 기반',
+  accent:'#ff8844',
+  stats:[
+    ['관측 발표','2019-04-10 (Event Horizon Telescope 협력단)'],
+    ['대상','M87* — 처녀자리 은하단 M87 중심'],
+    ['질량','약 65억 태양 질량'],
+    ['지구와 거리','약 5,500만 광년'],
+    ['Schwarzschild 반경','약 1.8×10¹⁰ km (≈ 120 AU)'],
+    ['관측 방식','전 세계 8개 전파망원경 VLBI 동기화'],
+    ['해상도','약 20 마이크로 각초 (지구→달 위 골프공)'],
+    ['후속 관측','2022-05 Sgr A* (우리 은하 중심) 발표'],
+    ['주요 인물','셰퍼드 도엘만 · 케이티 부먼 등 EHT 200명 협력']
+  ],
+  desc:'2019년 4월 Event Horizon Telescope(EHT) 협력단이 발표한 인류 최초의 블랙홀 직접 사진. 처녀자리 은하 M87 중심의 초대질량 블랙홀이며, 검은 그림자(사건의 지평선) 주변에 비대칭 강착원반(한쪽이 더 밝음 — Doppler 효과)이 명확히 관측되어 일반상대성이론을 시각적으로 입증했다. 본 시뮬레이터는 가르강튀아(영화)와 분리된 별도 GLSL 셰이더로, EHT 관측 사실에 기반한 따뜻한 오렌지 ring + photon ring + 약한 도플러 비대칭으로 렌더링한다.'
+};
+
+function updateEHT(dt, t) {
+  ehtDiskUniforms.uTime.value = t;
+  ehtDisk.rotation.z += dt * 0.025;     // 가르강튀아보다 느린 회전
+  const cd = camera.position.distanceTo(EHT_POS);
+  ehtLabel.scale.set(Math.max(8, cd * 0.05), Math.max(2, cd * 0.0125), 1);
+}
+
+// ============================================================
 // 웜홀 (토성 근처) — 클릭 시 카메라가 가르강튀아로 워프
 // ============================================================
 const wormholeUniforms = { uTime: { value: 0 } };
@@ -2404,6 +2541,7 @@ function bodyWorldPos(key,out) {
       return out.copy(e.obj.mesh.position);
     if (e.kind === 'trojans') return out.set(0,0,0);
     if (e.kind === 'gargantua') return out.copy(GARGANTUA_POS);
+    if (e.kind === 'eht')       return out.copy(EHT_POS);
     if (e.kind === 'wormhole') return e.obj.mesh.getWorldPosition(out);
     if (e.kind === 'interstellar') return e.obj.mesh.getWorldPosition(out);
   }
@@ -2453,6 +2591,7 @@ function computeFocusOffset(key) {
     else if (e.kind === 'planetnine') r = 25;
     else if (e.kind === 'trojans')    r = bodyObjs.jupiter.group.position.length() * 1.8;   // L4·L5 호 전체 시야 확보
     else if (e.kind === 'gargantua')  r = GARG_DISK_OUTER * 2.2;
+    else if (e.kind === 'eht')        r = EHT_DISK_OUTER * 2.4;
     else if (e.kind === 'wormhole')   r = 18;
     else if (e.kind === 'interstellar') r = 70;
     return new THREE.Vector3(r*0.25, r*0.45, r*1.0);
@@ -2495,6 +2634,9 @@ function adjustCameraExtents(key) {
     else                        { needFar = 80000;     needMax = 60000; }
   } else if (key === 'gargantua' || key === 'miller' || key === 'mann' || key === 'edmunds') {
     // 가르강튀아는 시뮬레이션 좌표 (250000, 40000, -250000) — far 매우 크게
+    needFar = 1.2e6;  needMax = 8e5;
+  } else if (key === 'eht_blackhole') {
+    // EHT 블랙홀 (400000, -50000, 200000) — 비슷한 거리
     needFar = 1.2e6;  needMax = 8e5;
   }
   if (camera.far !== needFar) {
@@ -2917,6 +3059,8 @@ clickable.push(wormhole, wormholeLabel);
 for (const IP of INTERSTELLAR_PLANETS) {
   clickable.push(interstellarObjs[IP.key].mesh, interstellarObjs[IP.key].label);
 }
+// EHT 블랙홀 (사건의 지평선 · 과학적 실증)
+clickable.push(ehtHorizon, ehtDisk, ehtLabel);
 let pdown = null;
 renderer.domElement.addEventListener('pointerdown', e=>{ pdown={ x:e.clientX, y:e.clientY, t:performance.now() }; });
 renderer.domElement.addEventListener('pointerup', e=>{
@@ -2975,7 +3119,9 @@ const FOCUS_LIST=[
   ['kamooalewa','카모오알레와 (지구 준위성)'],
   ['__sep_exo','──── 👽 성간·미지 ────'],
   ['oumuamua','오무아무아 (성간 천체, 쌍곡선)'],
-  ['planetnine','Planet Nine (가상, ~600 AU)']
+  ['planetnine','Planet Nine (가상, ~600 AU)'],
+  ['__sep_bh','──── ⚫ 블랙홀 (Singularities) ────'],
+  ['eht_blackhole','사건의 지평선 (과학적 실증 · EHT M87*)']
 ];
 
 // 「외계 항성계 (Interstellar Systems)」 — 메인 카테고리 + 3개 서브 (optgroup 그룹화)
@@ -3096,6 +3242,9 @@ function applyCategoryVisibility() {
   gargantuaGroup.visible = showIntst;
   wormhole.visible       = showIntst;
   wormholeLabel.visible  = showIntst && labelsOn;
+  // EHT 블랙홀 (과학적 실증) — 「미지」 토글 또는 직접 포커스 시 표시 (가르강튀아와 별개)
+  const showEHT = showExotic || focusKey === 'eht_blackhole';
+  ehtGroup.visible = showEHT;
   // (화성 로버 가시성 — 박사님 지시로 제거됨)
 }
 $('btnProbes').onclick   = () => { showProbes   = !showProbes;   $('btnProbes').classList.toggle('on', showProbes);     applyCategoryVisibility(); };
@@ -3180,6 +3329,7 @@ function animate() {
   try { updateOumuamua(); }         catch(e) { if(!window._errOum){    console.warn('updateOumuamua:',e); window._errOum=1; } }
   try { updatePlanetNine(st.d); }   catch(e) { if(!window._errP9){     console.warn('updatePlanetNine:',e); window._errP9=1; } }
   try { updateGargantua(dt, st.d * 0.01); } catch(e) { if(!window._errGarg){ console.warn('updateGargantua:',e); window._errGarg=1; } }
+  try { updateEHT(dt, st.d * 0.01); }       catch(e) { if(!window._errEHT){  console.warn('updateEHT:',e);       window._errEHT=1; } }
   try { updateWormhole(st.d, st.d * 0.01); } catch(e) { if(!window._errWh){ console.warn('updateWormhole:',e); window._errWh=1; } }
   try { updateInterstellarPlanets(st.d); }   catch(e) { if(!window._errIP){ console.warn('updateInterstellar:',e); window._errIP=1; } }
 
