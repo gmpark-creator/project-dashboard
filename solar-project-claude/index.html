@@ -1088,40 +1088,163 @@ const PROBE_DATA = [
     desc:'2021년 발사된 차세대 우주 망원경. 지구-태양 L2 라그랑주 점에서 헤일로 궤도를 돌며 적외선으로 우주 초기·외계 행성·은하를 관측한다. -233°C에서 운용.' }
 ];
 
+// ============================================================
+// 탐사선 3D 모델 — 각 우주선의 실제 형태 (NASA 사실 기반)
+//   Voyager: 큰 접시 안테나 + 막대 안테나 + RTG 붐 (1977, 황금 MLI)
+//   NewHorizons: 작은 접시 + 삼각 본체 + RTG (2006)
+//   Parker: 큰 흰 태양 가리개 + 작은 본체 + 태양 패널 (2018)
+//   JWST: 황금 6각형 거울 (2021) — 기존 코드 유지
+// ============================================================
+const _g_dishMat = () => new THREE.MeshStandardMaterial({ color:0xe8e6d8, metalness:0.4, roughness:0.45, side:THREE.DoubleSide });
+const _g_mliMat  = () => new THREE.MeshStandardMaterial({ color:0xc8a868, metalness:0.85, roughness:0.30 });
+const _g_rodMat  = () => new THREE.MeshStandardMaterial({ color:0x303030, metalness:0.7,  roughness:0.5 });
+const _g_rtgMat  = () => new THREE.MeshStandardMaterial({ color:0x1a1a1a, metalness:0.5,  roughness:0.7 });
+
+function buildVoyagerMesh() {
+  const g = new THREE.Group();
+  // 본체 — 황금 MLI 박스 (10면체)
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.6), _g_mliMat());
+  g.add(body);
+  // 큰 접시 안테나 (3.7m, 시그니처)
+  const dish = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.08, 36), _g_dishMat());
+  dish.rotation.x = Math.PI / 2;  dish.position.z = -0.35;
+  g.add(dish);
+  // 접시 안쪽 림
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.04, 8, 36),
+    new THREE.MeshStandardMaterial({ color:0xa8a890, metalness:0.6 }));
+  rim.position.z = -0.31;
+  g.add(rim);
+  // RTG 붐 (긴 막대 — 핵 발전기)
+  const rtgBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.4, 8), _g_rodMat());
+  rtgBoom.rotation.z = Math.PI / 2;  rtgBoom.position.x = 1.2;
+  g.add(rtgBoom);
+  // RTG 모듈 (붐 끝에)
+  const rtg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.5, 12), _g_rtgMat());
+  rtg.rotation.z = Math.PI / 2;  rtg.position.x = 2.3;
+  g.add(rtg);
+  // Magnetometer 붐 (반대편 긴 막대)
+  const magBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 3.0, 8), _g_rodMat());
+  magBoom.rotation.z = -Math.PI / 2;  magBoom.position.x = -1.5;
+  g.add(magBoom);
+  // 작은 막대 안테나 위쪽
+  const topRod = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 6), _g_rodMat());
+  topRod.position.y = 0.5;
+  g.add(topRod);
+  return g;
+}
+
+function buildNewHorizonsMesh() {
+  const g = new THREE.Group();
+  // 본체 — 사다리꼴 박스
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.5), _g_mliMat());
+  g.add(body);
+  // 작은 접시 (2.1m)
+  const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.06, 32), _g_dishMat());
+  dish.rotation.x = Math.PI / 2;  dish.position.z = -0.28;
+  g.add(dish);
+  // 접시 림
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.03, 6, 28),
+    new THREE.MeshStandardMaterial({ color:0xa8a890, metalness:0.6 }));
+  rim.position.z = -0.25;
+  g.add(rim);
+  // RTG 원기둥 (옆쪽 핵 발전기)
+  const rtg = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.65, 14), _g_rtgMat());
+  rtg.rotation.z = Math.PI / 2;  rtg.position.x = 0.55;
+  g.add(rtg);
+  return g;
+}
+
+function buildParkerMesh() {
+  const g = new THREE.Group();
+  // 본체 — 어두운 박스 (그늘에 있음)
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.7),
+    new THREE.MeshStandardMaterial({ color:0x404040, metalness:0.6, roughness:0.5 }));
+  g.add(body);
+  // 큰 흰 태양 가리개 (Parker 시그니처, 8각형 단면 대신 원형 단순화)
+  const shield = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.06, 32),
+    new THREE.MeshStandardMaterial({ color:0xfaf8e8, metalness:0.2, roughness:0.65,
+      emissive:0x6e6850, emissiveIntensity:0.18 }));
+  shield.rotation.x = Math.PI / 2;  shield.position.z = 0.55;
+  g.add(shield);
+  // 가리개 측면 ring (두께감)
+  const shieldRim = new THREE.Mesh(new THREE.TorusGeometry(1.58, 0.04, 6, 32),
+    new THREE.MeshStandardMaterial({ color:0xc8c4a8, metalness:0.5 }));
+  shieldRim.position.z = 0.58;
+  g.add(shieldRim);
+  // 태양 패널 양옆 (좁고 긴 사각판)
+  const panelMat = new THREE.MeshStandardMaterial({ color:0x1c4a8a, metalness:0.85, roughness:0.25 });
+  const panel1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.7, 0.45), panelMat);
+  panel1.position.x = 0.45;
+  g.add(panel1);
+  const panel2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.7, 0.45), panelMat);
+  panel2.position.x = -0.45;
+  g.add(panel2);
+  return g;
+}
+
 const probeObjs = {};
 function buildProbes() {
   for (const PR of PROBE_DATA) {
     if (PR.direction) PR.direction.normalize();              // static_au 타입만 direction 사용
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    // 작은 발광 sprite (halo 효과로 멀리서도 보임)
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
       map:makeGlowSprite(PR.color, false), transparent:true,
       blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false }));
-    sp.renderOrder = 998;
-    sp.userData.bodyKey = PR.key;
-    scene.add(sp);
+    halo.renderOrder = 996;
+    scene.add(halo);
+    // 라벨
     const lb = new THREE.Sprite(new THREE.SpriteMaterial({
       map:makeProbeLabel(PR.shortLabel), transparent:true, depthWrite:false, depthTest:false }));
     lb.renderOrder = 999;
-    scene.add(lb);
     lb.userData.bodyKey = PR.key;
-    let extra = null;
-    // JWST는 명확한 3D 마커 추가 — 황금 6각형 + 추가 글로우 halo
-    if (PR.type === 'earth_l2') {
-      const hexGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.06, 6);
-      const hexMat = new THREE.MeshStandardMaterial({ color:0xffd060, metalness:0.85, roughness:0.25,
-        emissive:0xaa8800, emissiveIntensity:0.5 });
-      const hexMesh = new THREE.Mesh(hexGeo, hexMat);
-      hexMesh.userData.bodyKey = PR.key;
-      hexMesh.renderOrder = 997;
-      scene.add(hexMesh);
-      // 황금 halo sprite (더 진한)
-      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
-        map:makeGlowSprite(0xfff0c0, false), transparent:true,
-        blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false, opacity:0.65 }));
-      halo.renderOrder = 996;
-      scene.add(halo);
-      extra = { hexMesh, halo };
+    scene.add(lb);
+    // 탐사선별 3D 모델 (각자 실제 형태)
+    let craft = null;
+    if (PR.key === 'voyager1' || PR.key === 'voyager2')      craft = buildVoyagerMesh();
+    else if (PR.key === 'newhorizons')                       craft = buildNewHorizonsMesh();
+    else if (PR.key === 'parker')                            craft = buildParkerMesh();
+    else if (PR.type === 'earth_l2') {                       // JWST — 기존 황금 6각형
+      craft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.6, 0.6, 0.06, 6),
+        new THREE.MeshStandardMaterial({ color:0xffd060, metalness:0.85, roughness:0.25,
+          emissive:0xaa8800, emissiveIntensity:0.5 }));
     }
-    probeObjs[PR.key] = { PR, sprite:sp, label:lb, extra,
+    if (craft) {
+      craft.userData.bodyKey = PR.key;
+      craft.renderOrder = 997;
+      scene.add(craft);
+    }
+    // === 항적 (포커스 시에만 표시) — static_au 타입만 ===
+    let pastLine = null, futureLine = null, arrow = null;
+    if (PR.type === 'static_au' && PR.direction) {
+      const dir = PR.direction.clone();
+      const currentAU = dir.clone().multiplyScalar(PR.auDistance);
+      const futureAU  = dir.clone().multiplyScalar(PR.auDistance * 1.55);
+      // 과거 항적 — origin(태양) → 현재 위치 (옅은 청 점선)
+      const pastGeo = new THREE.BufferGeometry().setFromPoints([sceneScale(new THREE.Vector3(0,0,0)), sceneScale(currentAU)]);
+      pastLine = new THREE.Line(pastGeo, new THREE.LineDashedMaterial({
+        color:0x88c8ff, transparent:true, opacity:0.65, dashSize:60, gapSize:40, depthWrite:false }));
+      pastLine.computeLineDistances();
+      pastLine.visible = false;
+      scene.add(pastLine);
+      // 미래 예상 항적 — 현재 → future (주황 점선)
+      const futureGeo = new THREE.BufferGeometry().setFromPoints([sceneScale(currentAU), sceneScale(futureAU)]);
+      futureLine = new THREE.Line(futureGeo, new THREE.LineDashedMaterial({
+        color:0xffaa66, transparent:true, opacity:0.60, dashSize:50, gapSize:55, depthWrite:false }));
+      futureLine.computeLineDistances();
+      futureLine.visible = false;
+      scene.add(futureLine);
+      // 방향 화살표 — 현재 위치에 콘 mesh
+      arrow = new THREE.Mesh(new THREE.ConeGeometry(2.5, 7, 16),
+        new THREE.MeshBasicMaterial({ color:0xffaa66, transparent:true, opacity:0.85 }));
+      arrow.renderOrder = 998;
+      arrow.visible = false;
+      scene.add(arrow);
+    }
+    probeObjs[PR.key] = { PR, sprite:halo, label:lb, extra:{ craft, halo },
+      pastLine, futureLine, arrow,
+      currentAU: PR.direction ? PR.direction.clone().multiplyScalar(PR.auDistance) : null,
+      futureAU:  PR.direction ? PR.direction.clone().multiplyScalar(PR.auDistance * 1.55) : null,
       currentOpacity:0, targetOpacity:0 };
     OBJ_BY_KEY[PR.key] = { kind:'probe', obj: probeObjs[PR.key] };
     INFO[PR.key] = { name: PR.name, type:'인류 탐사선', accent:'#'+new THREE.Color(PR.color).getHexString(),
@@ -2167,16 +2290,36 @@ function updateProbes(d) {
     obj.label.scale.set(cd * 0.07, cd * 0.0175, 1);
     obj.sprite.material.opacity = obj.currentOpacity;
     obj.label.material.opacity = obj.currentOpacity * (labelsOn ? 1 : 0);
-    // JWST 황금 hex 마커 + halo (extra)
-    if (obj.extra) {
-      const sz = Math.max(0.5, cd * 0.006);
-      obj.extra.hexMesh.position.copy(pos);
-      obj.extra.hexMesh.scale.setScalar(sz);
-      obj.extra.hexMesh.rotation.y += 0.012;             // 천천히 회전
-      obj.extra.hexMesh.visible = obj.currentOpacity > 0.05;
-      obj.extra.halo.position.copy(pos);
-      obj.extra.halo.scale.setScalar(Math.max(5, cd * 0.035));
-      obj.extra.halo.material.opacity = obj.currentOpacity * 0.65;
+    // 탐사선 3D 모델 (Voyager·NH·Parker·JWST 각자 형태)
+    if (obj.extra && obj.extra.craft) {
+      const sz = Math.max(0.4, cd * 0.005);
+      obj.extra.craft.position.copy(pos);
+      obj.extra.craft.scale.setScalar(sz);
+      obj.extra.craft.rotation.y += 0.012;               // 천천히 자전
+      // 탐사선이 진행 방향을 향하도록 (static_au만)
+      if (PR.direction && PR.type === 'static_au') {
+        const target = pos.clone().add(PR.direction);
+        obj.extra.craft.lookAt(target);
+      }
+      obj.extra.craft.visible = obj.currentOpacity > 0.05;
+    }
+    // 항적·화살표 — 해당 탐사선이 포커스 상태일 때만 표시
+    const isFocused = (focusKey === PR.key);
+    if (obj.pastLine)   obj.pastLine.visible   = isFocused;
+    if (obj.futureLine) obj.futureLine.visible = isFocused;
+    if (obj.arrow) {
+      obj.arrow.visible = isFocused;
+      if (isFocused) {
+        // 화살표 위치 — 미래 방향 약간 앞에
+        const ahead = pos.clone().add(PR.direction.clone().multiplyScalar(8));
+        obj.arrow.position.copy(ahead);
+        // 화살표가 진행 방향을 향하도록
+        const arrowTarget = ahead.clone().add(PR.direction);
+        obj.arrow.lookAt(arrowTarget);
+        obj.arrow.rotateX(Math.PI / 2);                  // Cone +Y → +Z 방향 보정
+        const aSz = Math.max(0.5, cd * 0.008);
+        obj.arrow.scale.setScalar(aSz);
+      }
     }
   }
 }
@@ -2813,6 +2956,19 @@ function applyScales() {
   // 영역 윤곽선 + 외계 항성계 위치
   applyRegionVisualScales();
   applyStarSystemScales();
+  // 탐사선 항적·예상 궤적 — 스케일 모드별 재계산 (line geometry 갱신)
+  for (const PR of PROBE_DATA) {
+    const obj = probeObjs[PR.key];
+    if (!obj || !obj.currentAU || !obj.pastLine) continue;
+    const curPos = sceneScale(obj.currentAU);
+    const futPos = sceneScale(obj.futureAU);
+    obj.pastLine.geometry.dispose();
+    obj.pastLine.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), curPos]);
+    obj.pastLine.computeLineDistances();
+    obj.futureLine.geometry.dispose();
+    obj.futureLine.geometry = new THREE.BufferGeometry().setFromPoints([curPos, futPos]);
+    obj.futureLine.computeLineDistances();
+  }
 }
 
 // ===== 씬 갱신 =====
