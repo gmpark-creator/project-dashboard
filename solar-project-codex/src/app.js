@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 
 const DEG = Math.PI / 180;
 const RAD = 180 / Math.PI;
@@ -8,6 +9,7 @@ const AU_KM = 149_597_870.7;
 const EARTH_RADIUS_KM = 6_371.0;
 const SUN_RADIUS_KM = 696_340.0;
 const MOON_RADIUS_KM = 1_737.4;
+const LY_AU = 63_241.077;
 const OBLIQUITY_DEG = 23.4392911;
 const EPOCH_2000_JAN_0 = Date.UTC(1999, 11, 31, 0, 0, 0);
 const BASE_SIMULATION_MS = new Date(2026, 4, 22, 0, 0, 0).getTime();
@@ -49,6 +51,90 @@ const TIMELINE_RECENTER_THRESHOLD_DAYS = 700;
 const TRAVEL_SECONDS_PER_YEAR = 9;
 const TRAVEL_MIN_SECONDS = 2.2;
 const TRAVEL_MAX_SECONDS = 14;
+const CAMERA_BASE_FAR = 60_000;
+const OORT_CAMERA_FAR_MULTIPLIER = 4.4;
+const OORT_CAMERA_DISTANCE_MULTIPLIER = 2.65;
+const INTERSTELLAR_CAMERA_FAR_MULTIPLIER = 4.8;
+const INTERSTELLAR_CAMERA_DISTANCE_MULTIPLIER = 0.18;
+const BUSAN_OBSERVER = {
+  label: 'Busan (부산)',
+  latitude: 35.1796,
+  longitude: 129.0756,
+};
+
+const OUTER_REGION_DEFS = [
+  {
+    id: 'kuiper-belt',
+    label: 'Kuiper Belt',
+    name: 'Kuiper Belt',
+    type: 'Outer Structure',
+    shape: '도넛형 원반',
+    innerAu: 30,
+    outerAu: 50,
+    particleCount: 9000,
+    seed: 7301,
+    color: 0x8bc7ff,
+    accentColor: 0xffd58a,
+    summary: '해왕성 궤도 바깥 30-50 AU 부근에 펼쳐진 얼음 소천체의 원반형 영역입니다. 장면에서는 실제 AU 간격을 유지한 입자 토러스/원반으로 표시됩니다.',
+  },
+  {
+    id: 'oort-cloud',
+    label: 'Oort Cloud',
+    name: 'Oort Cloud',
+    type: 'Outer Structure',
+    shape: '희박한 구형 껍질',
+    innerAu: 2000,
+    outerAu: 100000,
+    particleCount: 22000,
+    seed: 7302,
+    color: 0xc9ddff,
+    accentColor: 0x8fb2ff,
+    summary: '태양계를 거의 구형으로 감싸는 장주기 혜성의 저장고로 추정되는 초대형 영역입니다. 내부 행성과 같은 AU 스케일 위에 배치해 크기 차이를 직접 드러냅니다.',
+  },
+];
+
+const OUTER_REGION_BY_ID = Object.fromEntries(OUTER_REGION_DEFS.map((region) => [region.id, region]));
+const OUTER_REGION_IDS = new Set(OUTER_REGION_DEFS.map((region) => region.id));
+
+const INTERSTELLAR_SYSTEM_DEFS = [
+  {
+    id: 'alpha-centauri',
+    label: 'Alpha Centauri',
+    name: 'Three-Body Problem - Alpha Centauri',
+    shortName: 'Alpha Centauri',
+    koreanName: '삼체 성계',
+    distanceLy: 4.37,
+    ra: { h: 14, m: 39, s: 36.50 },
+    dec: { sign: -1, d: 60, m: 50, s: 2.3 },
+    color: 0xfff1bb,
+    accentColor: 0xffb36d,
+    components: [
+      { color: 0xfff4c5, offset: [0, 0, 0], scale: 1.32 },
+      { color: 0xffd79a, offset: [0.018, 0.012, 0.006], scale: 1.0 },
+      { color: 0xff6b55, offset: [-0.03, -0.014, -0.01], scale: 0.58 },
+    ],
+    summary: '지구에서 가장 가까운 항성계입니다. 이 앱에서는 삼체 성계를 상징하는 세 개의 항성 포인트로 표시합니다.',
+  },
+  {
+    id: 'forty-eridani-a',
+    label: '40 Eridani A',
+    name: 'Project Hail Mary - 40 Eridani A',
+    shortName: '40 Eridani A',
+    koreanName: '로키의 고향 항성',
+    distanceLy: 16.45,
+    ra: { h: 4, m: 15, s: 13.911 },
+    dec: { sign: -1, d: 7, m: 40, s: 5.08 },
+    color: 0xffb36d,
+    accentColor: 0xffdf9b,
+    components: [
+      { color: 0xffb36d, offset: [0, 0, 0], scale: 1.15 },
+    ],
+    summary: '프로젝트 헤일 메리의 로키 고향 항성으로 연결한 실제 근거리 K형 주계열성입니다.',
+  },
+];
+
+const INTERSTELLAR_SYSTEM_BY_ID = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((system) => [system.id, system]));
+const INTERSTELLAR_SYSTEM_IDS = new Set(INTERSTELLAR_SYSTEM_DEFS.map((system) => system.id));
 
 const PLANET_DEFS = [
   {
@@ -279,6 +365,26 @@ const BODY_PROFILES = {
     rotation: '16.11시간',
     summary: '태양계의 가장 바깥쪽 주요 행성입니다. 긴 공전 주기와 푸른 색감을 가집니다.',
   },
+  'kuiper-belt': {
+    name: 'Kuiper Belt',
+    type: 'Outer Structure',
+    regionId: 'kuiper-belt',
+  },
+  'oort-cloud': {
+    name: 'Oort Cloud',
+    type: 'Outer Structure',
+    regionId: 'oort-cloud',
+  },
+  'alpha-centauri': {
+    name: 'Three-Body Problem - Alpha Centauri',
+    type: 'Interstellar Landmark',
+    systemId: 'alpha-centauri',
+  },
+  'forty-eridani-a': {
+    name: 'Project Hail Mary - 40 Eridani A',
+    type: 'Interstellar Landmark',
+    systemId: 'forty-eridani-a',
+  },
 };
 
 const readouts = {
@@ -318,10 +424,30 @@ const infoPanel = {
   overview: document.getElementById('overview'),
   kicker: document.getElementById('info-kicker'),
   title: document.getElementById('info-title'),
+  primaryLabel: document.getElementById('info-primary-label'),
   diameter: document.getElementById('info-diameter'),
+  secondaryLabel: document.getElementById('info-secondary-label'),
   orbit: document.getElementById('info-orbit'),
+  tertiaryLabel: document.getElementById('info-tertiary-label'),
   rotation: document.getElementById('info-rotation'),
   summary: document.getElementById('info-summary'),
+};
+
+const moonWidget = {
+  root: document.getElementById('moon-widget'),
+  visual: document.getElementById('moon-phase-visual'),
+  name: document.getElementById('moon-phase-name'),
+  illumination: document.getElementById('moon-illumination'),
+  observer: document.getElementById('moon-observer'),
+};
+
+const tidePanel = {
+  root: document.getElementById('tide-panel'),
+  region: document.getElementById('tide-region'),
+  location: document.getElementById('tide-location'),
+  moonAltitude: document.getElementById('tide-moon-altitude'),
+  moonAzimuth: document.getElementById('tide-moon-azimuth'),
+  strength: document.getElementById('tide-strength'),
 };
 
 const jumpButtons = Array.from(document.querySelectorAll('[data-time-jump]'));
@@ -362,6 +488,28 @@ function julianDate(date) {
 
 function toSceneVector(x, y, z) {
   return new THREE.Vector3(x, z, -y);
+}
+
+function angleHoursToDegrees(ra) {
+  return (ra.h + ra.m / 60 + ra.s / 3600) * 15;
+}
+
+function signedDegrees(angle) {
+  return angle.sign * (angle.d + angle.m / 60 + angle.s / 3600);
+}
+
+function raDecDistanceToVectorLy(system) {
+  const ra = angleHoursToDegrees(system.ra) * DEG;
+  const dec = signedDegrees(system.dec) * DEG;
+  const cosDec = Math.cos(dec);
+  const x = system.distanceLy * cosDec * Math.cos(ra);
+  const y = system.distanceLy * cosDec * Math.sin(ra);
+  const z = system.distanceLy * Math.sin(dec);
+  return toSceneVector(x, y, z);
+}
+
+for (const system of INTERSTELLAR_SYSTEM_DEFS) {
+  system.vectorLy = raDecDistanceToVectorLy(system);
 }
 
 function solveKepler(meanAnomalyDeg, eccentricity) {
@@ -530,6 +678,74 @@ function moonPhaseName(angle) {
   if (angle < 247.5) return '기울음';
   if (angle < 292.5) return '하현';
   return '그믐';
+}
+
+function moonPhaseKorean(angle) {
+  if (angle < 22.5 || angle >= 337.5) return '삭';
+  if (angle < 67.5) return '초승달';
+  if (angle < 112.5) return '상현달';
+  if (angle < 157.5) return '차오르는 보름달';
+  if (angle < 202.5) return '보름달';
+  if (angle < 247.5) return '기우는 보름달';
+  if (angle < 292.5) return '하현달';
+  return '그믐달';
+}
+
+function moonPhaseSvg(angle) {
+  const illumination = (1 - cosDeg(angle)) / 2;
+  const waxing = angle > 0 && angle < 180;
+  const shadowWidth = Math.max(0.02, Math.abs(1 - illumination * 2));
+  const litSide = waxing ? 1 : -1;
+  const ellipseCx = 32 + litSide * shadowWidth * 18;
+  const ellipseRx = Math.max(2, 28 * shadowWidth);
+  return `
+    <svg viewBox="0 0 64 64" role="img" aria-label="${moonPhaseKorean(angle)}">
+      <defs>
+        <clipPath id="moon-disc-clip"><circle cx="32" cy="32" r="28"/></clipPath>
+        <radialGradient id="moon-lit" cx="35%" cy="28%" r="70%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="62%" stop-color="#cfd7e2"/>
+          <stop offset="100%" stop-color="#8e98a8"/>
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="29" fill="#111827" stroke="rgba(255,255,255,0.24)" stroke-width="1.4"/>
+      <g clip-path="url(#moon-disc-clip)">
+        <circle cx="32" cy="32" r="28" fill="url(#moon-lit)"/>
+        <rect x="${waxing ? 4 : 32}" y="4" width="28" height="56" fill="rgba(3,5,10,0.88)"/>
+        <ellipse cx="${ellipseCx.toFixed(2)}" cy="32" rx="${ellipseRx.toFixed(2)}" ry="28" fill="${illumination > 0.5 ? 'url(#moon-lit)' : 'rgba(3,5,10,0.88)'}"/>
+      </g>
+    </svg>
+  `;
+}
+
+function eclipticToEquatorial(longitudeDeg, latitudeDeg) {
+  const longitude = longitudeDeg * DEG;
+  const latitude = latitudeDeg * DEG;
+  const obliquity = OBLIQUITY_DEG * DEG;
+  const sinDec = Math.sin(latitude) * Math.cos(obliquity)
+    + Math.cos(latitude) * Math.sin(obliquity) * Math.sin(longitude);
+  const dec = Math.asin(sinDec);
+  const y = Math.sin(longitude) * Math.cos(obliquity) - Math.tan(latitude) * Math.sin(obliquity);
+  const x = Math.cos(longitude);
+  return {
+    raDeg: rev(Math.atan2(y, x) * RAD),
+    decDeg: dec * RAD,
+  };
+}
+
+function horizontalCoordinates(date, raDeg, decDeg, observer) {
+  const lat = observer.latitude * DEG;
+  const dec = decDeg * DEG;
+  const hourAngle = rev(gmstDegrees(date) + observer.longitude - raDeg) * DEG;
+  const altitude = Math.asin(Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(hourAngle));
+  const azimuth = Math.atan2(
+    -Math.sin(hourAngle),
+    Math.tan(dec) * Math.cos(lat) - Math.sin(lat) * Math.cos(hourAngle),
+  );
+  return {
+    altitudeDeg: altitude * RAD,
+    azimuthDeg: rev(azimuth * RAD),
+  };
 }
 
 function canvasTexture(width, height, painter) {
@@ -881,6 +1097,170 @@ function makeStarField() {
   }));
 }
 
+function makeKuiperBeltParticles(region, scale) {
+  const rand = seededRandom(region.seed);
+  const positions = new Float32Array(region.particleCount * 3);
+  const colors = new Float32Array(region.particleCount * 3);
+  const midAu = (region.innerAu + region.outerAu) / 2;
+  const halfWidthAu = (region.outerAu - region.innerAu) / 2;
+  const coldColor = new THREE.Color(region.color);
+  const warmColor = new THREE.Color(region.accentColor);
+
+  for (let i = 0; i < region.particleCount; i += 1) {
+    const radialAu = Math.sqrt(
+      region.innerAu * region.innerAu
+      + rand() * (region.outerAu * region.outerAu - region.innerAu * region.innerAu),
+    );
+    const theta = rand() * Math.PI * 2;
+    const bandFalloff = 1 - Math.min(1, Math.abs(radialAu - midAu) / halfWidthAu);
+    const verticalAu = (rand() + rand() + rand() - 1.5) * (1.15 + bandFalloff * 1.25);
+    const index = i * 3;
+
+    positions[index] = Math.cos(theta) * radialAu * scale.au;
+    positions[index + 1] = verticalAu * scale.au;
+    positions[index + 2] = Math.sin(theta) * radialAu * scale.au;
+
+    const tint = coldColor.clone().lerp(warmColor, rand() * 0.45);
+    const brightness = 0.58 + rand() * 0.42;
+    colors[index] = tint.r * brightness;
+    colors[index + 1] = tint.g * brightness;
+    colors[index + 2] = tint.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), region.outerAu * scale.au);
+
+  const points = new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: 1.7,
+    sizeAttenuation: false,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.76,
+    depthWrite: false,
+  }));
+  points.frustumCulled = false;
+  points.userData.bodyId = region.id;
+  return points;
+}
+
+function makeOortCloudParticles(region, scale) {
+  const rand = seededRandom(region.seed);
+  const positions = new Float32Array(region.particleCount * 3);
+  const colors = new Float32Array(region.particleCount * 3);
+  const logInner = Math.log(region.innerAu);
+  const logOuter = Math.log(region.outerAu);
+  const coldColor = new THREE.Color(region.color);
+  const blueColor = new THREE.Color(region.accentColor);
+
+  for (let i = 0; i < region.particleCount; i += 1) {
+    const radiusAu = Math.exp(logInner + rand() * (logOuter - logInner));
+    const u = rand() * 2 - 1;
+    const theta = rand() * Math.PI * 2;
+    const ring = Math.sqrt(1 - u * u);
+    const index = i * 3;
+
+    positions[index] = radiusAu * ring * Math.cos(theta) * scale.au;
+    positions[index + 1] = radiusAu * u * scale.au;
+    positions[index + 2] = radiusAu * ring * Math.sin(theta) * scale.au;
+
+    const tint = coldColor.clone().lerp(blueColor, rand() * 0.55);
+    const brightness = 0.48 + rand() * 0.5;
+    colors[index] = tint.r * brightness;
+    colors[index + 1] = tint.g * brightness;
+    colors[index + 2] = tint.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), region.outerAu * scale.au);
+
+  const points = new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: 1.1,
+    sizeAttenuation: false,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.46,
+    depthWrite: false,
+  }));
+  points.frustumCulled = false;
+  points.userData.bodyId = region.id;
+  return points;
+}
+
+function makeOuterRegionParticles(region, scale) {
+  return region.id === 'kuiper-belt'
+    ? makeKuiperBeltParticles(region, scale)
+    : makeOortCloudParticles(region, scale);
+}
+
+function makeKuiperBoundary(radiusAu, color, opacity, scale) {
+  const points = [];
+  for (let i = 0; i < 512; i += 1) {
+    const theta = (i / 512) * Math.PI * 2;
+    points.push(new THREE.Vector3(Math.cos(theta) * radiusAu * scale.au, 0, Math.sin(theta) * radiusAu * scale.au));
+  }
+  return new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(points),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity }),
+  );
+}
+
+function makeInterstellarSystem(system, scale) {
+  const group = new THREE.Group();
+  const position = system.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
+  const distanceUnits = position.length();
+  const baseRadius = Math.max(distanceUnits * 0.0014, 22_000);
+  group.position.copy(position);
+  group.userData.bodyId = system.id;
+
+  for (const component of system.components) {
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 32, 24),
+      new THREE.MeshBasicMaterial({
+        color: component.color,
+        transparent: true,
+        opacity: 0.95,
+      }),
+    );
+    const offset = new THREE.Vector3(...component.offset).multiplyScalar(distanceUnits);
+    mesh.position.copy(offset);
+    mesh.scale.setScalar(baseRadius * component.scale);
+    mesh.userData.bodyId = system.id;
+    group.add(mesh);
+
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeGlowTexture(),
+      color: component.color,
+      transparent: true,
+      opacity: 0.68,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    glow.position.copy(offset);
+    glow.scale.setScalar(baseRadius * component.scale * 9);
+    glow.userData.bodyId = system.id;
+    group.add(glow);
+  }
+
+  return group;
+}
+
+function makeInterstellarGuideLine(system, scale) {
+  const position = system.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
+  return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), position]),
+    new THREE.LineBasicMaterial({
+      color: system.accentColor,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false,
+    }),
+  );
+}
+
 function makeOrbitLine(color, opacity) {
   return new THREE.LineLoop(
     new THREE.BufferGeometry(),
@@ -904,6 +1284,15 @@ function makeLabel(text) {
   return sprite;
 }
 
+function makeFloatingLabel(title, detail) {
+  const element = document.createElement('div');
+  element.className = 'floating-label';
+  element.innerHTML = `<strong>${title}</strong><span>${detail}</span>`;
+  const label = new CSS2DObject(element);
+  label.visible = false;
+  return label;
+}
+
 function setLabelScalar(sprite, scalar) {
   sprite.scale.copy(sprite.userData.baseScale).multiplyScalar(scalar);
 }
@@ -923,16 +1312,22 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('app').prepend(renderer.domElement);
 
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.className = 'label-layer';
+document.getElementById('app').append(labelRenderer.domElement);
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x03050a);
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.0001, 60000);
+const initialOortFar = OUTER_REGION_BY_ID['oort-cloud'].outerAu * SCALES.visual.au * OORT_CAMERA_FAR_MULTIPLIER;
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.0001, Math.max(CAMERA_BASE_FAR, initialOortFar));
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.065;
 controls.enablePan = false;
 controls.minDistance = 0.004;
-controls.maxDistance = 32000;
+controls.maxDistance = OUTER_REGION_BY_ID['oort-cloud'].outerAu * SCALES.visual.au * 5.2;
 controls.rotateSpeed = 0.74;
 controls.zoomSpeed = 0.86;
 
@@ -1120,6 +1515,48 @@ const planetOrbits = Object.fromEntries(PLANET_DEFS.map((planet) => {
   return [planet.id, line];
 }));
 
+const outerRegionParticles = Object.fromEntries(OUTER_REGION_DEFS.map((region) => {
+  const points = makeOuterRegionParticles(region, SCALES.visual);
+  points.visible = false;
+  scene.add(points);
+  return [region.id, points];
+}));
+const kuiperBoundaryTorus = new THREE.Mesh(
+  new THREE.TorusGeometry(
+    ((OUTER_REGION_BY_ID['kuiper-belt'].innerAu + OUTER_REGION_BY_ID['kuiper-belt'].outerAu) / 2) * SCALES.visual.au,
+    ((OUTER_REGION_BY_ID['kuiper-belt'].outerAu - OUTER_REGION_BY_ID['kuiper-belt'].innerAu) / 2) * SCALES.visual.au,
+    24,
+    192,
+  ),
+  new THREE.MeshBasicMaterial({
+    color: 0x8bc7ff,
+    transparent: true,
+    opacity: 0.12,
+    wireframe: true,
+    depthWrite: false,
+  }),
+);
+kuiperBoundaryTorus.rotation.x = Math.PI / 2;
+kuiperBoundaryTorus.visible = false;
+scene.add(kuiperBoundaryTorus);
+const kuiperInnerBoundary = makeKuiperBoundary(OUTER_REGION_BY_ID['kuiper-belt'].innerAu, 0x6aa8ff, 0.2, SCALES.visual);
+const kuiperOuterBoundary = makeKuiperBoundary(OUTER_REGION_BY_ID['kuiper-belt'].outerAu, 0xffd58a, 0.24, SCALES.visual);
+scene.add(kuiperInnerBoundary, kuiperOuterBoundary);
+kuiperInnerBoundary.visible = false;
+kuiperOuterBoundary.visible = false;
+
+const interstellarSystems = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((system) => {
+  const group = makeInterstellarSystem(system, SCALES.visual);
+  scene.add(group);
+  return [system.id, group];
+}));
+const interstellarGuideLines = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((system) => {
+  const line = makeInterstellarGuideLine(system, SCALES.visual);
+  line.visible = false;
+  scene.add(line);
+  return [system.id, line];
+}));
+
 const labels = {
   sun: makeLabel('Sun'),
   earth: makeLabel('Earth'),
@@ -1129,6 +1566,21 @@ const planetLabels = Object.fromEntries(PLANET_DEFS.map((planet) => {
   const label = makeLabel(planet.label);
   scene.add(label);
   return [planet.id, label];
+}));
+const outerRegionLabels = Object.fromEntries(OUTER_REGION_DEFS.map((region) => {
+  const label = makeLabel(region.label);
+  scene.add(label);
+  return [region.id, label];
+}));
+const boundaryLabels = Object.fromEntries(OUTER_REGION_DEFS.map((region) => {
+  const label = makeFloatingLabel(region.name, `${formatAu(region.innerAu)} - ${formatAu(region.outerAu)}`);
+  scene.add(label);
+  return [region.id, label];
+}));
+const interstellarLabels = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((system) => {
+  const label = makeFloatingLabel(system.shortName, `${system.distanceLy.toFixed(2)} ly`);
+  scene.add(label);
+  return [system.id, label];
 }));
 scene.add(labels.sun, labels.earth, labels.moon);
 
@@ -1153,8 +1605,17 @@ const focusMarker = new THREE.Mesh(markerGeometry, new THREE.MeshBasicMaterial({
 }));
 scene.add(earthMarker, moonMarker, focusMarker);
 
-const clickableBodies = [sunMesh, earthMesh, moonMesh, ...Object.values(planetMeshes)];
+const interstellarClickableObjects = Object.values(interstellarSystems).flatMap((group) => group.children);
+const clickableBodies = [
+  sunMesh,
+  earthMesh,
+  moonMesh,
+  ...Object.values(planetMeshes),
+  ...Object.values(outerRegionParticles),
+  ...interstellarClickableObjects,
+];
 const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 80;
 const pointer = new THREE.Vector2();
 const pointerDown = new THREE.Vector2();
 
@@ -1168,6 +1629,7 @@ let timelineAnchorMs = simulationMs;
 let previousAnimationMs = performance.now();
 let previousFocus = new THREE.Vector3();
 let lastHudUpdate = 0;
+let lastMoonWidgetUpdate = 0;
 let lastMoonOrbitBucket = Number.NaN;
 let lastSolarOrbitBucket = Number.NaN;
 let firstFrameRendered = false;
@@ -1297,8 +1759,28 @@ function planetRadiusUnits(scale, planet) {
   return planet.visualRadius;
 }
 
+function isOuterRegionBody(bodyId) {
+  return OUTER_REGION_IDS.has(bodyId);
+}
+
+function isInterstellarBody(bodyId) {
+  return INTERSTELLAR_SYSTEM_IDS.has(bodyId);
+}
+
+function outerRegionRadiusUnits(bodyId, scale) {
+  const region = OUTER_REGION_BY_ID[bodyId];
+  return region ? region.outerAu * scale.au : 0;
+}
+
+function interstellarPositionUnits(bodyId, scale) {
+  const system = INTERSTELLAR_SYSTEM_BY_ID[bodyId];
+  return system ? system.vectorLy.clone().multiplyScalar(LY_AU * scale.au) : new THREE.Vector3(0, 0, 0);
+}
+
 function bodyPositionUnits(bodyId, state, scale) {
   if (bodyId === 'sun') return new THREE.Vector3(0, 0, 0);
+  if (isOuterRegionBody(bodyId)) return new THREE.Vector3(0, 0, 0);
+  if (isInterstellarBody(bodyId)) return interstellarPositionUnits(bodyId, scale);
   const earthPosition = earthPositionUnits(state, scale);
   if (bodyId === 'earth') return earthPosition;
   if (bodyId === 'moon') return earthPosition.add(moonOffsetUnits(state, scale));
@@ -1311,6 +1793,11 @@ function bodyRadiusUnits(bodyId, scale) {
   if (bodyId === 'earth') return scale.earthRadius;
   if (bodyId === 'moon') return scale.moonRadius;
   if (PLANET_BY_ID[bodyId]) return planetRadiusUnits(scale, PLANET_BY_ID[bodyId]);
+  if (isOuterRegionBody(bodyId)) return outerRegionRadiusUnits(bodyId, scale);
+  if (isInterstellarBody(bodyId)) {
+    const position = interstellarPositionUnits(bodyId, scale);
+    return Math.max(position.length() * 0.0014, 22_000);
+  }
   return scale.earthRadius;
 }
 
@@ -1380,7 +1867,8 @@ function applyScale() {
   moonMesh.scale.setScalar(scale.moonRadius);
   earthMarker.scale.setScalar(Math.max(scale.earthRadius * 1.62, scale.earthGlow * 1.15));
   moonMarker.scale.setScalar(Math.max(scale.moonRadius * 2.1, scale.earthGlow * 0.5));
-  focusMarker.scale.setScalar(Math.max(bodyRadiusUnits(focusMode, scale) * 2.2, scale.earthGlow * 0.72));
+  const focusMarkerRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) ? scale.earthRadius : bodyRadiusUnits(focusMode, scale);
+  focusMarker.scale.setScalar(Math.max(focusMarkerRadius * 2.2, scale.earthGlow * 0.72));
   for (const planet of PLANET_DEFS) {
     const radius = planetRadiusUnits(scale, planet);
     planetMeshes[planet.id].scale.setScalar(radius);
@@ -1392,6 +1880,8 @@ function applyScale() {
   setLabelScalar(labels.sun, scaleMode === 'real' ? 0.75 : 1);
   setLabelScalar(labels.earth, scaleMode === 'real' ? 0.28 : 0.78);
   setLabelScalar(labels.moon, scaleMode === 'real' ? 0.24 : 0.58);
+  setLabelScalar(outerRegionLabels['kuiper-belt'], scaleMode === 'real' ? 7 : 10);
+  setLabelScalar(outerRegionLabels['oort-cloud'], scaleMode === 'real' ? 6000 : 8200);
   buttons.scaleMode.textContent = scale.label;
   rebuildOrbits(new Date(simulationMs), true);
 }
@@ -1408,9 +1898,92 @@ function setButtonStates() {
   }
 }
 
+function cameraDepthForFocus(bodyId, scale) {
+  if (isInterstellarBody(bodyId)) {
+    const distance = interstellarPositionUnits(bodyId, scale).length();
+    return {
+      far: distance * INTERSTELLAR_CAMERA_FAR_MULTIPLIER,
+      maxDistance: distance * 3.2,
+    };
+  }
+  if (bodyId === 'oort-cloud') {
+    const radius = outerRegionRadiusUnits(bodyId, scale);
+    return {
+      far: radius * OORT_CAMERA_FAR_MULTIPLIER,
+      maxDistance: radius * 5.2,
+    };
+  }
+  if (bodyId === 'kuiper-belt') {
+    const radius = outerRegionRadiusUnits(bodyId, scale);
+    return {
+      far: Math.max(CAMERA_BASE_FAR, radius * 9),
+      maxDistance: Math.max(32_000, radius * 5),
+    };
+  }
+  return {
+    far: CAMERA_BASE_FAR,
+    maxDistance: 32_000,
+  };
+}
+
+function applyCameraDepthForFocus(bodyId, scale) {
+  const depth = cameraDepthForFocus(bodyId, scale);
+  const nextFar = Math.max(camera.far, depth.far);
+  const nextMaxDistance = Math.max(controls.maxDistance, depth.maxDistance);
+  if (Math.abs(camera.far - nextFar) > 1) {
+    camera.far = nextFar;
+    camera.updateProjectionMatrix();
+  }
+  controls.maxDistance = nextMaxDistance;
+}
+
+function cameraDurationForFocus(bodyId) {
+  if (isInterstellarBody(bodyId)) return 3200;
+  if (bodyId === 'oort-cloud') return 2600;
+  if (bodyId === 'kuiper-belt') return 1500;
+  return 950;
+}
+
 function cameraFrameFor(bodyId, state, scale) {
   const targetPosition = bodyPositionUnits(bodyId, state, scale);
   const targetRadius = bodyRadiusUnits(bodyId, scale);
+
+  if (bodyId === 'kuiper-belt') {
+    const region = OUTER_REGION_BY_ID[bodyId];
+    const outerRadius = region.outerAu * scale.au;
+    const target = new THREE.Vector3(0, 0, 0);
+    return {
+      target,
+      position: new THREE.Vector3(outerRadius * 0.5, outerRadius * 0.72, outerRadius * 1.9),
+    };
+  }
+
+  if (bodyId === 'oort-cloud') {
+    const region = OUTER_REGION_BY_ID[bodyId];
+    const outerRadius = region.outerAu * scale.au;
+    const target = new THREE.Vector3(0, 0, 0);
+    return {
+      target,
+      position: new THREE.Vector3(
+        outerRadius * 0.42,
+        outerRadius * 0.28,
+        outerRadius * OORT_CAMERA_DISTANCE_MULTIPLIER,
+      ),
+    };
+  }
+
+  if (isInterstellarBody(bodyId)) {
+    const position = interstellarPositionUnits(bodyId, scale);
+    const distance = position.length();
+    const direction = position.clone().normalize();
+    const side = new THREE.Vector3(-direction.z, 0.42, direction.x).normalize();
+    return {
+      target: position,
+      position: position.clone()
+        .add(direction.multiplyScalar(distance * INTERSTELLAR_CAMERA_DISTANCE_MULTIPLIER))
+        .add(side.multiplyScalar(distance * 0.055)),
+    };
+  }
 
   if (bodyId === 'sun') {
     const distance = scale.au * 38;
@@ -1433,6 +2006,7 @@ function cameraFrameFor(bodyId, state, scale) {
 function frameFocus(options = {}) {
   const state = computeState(new Date(simulationMs));
   const scale = currentScale();
+  applyCameraDepthForFocus(focusMode, scale);
   const earthPosition = earthPositionUnits(state, scale);
   const moonOffset = moonOffsetUnits(state, scale);
   const moonPosition = earthPosition.clone().add(moonOffset);
@@ -1441,7 +2015,7 @@ function frameFocus(options = {}) {
   if (options.smooth) {
     cameraTween = {
       startTime: performance.now(),
-      duration: 950,
+      duration: cameraDurationForFocus(focusMode),
       fromPosition: camera.position.clone(),
       fromTarget: controls.target.clone(),
       toPosition: frame.position.clone(),
@@ -1498,6 +2072,33 @@ function updateScene(state, now) {
     }
   }
 
+  const kuiperOuterRadius = OUTER_REGION_BY_ID['kuiper-belt'].outerAu * scale.au;
+  const oortOuterRadius = OUTER_REGION_BY_ID['oort-cloud'].outerAu * scale.au;
+  const kuiperFocused = focusMode === 'kuiper-belt';
+  const oortFocused = focusMode === 'oort-cloud';
+  kuiperBoundaryTorus.visible = kuiperFocused;
+  kuiperInnerBoundary.visible = kuiperFocused;
+  kuiperOuterBoundary.visible = kuiperFocused;
+  outerRegionParticles['kuiper-belt'].visible = kuiperFocused;
+  outerRegionParticles['oort-cloud'].visible = oortFocused;
+  outerRegionLabels['kuiper-belt'].position.set(kuiperOuterRadius * 0.72, kuiperOuterRadius * 0.18, -kuiperOuterRadius * 0.72);
+  outerRegionLabels['oort-cloud'].position.set(-oortOuterRadius * 0.18, oortOuterRadius * 0.88, -oortOuterRadius * 0.18);
+  outerRegionLabels['kuiper-belt'].visible = kuiperFocused;
+  outerRegionLabels['oort-cloud'].visible = oortFocused;
+  boundaryLabels['kuiper-belt'].position.copy(outerRegionLabels['kuiper-belt'].position);
+  boundaryLabels['oort-cloud'].position.copy(outerRegionLabels['oort-cloud'].position);
+  boundaryLabels['kuiper-belt'].visible = kuiperFocused;
+  boundaryLabels['oort-cloud'].visible = oortFocused;
+
+  for (const system of INTERSTELLAR_SYSTEM_DEFS) {
+    const focused = focusMode === system.id;
+    const position = interstellarPositionUnits(system.id, scale);
+    interstellarSystems[system.id].position.copy(position);
+    interstellarGuideLines[system.id].visible = focused;
+    interstellarLabels[system.id].position.copy(position).add(position.clone().normalize().multiplyScalar(bodyRadiusUnits(system.id, scale) * 10));
+    interstellarLabels[system.id].visible = focused;
+  }
+
   labels.sun.position.set(0, scale.sunRadius + 4, 0);
   labels.earth.position.copy(earthPosition).add(new THREE.Vector3(0, labelLift * 2.9 + 1.5, 0));
   labels.moon.position.copy(moonPosition).add(new THREE.Vector3(0, Math.max(scale.moonRadius * 3.8, 1.1), 0));
@@ -1511,8 +2112,9 @@ function updateScene(state, now) {
   earthMarker.position.copy(earthPosition);
   moonMarker.position.copy(moonPosition);
   focusMarker.position.copy(focusTarget);
-  focusMarker.visible = !['sun', 'earth', 'moon'].includes(focusMode);
-  focusMarker.scale.setScalar(Math.max(focusRadius * 1.8, scaleMode === 'real' ? 0.04 : 0.9));
+  focusMarker.visible = !['sun', 'earth', 'moon'].includes(focusMode) && !isOuterRegionBody(focusMode) && !isInterstellarBody(focusMode);
+  const markerFocusRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) ? scale.earthRadius : focusRadius;
+  focusMarker.scale.setScalar(Math.max(markerFocusRadius * 1.8, scaleMode === 'real' ? 0.04 : 0.9));
   earthMarker.lookAt(camera.position);
   moonMarker.lookAt(camera.position);
   focusMarker.lookAt(camera.position);
@@ -1558,7 +2160,53 @@ function formatDiameter(value) {
   return `${Math.round(value).toLocaleString('ko-KR')} km`;
 }
 
-function showInfoPanel(bodyId) {
+function formatAu(value) {
+  const abs = Math.abs(value);
+  const digits = abs >= 1000 ? 0 : abs >= 100 ? 1 : abs >= 10 ? 2 : 3;
+  return `${value.toLocaleString('ko-KR', {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: abs < 10 ? 2 : 0,
+  })} AU`;
+}
+
+function formatAuKm(valueAu) {
+  return `${formatAu(valueAu)} / ${formatKm(valueAu * AU_KM)}`;
+}
+
+function formatAuKmRange(minAu, maxAu) {
+  return `${formatAu(minAu)} - ${formatAu(maxAu)} / ${formatKm(minAu * AU_KM)} - ${formatKm(maxAu * AU_KM)}`;
+}
+
+function formatLy(value) {
+  return `${value.toLocaleString('ko-KR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} ly`;
+}
+
+function formatRa(ra) {
+  return `${ra.h}h ${ra.m}m ${ra.s.toFixed(2)}s`;
+}
+
+function formatDec(dec) {
+  const sign = dec.sign < 0 ? '-' : '+';
+  return `${sign}${dec.d}° ${dec.m}' ${dec.s.toFixed(1)}"`;
+}
+
+function regionEarthDistanceRangeAu(region, state) {
+  const earthAu = state.earthVectorAu.length();
+  return {
+    min: Math.max(0, region.innerAu - earthAu),
+    max: region.outerAu + earthAu,
+  };
+}
+
+function interstellarEarthDistanceLy(system, state) {
+  const earthLy = state.earthVectorAu.clone().divideScalar(LY_AU);
+  return system.vectorLy.clone().sub(earthLy).length();
+}
+
+function showInfoPanel(bodyId, state = computeState(new Date(simulationMs))) {
   const profile = BODY_PROFILES[bodyId];
   if (!profile) {
     infoPanel.root.hidden = true;
@@ -1568,6 +2216,35 @@ function showInfoPanel(bodyId) {
   infoPanel.root.hidden = false;
   infoPanel.kicker.textContent = profile.type;
   infoPanel.title.textContent = profile.name;
+
+  if (profile.regionId) {
+    const region = OUTER_REGION_BY_ID[profile.regionId];
+    const earthRange = regionEarthDistanceRangeAu(region, state);
+    infoPanel.primaryLabel.textContent = '태양 거리';
+    infoPanel.secondaryLabel.textContent = '지구 거리';
+    infoPanel.tertiaryLabel.textContent = '형태';
+    infoPanel.diameter.textContent = formatAuKmRange(region.innerAu, region.outerAu);
+    infoPanel.orbit.textContent = formatAuKmRange(earthRange.min, earthRange.max);
+    infoPanel.rotation.textContent = region.shape;
+    infoPanel.summary.textContent = region.summary;
+    return;
+  }
+
+  if (profile.systemId) {
+    const system = INTERSTELLAR_SYSTEM_BY_ID[profile.systemId];
+    infoPanel.primaryLabel.textContent = '태양 거리';
+    infoPanel.secondaryLabel.textContent = '지구 거리';
+    infoPanel.tertiaryLabel.textContent = '좌표';
+    infoPanel.diameter.textContent = formatLy(system.distanceLy);
+    infoPanel.orbit.textContent = formatLy(interstellarEarthDistanceLy(system, state));
+    infoPanel.rotation.textContent = `RA ${formatRa(system.ra)} / Dec ${formatDec(system.dec)}`;
+    infoPanel.summary.textContent = `${system.koreanName}. ${system.summary}`;
+    return;
+  }
+
+  infoPanel.primaryLabel.textContent = '지름';
+  infoPanel.secondaryLabel.textContent = '공전 주기';
+  infoPanel.tertiaryLabel.textContent = '자전 주기';
   infoPanel.diameter.textContent = formatDiameter(profile.diameterKm);
   infoPanel.orbit.textContent = profile.orbit;
   infoPanel.rotation.textContent = profile.rotation;
@@ -1602,7 +2279,36 @@ function updateHud(state, now) {
   readouts.phase.textContent = `${moonPhaseName(state.phaseAngle)} ${Math.round(state.illumination * 100)}%`;
   readouts.moonDistance.textContent = formatKm(state.earthMoonKm);
   readouts.sunDistance.textContent = formatKm(state.earthSunKm);
+  if (!infoPanel.root.hidden) {
+    showInfoPanel(focusMode, state);
+  }
+  updateMoonAndTideWidget(now);
   updateTimeControls();
+}
+
+function updateMoonAndTideWidget(now) {
+  if (now - lastMoonWidgetUpdate < 1000) return;
+  lastMoonWidgetUpdate = now;
+
+  const liveDate = new Date();
+  const liveState = computeState(liveDate);
+  const phaseName = moonPhaseKorean(liveState.phaseAngle);
+  const illumination = liveState.illumination * 100;
+  const equatorial = eclipticToEquatorial(liveState.moon.longitude, liveState.moon.latitude);
+  const horizontal = horizontalCoordinates(liveDate, equatorial.raDeg, equatorial.decDeg, BUSAN_OBSERVER);
+  const springFactor = Math.abs(Math.cos(liveState.phaseAngle * DEG));
+  const tideStrength = springFactor > 0.78 ? '대조기에 가까움' : springFactor > 0.42 ? '중간 조차' : '소조기에 가까움';
+
+  if (moonWidget.visual) moonWidget.visual.innerHTML = moonPhaseSvg(liveState.phaseAngle);
+  if (moonWidget.name) moonWidget.name.textContent = phaseName;
+  if (moonWidget.illumination) moonWidget.illumination.textContent = `${illumination.toFixed(1)}%`;
+  if (moonWidget.observer) moonWidget.observer.textContent = BUSAN_OBSERVER.label;
+
+  if (tidePanel.region) tidePanel.region.value = 'busan';
+  if (tidePanel.location) tidePanel.location.textContent = `${BUSAN_OBSERVER.latitude.toFixed(4)}°N, ${BUSAN_OBSERVER.longitude.toFixed(4)}°E`;
+  if (tidePanel.moonAltitude) tidePanel.moonAltitude.textContent = `${horizontal.altitudeDeg.toFixed(1)}°`;
+  if (tidePanel.moonAzimuth) tidePanel.moonAzimuth.textContent = `${horizontal.azimuthDeg.toFixed(1)}°`;
+  if (tidePanel.strength) tidePanel.strength.textContent = tideStrength;
 }
 
 function changeSpeed(delta) {
@@ -1671,7 +2377,7 @@ buttons.focusSun.addEventListener('click', () => {
   selectBodyFocus('sun', { smooth: true, showInfo: false });
 });
 buttons.focusTarget.addEventListener('change', () => {
-  selectBodyFocus(buttons.focusTarget.value, { smooth: true, showInfo: false });
+  selectBodyFocus(buttons.focusTarget.value, { smooth: true, showInfo: true });
 });
 buttons.scaleMode.addEventListener('click', () => {
   scaleMode = scaleMode === 'visual' ? 'real' : 'visual';
@@ -1726,6 +2432,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 function animate(now) {
@@ -1758,6 +2465,7 @@ function animate(now) {
   updateScene(state, now);
   controls.update();
   renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
   updateHud(state, now);
 
   if (!firstFrameRendered) {
@@ -1805,5 +2513,13 @@ window.solarProject = {
   },
   setFocusMode(mode) {
     selectBodyFocus(mode, { smooth: true, showInfo: false });
+  },
+  getExtendedVisibilityState() {
+    return {
+      kuiperVisible: outerRegionParticles['kuiper-belt'].visible && kuiperBoundaryTorus.visible,
+      oortVisible: outerRegionParticles['oort-cloud'].visible,
+      alphaCentauriGuideVisible: interstellarGuideLines['alpha-centauri'].visible,
+      fortyEridaniGuideVisible: interstellarGuideLines['forty-eridani-a'].visible,
+    };
   },
 };

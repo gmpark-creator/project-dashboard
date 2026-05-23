@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>태양계 프로젝트 - Codex Step 4</title>
+  <title>태양계 프로젝트 - Codex Step 6</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./src/styles.css" />
   <script>
@@ -27,7 +27,7 @@
     <section class="hud" aria-label="시뮬레이션 상태">
       <div class="hud-title">
         <strong>태양계 프로젝트</strong>
-        <span>Step 4</span>
+        <span>Step 6</span>
         <a class="hud-report-link" href="./report.html" title="진행 보고서" aria-label="진행 보고서">Report</a>
       </div>
       <dl>
@@ -86,6 +86,10 @@
         <option value="saturn">Saturn</option>
         <option value="uranus">Uranus</option>
         <option value="neptune">Neptune</option>
+        <option value="kuiper-belt">Kuiper Belt</option>
+        <option value="oort-cloud">Oort Cloud</option>
+        <option value="alpha-centauri">Alpha Centauri</option>
+        <option value="forty-eridani-a">40 Eridani A</option>
       </select>
       <button id="scale-mode" type="button" title="스케일 전환" aria-label="스케일 전환">Visual</button>
       <button id="toggle-orbits" type="button" title="궤도 표시" aria-label="궤도 표시">Orbits</button>
@@ -96,12 +100,41 @@
       <div class="info-kicker" id="info-kicker">Planet Profile</div>
       <h2 id="info-title">Earth</h2>
       <dl>
-        <div><dt>지름</dt><dd id="info-diameter">-</dd></div>
-        <div><dt>공전 주기</dt><dd id="info-orbit">-</dd></div>
-        <div><dt>자전 주기</dt><dd id="info-rotation">-</dd></div>
+        <div><dt id="info-primary-label">지름</dt><dd id="info-diameter">-</dd></div>
+        <div><dt id="info-secondary-label">공전 주기</dt><dd id="info-orbit">-</dd></div>
+        <div><dt id="info-tertiary-label">자전 주기</dt><dd id="info-rotation">-</dd></div>
       </dl>
       <p id="info-summary"></p>
     </aside>
+
+    <section class="astro-stack" aria-label="부산 기준 달과 조석">
+      <aside id="moon-widget" class="moon-widget" aria-label="부산 기준 달 위상">
+        <div class="moon-phase-visual" id="moon-phase-visual" aria-hidden="true"></div>
+        <div>
+          <div class="panel-kicker">Busan Moon</div>
+          <strong id="moon-phase-name">-</strong>
+          <dl>
+            <div><dt>조명</dt><dd id="moon-illumination">-</dd></div>
+            <div><dt>기준</dt><dd id="moon-observer">부산</dd></div>
+          </dl>
+        </div>
+      </aside>
+
+      <aside id="tide-panel" class="tide-panel" aria-label="조석 기준표">
+        <div class="tide-title">
+          <span>조석 기준</span>
+          <select id="tide-region" aria-label="조석 지역">
+            <option value="busan" selected>Busan (부산)</option>
+          </select>
+        </div>
+        <dl>
+          <div><dt>관측지</dt><dd id="tide-location">35.1796°N, 129.0756°E</dd></div>
+          <div><dt>달 고도</dt><dd id="tide-moon-altitude">-</dd></div>
+          <div><dt>달 방위</dt><dd id="tide-moon-azimuth">-</dd></div>
+          <div><dt>조석 경향</dt><dd id="tide-strength">-</dd></div>
+        </dl>
+      </aside>
+    </section>
 
     <div id="loading" class="loading" role="status">
       <span class="loader"></span>
