@@ -164,6 +164,21 @@ const INTERSTELLAR_SYSTEM_DEFS = [
 const INTERSTELLAR_SYSTEM_BY_ID = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((system) => [system.id, system]));
 const INTERSTELLAR_SYSTEM_IDS = new Set(INTERSTELLAR_SYSTEM_DEFS.map((system) => system.id));
 
+const EVENT_HORIZON_DEF = {
+  id: 'event-horizon',
+  label: 'Event Horizon',
+  name: 'Sagittarius A* Event Horizon',
+  shortName: '사건의 지평선',
+  koreanName: '은하 중심 블랙홀 사건의 지평선',
+  distanceLy: 26_670,
+  radiusAu: 0.085,
+  ra: { h: 17, m: 45, s: 40.04 },
+  dec: { sign: -1, d: 29, m: 0, s: 28.1 },
+  color: 0x05070c,
+  accentColor: 0xff8a3d,
+  summary: '우리은하 중심의 초대질량 블랙홀 Sagittarius A*의 사건의 지평선을 교육용으로 확대한 경계 시각화입니다. 실제 사건의 지평선 반지름은 약 0.085 AU 수준으로, 장면에서는 관찰 가능한 크기로 크게 확대해 표시합니다.',
+};
+
 const PLANET_DEFS = [
   {
     id: 'mercury',
@@ -313,6 +328,14 @@ const PLANET_DEFS = [
 const PLANET_BY_ID = Object.fromEntries(PLANET_DEFS.map((planet) => [planet.id, planet]));
 
 const BODY_PROFILES = {
+  system: {
+    name: '태양계 전체',
+    type: 'System Overview',
+    primary: '주요 행성 8개',
+    secondary: '해왕성 궤도 약 30 AU',
+    tertiary: '태양 중심계',
+    summary: '태양, 지구-달, 8개 주요 행성의 궤도 맥락을 한 번에 보는 전체 보기입니다. 카이퍼 벨트와 오르트 구름은 각각의 포커스 항목을 선택할 때만 경계가 표시됩니다.',
+  },
   sun: {
     name: 'Sun',
     type: 'Star Profile',
@@ -402,6 +425,11 @@ const BODY_PROFILES = {
     name: 'Oort Cloud',
     type: 'Outer Structure',
     regionId: 'oort-cloud',
+  },
+  'event-horizon': {
+    name: 'Sagittarius A* Event Horizon',
+    type: 'Relativistic Boundary',
+    eventHorizon: true,
   },
   'alpha-centauri': {
     name: 'Three-Body Problem - Alpha Centauri',
@@ -543,6 +571,7 @@ function raDecDistanceToVectorLy(system) {
 for (const system of INTERSTELLAR_SYSTEM_DEFS) {
   system.vectorLy = raDecDistanceToVectorLy(system);
 }
+EVENT_HORIZON_DEF.vectorLy = raDecDistanceToVectorLy(EVENT_HORIZON_DEF);
 
 function solveKepler(meanAnomalyDeg, eccentricity) {
   let eccentricAnomaly = meanAnomalyDeg + RAD * eccentricity * sinDeg(meanAnomalyDeg) * (1 + eccentricity * cosDeg(meanAnomalyDeg));
@@ -1489,6 +1518,56 @@ function makeInterstellarGuideLine(system, scale) {
   );
 }
 
+function makeEventHorizonVisual(def, scale) {
+  const group = new THREE.Group();
+  const position = def.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
+  const distanceUnits = position.length();
+  const visualRadius = Math.max(distanceUnits * 0.00042, 48_000_000);
+  group.position.copy(position);
+  group.userData.bodyId = def.id;
+
+  const horizon = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 96, 64),
+    new THREE.MeshBasicMaterial({
+      color: def.color,
+      transparent: true,
+      opacity: 0.98,
+      depthWrite: false,
+    }),
+  );
+  horizon.scale.setScalar(visualRadius);
+  horizon.userData.bodyId = def.id;
+  group.add(horizon);
+
+  const photonRing = new THREE.Mesh(
+    new THREE.TorusGeometry(visualRadius * 1.72, visualRadius * 0.08, 24, 192),
+    new THREE.MeshBasicMaterial({
+      color: def.accentColor,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  photonRing.rotation.set(63 * DEG, 0, 18 * DEG);
+  photonRing.userData.bodyId = def.id;
+  group.add(photonRing);
+
+  const lensGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(),
+    color: def.accentColor,
+    transparent: true,
+    opacity: 0.46,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  lensGlow.scale.setScalar(visualRadius * 6.8);
+  lensGlow.userData.bodyId = def.id;
+  group.add(lensGlow);
+
+  return group;
+}
+
 function makeOrbitLine(color, opacity) {
   return new THREE.LineLoop(
     new THREE.BufferGeometry(),
@@ -1784,6 +1863,12 @@ const interstellarGuideLines = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((
   scene.add(line);
   return [system.id, line];
 }));
+const eventHorizonVisual = makeEventHorizonVisual(EVENT_HORIZON_DEF, SCALES.visual);
+eventHorizonVisual.visible = false;
+scene.add(eventHorizonVisual);
+const eventHorizonGuideLine = makeInterstellarGuideLine(EVENT_HORIZON_DEF, SCALES.visual);
+eventHorizonGuideLine.visible = false;
+scene.add(eventHorizonGuideLine);
 
 const labels = {
   sun: makeLabel('Sun'),
@@ -1810,6 +1895,8 @@ const interstellarLabels = Object.fromEntries(INTERSTELLAR_SYSTEM_DEFS.map((syst
   scene.add(label);
   return [system.id, label];
 }));
+const eventHorizonLabel = makeFloatingLabel(EVENT_HORIZON_DEF.shortName, `${EVENT_HORIZON_DEF.distanceLy.toLocaleString('ko-KR')} ly`);
+scene.add(eventHorizonLabel);
 scene.add(labels.sun, labels.earth, labels.moon);
 
 const markerGeometry = new THREE.RingGeometry(0.9, 1, 64);
@@ -1841,6 +1928,7 @@ const clickableBodies = [
   ...Object.values(planetMeshes),
   ...Object.values(outerRegionParticles),
   ...interstellarClickableObjects,
+  ...eventHorizonVisual.children,
 ];
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 80;
@@ -1998,6 +2086,10 @@ function isInterstellarBody(bodyId) {
   return INTERSTELLAR_SYSTEM_IDS.has(bodyId);
 }
 
+function isEventHorizonBody(bodyId) {
+  return bodyId === EVENT_HORIZON_DEF.id;
+}
+
 function outerRegionRadiusUnits(bodyId, scale) {
   const region = OUTER_REGION_BY_ID[bodyId];
   return region ? region.outerAu * scale.au : 0;
@@ -2008,10 +2100,16 @@ function interstellarPositionUnits(bodyId, scale) {
   return system ? system.vectorLy.clone().multiplyScalar(LY_AU * scale.au) : new THREE.Vector3(0, 0, 0);
 }
 
+function eventHorizonPositionUnits(scale) {
+  return EVENT_HORIZON_DEF.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
+}
+
 function bodyPositionUnits(bodyId, state, scale) {
+  if (bodyId === 'system') return new THREE.Vector3(0, 0, 0);
   if (bodyId === 'sun') return new THREE.Vector3(0, 0, 0);
   if (isOuterRegionBody(bodyId)) return new THREE.Vector3(0, 0, 0);
   if (isInterstellarBody(bodyId)) return interstellarPositionUnits(bodyId, scale);
+  if (isEventHorizonBody(bodyId)) return eventHorizonPositionUnits(scale);
   const earthPosition = earthPositionUnits(state, scale);
   if (bodyId === 'earth') return earthPosition;
   if (bodyId === 'moon') return earthPosition.add(moonOffsetUnits(state, scale));
@@ -2028,6 +2126,10 @@ function bodyRadiusUnits(bodyId, scale) {
   if (isInterstellarBody(bodyId)) {
     const position = interstellarPositionUnits(bodyId, scale);
     return Math.max(position.length() * 0.0014, 22_000);
+  }
+  if (isEventHorizonBody(bodyId)) {
+    const position = eventHorizonPositionUnits(scale);
+    return Math.max(position.length() * 0.00042, 48_000_000);
   }
   return scale.earthRadius;
 }
@@ -2098,7 +2200,7 @@ function applyScale() {
   moonMesh.scale.setScalar(scale.moonRadius);
   earthMarker.scale.setScalar(Math.max(scale.earthRadius * 1.62, scale.earthGlow * 1.15));
   moonMarker.scale.setScalar(Math.max(scale.moonRadius * 2.1, scale.earthGlow * 0.5));
-  const focusMarkerRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) ? scale.earthRadius : bodyRadiusUnits(focusMode, scale);
+  const focusMarkerRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) ? scale.earthRadius : bodyRadiusUnits(focusMode, scale);
   focusMarker.scale.setScalar(Math.max(focusMarkerRadius * 2.2, scale.earthGlow * 0.72));
   for (const planet of PLANET_DEFS) {
     const radius = planetRadiusUnits(scale, planet);
@@ -2130,6 +2232,13 @@ function setButtonStates() {
 }
 
 function cameraDepthForFocus(bodyId, scale) {
+  if (isEventHorizonBody(bodyId)) {
+    const distance = eventHorizonPositionUnits(scale).length();
+    return {
+      far: distance * INTERSTELLAR_CAMERA_FAR_MULTIPLIER,
+      maxDistance: distance * 3.2,
+    };
+  }
   if (isInterstellarBody(bodyId)) {
     const distance = interstellarPositionUnits(bodyId, scale).length();
     return {
@@ -2169,6 +2278,7 @@ function applyCameraDepthForFocus(bodyId, scale) {
 }
 
 function cameraDurationForFocus(bodyId) {
+  if (isEventHorizonBody(bodyId)) return 3600;
   if (isInterstellarBody(bodyId)) return 3200;
   if (bodyId === 'oort-cloud') return 2600;
   if (bodyId === 'kuiper-belt') return 1500;
@@ -2178,6 +2288,14 @@ function cameraDurationForFocus(bodyId) {
 function cameraFrameFor(bodyId, state, scale) {
   const targetPosition = bodyPositionUnits(bodyId, state, scale);
   const targetRadius = bodyRadiusUnits(bodyId, scale);
+
+  if (bodyId === 'system') {
+    const distance = scale.au * 118;
+    return {
+      target: new THREE.Vector3(0, 0, 0),
+      position: new THREE.Vector3(distance * 0.48, distance * 0.44, distance),
+    };
+  }
 
   if (bodyId === 'kuiper-belt') {
     const region = OUTER_REGION_BY_ID[bodyId];
@@ -2213,6 +2331,19 @@ function cameraFrameFor(bodyId, state, scale) {
       position: position.clone()
         .add(direction.multiplyScalar(distance * INTERSTELLAR_CAMERA_DISTANCE_MULTIPLIER))
         .add(side.multiplyScalar(distance * 0.055)),
+    };
+  }
+
+  if (isEventHorizonBody(bodyId)) {
+    const position = eventHorizonPositionUnits(scale);
+    const distance = position.length();
+    const direction = position.clone().normalize();
+    const side = new THREE.Vector3(direction.z, 0.52, -direction.x).normalize();
+    return {
+      target: position,
+      position: position.clone()
+        .add(direction.multiplyScalar(distance * 0.12))
+        .add(side.multiplyScalar(distance * 0.045)),
     };
   }
 
@@ -2330,6 +2461,14 @@ function updateScene(state, now) {
     interstellarLabels[system.id].visible = focused;
   }
 
+  const eventFocused = focusMode === EVENT_HORIZON_DEF.id;
+  const eventPosition = eventHorizonPositionUnits(scale);
+  eventHorizonVisual.position.copy(eventPosition);
+  eventHorizonVisual.visible = eventFocused;
+  eventHorizonGuideLine.visible = eventFocused;
+  eventHorizonLabel.position.copy(eventPosition).add(eventPosition.clone().normalize().multiplyScalar(bodyRadiusUnits(EVENT_HORIZON_DEF.id, scale) * 6));
+  eventHorizonLabel.visible = eventFocused;
+
   labels.sun.position.set(0, scale.sunRadius + 4, 0);
   labels.earth.position.copy(earthPosition).add(new THREE.Vector3(0, labelLift * 2.9 + 1.5, 0));
   labels.moon.position.copy(moonPosition).add(new THREE.Vector3(0, Math.max(scale.moonRadius * 3.8, 1.1), 0));
@@ -2343,8 +2482,8 @@ function updateScene(state, now) {
   earthMarker.position.copy(earthPosition);
   moonMarker.position.copy(moonPosition);
   focusMarker.position.copy(focusTarget);
-  focusMarker.visible = !['sun', 'earth', 'moon'].includes(focusMode) && !isOuterRegionBody(focusMode) && !isInterstellarBody(focusMode);
-  const markerFocusRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) ? scale.earthRadius : focusRadius;
+  focusMarker.visible = !['system', 'sun', 'earth', 'moon'].includes(focusMode) && !isOuterRegionBody(focusMode) && !isInterstellarBody(focusMode) && !isEventHorizonBody(focusMode);
+  const markerFocusRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) ? scale.earthRadius : focusRadius;
   focusMarker.scale.setScalar(Math.max(markerFocusRadius * 1.8, scaleMode === 'real' ? 0.04 : 0.9));
   earthMarker.lookAt(camera.position);
   moonMarker.lookAt(camera.position);
@@ -2448,6 +2587,17 @@ function showInfoPanel(bodyId, state = computeState(new Date(simulationMs))) {
   infoPanel.kicker.textContent = profile.type;
   infoPanel.title.textContent = profile.name;
 
+  if (bodyId === 'system') {
+    infoPanel.primaryLabel.textContent = '범위';
+    infoPanel.secondaryLabel.textContent = '외곽 행성';
+    infoPanel.tertiaryLabel.textContent = '기준';
+    infoPanel.diameter.textContent = profile.primary;
+    infoPanel.orbit.textContent = profile.secondary;
+    infoPanel.rotation.textContent = profile.tertiary;
+    infoPanel.summary.textContent = profile.summary;
+    return;
+  }
+
   if (profile.regionId) {
     const region = OUTER_REGION_BY_ID[profile.regionId];
     const earthRange = regionEarthDistanceRangeAu(region, state);
@@ -2458,6 +2608,21 @@ function showInfoPanel(bodyId, state = computeState(new Date(simulationMs))) {
     infoPanel.orbit.textContent = formatAuKmRange(earthRange.min, earthRange.max);
     infoPanel.rotation.textContent = region.shape;
     infoPanel.summary.textContent = region.summary;
+    return;
+  }
+
+  if (profile.eventHorizon) {
+    const distanceLy = EVENT_HORIZON_DEF.distanceLy;
+    const earthDistanceLy = EVENT_HORIZON_DEF.vectorLy.clone()
+      .sub(state.earthVectorAu.clone().divideScalar(LY_AU))
+      .length();
+    infoPanel.primaryLabel.textContent = '태양 거리';
+    infoPanel.secondaryLabel.textContent = '지구 거리';
+    infoPanel.tertiaryLabel.textContent = '실제 반지름';
+    infoPanel.diameter.textContent = formatLy(distanceLy);
+    infoPanel.orbit.textContent = formatLy(earthDistanceLy);
+    infoPanel.rotation.textContent = `${formatAu(EVENT_HORIZON_DEF.radiusAu)} / ${formatKm(EVENT_HORIZON_DEF.radiusAu * AU_KM)}`;
+    infoPanel.summary.textContent = `${EVENT_HORIZON_DEF.koreanName}. ${EVENT_HORIZON_DEF.summary}`;
     return;
   }
 
@@ -2491,7 +2656,7 @@ function selectBodyFocus(bodyId, options = {}) {
 }
 
 function returnToOverview() {
-  focusMode = 'sun';
+  focusMode = 'system';
   setButtonStates();
   showInfoPanel(null);
   frameFocus({ smooth: true });
@@ -2849,6 +3014,7 @@ window.solarProject = {
     return {
       kuiperVisible: outerRegionParticles['kuiper-belt'].visible && kuiperBoundaryTorus.visible,
       oortVisible: outerRegionParticles['oort-cloud'].visible,
+      eventHorizonVisible: eventHorizonVisual.visible && eventHorizonGuideLine.visible,
       alphaCentauriGuideVisible: interstellarGuideLines['alpha-centauri'].visible,
       fortyEridaniGuideVisible: interstellarGuideLines['forty-eridani-a'].visible,
     };

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>태양계 프로젝트 - Codex Step 6</title>
+  <title>태양계 프로젝트 - Codex Step 7</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./src/styles.css" />
   <script>
@@ -27,7 +27,7 @@
     <section class="hud" aria-label="시뮬레이션 상태">
       <div class="hud-title">
         <strong>태양계 프로젝트</strong>
-        <span>Step 6</span>
+        <span>Step 7</span>
         <a class="hud-report-link" href="./report.html" title="진행 보고서" aria-label="진행 보고서">Report</a>
       </div>
       <dl>
@@ -76,6 +76,7 @@
       <button id="focus-earth" type="button" title="지구 중심" aria-label="지구 중심">Earth</button>
       <button id="focus-sun" type="button" title="태양 중심" aria-label="태양 중심">Sun</button>
       <select id="focus-target" title="포커스 대상" aria-label="포커스 대상">
+        <option value="system">태양계 전체</option>
         <option value="sun">Sun</option>
         <option value="mercury">Mercury</option>
         <option value="venus">Venus</option>
@@ -88,6 +89,7 @@
         <option value="neptune">Neptune</option>
         <option value="kuiper-belt">Kuiper Belt</option>
         <option value="oort-cloud">Oort Cloud</option>
+        <option value="event-horizon">Event Horizon</option>
         <option value="alpha-centauri">Alpha Centauri</option>
         <option value="forty-eridani-a">40 Eridani A</option>
       </select>

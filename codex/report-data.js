@@ -81,16 +81,16 @@ export const reportData = {
       label: '태양계 3D 시뮬레이터',
       state: '공개 비교본 개선 완료',
       health: 'active',
-      progress: 96,
+      progress: 98,
       stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
-      summary: '현재 날짜 기준으로 태양, 행성, 달을 배치하고 타임머신, 카메라 포커싱, 행성 정보 패널을 제공하는 3D 천체 시뮬레이터.',
-      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, 1년 전후 이동은 즉시 점프가 아니라 시간 흐름처럼 재생되도록 바뀌었다. Codex 버전은 지구와 행성 확대 품질도 개선했다.',
+      summary: '현재 날짜 기준으로 태양, 행성, 달, 외태양계 구조, 성간 랜드마크를 배치하고 타임머신, 카메라 포커싱, 정보 패널을 제공하는 3D 천체 시뮬레이터.',
+      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, Codex 버전은 카이퍼/오르트, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선, 부산 조석표와 실시간 달 위상까지 확장했다.',
       links: [
         {
           label: 'Solar Project - Codex',
           url: '../solar-project-codex/',
           probe: 'GitHub Pages 200',
-          note: '시간 흐름형 연도 이동, 실제 지구 텍스처, 행성 디테일 개선',
+          note: '태양계 전체, 외태양계, 성간 랜드마크, 사건의 지평선 포커스 포함',
         },
         {
           label: 'Solar Project - Claude',
@@ -103,6 +103,7 @@ export const reportData = {
         '두 버전을 `solar-project-codex`와 `solar-project-claude` 공개 경로로 분리해 다른 사람에게 바로 공유할 수 있게 했다.',
         '연도 이동 버튼은 현재 위치 대비 즉시 점프가 아니라, 목표 날짜까지 중간 날짜를 거치며 재생되는 방식으로 수정했다.',
         'Codex 버전은 실제 지구 텍스처, 구름층, 야간 조명, 달 텍스처, 목성 대적점, 화성/수성 표면 디테일, 토성 고리 결을 추가했다.',
+        '포커스 메뉴는 태양계 전체, 카이퍼 벨트, 오르트 구름, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선까지 확장됐다.',
       ],
       risks: [
         { level: 'medium', text: '천체 위치는 간소화된 궤도요소 기반이므로 실제 항법·관측용 정밀 천문력으로 오해하지 않게 안내가 필요하다.' },

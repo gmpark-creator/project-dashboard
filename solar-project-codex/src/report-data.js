@@ -1,11 +1,11 @@
 export const reportData = {
-  generatedAt: '2026-05-23 KST',
+  generatedAt: '2026-05-24 KST',
   codex: {
     lane: 'Codex',
     folder: '태양계프로젝트 - codex',
     branch: 'codex',
     remote: 'not configured',
-    currentStep: 'Step 6',
+    currentStep: 'Step 7',
     latestImplementationCommit: 'aa5cad8 Upgrade simulator interaction and visuals',
     latestTrackingCommit: '7c586c4 Track Claude solar project progress',
     appUrl: './index.html',
@@ -15,6 +15,7 @@ export const reportData = {
       'Playwright verification covers desktop/mobile rendering, date jumps, speed presets, click focus, info panel, and overview return.',
       'Kuiper Belt and Oort Cloud are rendered as particle systems on the same AU scale as the planetary scene.',
       'Interstellar focus targets add Alpha Centauri and 40 Eridani A with light-year distances and long-range camera transitions.',
+      'Focus menu now includes a whole-solar-system overview and a Sagittarius A* event-horizon landmark.',
       'Code is separated into HTML, CSS, app JS, report JS, and data files for maintainability.',
       'Peer tracking is recorded under internal/peer without modifying the Claude folder.',
     ],
@@ -49,7 +50,7 @@ export const reportData = {
     ],
   },
   metrics: [
-    { label: 'Bodies Rendered', value: '14', detail: 'Sun, Moon, Earth, 7 additional planets, 2 outer regions, 2 interstellar systems' },
+    { label: 'Bodies Rendered', value: '15', detail: 'Sun, Moon, Earth, 7 additional planets, 2 outer regions, 2 interstellar systems, event horizon' },
     { label: 'Codex Verification', value: 'PASS', detail: 'Desktop/mobile Playwright checks' },
     { label: 'Claude Remote', value: 'Synced', detail: 'origin/master equals local HEAD' },
     { label: 'Baseline Date', value: '2026-05-22', detail: 'Fixed reset in Codex lane' },
@@ -97,6 +98,13 @@ export const reportData = {
       codex: ['Kuiper/Oort hidden by default and shown only on focus', 'CSS2D boundary labels with distance ranges', 'Alpha Centauri triple-star landmark', '40 Eridani A Project Hail Mary landmark', 'Busan tide table and live moon phase widget'],
       claude: ['Pending cross-review in Claude lane'],
     },
+    {
+      step: 'Step 7',
+      title: 'System overview and event horizon focus',
+      date: '2026-05-24',
+      codex: ['Focus dropdown includes 태양계 전체', 'Overview button now returns to the full system frame', 'Sagittarius A* Event Horizon focus item', 'Black-hole boundary mesh with photon-ring style glow', 'Event-horizon distance and physical radius readouts'],
+      claude: ['Pending cross-review in Claude lane'],
+    },
   ],
   verification: [
     'npm run verify passes for the simulator.',
@@ -105,6 +113,8 @@ export const reportData = {
     'Desktop and mobile Playwright screenshots confirm Kuiper Belt and Oort Cloud focus modes render nonblank WebGL frames.',
     'Conditional visibility checks confirm Kuiper/Oort boundary systems are hidden until selected.',
     'Interstellar focus checks confirm Alpha Centauri and 40 Eridani A show light-year distance readouts.',
+    'System overview focus checks confirm 태양계 전체 appears in the focus menu and frames the planetary system.',
+    'Event Horizon focus checks confirm the Sagittarius A* boundary visual is hidden by default and shown only when selected.',
     'Busan tide table defaults to Busan and renders current water level, next tide events, and a compact tide curve.',
     'Live moon widget uses current system time and validates 2026-05-23 23:24 KST as 상현전 초승달 at about 44-45% illumination.',
     'Mobile layout check confirms Oort Cloud information panel does not overlap the timebar or toolbar.',
