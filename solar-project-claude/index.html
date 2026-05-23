@@ -1031,6 +1031,11 @@ function applyRegionVisualScales() {
 // ============================================================
 const OBJ_BY_KEY = {};                              // 모든 신규 객체의 통합 매핑
 
+// ── 공용 geometry (카모오알레와·오무아무아·P9 등이 본체 빌드보다 먼저 참조하므로 위로 이동) ──
+const unitGeo       = new THREE.SphereGeometry(1, 48, 32);
+const earthGeo      = new THREE.SphereGeometry(1, 64, 48);
+const moonSphereGeo = new THREE.SphereGeometry(1, 24, 16);
+
 // 공통 라벨 텍스처 생성 — 짧은 이름용 (256x64)
 function makeProbeLabel(text) { return makeLabelTexture(text); }
 
@@ -1546,8 +1551,7 @@ function setOuterRegionVisible(focusKey) {
 }
 
 // ===== 태양 (글로우 + 자체발광) =====
-const unitGeo = new THREE.SphereGeometry(1,48,32);
-const earthGeo = new THREE.SphereGeometry(1,64,48);
+// unitGeo / earthGeo는 위에서 공용으로 선언됨 (TDZ 회피용)
 const sunMesh = new THREE.Mesh(unitGeo, new THREE.MeshBasicMaterial({ map:makeSunTexture() }));
 sunMesh.userData.bodyKey = 'sun';
 scene.add(sunMesh);
@@ -1700,7 +1704,7 @@ const MOON_DATA = {
 };
 
 const MOON_SIZE_FACTOR = 0.00018;     // 위성 실제 반경 km → 시각 단위
-const moonSphereGeo = new THREE.SphereGeometry(1, 24, 16);
+// moonSphereGeo는 위에서 공용으로 선언됨 (TDZ 회피용)
 const moonOrbitMat  = new THREE.LineBasicMaterial({ color:0x7a8090, transparent:true, opacity:0.32 });
 const moonLabelObjs = [];             // 라벨도 통합 갱신
 const MOON_BY_KEY = {};               // 전역 매핑: 'phobos' → { planetKey, moonObj }
