@@ -245,10 +245,14 @@ const OCEAN_SHELL = 0.14, OCEAN_EXAG = 0.16;
 const CAM_TWEEN_DUR = 1.1;   // 카메라 이동 시간(초)
 
 // ── 외태양계(Outer Solar System) 영역 상수 — 실제 천문값 ──
-const KUIPER_INNER_AU = 30,   KUIPER_OUTER_AU = 50;       // 카이퍼 벨트: 해왕성 궤도~50 AU
+const KUIPER_INNER_AU = 30,   KUIPER_OUTER_AU = 50;       // 카이퍼 벨트 메인(클래시컬): 해왕성 궤도~50 AU
 const KUIPER_THICKNESS_AU = 3;                            // 평면 두께 ±1.5 AU
 const KUIPER_PARTICLES = 9000;
-const OORT_INNER_AU = 2000,   OORT_OUTER_AU = 100000;     // 오르트 구름: 2,000~100,000 AU
+// NASA 분류: 카이퍼 영역에는 메인 + 산란 원반(Scattered Disk)도 포함됨 (~50~1,000 AU)
+const KUIPER_SCATTERED_INNER_AU = 50, KUIPER_SCATTERED_OUTER_AU = 1000;
+const KUIPER_SCATTERED_THICKNESS_AU = 60;                 // 두께 ±30 AU — 산란이라 더 두꺼움·경사 큼
+const KUIPER_SCATTERED_PARTICLES = 5500;
+const OORT_INNER_AU = 2000,   OORT_OUTER_AU = 100000;     // 오르트 구름: 2,000~100,000 AU (NASA)
 const OORT_PARTICLES = 3500;
 const OORT_DIST_POW = 0.35;                               // 오르트 전용 추가 압축 지수 (visual 모드)
 const TWEEN_LONG_DUR = 2.6;                               // 오르트 이동 시 긴 트윈
@@ -266,42 +270,43 @@ const STAR_SYSTEMS = [
     key:'hailmary_eridani',
     fullName:'프로젝트 헤일메리 - 40 에리다니 A',
     shortLabel:'헤일메리 · 40 에리다니 A',
-    distLY:16.45,                                         // 광년 (정확한 값)
-    colorHex:0xffa566,                                    // K형 주황색 — 40 에리다니 A는 K1V형
-    dirUnit:new THREE.Vector3( 0.62, 0.18, -0.76),        // 시뮬레이션 좌표상 임의 방향
+    distLY:16.340,                                        // Gaia DR3 측정값 (16.340 ± 0.010 ly · 5.010 pc)
+    colorHex:0xffa566,                                    // K1V형 주황색
+    dirUnit:new THREE.Vector3( 0.62, 0.18, -0.76),
     info:{
       type:'외계 항성계 (소설) · K형 주계열성 (40 에리다니 A) + 백색왜성 + 적색왜성',
       accent:'#ffa566',
       stats:[
         ['시스템 분류','삼중성계 (40 Eri A/B/C) — 주성은 40 에리다니 A'],
-        ['지구와 거리','16.45 광년'],
-        ['지구와 거리(AU)','약 1,040,316 AU'],
-        ['지구와 거리(km)','약 155.6조 km'],
+        ['지구와 거리','16.340 ± 0.010 광년 · 5.010 pc (Gaia DR3)'],
+        ['지구와 거리(AU)','약 1,033,359 AU'],
+        ['지구와 거리(km)','약 154.6조 km'],
         ['작품','앤디 위어 「프로젝트 헤일메리」'],
         ['역할','외계인 로키(에리디안)의 모항성 — 작중 헤일메리호가 향한 별']
       ],
-      desc:'소설·영화 「프로젝트 헤일메리」에서 외계인 로키(에리디안)가 살고 있는 별. 실제로 존재하는 40 에리다니 항성계의 주성 40 에리다니 A는 K형 주계열성이며, 동반성으로 백색왜성 B와 적색왜성 C가 함께 도는 삼중성계다. 지구에서 정확히 16.45 광년 떨어져 있다.'
+      desc:'소설·영화 「프로젝트 헤일메리」에서 외계인 로키(에리디안)가 살고 있는 별. 실제로 존재하는 40 에리다니 항성계의 주성 40 에리다니 A는 K1V형 주계열성이며, 동반성으로 백색왜성 B와 적색왜성 C가 함께 도는 삼중성계다. Gaia DR3 측정 기준 지구에서 16.340 광년(5.010 파섹) 떨어져 있다.'
     }
   },
   {
     key:'threebody_centauri',
     fullName:'삼체 - 알파 센타우리',
     shortLabel:'삼체 · α Centauri',
-    distLY:4.37,
-    colorHex:0xffe48a,                                    // G형 노란색
+    distLY:4.344,                                         // α Cen AB Gaia 측정값 (4.344 ly · 1.3319 pc)
+    colorHex:0xffe48a,                                    // G2V형 노란색
     dirUnit:new THREE.Vector3(-0.42, -0.08, 0.90),
     info:{
       type:'외계 항성계 (소설) · G형 + K형 + M형 삼중성계',
       accent:'#ffe48a',
       stats:[
-        ['시스템 분류','삼중성계 (α Cen A/B + Proxima C)'],
-        ['지구와 거리','4.37 광년'],
-        ['지구와 거리(AU)','약 276,363 AU'],
-        ['지구와 거리(km)','약 41.3조 km'],
+        ['시스템 분류','삼중성계 (α Cen A · B + Proxima C)'],
+        ['지구와 거리 (α Cen AB)','4.344 광년 · 1.3319 pc'],
+        ['지구와 거리 (Proxima)','4.2465 광년 (태양 최근접 별)'],
+        ['지구와 거리(AU)','약 274,719 AU (AB 기준)'],
+        ['지구와 거리(km)','약 41.1조 km (AB 기준)'],
         ['작품','류츠신 「삼체」'],
         ['역할','삼체 문명의 모항성계']
       ],
-      desc:'중국 SF 「삼체」 시리즈의 무대가 되는 항성계. 실제 태양과 가장 가까운 항성계 알파 센타우리에 해당하며, 세 별의 카오스 궤도로 인해 행성의 환경이 격변하여 「삼체 문명」이 절멸 위기에 처한다는 설정이다.'
+      desc:'중국 SF 「삼체」 시리즈의 무대가 되는 항성계. 실제 태양과 가장 가까운 항성계 알파 센타우리에 해당하며, 세 별의 카오스 궤도로 인해 행성의 환경이 격변하여 「삼체 문명」이 절멸 위기에 처한다는 설정이다. α Cen A(G2V) · B(K1V) 쌍성은 지구에서 4.344 광년, 프록시마 센타우리(M5.5V)는 4.2465 광년 떨어져 있다.'
     }
   }
 ];
@@ -378,14 +383,16 @@ const INFO = { sun: { name:'태양', type:'중심별 · G형 주계열성', acce
   moon: { name:'달', type:'지구의 자연위성', accent:'#cfcfcf',
     stats:[['지름','3,474 km'],['공전 주기','27.32일'],['지구와 거리','평균 384,400 km'],['특징','조석 고정(앞면만 보임)']],
     desc:'지구의 유일한 자연위성. 지구 바다의 밀물·썰물(조석)을 일으키는 주역이며, 늘 같은 면만 지구를 향한다.' },
-  kuiper: { name:'카이퍼 벨트', type:'외태양계 천체 영역 · 원반형 띠', accent:'#9ec3ff',
+  kuiper: { name:'카이퍼 벨트', type:'외태양계 천체 영역 · 메인 + 산란 원반', accent:'#9ec3ff',
     stats:[
-      ['형태','도넛(원반) 모양 띠'],
-      ['태양 거리','약 30 ~ 50 AU'],
-      ['거리(km)','약 44.9억 ~ 74.8억 km'],
-      ['주요 천체','명왕성, 하우메아, 마케마케 등']
+      ['메인 카이퍼','30 ~ 50 AU (도넛형 띠)'],
+      ['산란 원반','~50 ~ 1,000 AU (Scattered Disk)'],
+      ['메인 거리(km)','약 44.9억 ~ 74.8억 km'],
+      ['산란 외곽(km)','약 1,496억 km'],
+      ['주요 천체 (메인)','명왕성, 하우메아, 마케마케'],
+      ['주요 천체 (산란)','에리스, 세드나, 2012 VP113']
     ],
-    desc:'해왕성 궤도(약 30 AU) 바깥부터 50 AU까지 펼쳐진 도넛 모양의 띠. 얼음과 암석으로 이루어진 미행성체·왜소행성(명왕성 포함)이 무리지어 분포한다. 단주기 혜성의 주요 발원지.' },
+    desc:'해왕성 궤도(약 30 AU) 바깥의 외태양계 천체 영역. 두 부분으로 구성된다 — (1) 메인(클래시컬) 카이퍼 벨트(30~50 AU): 도넛 모양 띠로 명왕성·하우메아·마케마케 등 왜소행성이 분포, (2) 산란 원반(Scattered Disk, ~50~1,000 AU): 해왕성의 중력 산란으로 흩어진 천체들이 더 경사진 궤도로 분포하며 에리스·세드나 등 극원 천체가 여기 속한다. NASA 분류 기준 카이퍼 영역 전체.' },
   oort: { name:'오르트 구름', type:'태양계 최외곽 · 구형 껍질', accent:'#a8d8ff',
     stats:[
       ['형태','구형 껍질(spherical shell)'],
@@ -770,8 +777,55 @@ function buildOortCloud() {
   return points;
 }
 
-outerRegions.kuiper = buildKuiperBelt();
-outerRegions.oort   = buildOortCloud();
+// 카이퍼 산란 원반 — 메인 카이퍼(30~50 AU) 바깥의 산란된 영역 (50~1,000 AU)
+// NASA: "Kuiper Belt continues outward as a scattered disk reaching nearly 1,000 AU"
+function buildKuiperScatteredDisk() {
+  const N = KUIPER_SCATTERED_PARTICLES;
+  const innerAU = KUIPER_SCATTERED_INNER_AU, outerAU = KUIPER_SCATTERED_OUTER_AU;
+  const rawAU = new Float32Array(N*3);
+  const pos   = new Float32Array(N*3);
+  const col   = new Float32Array(N*3);
+
+  for (let i=0; i<N; i++) {
+    // 면적이 아니라 부피 거의 균일에 가까운 분포 — 멀수록 밀도 약간 ↓ (cbrt 약화)
+    const u = Math.random();
+    const rAU = innerAU + Math.pow(u, 0.5) * (outerAU - innerAU);   // 안쪽 약간 더 빽빽
+    const angle = Math.random() * Math.PI * 2;
+    const yAU   = (Math.random() - 0.5) * KUIPER_SCATTERED_THICKNESS_AU;
+
+    rawAU[i*3]   = rAU * Math.cos(angle);
+    rawAU[i*3+1] = yAU;
+    rawAU[i*3+2] = rAU * Math.sin(angle);
+
+    // 색: 메인 카이퍼보다 옅고 푸르스름 (멀리 산란된 얼음체)
+    const t = Math.random();
+    if (t < 0.7) {
+      col[i*3]   = 0.42 + Math.random()*0.18;
+      col[i*3+1] = 0.55 + Math.random()*0.18;
+      col[i*3+2] = 0.75 + Math.random()*0.18;
+    } else {
+      col[i*3]   = 0.62 + Math.random()*0.15;
+      col[i*3+1] = 0.55 + Math.random()*0.15;
+      col[i*3+2] = 0.45 + Math.random()*0.10;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.3, sizeAttenuation: false, vertexColors: true,
+    transparent: true, opacity: 0.50, depthWrite: false
+  });
+  const points = new THREE.Points(geo, mat);
+  points.userData = { bodyKey:'kuiper', rawAU };
+  scene.add(points);
+  return points;
+}
+
+outerRegions.kuiper    = buildKuiperBelt();
+outerRegions.scattered = buildKuiperScatteredDisk();
+outerRegions.oort      = buildOortCloud();
 
 // ============================================================
 // 영역 윤곽선 + 라벨 (선택 시에만 표시)
@@ -805,6 +859,12 @@ function buildOuterRegionVisuals() {
   kuiperInner.visible = false; kuiperOuter.visible = false;
   scene.add(kuiperInner); scene.add(kuiperOuter);
 
+  // 산란 원반(scattered disk) 외곽선 — 1,000 AU 경계
+  const kuiperScatteredMat = new THREE.LineBasicMaterial({ color:0x7aa8dc, transparent:true, opacity:0.55 });
+  const kuiperScatteredOuter = new THREE.LineLoop(circleGeoA.clone(), kuiperScatteredMat);
+  kuiperScatteredOuter.visible = false;
+  scene.add(kuiperScatteredOuter);
+
   // 카이퍼 영역의 평면 띠(반투명) — RingGeometry는 스케일 모드별로 매번 재생성 (visual=비선형 압축)
   const kuiperRingMat = new THREE.MeshBasicMaterial({
     color:0x6e9ce8, transparent:true, opacity:0.10,
@@ -814,8 +874,17 @@ function buildOuterRegionVisuals() {
   kuiperRing.visible = false;
   scene.add(kuiperRing);
 
+  // 산란 원반 평면 띠 — 메인 외곽(50 AU)부터 산란 외곽(1,000 AU)까지
+  const kuiperScatteredRingMat = new THREE.MeshBasicMaterial({
+    color:0x4a6ea8, transparent:true, opacity:0.05,
+    side:THREE.DoubleSide, depthWrite:false });
+  const kuiperScatteredRing = new THREE.Mesh(new THREE.RingGeometry(1, 1.001, 128, 1), kuiperScatteredRingMat);
+  kuiperScatteredRing.rotation.x = -Math.PI/2;
+  kuiperScatteredRing.visible = false;
+  scene.add(kuiperScatteredRing);
+
   const kuiperLabel = new THREE.Sprite(new THREE.SpriteMaterial({
-    map:makeRegionLabelTexture('카이퍼 벨트  30 – 50 AU'),
+    map:makeRegionLabelTexture('카이퍼 벨트  30 ~ 50 AU  +  산란 원반 ~1,000 AU'),
     transparent:true, depthWrite:false }));
   kuiperLabel.visible = false;
   scene.add(kuiperLabel);
@@ -844,7 +913,7 @@ function buildOuterRegionVisuals() {
   oortShell.visible = false;
   scene.add(oortShell);
 
-  return { kuiperInner, kuiperOuter, kuiperRing, kuiperLabel,
+  return { kuiperInner, kuiperOuter, kuiperScatteredOuter, kuiperRing, kuiperScatteredRing, kuiperLabel,
            oortInner, oortOuter, oortShell, oortLabel };
 }
 const regionVis = buildOuterRegionVisuals();
@@ -908,14 +977,19 @@ function applyStarSystemScales() {
 function applyRegionVisualScales() {
   const kr1 = outerRegionRadius(KUIPER_INNER_AU, false);
   const kr2 = outerRegionRadius(KUIPER_OUTER_AU, false);
+  const kr3 = outerRegionRadius(KUIPER_SCATTERED_OUTER_AU, false);    // 산란 원반 외곽 1,000 AU
   regionVis.kuiperInner.scale.setScalar(kr1);
   regionVis.kuiperOuter.scale.setScalar(kr2);
-  // 카이퍼 반투명 평면 띠 — RingGeometry는 visual·real 압축비가 달라 매번 재생성
+  regionVis.kuiperScatteredOuter.scale.setScalar(kr3);
+  // 메인 카이퍼 평면 띠
   regionVis.kuiperRing.geometry.dispose();
   regionVis.kuiperRing.geometry = new THREE.RingGeometry(kr1, kr2, 128, 1);
-  // 카이퍼 라벨 — 외곽 + 살짝 위쪽
+  // 산란 원반 평면 띠 (50 AU ~ 1,000 AU, 옅게)
+  regionVis.kuiperScatteredRing.geometry.dispose();
+  regionVis.kuiperScatteredRing.geometry = new THREE.RingGeometry(kr2, kr3, 192, 1);
+  // 카이퍼 라벨 — 산란 원반 외곽 살짝 위쪽
   const dirK = new THREE.Vector3(0.62, 0.20, 0.78).normalize();
-  regionVis.kuiperLabel.position.copy(dirK).multiplyScalar(kr2 * 1.08);
+  regionVis.kuiperLabel.position.copy(dirK).multiplyScalar(kr3 * 1.05);
 
   const or1 = outerRegionRadius(OORT_INNER_AU, true);
   const or2 = outerRegionRadius(OORT_OUTER_AU, true);
@@ -930,10 +1004,12 @@ function applyRegionVisualScales() {
 function setOuterRegionVisible(focusKey) {
   const showK = (focusKey === 'kuiper');
   const showO = (focusKey === 'oort');
-  regionVis.kuiperInner.visible = showK;
-  regionVis.kuiperOuter.visible = showK;
-  regionVis.kuiperRing.visible  = showK;
-  regionVis.kuiperLabel.visible = showK;
+  regionVis.kuiperInner.visible          = showK;
+  regionVis.kuiperOuter.visible          = showK;
+  regionVis.kuiperScatteredOuter.visible = showK;     // 산란 원반 외곽선
+  regionVis.kuiperRing.visible           = showK;
+  regionVis.kuiperScatteredRing.visible  = showK;     // 산란 원반 평면 띠
+  regionVis.kuiperLabel.visible          = showK;
   regionVis.oortInner.visible = showO;
   regionVis.oortOuter.visible = showO;
   regionVis.oortShell.visible = showO;
@@ -1112,9 +1188,10 @@ function applyScales() {
   moonMesh.scale.setScalar(moonRadius());
   moonOrbitGroup.scale.setScalar(moonDistFactor());
   rebuildOrbits();
-  // 외태양계 영역 — 카이퍼는 기존 DIST_POW, 오르트는 더 강한 압축
-  rescaleOuterRegion(outerRegions.kuiper, DIST_POW);
-  rescaleOuterRegion(outerRegions.oort,   OORT_DIST_POW);
+  // 외태양계 영역 — 카이퍼는 기존 DIST_POW(0.6), 오르트는 더 강한 압축(0.35)
+  rescaleOuterRegion(outerRegions.kuiper,    DIST_POW);
+  rescaleOuterRegion(outerRegions.scattered, DIST_POW);     // 산란 원반: 메인과 동일 압축 (자연스러운 연속성)
+  rescaleOuterRegion(outerRegions.oort,      OORT_DIST_POW);
   // 영역 윤곽선 + 외계 항성계 위치
   applyRegionVisualScales();
   applyStarSystemScales();
@@ -1162,8 +1239,8 @@ function computeFocusOffset(key) {
     return new THREE.Vector3(far*0.05,far*0.6,far*1.0);
   }
   if (key==='kuiper') {
-    // 카이퍼 벨트 외곽 살짝 위에서 바라보기 (반경 중간값 40 AU 기준)
-    const r = outerRegionCamR(40, DIST_POW);
+    // 카이퍼 + 산란 원반 전체(~1,000 AU)를 한 눈에 보도록 산란 외곽 기준 (500 AU 중간값)
+    const r = outerRegionCamR(500, DIST_POW);
     return new THREE.Vector3(r*0.18, r*0.55, r*0.95);
   }
   if (key==='oort') {
@@ -1189,8 +1266,9 @@ function adjustCameraExtents(key) {
   let needFar = 80000;
   let needMax = 60000;
   if (key === 'kuiper') {
-    if (scaleMode === 'visual') { needFar = 20000;     needMax = 12000; }
-    else                        { needFar = 80000;     needMax = 60000; }
+    // 카이퍼 = 메인(30~50) + 산란 원반(50~1,000). visual ~4,400 units, real 70,000 units 수용
+    if (scaleMode === 'visual') { needFar = 30000;     needMax = 20000; }
+    else                        { needFar = 200000;    needMax = 140000; }
   } else if (key === 'oort') {
     if (scaleMode === 'visual') { needFar = 60000;     needMax = 40000; }
     else                        { needFar = 1.2e7;     needMax = 9e6; }   // 실제 비율 모드에서 오르트가 보이도록 대형화
