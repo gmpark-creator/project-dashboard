@@ -61,9 +61,9 @@
     margin-bottom: 9px; font-size: 13px; color: #cfe2ff; font-weight: 700; }
   #moonWidget .mwTh .mwLoc { font-size: 11.5px; color: #8b97b4; font-weight: 600; }
   #moonWidget .mwBody { display: flex; gap: 14px; align-items: center; }
-  #moonCanvas { width: 110px; height: 110px; border-radius: 50%; flex-shrink: 0;
-    background: radial-gradient(circle at 30% 30%, rgba(60,52,40,0.35) 0%, rgba(14,10,6,0.88) 82%);
-    box-shadow: 0 0 26px rgba(244,208,102,0.16) inset, 0 2px 14px rgba(0,0,0,0.45); }
+  #moonCanvas { width: 118px; height: 118px; border-radius: 50%; flex-shrink: 0;
+    background: #050608;
+    box-shadow: 0 0 32px rgba(255,230,180,0.08), 0 2px 14px rgba(0,0,0,0.55); }
   #moonWidget .mwInfo { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   #moonWidget .mwRow { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
   #moonWidget .mwRow .k { color: #8b97b4; flex-shrink: 0; }
@@ -1390,37 +1390,84 @@ function drawTideCurve(force) {
 }
 
 // ============================================================
-// 달 모양 위젯 — 부산 기준 실시간 달 위상
-//   • drawMoonPhase: Canvas 2D, 천문학 표준 알고리즘 (반원 + terminator 타원)
-//   • detailedMoonPhase: 한국어 8단계 위상명 (신월 ~ 그믐달, 세분화)
-//   • updateMoonWidget: 0.5초 폴링으로 갱신, simTime 기반 (배속·점프 시에도 일관)
+// 달 모양 위젯 — 부산 기준 실시간 달 위상 (실제 달 텍스처 기반)
+//   • 시뮬레이터와 동일한 NASA/Three.js 달 텍스처(moon_1024.jpg)를 Canvas 2D로 합성
+//   • 알고리즘: 둥근 clip → 텍스처 그리기 → multiply 마스크로 그림자 영역 어둡게
+//   • detailedMoonPhase: 한국어 8단계 위상명
+//   • updateMoonWidget: 0.5초 폴링, simTime 기반
 // ============================================================
+
+// 달 표면 텍스처 — 시뮬레이터의 moonMat과 같은 NASA 출처 텍스처 재사용
+const moonTexImg = new Image();
+moonTexImg.crossOrigin = 'anonymous';
+moonTexImg.src = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/moon_1024.jpg';
+let moonTexReady = false;
+moonTexImg.onload  = () => { moonTexReady = true; lastMoonUpdate = 0; };  // 로드 즉시 한 번 강제 그리기
+moonTexImg.onerror = () => { console.warn('달 텍스처 로드 실패 — fallback 사용'); };
+
 function drawMoonPhase(ctx, cx, cy, r, phaseAngle) {
   const cosA = Math.cos(phaseAngle * Math.PI / 180);
   const illumination = (1 - cosA) / 2;
   const waxing = phaseAngle < 180;
-  // 2026년 5월 부산 조석예보표 톤 — 따뜻한 황금빛 노란 + 어두운 회색
-  const LIT = '#f4d066', DARK = '#2c2d3e';
-  // 1) 어두운 면 (전체 원)
-  ctx.clearRect(cx-r-2, cy-r-2, (r+2)*2, (r+2)*2);
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-  ctx.fillStyle = DARK; ctx.fill();
-  // 2) 밝은 반원 — 차오를 땐 오른쪽, 줄어들 땐 왼쪽
+  const D = r * 2;
+
+  // 전체 영역 클리어
+  ctx.clearRect(cx-r-3, cy-r-3, D+6, D+6);
+
+  // ── 텍스처 로드 전 fallback: 단색 두 톤으로 그리기 ──
+  if (!moonTexReady) {
+    const LIT = '#d8d2c0', DARK = '#1a1a22';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fillStyle = DARK; ctx.fill();
+    ctx.beginPath();
+    if (waxing) ctx.arc(cx, cy, r, -Math.PI/2,  Math.PI/2);
+    else        ctx.arc(cx, cy, r,  Math.PI/2,  3*Math.PI/2);
+    ctx.closePath(); ctx.fillStyle = LIT; ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * Math.abs(cosA), r, 0, 0, Math.PI*2);
+    ctx.fillStyle = (illumination < 0.5) ? DARK : LIT; ctx.fill();
+    return;
+  }
+
+  // ── Step 1: 원형 clip 내부에 실제 달 텍스처 그리기 ──
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.clip();
+  // 텍스처는 cylindrical projection. 원에 직접 매핑하면 가장자리 약간 왜곡되지만
+  // 작은 위젯 크기에선 충분히 사실적. 정중앙 부분(달의 보이는 면)이 잘 표시되도록 약간 좁게 샘플
+  const srcW = moonTexImg.naturalWidth, srcH = moonTexImg.naturalHeight;
+  const sx = srcW * 0.18, sy = srcH * 0.08;
+  const sw = srcW * 0.64, sh = srcH * 0.84;
+  ctx.drawImage(moonTexImg, sx, sy, sw, sh, cx-r, cy-r, D, D);
+
+  // ── Step 2: 그림자 합성 — multiply 모드로 어두운 색을 덮어쓰면 텍스처 디테일 유지하며 어두워짐 ──
+  ctx.globalCompositeOperation = 'multiply';
+  const SHADOW = '#1a1a22';      // 그림자 영역 색 (지구 반사광 약간 — 완전 검정 아님)
+
+  // 어두운 반원
   ctx.beginPath();
-  if (waxing) ctx.arc(cx, cy, r, -Math.PI/2,  Math.PI/2);
-  else        ctx.arc(cx, cy, r,  Math.PI/2,  3*Math.PI/2);
-  ctx.closePath(); ctx.fillStyle = LIT; ctx.fill();
-  // 3) Terminator 타원 — illumination < 0.5는 그림자 색, >= 0.5는 밝은 색으로 보정
+  if (waxing) ctx.arc(cx, cy, r,  Math.PI/2,  3*Math.PI/2);   // 왼쪽 반원 = 그림자
+  else        ctx.arc(cx, cy, r, -Math.PI/2,    Math.PI/2);   // 오른쪽 반원 = 그림자
+  ctx.closePath(); ctx.fillStyle = SHADOW; ctx.fill();
+
+  // Terminator 타원 — illumination에 따라 그림자/하이라이트로 보정
   ctx.beginPath();
   ctx.ellipse(cx, cy, r * Math.abs(cosA), r, 0, 0, Math.PI*2);
-  ctx.fillStyle = (illumination < 0.5) ? DARK : LIT; ctx.fill();
-  // 4) 살짝의 림 라이트 — 황금빛 가장자리 (단순, 조석표 미니멀 스타일 유지)
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-  const grad = ctx.createRadialGradient(cx-r*0.3, cy-r*0.3, r*0.15, cx, cy, r*1.02);
-  grad.addColorStop(0, 'rgba(255,240,180,0.08)');
-  grad.addColorStop(0.88, 'rgba(255,220,120,0)');
-  grad.addColorStop(1, 'rgba(220,170,80,0.22)');
-  ctx.fillStyle = grad; ctx.fill();
+  // illumination < 0.5: 그림자 색으로 추가 어둠 / >= 0.5: 흰색(=multiply에서 변화 없음)으로 밝게 회복
+  ctx.fillStyle = (illumination < 0.5) ? SHADOW : '#ffffff';
+  ctx.fill();
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+
+  // ── Step 3: 가장자리 림 라이트 — 입체감 (밝은 면에서 미세한 따뜻한 빛) ──
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.clip();
+  const rim = ctx.createRadialGradient(cx, cy, r*0.85, cx, cy, r*1.02);
+  rim.addColorStop(0, 'rgba(255,240,200,0)');
+  rim.addColorStop(0.7, 'rgba(255,235,180,0.05)');
+  rim.addColorStop(1, 'rgba(70,60,45,0.55)');
+  ctx.fillStyle = rim;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
 }
 
 function detailedMoonPhase(angle) {
