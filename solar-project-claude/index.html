@@ -1477,22 +1477,30 @@ const horizonMesh = new THREE.Mesh(
 horizonMesh.userData.bodyKey = 'gargantua';
 gargantuaGroup.add(horizonMesh);
 
-// 2) Accretion Disk — GLSL ShaderMaterial
-const gargDiskUniforms = { uTime: { value: 0 } };
+// 2) Accretion Disk — GLSL ShaderMaterial (view-dependent UV warp + Doppler beaming)
+const gargDiskUniforms = {
+  uTime:    { value: 0 },
+  uCamDir:  { value: new THREE.Vector3(0, 0, 1) }    // 매 프레임 갱신: 가르강튀아→카메라 방향
+};
 const gargDiskMat = new THREE.ShaderMaterial({
   uniforms: gargDiskUniforms,
   vertexShader: `
     varying vec2 vUv;
+    varying vec3 vWorldPos;
     void main() {
       vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vec4 wp = modelMatrix * vec4(position, 1.0);
+      vWorldPos = wp.xyz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
     }
   `,
   fragmentShader: `
     varying vec2 vUv;
+    varying vec3 vWorldPos;
     uniform float uTime;
+    uniform vec3 uCamDir;        // 가르강튀아 중심 → 카메라 방향 (정규화)
 
-    // === 노이즈 함수 (fBm plasma) ===
+    // === fBm 플라즈마 노이즈 ===
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 p) {
       vec2 i = floor(p), f = fract(p);
@@ -1502,39 +1510,55 @@ const gargDiskMat = new THREE.ShaderMaterial({
     }
     float fbm(vec2 p) {
       float v = 0.0, a = 0.5;
-      for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+      for (int i = 0; i < 6; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
       return v;
     }
 
     void main() {
-      // RingGeometry의 vUv 기반 극좌표 변환
       vec2 uv = vUv - 0.5;
-      float r = length(uv) * 2.0;     // 0~1 정규화 반경
+      float r = length(uv) * 2.0;
       float theta = atan(uv.y, uv.x);
 
-      // === Kepler 회전 — 안쪽이 더 빠름 (r ↑ → 각속도 ↓) ===
-      float vel = uTime * 0.35 / max(0.3, r);
+      // === Einsteinian Lensing: view-dependent UV warp ===
+      // 카메라가 디스크 평면을 비스듬히 볼 때 디스크 뒤쪽이 위로 휘어 보임
+      // uCamDir의 수평 성분으로 디스크 안쪽 영역 UV 보정
+      float viewTilt = clamp(abs(uCamDir.y), 0.0, 1.0);   // 1=위에서, 0=옆에서
+      float warpStrength = (1.0 - viewTilt) * 0.45;       // 옆에서 볼수록 강한 휨
+      float warpedR = r + warpStrength * cos(theta) * (1.0 - r);
+
+      // === Kepler 회전 (안쪽이 빠름) ===
+      float vel = uTime * 0.35 / max(0.3, warpedR);
 
       // === Plasma fBm 노이즈 (회전 좌표계) ===
-      float n1 = fbm(vec2(theta * 4.5 + vel,        r * 3.5));
-      float n2 = fbm(vec2(theta * 9.0 - vel * 1.7,  r * 7.0 - uTime * 0.15));
-      float plasma = n1 * 0.65 + n2 * 0.35;
+      float n1 = fbm(vec2(theta * 4.5 + vel,           warpedR * 3.5));
+      float n2 = fbm(vec2(theta * 9.0 - vel * 1.7,     warpedR * 7.0 - uTime * 0.15));
+      float n3 = fbm(vec2(theta * 18.0 + vel * 0.8,    warpedR * 14.0 + uTime * 0.30));
+      float plasma = n1 * 0.55 + n2 * 0.30 + n3 * 0.15;
 
-      // === 색 그라데이션 — 안쪽 흰-노랑, 바깥쪽 진한 빨강 ===
-      vec3 hot  = vec3(1.00, 0.97, 0.78);
-      vec3 warm = vec3(1.00, 0.55, 0.18);
-      vec3 cool = vec3(0.55, 0.08, 0.02);
-      vec3 col = mix(hot,  warm, smoothstep(0.05, 0.45, r));
-      col      = mix(col,  cool, smoothstep(0.45, 0.95, r));
-      col *= 0.5 + plasma * 0.9;
+      // === 색 그라데이션 — 안쪽 청백 hot → 노랑 → 주황 → 진한 빨강 ===
+      vec3 ultra = vec3(0.85, 0.95, 1.05);    // 청백색 (가장 안쪽, 블루시프트)
+      vec3 hot   = vec3(1.00, 0.97, 0.78);
+      vec3 warm  = vec3(1.00, 0.55, 0.18);
+      vec3 cool  = vec3(0.55, 0.08, 0.02);
+      vec3 col = mix(ultra, hot,  smoothstep(0.00, 0.20, warpedR));
+      col      = mix(col,   warm, smoothstep(0.20, 0.55, warpedR));
+      col      = mix(col,   cool, smoothstep(0.55, 0.95, warpedR));
+      col *= 0.5 + plasma * 1.0;
 
-      // === Relativistic Beaming — sin(theta) 기준 한쪽이 카메라 향함 ===
-      float doppler = 0.5 + 0.5 * sin(theta);     // 0~1
-      col *= 0.35 + doppler * 1.6;                  // 한쪽이 약 4배 밝음
+      // === Relativistic Doppler Beaming (강화) ===
+      // sin(theta) 기준 한쪽이 카메라 향함 → 그쪽이 ~5배 밝고 청색편이
+      float doppler = 0.5 + 0.5 * sin(theta);
+      col *= 0.28 + doppler * 1.85;
+      // 청색편이 강화 (밝은 쪽일수록 청색 가산)
+      col += vec3(0.04, 0.08, 0.18) * doppler * smoothstep(0.0, 0.3, warpedR);
+
+      // === Einstein Ring (가장 안쪽 r ≈ 0.04~0.10 영역 강한 빛) ===
+      float ring = smoothstep(0.04, 0.07, warpedR) * (1.0 - smoothstep(0.07, 0.12, warpedR));
+      col += vec3(1.5, 1.4, 1.0) * ring * 0.6;
 
       // === 가장자리 fade ===
-      float edgeAlpha = smoothstep(1.0, 0.92, r) * smoothstep(0.0, 0.04, r);
-      float alpha = edgeAlpha * (0.55 + plasma * 0.4);
+      float edgeAlpha = smoothstep(1.0, 0.92, r) * smoothstep(0.0, 0.03, r);
+      float alpha = edgeAlpha * (0.5 + plasma * 0.5);
 
       gl_FragColor = vec4(col, alpha);
     }
@@ -1626,6 +1650,9 @@ INFO['gargantua'] = { name:'가르강튀아 (Gargantua)', type:'초대질량 블
 function updateGargantua(dt, t) {
   gargDiskUniforms.uTime.value = t;
   gargHaloUniforms.uTime.value = t;
+  // 가르강튀아 → 카메라 방향 (view-dependent lensing warp용)
+  gargDiskUniforms.uCamDir.value
+    .copy(camera.position).sub(GARGANTUA_POS).normalize();
   accretionDisk.rotation.z += dt * 0.06;
   haloTop.rotation.z += dt * 0.04;
   haloBot.rotation.z -= dt * 0.04;
@@ -2839,24 +2866,44 @@ const FOCUS_LIST=[
   ['kamooalewa','카모오알레와 (지구 준위성)'],
   ['__sep_exo','──── 👽 성간·미지 ────'],
   ['oumuamua','오무아무아 (성간 천체, 쌍곡선)'],
-  ['planetnine','Planet Nine (가상, ~600 AU)'],
-  ['__sep_intst','──── 🎬 인터스텔라 영화 시스템 ────'],
-  ['wormhole','웜홀 (토성 근처)'],
-  ['gargantua','가르강튀아 (초대질량 블랙홀)'],
-  ['miller',   '    └ 밀러 행성 (물·시간 지연)'],
-  ['mann',     '    └ 맨 행성 (얼음)'],
-  ['edmunds',  '    └ 에드먼즈 행성 (사막·거주가능)'],
-  ['__sep_star','──── ⭐ 외계 항성계 ────'],
-  ['hailmary_eridani','📡 프로젝트 헤일메리 - 40 에리다니 A'],
-  ['threebody_centauri','🌑 삼체 - 알파 센타우리']
+  ['planetnine','Planet Nine (가상, ~600 AU)']
+];
+
+// 「외계 항성계 (Interstellar Systems)」 — 메인 카테고리 + 3개 서브 (optgroup 그룹화)
+const INTERSTELLAR_GROUPS = [
+  { label: '⭐ 외계 항성계 ▸ 인터스텔라 (Interstellar)', items: [
+    ['wormhole',  '웜홀 (토성 근처)'],
+    ['gargantua', '가르강튀아 (초대질량 블랙홀)'],
+    ['miller',    '└ 밀러 행성 (물·시간 지연)'],
+    ['mann',      '└ 맨 행성 (얼음)'],
+    ['edmunds',   '└ 에드먼즈 행성 (사막·거주가능)']
+  ]},
+  { label: '⭐ 외계 항성계 ▸ 삼체 (Three-Body Problem)', items: [
+    ['threebody_centauri', '알파 센타우리 — α Cen A·B + Proxima C (4.344 ly)']
+  ]},
+  { label: '⭐ 외계 항성계 ▸ 프로젝트 헤일메리 (Project Hail Mary)', items: [
+    ['hailmary_eridani',   '40 에리다니 A — 로키의 모항성 (16.340 ly)']
+  ]}
 ];
 const focusSel=$('focusSel');
+// 기본 항목 (행성·위성·라그랑주·탐사선·공궤도·미지)
 for (const [k,l] of FOCUS_LIST){
   const o=document.createElement('option');
   o.value=k; o.textContent=l;
   if (k.startsWith('__sep')) { o.disabled = true; o.style.fontWeight='bold'; o.style.color='#8b97b4'; o.style.background='#0a1020'; }
   if (k==='earth') o.selected=true;
   focusSel.appendChild(o);
+}
+// 「외계 항성계」 메인 카테고리 + 3 서브 (optgroup으로 시각적 그룹화)
+for (const G of INTERSTELLAR_GROUPS) {
+  const og = document.createElement('optgroup');
+  og.label = G.label;
+  for (const [k, l] of G.items) {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = l;
+    og.appendChild(o);
+  }
+  focusSel.appendChild(og);
 }
 focusSel.onchange = () => {
   if (focusSel.value.startsWith('__sep')) return;            // 구분자는 무시
