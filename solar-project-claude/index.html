@@ -114,6 +114,76 @@
   #loading p { margin: 0; color: #c7d2ec; }
   #loading .sub { font-size: 12px; color: #6f7c9c; max-width: 400px; }
   #loading.error .spinner { display: none; }
+
+  /* ===========================================================
+     📱 모바일 반응형 (768px 이하)
+     • 모든 패널을 작게 + 화면 안에 들어오도록 재배치
+     • 조석/달 위젯 좌하단 stack은 기본 숨김 (「🌊 조석」 버튼으로 토글)
+     • 사이드바는 화면 90% 너비로 슬라이드
+     • 컨트롤 바는 가로 스크롤 가능
+  ============================================================ */
+  @media (max-width: 768px) {
+    /* HUD (좌상단) */
+    #hud {
+      top: 8px; left: 8px; min-width: 0; padding: 7px 9px;
+      font-size: 10.5px; line-height: 1.3;
+      max-width: calc(50vw - 12px);
+    }
+    #hud h1 { font-size: 11px; margin: 0 0 4px; }
+    #hud .row { padding: 1px 0; gap: 6px; }
+    #hud .sep { margin: 3px 0; }
+
+    /* 타임머신 (상단 우측으로 이동) */
+    #timeMachine {
+      top: 8px; left: auto; right: 8px;
+      transform: none; padding: 6px 8px;
+      max-width: calc(50vw - 12px);
+    }
+    #tmDate { font-size: 13px; margin-bottom: 4px; }
+    #tmBtns { gap: 3px; }
+    #tmBtns button { font-size: 9px; padding: 3px 5px; border-radius: 5px; }
+
+    /* 하단 컨트롤 바 — 가로 스크롤 */
+    #controls {
+      bottom: 8px; padding: 6px 8px; gap: 4px;
+      flex-wrap: nowrap; overflow-x: auto;
+      max-width: calc(100vw - 16px);
+      -webkit-overflow-scrolling: touch;
+    }
+    #controls::-webkit-scrollbar { height: 4px; }
+    #controls button, #controls select, #controls label {
+      font-size: 10.5px; padding: 5px 7px; flex-shrink: 0;
+    }
+    #controls .div { display: none; }
+    #speedSlider { width: 70px; }
+    #speedVal { font-size: 10px; min-width: 0; }
+
+    /* 좌하단 stack (조석 + 달 위젯) — 모바일에선 화면 전체 폭 */
+    #bottomLeftStack {
+      left: 8px; right: 8px; bottom: 60px;
+      width: auto;                              /* width 350px → auto */
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+    #moonWidget { padding: 8px 10px; font-size: 11px; }
+    #moonWidget .mwTh { font-size: 12px; margin-bottom: 6px; }
+    #moonCanvas { width: 80px; height: 80px; }
+    #moonWidget .mwInfo { gap: 3px; font-size: 11px; }
+    #moonWidget .mwRow { font-size: 10.5px; }
+    #moonWidget .mwPhaseName { font-size: 11.5px; }
+    #tidePanel { padding: 8px 10px; font-size: 11px; }
+    #tideCanvas { max-height: 130px; }
+
+    /* 사이드바 (우측 행성 정보) — 화면 폭 거의 전체 */
+    #sidebar {
+      width: 92vw; max-width: 360px;
+      padding: 16px 16px;
+    }
+    #sbName { font-size: 22px; }
+
+    /* 힌트 (우하단 작은 텍스트) — 모바일에선 숨김 */
+    #hint { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -3817,7 +3887,8 @@ applyScales();
 updateScene(computeState(new Date(simTime)));
 $('btnOrbit').classList.add('on');
 $('btnLabels').classList.add('on');
-setTide(true);
+// 모바일에서는 조석 패널 자동 닫기 (3D 캔버스가 가려지지 않도록) — 사용자가 「🌊 조석」 토글로 열기
+setTide(window.innerWidth >= 768);
 syncSpeed();
 startFocus('earth',true);
 
