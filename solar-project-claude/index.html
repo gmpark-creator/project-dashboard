@@ -51,9 +51,28 @@
   #speedSlider { width: 130px; accent-color: #4f8fe8; cursor: pointer; }
   #speedVal { font-size: 12px; color: #cfe2ff; min-width: 84px; font-variant-numeric: tabular-nums; }
 
-  /* 조석 패널 (좌하단) */
-  #tidePanel { position: fixed; left: 14px; bottom: 78px; z-index: 9; width: 350px; padding: 11px 13px;
-    font-size: 12.5px; }
+  /* 좌하단 스택 — 달 위젯 + 조석 패널을 세로로 묶음 */
+  #bottomLeftStack { position: fixed; left: 14px; bottom: 78px; z-index: 9;
+    width: 350px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* 달 모양 위젯 (조석 패널 바로 위) */
+  #moonWidget { padding: 11px 13px; font-size: 12.5px; }
+  #moonWidget .mwTh { display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 9px; font-size: 13px; color: #cfe2ff; font-weight: 700; }
+  #moonWidget .mwTh .mwLoc { font-size: 11.5px; color: #8b97b4; font-weight: 600; }
+  #moonWidget .mwBody { display: flex; gap: 14px; align-items: center; }
+  #moonCanvas { width: 110px; height: 110px; border-radius: 50%; flex-shrink: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(40,52,84,0.35) 0%, rgba(4,8,18,0.85) 80%);
+    box-shadow: 0 0 24px rgba(140,170,240,0.18) inset; }
+  #moonWidget .mwInfo { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  #moonWidget .mwRow { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
+  #moonWidget .mwRow .k { color: #8b97b4; flex-shrink: 0; }
+  #moonWidget .mwRow .v { color: #f2f5ff; font-variant-numeric: tabular-nums;
+    text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #moonWidget .mwPhaseName { font-size: 12.5px; color: #cfe2ff; font-weight: 600; }
+
+  /* 조석 패널 — stack 안에 들어가므로 position 제거, padding/font만 유지 */
+  #tidePanel { padding: 11px 13px; font-size: 12.5px; }
   #tidePanel .th { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   #tidePanel .th span { font-size: 13px; color: #8fd6ff; font-weight: 700; }
   #tideCanvas { width: 100%; height: auto; border-radius: 8px; margin-top: 7px;
@@ -125,14 +144,36 @@
   </div>
 </div>
 
-<div id="tidePanel" class="panel">
-  <div class="th"><span>🌊 조석 · 물때</span><select id="tideLoc" title="조석 곡선 기준 지점"></select></div>
-  <div class="row"><span class="k">음력</span><span class="v" id="tdLunar">—</span></div>
-  <div class="row"><span class="k">물때</span><span class="v" id="tdMul">—</span></div>
-  <div class="row"><span class="k">조석 계수</span><span class="v" id="tdCoef">—</span></div>
-  <canvas id="tideCanvas" width="720" height="300"></canvas>
-  <div id="tdNext">—</div>
-  <div id="tdNote">이론 평형조석(천체 인력 기반) · 실제 항만 시각·조차는 지형 보정 필요</div>
+<div id="bottomLeftStack">
+
+  <!-- 달 모양 위젯 — 조석 패널 바로 위, 부산 기준 실시간 달 위상 -->
+  <div id="moonWidget" class="panel">
+    <div class="mwTh">
+      <span>🌙 달 모양 · 실시간</span>
+      <span class="mwLoc">관측 지점 · <span id="mwLoc">부산</span></span>
+    </div>
+    <div class="mwBody">
+      <canvas id="moonCanvas" width="220" height="220"></canvas>
+      <div class="mwInfo">
+        <div class="mwPhaseName" id="mwPhase">—</div>
+        <div class="mwRow"><span class="k">조명률</span><span class="v" id="mwIllum">—</span></div>
+        <div class="mwRow"><span class="k">달 나이</span><span class="v" id="mwAge">—</span></div>
+        <div class="mwRow"><span class="k">관측 시각</span><span class="v" id="mwTime">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 조석·물때 패널 -->
+  <div id="tidePanel" class="panel">
+    <div class="th"><span>🌊 조석 · 물때</span><select id="tideLoc" title="조석 곡선 기준 지점"></select></div>
+    <div class="row"><span class="k">음력</span><span class="v" id="tdLunar">—</span></div>
+    <div class="row"><span class="k">물때</span><span class="v" id="tdMul">—</span></div>
+    <div class="row"><span class="k">조석 계수</span><span class="v" id="tdCoef">—</span></div>
+    <canvas id="tideCanvas" width="720" height="300"></canvas>
+    <div id="tdNext">—</div>
+    <div id="tdNote">이론 평형조석(천체 인력 기반) · 실제 항만 시각·조차는 지형 보정 필요</div>
+  </div>
+
 </div>
 
 <div id="sidebar" class="panel">
@@ -277,7 +318,8 @@ const LOCATIONS = [
   { name:'군산', lat:35.98, lon:126.56 }, { name:'목포', lat:34.79, lon:126.38 },
   { name:'부산', lat:35.10, lon:129.04 }, { name:'제주', lat:33.52, lon:126.53 }
 ];
-let curLoc = LOCATIONS[0];
+// 기본 지점 — 부산 (박사님 워크플로 표준)
+let curLoc = LOCATIONS.find(L => L.name === '부산') || LOCATIONS[0];
 
 // ===== 행성 데이터 (Keplerian 궤도요소 2000.0 기준 [기준값, 1일당 변화율] / 프로필) =====
 const PLANETS = [
@@ -1347,6 +1389,82 @@ function drawTideCurve(force) {
   } else $('tdNext').textContent='—';
 }
 
+// ============================================================
+// 달 모양 위젯 — 부산 기준 실시간 달 위상
+//   • drawMoonPhase: Canvas 2D, 천문학 표준 알고리즘 (반원 + terminator 타원)
+//   • detailedMoonPhase: 한국어 8단계 위상명 (신월 ~ 그믐달, 세분화)
+//   • updateMoonWidget: 0.5초 폴링으로 갱신, simTime 기반 (배속·점프 시에도 일관)
+// ============================================================
+function drawMoonPhase(ctx, cx, cy, r, phaseAngle) {
+  const cosA = Math.cos(phaseAngle * Math.PI / 180);
+  const illumination = (1 - cosA) / 2;
+  const waxing = phaseAngle < 180;
+  const LIT = '#e6e9f2', DARK = '#171a26';
+  // 1) 어두운 면 (전체 원)
+  ctx.clearRect(cx-r-2, cy-r-2, (r+2)*2, (r+2)*2);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = DARK; ctx.fill();
+  // 2) 밝은 반원 — 차오를 땐 오른쪽, 줄어들 땐 왼쪽
+  ctx.beginPath();
+  if (waxing) ctx.arc(cx, cy, r, -Math.PI/2,  Math.PI/2);
+  else        ctx.arc(cx, cy, r,  Math.PI/2,  3*Math.PI/2);
+  ctx.closePath(); ctx.fillStyle = LIT; ctx.fill();
+  // 3) Terminator 타원 — illumination < 0.5는 그림자 색, >= 0.5는 밝은 색으로 보정
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * Math.abs(cosA), r, 0, 0, Math.PI*2);
+  ctx.fillStyle = (illumination < 0.5) ? DARK : LIT; ctx.fill();
+  // 4) 가장자리 림 라이트 — 입체감
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  const grad = ctx.createRadialGradient(cx-r*0.25, cy-r*0.25, r*0.1, cx, cy, r*1.05);
+  grad.addColorStop(0, 'rgba(255,255,255,0.10)');
+  grad.addColorStop(0.85, 'rgba(255,255,255,0)');
+  grad.addColorStop(1, 'rgba(140,170,230,0.18)');
+  ctx.fillStyle = grad; ctx.fill();
+}
+
+function detailedMoonPhase(angle) {
+  // 천문학 8단계 세분화. angle 0=신월, 90=상현, 180=망, 270=하현.
+  if (angle < 22.5)  return { ko:'신월(삭)',          en:'New Moon' };
+  if (angle < 67.5)  return { ko:'상현전 초승달',      en:'Waxing Crescent' };
+  if (angle < 112.5) return { ko:'상현달',            en:'First Quarter' };
+  if (angle < 157.5) return { ko:'상현후 차오르는 달', en:'Waxing Gibbous' };
+  if (angle < 202.5) return { ko:'보름달(망)',         en:'Full Moon' };
+  if (angle < 247.5) return { ko:'하현전 기우는 달',   en:'Waning Gibbous' };
+  if (angle < 292.5) return { ko:'하현달',            en:'Last Quarter' };
+  if (angle < 337.5) return { ko:'그믐달',            en:'Waning Crescent' };
+  return { ko:'신월(삭)',                             en:'New Moon' };
+}
+
+let moonCanvasCtx = null, lastMoonUpdate = 0;
+function updateMoonWidget(now) {
+  if (now - lastMoonUpdate < 500) return;                // 0.5초 폴링
+  lastMoonUpdate = now;
+  if (!moonCanvasCtx) {
+    const cv = $('moonCanvas');
+    moonCanvasCtx = cv.getContext('2d');
+    // 고해상도 핸들링 — 캔버스 픽셀 비율 보정
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = parseInt(getComputedStyle(cv).width)  || 110;
+    const cssH = parseInt(getComputedStyle(cv).height) || 110;
+    cv.width  = cssW * dpr;
+    cv.height = cssH * dpr;
+    moonCanvasCtx.scale(dpr, dpr);
+  }
+  const date = new Date(simTime);
+  const st = computeState(date);
+  const phase = detailedMoonPhase(st.phaseAngle);
+  const lunarAge = st.phaseAngle / 360 * SYNODIC;
+  // Canvas 그리기 (CSS 픽셀 기준)
+  const cv = $('moonCanvas');
+  const cssW = parseInt(getComputedStyle(cv).width) || 110;
+  drawMoonPhase(moonCanvasCtx, cssW/2, cssW/2, cssW/2 - 4, st.phaseAngle);
+  // 텍스트 갱신
+  $('mwPhase').textContent = phase.ko + '  ·  ' + phase.en;
+  $('mwIllum').textContent = (st.illum * 100).toFixed(1) + '%';
+  $('mwAge').textContent   = lunarAge.toFixed(1) + '일';
+  $('mwTime').textContent  = date.toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
 // ===== 이름표 갱신 (빌보드 + 화면 일정 크기) =====
 let labelsOn = true;
 const _lp = new THREE.Vector3();
@@ -1436,7 +1554,11 @@ for (const [k,l] of FOCUS_LIST){ const o=document.createElement('option'); o.val
 focusSel.onchange = () => startFocus(focusSel.value,false);
 
 const tideLocSel=$('tideLoc');
-LOCATIONS.forEach((L,idx)=>{ const o=document.createElement('option'); o.value=idx; o.textContent=L.name; tideLocSel.appendChild(o); });
+LOCATIONS.forEach((L,idx)=>{
+  const o=document.createElement('option'); o.value=idx; o.textContent=L.name;
+  if (L === curLoc) o.selected = true;        // 부산이 기본으로 선택됨
+  tideLocSel.appendChild(o);
+});
 tideLocSel.onchange = () => { curLoc=LOCATIONS[+tideLocSel.value]; drawTideCurve(true); };
 
 let paused = false;
@@ -1558,6 +1680,7 @@ function animate() {
   updateRegionLabels();
   renderer.render(scene,camera);
   updateHUD(st,now);
+  updateMoonWidget(now);
   // 카이퍼/오르트가 선택된 상태에서는 지구 위치 변동에 따라 사이드바 stat 갱신 (0.5초 폴링)
   if ((focusKey==='kuiper' || focusKey==='oort') && now-lastOuterSbUpdate > 500) {
     lastOuterSbUpdate = now;
