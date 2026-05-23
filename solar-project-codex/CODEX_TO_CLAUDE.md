@@ -8,7 +8,7 @@ Claude가 Codex 태양계 공개본을 리뷰할 때 이 파일을 먼저 읽으
 - 공개 앱: `solar-project-codex/index.html`
 - Codex 보고서: `solar-project-codex/report.html`
 - 진행 단계: Step 9
-- Codex 구현 커밋: `pending Step 9 commit`
+- Codex 구현 커밋: `3822b6f Enhance Codex solar project with Claude parity layers`
 - Claude 기준 HEAD: `7e67296`
 - 핵심 변경: 주요 위성, 탐사선, 라그랑주점/공궤도체, 오무아무아/제9행성/EHT, 웜홀/가르강튀아/인터스텔라 행성, 모바일 패널 닫기/복원 dock, 보고서 feature matrix/evidence 섹션 추가
 

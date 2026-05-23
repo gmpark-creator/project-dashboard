@@ -6,8 +6,8 @@ export const reportData = {
     branch: 'master',
     remote: 'https://github.com/gmpark-creator/project-dashboard.git',
     currentStep: 'Step 9',
-    latestImplementationCommit: 'pending Step 9 Codex Claude-parity implementation',
-    latestTrackingCommit: '7c586c4 Track Claude solar project progress',
+    latestImplementationCommit: '3822b6f Enhance Codex solar project with Claude parity layers',
+    latestTrackingCommit: 'pending Step 9 metadata commit',
     appUrl: './index.html',
     strengths: [
       'Date-object based ephemeris path is retained for planet and Moon placement.',
