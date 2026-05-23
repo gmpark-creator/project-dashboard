@@ -115,6 +115,20 @@
   #loading .sub { font-size: 12px; color: #6f7c9c; max-width: 400px; }
   #loading.error .spinner { display: none; }
 
+  /* 패널 X 닫기 버튼 — 우상단 작은 X (모든 패널 공통) */
+  .panel-close-x {
+    position: absolute; top: 5px; right: 6px;
+    width: 22px; height: 22px;
+    background: transparent; border: none; cursor: pointer;
+    color: #8b97b4; font-size: 18px; font-weight: 700;
+    line-height: 18px; padding: 0;
+    border-radius: 5px; font-family: inherit;
+    z-index: 5; transition: all 0.15s;
+  }
+  .panel-close-x:hover { color: #ff7878; background: rgba(255,120,120,0.18); }
+  /* 패널들에 position relative 보장 (X 버튼 absolute 기준) */
+  #hud, #timeMachine, #controls, #bottomLeftStack, #sidebar { position: fixed; }
+
   /* ===========================================================
      📱 모바일 반응형 (768px 이하)
      • 모든 패널을 작게 + 화면 안에 들어오도록 재배치
@@ -143,20 +157,29 @@
     #tmBtns { gap: 3px; }
     #tmBtns button { font-size: 9px; padding: 3px 5px; border-radius: 5px; }
 
-    /* 하단 컨트롤 바 — 가로 스크롤 */
+    /* 하단 컨트롤 바 — 처음부터 한 줄에 펼치고 가로 스크롤 (좌우 페이드 힌트) */
     #controls {
-      bottom: 8px; padding: 6px 8px; gap: 4px;
-      flex-wrap: nowrap; overflow-x: auto;
+      bottom: 8px; padding: 8px 14px; gap: 5px;
+      flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+      left: 8px; right: 8px;                           /* 화면 전체 폭 */
       max-width: calc(100vw - 16px);
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(150,180,240,0.55) rgba(0,0,0,0);
+      /* 좌우 그라데이션 페이드 — 「더 있음」 시각적 힌트 */
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+              mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
     }
-    #controls::-webkit-scrollbar { height: 4px; }
+    #controls::-webkit-scrollbar { height: 5px; }
+    #controls::-webkit-scrollbar-thumb { background: rgba(150,180,240,0.55); border-radius: 4px; }
+    #controls::-webkit-scrollbar-track { background: transparent; }
     #controls button, #controls select, #controls label {
-      font-size: 10.5px; padding: 5px 7px; flex-shrink: 0;
+      font-size: 11px; padding: 6px 9px; flex-shrink: 0; white-space: nowrap;
     }
     #controls .div { display: none; }
-    #speedSlider { width: 70px; }
-    #speedVal { font-size: 10px; min-width: 0; }
+    #speedSlider { width: 80px; flex-shrink: 0; }
+    #speedVal { font-size: 10px; min-width: 0; flex-shrink: 0; }
+    #speedWrap { flex-shrink: 0; }
 
     /* 좌하단 stack (조석 + 달 위젯) — 모바일에선 화면 전체 폭 */
     #bottomLeftStack {
@@ -3880,6 +3903,21 @@ addEventListener('resize', ()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight);
 });
+
+// ===== 패널 X 닫기 버튼 자동 삽입 (모든 UI 패널) =====
+// 디렉터님이 X 클릭으로 방해되는 패널을 끄고 필요한 정보만 보도록
+function addPanelCloseX(panelId) {
+  const el = document.getElementById(panelId);
+  if (!el || el.querySelector('.panel-close-x')) return;
+  const btn = document.createElement('button');
+  btn.className = 'panel-close-x';
+  btn.setAttribute('aria-label', '패널 닫기');
+  btn.title = '닫기 (새로고침으로 복원)';
+  btn.innerHTML = '×';
+  btn.onclick = (e) => { e.stopPropagation(); el.style.display = 'none'; };
+  el.appendChild(btn);
+}
+['hud', 'timeMachine', 'controls', 'bottomLeftStack', 'sidebar'].forEach(addPanelCloseX);
 
 // ===== 초기화 & 루프 =====
 let simTime = Date.now();
