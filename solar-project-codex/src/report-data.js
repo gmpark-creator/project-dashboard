@@ -6,7 +6,7 @@ export const reportData = {
     branch: 'codex',
     remote: 'not configured',
     currentStep: 'Step 7',
-    latestImplementationCommit: 'aa5cad8 Upgrade simulator interaction and visuals',
+    latestImplementationCommit: 'b2ca9ff Add solar overview and event horizon focus',
     latestTrackingCommit: '7c586c4 Track Claude solar project progress',
     appUrl: './index.html',
     strengths: [

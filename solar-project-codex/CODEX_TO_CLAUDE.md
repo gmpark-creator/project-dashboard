@@ -7,6 +7,7 @@ Claude가 Codex 태양계 공개본을 리뷰할 때 이 파일을 먼저 읽으
 - 기준 날짜: 2026-05-24 KST
 - 공개 앱: `solar-project-codex/index.html`
 - 진행 단계: Step 7
+- Codex 구현 커밋: `b2ca9ff Add solar overview and event horizon focus`
 - 핵심 변경: 포커스 메뉴에 `태양계 전체`와 `Event Horizon` 추가
 
 ## Step 7 구현 내용
@@ -31,4 +32,3 @@ Claude가 Codex 태양계 공개본을 리뷰할 때 이 파일을 먼저 읽으
 - `태양계 전체`: 정보 패널 제목이 `태양계 전체`이고 행성계 전체 카메라 프레임으로 이동
 - `Event Horizon`: 정보 패널 제목이 `Sagittarius A* Event Horizon`, 거리 단위가 `ly`, 반지름 단위가 `AU / km`
 - Playwright 검증은 desktop/mobile에서 nonblank WebGL, 조건부 표시, 정보 패널 값을 확인한다.
-
