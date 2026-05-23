@@ -2210,62 +2210,228 @@ bodyObjs.earth.group.add(moonMesh);
 // visualDist = planetRadius × distMult (시각용 배수)
 // visualSize = 위성 실제 km × scale → 행성에 가려지지 않을 크기
 //
+// 위성별 표면 셰이더 카테고리 + 파라미터 (4종: cratered/volcanic/icy/hazy)
 const MOON_DATA = {
   mars: [
     { key:'phobos',   name:'포보스',     realR:11.27, distMult:2.6, periodDays:0.32, color:0xa08070,
+      surface:{type:'cratered', dark:[0.30,0.25,0.20], light:[0.55,0.48,0.40], scale:9.0},
       info:{ stats:[['지름','약 22.4 km (불규칙)'],['모행성','화성'],['공전 주기','7.66 시간 (0.32일)'],
         ['모행성과 거리','약 9,376 km'],['발견','1877년 (홀)']],
         desc:'화성의 두 위성 중 큰 쪽. 감자 모양의 불규칙한 형태로, 화성에 매우 가까이 있어 약 1억 년 안에 화성에 충돌하거나 조석력으로 해체될 것으로 예측된다.' } },
     { key:'deimos',   name:'데이모스',   realR:6.2,   distMult:4.5, periodDays:1.26, color:0x9a8d7c,
+      surface:{type:'cratered', dark:[0.40,0.36,0.30], light:[0.65,0.60,0.52], scale:7.0},
       info:{ stats:[['지름','약 12.4 km (불규칙)'],['모행성','화성'],['공전 주기','30.3 시간 (1.26일)'],
         ['모행성과 거리','약 23,463 km'],['발견','1877년 (홀)']],
         desc:'화성의 작은 위성. 표면이 두꺼운 레골리스로 덮여 매우 부드럽게 보이며, 점차 화성에서 멀어지고 있다.' } }
   ],
   jupiter: [
     { key:'io',       name:'이오',       realR:1821,  distMult:2.4, periodDays:1.77, color:0xf5d784,
+      surface:{type:'volcanic', scale:4.5},
       info:{ stats:[['지름','3,643 km'],['모행성','목성'],['공전 주기','1.77일'],
         ['모행성과 거리','약 421,700 km'],['특징','태양계에서 가장 활발한 화산 활동']],
         desc:'갈릴레오 위성 중 가장 안쪽. 목성의 강력한 조석 가열로 수백 개의 활화산이 있고, 황 화합물로 노랗고 붉은 표면을 가졌다.' } },
     { key:'europa',   name:'유로파',     realR:1560,  distMult:3.1, periodDays:3.55, color:0xe8d8c0,
+      surface:{type:'icy', ice:[0.92,0.90,0.84], crack:[0.45,0.30,0.18], scale:3.5},
       info:{ stats:[['지름','3,121 km'],['모행성','목성'],['공전 주기','3.55일'],
         ['모행성과 거리','약 671,034 km'],['특징','얼음 표면 아래 액체 바다']],
         desc:'갈릴레오 위성 중 두 번째. 매끄러운 얼음 표면 아래에 액체 물의 바다가 존재하는 것으로 추정되어, 태양계에서 외계 생명체 가능성이 가장 높은 천체 중 하나로 꼽힌다.' } },
     { key:'ganymede', name:'가니메데',   realR:2634,  distMult:4.5, periodDays:7.15, color:0xa89880,
+      surface:{type:'icy', ice:[0.65,0.60,0.55], crack:[0.42,0.36,0.30], scale:4.0},
       info:{ stats:[['지름','5,268 km (태양계 최대 위성)'],['모행성','목성'],['공전 주기','7.15일'],
         ['모행성과 거리','약 1,070,400 km'],['특징','자체 자기장 보유 — 위성으로는 유일']],
         desc:'태양계에서 가장 큰 위성. 수성보다 크다. 자체 자기장을 가진 유일한 위성이며, 얼음 지각 아래에 액체 바다가 있을 것으로 추정된다.' } },
     { key:'callisto', name:'칼리스토',   realR:2410,  distMult:6.8, periodDays:16.69, color:0x6a5d50,
+      surface:{type:'cratered', dark:[0.18,0.16,0.13], light:[0.50,0.44,0.36], scale:8.5},
       info:{ stats:[['지름','4,821 km'],['모행성','목성'],['공전 주기','16.69일'],
         ['모행성과 거리','약 1,882,700 km'],['특징','태양계에서 가장 많은 크레이터']],
         desc:'갈릴레오 위성 중 가장 바깥쪽. 표면이 태양계에서 가장 많은 크레이터로 덮여 있어 매우 오래된 지질학적 상태를 보존하고 있다.' } }
   ],
   saturn: [
     { key:'titan',    name:'타이탄',     realR:2575,  distMult:5.2, periodDays:15.95, color:0xd4a868,
+      surface:{type:'hazy', haze1:[0.85,0.55,0.20], haze2:[1.00,0.78,0.40], scale:2.5},
       info:{ stats:[['지름','5,150 km (태양계 2위 위성)'],['모행성','토성'],['공전 주기','15.95일'],
         ['모행성과 거리','약 1,221,870 km'],['특징','두꺼운 질소·메탄 대기 + 액체 메탄 호수']],
         desc:'태양계에서 가장 큰 위성 중 하나. 지구처럼 두꺼운 질소 대기를 가졌고, 표면에는 액체 메탄·에탄 강과 호수가 존재한다. 카시니-호이겐스 탐사선이 직접 착륙해 표면을 촬영했다.' } },
     { key:'rhea',     name:'레아',       realR:763,   distMult:3.4, periodDays:4.52,  color:0xb8b0a8,
+      surface:{type:'cratered', dark:[0.55,0.52,0.50], light:[0.92,0.90,0.88], scale:7.5},
       info:{ stats:[['지름','1,527 km'],['모행성','토성'],['공전 주기','4.52일'],
         ['모행성과 거리','약 527,108 km'],['특징','토성 2위 위성, 희박한 산소 대기']],
         desc:'토성의 두 번째로 큰 위성. 표면 대부분이 물 얼음으로 이루어져 있으며, 카시니 탐사로 희박한 산소 대기가 발견되었다.' } }
   ],
   uranus: [
     { key:'titania',  name:'티타니아',   realR:788,   distMult:3.8, periodDays:8.71,  color:0x9a8d80,
+      surface:{type:'cratered', dark:[0.28,0.24,0.22], light:[0.60,0.55,0.50], scale:6.5},
       info:{ stats:[['지름','1,577 km'],['모행성','천왕성'],['공전 주기','8.71일'],
         ['모행성과 거리','약 436,300 km'],['명명','셰익스피어 「한여름 밤의 꿈」 여왕']],
         desc:'천왕성의 가장 큰 위성. 얼음과 암석의 혼합체로 큰 협곡과 크레이터를 가졌다. 천왕성의 위성은 모두 셰익스피어·포프 작품의 인물명을 따랐다.' } },
     { key:'oberon',   name:'오베론',     realR:761,   distMult:5.2, periodDays:13.46, color:0x8e8278,
+      surface:{type:'cratered', dark:[0.22,0.20,0.18], light:[0.55,0.50,0.46], scale:7.0},
       info:{ stats:[['지름','1,523 km'],['모행성','천왕성'],['공전 주기','13.46일'],
         ['모행성과 거리','약 583,500 km'],['명명','셰익스피어 「한여름 밤의 꿈」 왕']],
         desc:'천왕성의 두 번째로 큰 위성. 표면이 어두운 물질로 덮여 있어 크레이터 바닥에 검은 흔적이 보인다.' } }
   ],
   neptune: [
     { key:'triton',   name:'트리톤',     realR:1353,  distMult:3.6, periodDays:-5.88, color:0xc4b8a8,
+      surface:{type:'icy', ice:[0.88,0.78,0.72], crack:[0.55,0.42,0.40], scale:3.8},
       info:{ stats:[['지름','2,707 km'],['모행성','해왕성'],['공전 주기','5.88일 (역행)'],
         ['모행성과 거리','약 354,759 km'],['특징','태양계 유일의 대형 역행 위성']],
         desc:'해왕성의 가장 큰 위성. 해왕성의 자전 방향과 반대로 도는 역행 궤도로, 카이퍼 벨트에서 포획된 천체로 추정된다. 표면에는 질소 간헐천이 있고, 표면 온도는 약 -235°C.' } }
   ]
 };
+
+// ============================================================
+// 위성 표면 GLSL 셰이더 — 4종 카테고리 (cratered/volcanic/icy/hazy)
+//   • 3D position 기반 fbm 노이즈로 sphere 표면에 연속 패턴
+//   • 각 카테고리마다 다른 색·패턴, 위성별 uniform으로 미세 조정
+//   • uOpacity uniform으로 페이드 트윈 연동
+// ============================================================
+const MOON_SHADER_HELPERS = `
+  float hash3(vec3 p) { return fract(sin(dot(p, vec3(12.989, 78.233, 45.164))) * 43758.5453); }
+  float noise3(vec3 p) {
+    vec3 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(mix(hash3(i+vec3(0,0,0)), hash3(i+vec3(1,0,0)), f.x),
+          mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
+      mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x),
+          mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y),
+      f.z);
+  }
+  float fbm3(vec3 p) {
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 5; i++) { v += a * noise3(p); p *= 2.0; a *= 0.5; }
+    return v;
+  }
+`;
+const MOON_VERTEX_SHADER = `
+  varying vec3 vPos;
+  varying vec3 vNormal;
+  void main() {
+    vPos = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+// CRATERED — 회색·갈색 + 크레이터 패턴 (포보스/데이모스/칼리스토/레아/티타니아/오베론)
+const MOON_FRAG_CRATERED = `
+  varying vec3 vPos;
+  varying vec3 vNormal;
+  uniform vec3 uDark;
+  uniform vec3 uLight;
+  uniform float uScale;
+  uniform float uOpacity;
+  ${MOON_SHADER_HELPERS}
+  void main() {
+    vec3 p = vPos * uScale;
+    float n1 = fbm3(p);
+    float n2 = fbm3(p * 3.5);
+    float pattern = n1 * 0.55 + n2 * 0.45;
+    float crater = smoothstep(0.45, 0.50, n2) - smoothstep(0.55, 0.60, n2);
+    vec3 col = mix(uDark, uLight, pattern);
+    col -= crater * 0.30;
+    col = clamp(col, 0.0, 1.0);
+    float light = max(0.30, dot(vNormal, vec3(0.6, 0.7, 0.4)));
+    col *= light;
+    gl_FragColor = vec4(col, uOpacity);
+  }
+`;
+// VOLCANIC — 황 화산 노랑/주황/검은 얼룩 (이오)
+const MOON_FRAG_VOLCANIC = `
+  varying vec3 vPos;
+  varying vec3 vNormal;
+  uniform float uScale;
+  uniform float uOpacity;
+  ${MOON_SHADER_HELPERS}
+  void main() {
+    vec3 p = vPos * uScale;
+    float n1 = fbm3(p);
+    float n2 = fbm3(p * 3.0);
+    float pattern = n1 * 0.7 + n2 * 0.3;
+    vec3 yellow = vec3(1.00, 0.92, 0.45);
+    vec3 orange = vec3(0.95, 0.55, 0.15);
+    vec3 dark   = vec3(0.40, 0.20, 0.05);
+    vec3 col = mix(orange, yellow, pattern);
+    if (pattern > 0.62) col = mix(col, dark, smoothstep(0.62, 0.85, pattern));
+    float light = max(0.35, dot(vNormal, vec3(0.6, 0.7, 0.4)));
+    col *= light;
+    gl_FragColor = vec4(col, uOpacity);
+  }
+`;
+// ICY — 얼음 + 갈라진 라인 (유로파/가니메데/트리톤)
+const MOON_FRAG_ICY = `
+  varying vec3 vPos;
+  varying vec3 vNormal;
+  uniform vec3 uIce;
+  uniform vec3 uCrack;
+  uniform float uScale;
+  uniform float uOpacity;
+  ${MOON_SHADER_HELPERS}
+  void main() {
+    vec3 p = vPos * uScale;
+    float n1 = fbm3(p);
+    float n2 = fbm3(p * 5.0);
+    float lines = abs(sin(n1 * 22.0)) - 0.84;
+    lines = smoothstep(0.0, 0.06, lines);
+    vec3 col = mix(uIce, uCrack, lines);
+    col *= 0.85 + n2 * 0.30;
+    float light = max(0.30, dot(vNormal, vec3(0.6, 0.7, 0.4)));
+    col *= light;
+    gl_FragColor = vec4(col, uOpacity);
+  }
+`;
+// HAZY — 두꺼운 오렌지 대기 (타이탄)
+const MOON_FRAG_HAZY = `
+  varying vec3 vPos;
+  varying vec3 vNormal;
+  uniform vec3 uHaze1;
+  uniform vec3 uHaze2;
+  uniform float uScale;
+  uniform float uOpacity;
+  ${MOON_SHADER_HELPERS}
+  void main() {
+    vec3 p = vPos * uScale;
+    float n = fbm3(p * 0.8);
+    float n2 = fbm3(p * 3.0);
+    vec3 col = mix(uHaze1, uHaze2, n);
+    col += vec3(0.10, 0.04, 0.01) * (n2 - 0.5);
+    float fresnel = pow(1.0 - max(0.0, dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.0);
+    col += vec3(1.0, 0.6, 0.2) * fresnel * 0.18;
+    float light = max(0.40, dot(vNormal, vec3(0.6, 0.7, 0.4)));
+    col *= light;
+    gl_FragColor = vec4(col, uOpacity);
+  }
+`;
+// 위성 타입별 ShaderMaterial 생성기
+function makeMoonShaderMaterial(surface) {
+  let uniforms = { uScale: { value: surface.scale || 5.0 }, uOpacity: { value: 1.0 } };
+  let frag;
+  if (surface.type === 'cratered') {
+    frag = MOON_FRAG_CRATERED;
+    uniforms.uDark  = { value: new THREE.Color().fromArray(surface.dark) };
+    uniforms.uLight = { value: new THREE.Color().fromArray(surface.light) };
+  } else if (surface.type === 'volcanic') {
+    frag = MOON_FRAG_VOLCANIC;
+  } else if (surface.type === 'icy') {
+    frag = MOON_FRAG_ICY;
+    uniforms.uIce   = { value: new THREE.Color().fromArray(surface.ice) };
+    uniforms.uCrack = { value: new THREE.Color().fromArray(surface.crack) };
+  } else if (surface.type === 'hazy') {
+    frag = MOON_FRAG_HAZY;
+    uniforms.uHaze1 = { value: new THREE.Color().fromArray(surface.haze1) };
+    uniforms.uHaze2 = { value: new THREE.Color().fromArray(surface.haze2) };
+  } else {
+    frag = MOON_FRAG_CRATERED;
+    uniforms.uDark  = { value: new THREE.Color(0.3, 0.3, 0.3) };
+    uniforms.uLight = { value: new THREE.Color(0.7, 0.7, 0.7) };
+  }
+  return new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: MOON_VERTEX_SHADER,
+    fragmentShader: frag,
+    transparent: true,
+    depthWrite: true
+  });
+}
 
 const MOON_SIZE_FACTOR = 0.00018;     // 위성 실제 반경 km → 시각 단위
 // moonSphereGeo는 위에서 공용으로 선언됨 (TDZ 회피용)
@@ -2281,23 +2447,8 @@ function buildMoonsForPlanet(planetKey, moons) {
   planet.moonsGroup = moonsGroup;
 
   for (const M of moons) {
-    // 위성 PBR — NASA 달 텍스처(moon_1024.jpg)를 표면 디테일로 공유하고 위성별 color tint 적용
-    // (위성 전용 무료 CDN 텍스처가 사실상 부재 — 달 텍스처를 베이스로 색조 변경)
-    const mat = new THREE.MeshStandardMaterial({
-      color: M.color, roughness: 0.92, metalness: 0.02,
-      transparent: true, opacity: 1
-    });
-    // 달 텍스처 — 표면 크레이터·바다 디테일
-    loadColorTex(TEX.moon, t => {
-      mat.map = t;
-      mat.needsUpdate = true;
-    });
-    // 같은 텍스처를 bump map으로도 사용 → 표면 굴곡감 (포보스/데이모스는 크게, 큰 위성은 작게)
-    loadDataTex(TEX.moon, t => {
-      mat.bumpMap = t;
-      mat.bumpScale = M.realR < 50 ? 0.05 : 0.022;
-      mat.needsUpdate = true;
-    });
+    // 위성 GLSL 셰이더 — surface.type별 4종 카테고리 (cratered/volcanic/icy/hazy)
+    const mat = makeMoonShaderMaterial(M.surface || { type:'cratered', dark:[0.3,0.3,0.3], light:[0.7,0.7,0.7], scale:5.0 });
     const mesh = new THREE.Mesh(moonSphereGeo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.userData.bodyKey = M.key;                  // 영문 단독 키 (포보스 → 'phobos')
@@ -2508,7 +2659,12 @@ function updateMoonFade(dt) {
         m.currentOpacity = tgt;
       }
       const op = m.currentOpacity;
-      m.mesh.material.opacity = op;
+      // ShaderMaterial은 uniforms.uOpacity로, 일반 Material은 opacity 직접 설정
+      if (m.mesh.material.uniforms && m.mesh.material.uniforms.uOpacity) {
+        m.mesh.material.uniforms.uOpacity.value = op;
+      } else {
+        m.mesh.material.opacity = op;
+      }
       m.orbit.material.opacity = op * 0.45;
       m.label.material.opacity = op;
       if (op > 0.02) anyVisible = true;
