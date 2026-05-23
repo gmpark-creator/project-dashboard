@@ -23,6 +23,29 @@
   .reveal { opacity:0; animation: reveal .55s cubic-bezier(.2,.7,.2,1) forwards; }
   @keyframes growbar { from { width:0; } }
   .growbar { animation: growbar 1s cubic-bezier(.2,.7,.2,1); }
+
+  /* ===========================================================
+     📱 모바일 반응형 — 가로 오버플로우 차단 + 긴 단어 줄바꿈
+     원인: 긴 URL·영어 단어(MeshStandardMaterial 등)가 줄바꿈 안 되어
+           모바일 폭을 넘어가던 문제
+  ============================================================ */
+  html, body { overflow-x: hidden; max-width: 100%; }
+  @media (max-width: 768px) {
+    /* 모든 detail 영역 텍스트 강제 줄바꿈 */
+    #detail, #detail * {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    /* detail 컨테이너 자체 — 가로 스크롤 완전 차단 */
+    #detail { overflow-x: hidden; max-width: 100vw; }
+    main { overflow-x: hidden; max-width: 100vw; }
+    /* iframe — 부모 폭 안에 가둠 */
+    #detail iframe { max-width: 100% !important; width: 100% !important; }
+    /* 「새 탭에서 열기 — URL」 같은 긴 링크 — 줄바꿈 강제 */
+    #detail a { word-break: break-all; }
+    /* stack 칩들 flex-wrap 보장 */
+    #detail .flex { flex-wrap: wrap; }
+  }
 </style>
 </head>
 
