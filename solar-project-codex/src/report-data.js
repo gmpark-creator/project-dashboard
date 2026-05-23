@@ -102,7 +102,7 @@ export const reportData = {
       step: 'Step 7',
       title: 'System overview and event horizon focus',
       date: '2026-05-24',
-      codex: ['Focus dropdown includes 태양계 전체', 'Overview button now returns to the full system frame', 'Sagittarius A* Event Horizon focus item', 'Black-hole boundary mesh with photon-ring style glow', 'Event-horizon distance and physical radius readouts'],
+      codex: ['Focus dropdown includes 태양계 전체', 'Overview button now returns to the full system frame', 'Sagittarius A* 사건의 지평선 focus item', 'Black-hole boundary mesh with photon-ring style glow', 'Event-horizon distance and physical radius readouts'],
       claude: ['Pending cross-review in Claude lane'],
     },
   ],
