@@ -1278,6 +1278,104 @@ function makeGlowTexture() {
   });
 }
 
+function makeBlackHoleHaloTexture() {
+  return canvasTexture(512, 512, (ctx, width, height) => {
+    ctx.clearRect(0, 0, width, height);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const halo = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width / 2);
+    halo.addColorStop(0, 'rgba(0,0,0,0)');
+    halo.addColorStop(0.19, 'rgba(255,245,210,0.18)');
+    halo.addColorStop(0.3, 'rgba(255,147,52,0.54)');
+    halo.addColorStop(0.47, 'rgba(255,83,31,0.24)');
+    halo.addColorStop(0.72, 'rgba(95,175,255,0.12)');
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, width, height);
+  });
+}
+
+function makeEventHorizonCoreTexture() {
+  return canvasTexture(512, 512, (ctx, width, height) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const core = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width / 2);
+    core.addColorStop(0, 'rgba(0,0,0,1)');
+    core.addColorStop(0.54, 'rgba(0,0,0,1)');
+    core.addColorStop(0.66, 'rgba(1,3,8,0.96)');
+    core.addColorStop(0.76, 'rgba(255,144,56,0.2)');
+    core.addColorStop(0.88, 'rgba(255,197,95,0.08)');
+    core.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = core;
+    ctx.fillRect(0, 0, width, height);
+  });
+}
+
+function makeAccretionDiskTexture() {
+  const rand = seededRandom(8701);
+  const texture = canvasTexture(2048, 512, (ctx, width, height) => {
+    ctx.clearRect(0, 0, width, height);
+    const band = ctx.createLinearGradient(0, 0, 0, height);
+    band.addColorStop(0, 'rgba(255,255,255,0)');
+    band.addColorStop(0.05, 'rgba(255,225,160,0.02)');
+    band.addColorStop(0.11, 'rgba(255,246,210,0.9)');
+    band.addColorStop(0.18, 'rgba(255,174,67,0.78)');
+    band.addColorStop(0.34, 'rgba(255,94,32,0.42)');
+    band.addColorStop(0.55, 'rgba(178,45,22,0.25)');
+    band.addColorStop(0.82, 'rgba(67,116,255,0.08)');
+    band.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 900; i += 1) {
+      const x = rand() * width;
+      const lane = Math.pow(rand(), 1.8);
+      const y = height * (0.06 + lane * 0.58);
+      const length = 70 + rand() * 420;
+      const alpha = 0.06 + rand() * 0.2;
+      const hot = rand() > 0.22 ? '255,219,139' : '119,185,255';
+      ctx.strokeStyle = `rgba(${hot},${alpha})`;
+      ctx.lineWidth = 1 + rand() * 6;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(
+        x + length * 0.25,
+        y + (rand() - 0.5) * 42,
+        x + length * 0.72,
+        y + (rand() - 0.5) * 72,
+        x + length,
+        y + (rand() - 0.5) * 62,
+      );
+      ctx.stroke();
+      if (x + length > width) {
+        ctx.beginPath();
+        ctx.moveTo(x - width, y);
+        ctx.lineTo(x + length - width, y + (rand() - 0.5) * 48);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 130; i += 1) {
+      const y = height * (0.1 + rand() * 0.64);
+      ctx.strokeStyle = `rgba(3,4,8,${0.08 + rand() * 0.22})`;
+      ctx.lineWidth = 2 + rand() * 8;
+      ctx.beginPath();
+      for (let x = 0; x <= width; x += 32) {
+        const wave = Math.sin(x * 0.014 + i * 0.73) * (8 + rand() * 18);
+        if (x === 0) ctx.moveTo(x, y + wave);
+        else ctx.lineTo(x, y + wave);
+      }
+      ctx.stroke();
+    }
+  });
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function makeRingTexture() {
   const rand = seededRandom(7111);
   return canvasTexture(1024, 96, (ctx, width, height) => {
@@ -1518,6 +1616,85 @@ function makeInterstellarGuideLine(system, scale) {
   );
 }
 
+function makeAnnulusGeometry(innerRadius, outerRadius, radialSegments = 10, angularSegments = 320) {
+  const positions = [];
+  const uvs = [];
+  const indices = [];
+
+  for (let r = 0; r <= radialSegments; r += 1) {
+    const v = r / radialSegments;
+    const radius = innerRadius + (outerRadius - innerRadius) * v;
+    for (let a = 0; a <= angularSegments; a += 1) {
+      const u = a / angularSegments;
+      const theta = u * Math.PI * 2;
+      positions.push(Math.cos(theta) * radius, Math.sin(theta) * radius, 0);
+      uvs.push(u, v);
+    }
+  }
+
+  const row = angularSegments + 1;
+  for (let r = 0; r < radialSegments; r += 1) {
+    for (let a = 0; a < angularSegments; a += 1) {
+      const current = r * row + a;
+      const next = current + row;
+      indices.push(current, next, current + 1);
+      indices.push(current + 1, next, next + 1);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function makeAccretionDiskParticles(def, visualRadius) {
+  const rand = seededRandom(9301);
+  const count = 1400;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const white = new THREE.Color(0xfff4d6);
+  const orange = new THREE.Color(0xff8a3d);
+  const red = new THREE.Color(0xb73522);
+  const blue = new THREE.Color(0x78baff);
+
+  for (let i = 0; i < count; i += 1) {
+    const angle = rand() * Math.PI * 2;
+    const radius = visualRadius * (1.18 + Math.pow(rand(), 0.62) * 4.85);
+    const z = (rand() + rand() - 1) * visualRadius * 0.16;
+    const index = i * 3;
+    positions[index] = Math.cos(angle) * radius;
+    positions[index + 1] = Math.sin(angle) * radius;
+    positions[index + 2] = z;
+
+    let color = white.clone().lerp(orange, rand() * 0.75);
+    if (rand() > 0.66) color = color.lerp(red, rand() * 0.8);
+    if (rand() > 0.92) color = color.lerp(blue, rand() * 0.65);
+    const brightness = 0.55 + rand() * 0.75;
+    colors[index] = color.r * brightness;
+    colors[index + 1] = color.g * brightness;
+    colors[index + 2] = color.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const particles = new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: visualRadius * 0.052,
+    sizeAttenuation: true,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.82,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  particles.userData.bodyId = def.id;
+  particles.renderOrder = 6;
+  return particles;
+}
+
 function makeEventHorizonVisual(def, scale) {
   const group = new THREE.Group();
   const position = def.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
@@ -1525,45 +1702,148 @@ function makeEventHorizonVisual(def, scale) {
   const visualRadius = Math.max(distanceUnits * 0.00042, 48_000_000);
   group.position.copy(position);
   group.userData.bodyId = def.id;
+  group.userData.visualRadius = visualRadius;
 
-  const horizon = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 96, 64),
-    new THREE.MeshBasicMaterial({
-      color: def.color,
-      transparent: true,
-      opacity: 0.98,
-      depthWrite: false,
-    }),
-  );
-  horizon.scale.setScalar(visualRadius);
-  horizon.userData.bodyId = def.id;
-  group.add(horizon);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeBlackHoleHaloTexture(),
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.72,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  halo.scale.setScalar(visualRadius * 12.5);
+  halo.userData.bodyId = def.id;
+  halo.renderOrder = 1;
+  group.add(halo);
 
-  const photonRing = new THREE.Mesh(
-    new THREE.TorusGeometry(visualRadius * 1.72, visualRadius * 0.08, 24, 192),
+  const diskTexture = makeAccretionDiskTexture();
+  const diskGroup = new THREE.Group();
+  diskGroup.rotation.set(67 * DEG, -4 * DEG, 12 * DEG);
+  diskGroup.userData.bodyId = def.id;
+  group.add(diskGroup);
+
+  const outerDisk = new THREE.Mesh(
+    makeAnnulusGeometry(visualRadius * 1.04, visualRadius * 6.9, 12, 384),
     new THREE.MeshBasicMaterial({
-      color: def.accentColor,
+      map: diskTexture,
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.78,
+      opacity: 0.62,
+      side: THREE.DoubleSide,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     }),
   );
-  photonRing.rotation.set(63 * DEG, 0, 18 * DEG);
-  photonRing.userData.bodyId = def.id;
-  group.add(photonRing);
+  outerDisk.userData.bodyId = def.id;
+  outerDisk.renderOrder = 3;
+  diskGroup.add(outerDisk);
 
-  const lensGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: makeGlowTexture(),
-    color: def.accentColor,
+  const innerDisk = new THREE.Mesh(
+    makeAnnulusGeometry(visualRadius * 1.22, visualRadius * 4.8, 9, 320),
+    new THREE.MeshBasicMaterial({
+      map: diskTexture,
+      color: 0xffd29a,
+      transparent: true,
+      opacity: 0.92,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  innerDisk.userData.bodyId = def.id;
+  innerDisk.renderOrder = 5;
+  diskGroup.add(innerDisk);
+
+  const diskSparks = makeAccretionDiskParticles(def, visualRadius);
+  diskGroup.add(diskSparks);
+
+  const jetHeight = visualRadius * 9.2;
+  const jetGeometry = new THREE.ConeGeometry(visualRadius * 0.26, jetHeight, 48, 1, true);
+  const jetMaterial = new THREE.MeshBasicMaterial({
+    color: 0x78caff,
     transparent: true,
-    opacity: 0.46,
+    opacity: 0.08,
+    side: THREE.DoubleSide,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
+  });
+  const northJet = new THREE.Mesh(jetGeometry, jetMaterial);
+  northJet.position.y = jetHeight * 0.54;
+  northJet.userData.bodyId = def.id;
+  northJet.renderOrder = 2;
+  const southJet = new THREE.Mesh(jetGeometry.clone(), jetMaterial.clone());
+  southJet.rotation.x = Math.PI;
+  southJet.position.y = -jetHeight * 0.54;
+  southJet.userData.bodyId = def.id;
+  southJet.renderOrder = 2;
+  group.add(northJet, southJet);
+
+  const lensingRing = new THREE.Mesh(
+    new THREE.TorusGeometry(visualRadius * 1.82, visualRadius * 0.045, 18, 256),
+    new THREE.MeshBasicMaterial({
+      color: 0xffbf74,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  lensingRing.scale.set(1.18, 0.55, 1);
+  lensingRing.rotation.z = -7 * DEG;
+  lensingRing.userData.bodyId = def.id;
+  lensingRing.renderOrder = 9;
+  group.add(lensingRing);
+
+  const rearLensingRing = new THREE.Mesh(
+    new THREE.TorusGeometry(visualRadius * 2.45, visualRadius * 0.026, 12, 256),
+    new THREE.MeshBasicMaterial({
+      color: 0x84bfff,
+      transparent: true,
+      opacity: 0.34,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  rearLensingRing.scale.set(1.05, 0.36, 1);
+  rearLensingRing.rotation.z = 11 * DEG;
+  rearLensingRing.userData.bodyId = def.id;
+  rearLensingRing.renderOrder = 4;
+  group.add(rearLensingRing);
+
+  const horizon = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 96, 64),
+    new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      depthWrite: true,
+      depthTest: true,
+    }),
+  );
+  horizon.scale.setScalar(visualRadius * 1.02);
+  horizon.userData.bodyId = def.id;
+  horizon.renderOrder = 20;
+  group.add(horizon);
+
+  const coreMask = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeEventHorizonCoreTexture(),
+    color: 0xffffff,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    depthTest: false,
   }));
-  lensGlow.scale.setScalar(visualRadius * 6.8);
-  lensGlow.userData.bodyId = def.id;
-  group.add(lensGlow);
+  coreMask.scale.setScalar(visualRadius * 3.85);
+  coreMask.userData.bodyId = def.id;
+  coreMask.renderOrder = 30;
+  group.add(coreMask);
+
+  group.userData.diskGroup = diskGroup;
+  group.userData.outerDisk = outerDisk;
+  group.userData.innerDisk = innerDisk;
+  group.userData.diskSparks = diskSparks;
+  group.userData.halo = halo;
+  group.userData.lensingRing = lensingRing;
+  group.userData.rearLensingRing = rearLensingRing;
 
   return group;
 }
@@ -1935,8 +2215,17 @@ raycaster.params.Points.threshold = 80;
 const pointer = new THREE.Vector2();
 const pointerDown = new THREE.Vector2();
 
+function initialFocusMode() {
+  try {
+    const requested = new URLSearchParams(window.location.search).get('focus');
+    return requested && BODY_PROFILES[requested] ? requested : 'earth';
+  } catch {
+    return 'earth';
+  }
+}
+
 let scaleMode = 'visual';
-let focusMode = 'earth';
+let focusMode = initialFocusMode();
 let orbitsVisible = true;
 let paused = false;
 let speedIndex = SPEEDS.indexOf(1);
@@ -2336,14 +2625,16 @@ function cameraFrameFor(bodyId, state, scale) {
 
   if (isEventHorizonBody(bodyId)) {
     const position = eventHorizonPositionUnits(scale);
-    const distance = position.length();
+    const visualRadius = bodyRadiusUnits(bodyId, scale);
     const direction = position.clone().normalize();
-    const side = new THREE.Vector3(direction.z, 0.52, -direction.x).normalize();
+    const side = new THREE.Vector3(direction.z, 0.32, -direction.x).normalize();
+    const lift = new THREE.Vector3(0, 1, 0).multiplyScalar(visualRadius * 2.2);
     return {
       target: position,
       position: position.clone()
-        .add(direction.multiplyScalar(distance * 0.12))
-        .add(side.multiplyScalar(distance * 0.045)),
+        .add(direction.multiplyScalar(visualRadius * 12.8))
+        .add(side.multiplyScalar(visualRadius * 4.6))
+        .add(lift),
     };
   }
 
@@ -2463,10 +2754,33 @@ function updateScene(state, now) {
 
   const eventFocused = focusMode === EVENT_HORIZON_DEF.id;
   const eventPosition = eventHorizonPositionUnits(scale);
+  const eventRadius = bodyRadiusUnits(EVENT_HORIZON_DEF.id, scale);
   eventHorizonVisual.position.copy(eventPosition);
   eventHorizonVisual.visible = eventFocused;
   eventHorizonGuideLine.visible = eventFocused;
-  eventHorizonLabel.position.copy(eventPosition).add(eventPosition.clone().normalize().multiplyScalar(bodyRadiusUnits(EVENT_HORIZON_DEF.id, scale) * 6));
+  if (eventFocused) {
+    eventHorizonVisual.lookAt(camera.position);
+    const diskSpin = now * 0.000035;
+    eventHorizonVisual.userData.diskGroup.rotation.set(67 * DEG, -4 * DEG, 12 * DEG + diskSpin);
+    eventHorizonVisual.userData.innerDisk.rotation.z = -now * 0.000052;
+    eventHorizonVisual.userData.outerDisk.rotation.z = now * 0.000024;
+    eventHorizonVisual.userData.diskSparks.rotation.z = now * 0.00004;
+    eventHorizonVisual.userData.lensingRing.rotation.z = -7 * DEG + Math.sin(now * 0.0009) * 0.055;
+    eventHorizonVisual.userData.rearLensingRing.rotation.z = 11 * DEG - Math.sin(now * 0.0006) * 0.038;
+    eventHorizonVisual.userData.halo.material.opacity = 0.66 + Math.sin(now * 0.0011) * 0.08;
+  }
+  if (eventFocused) {
+    const cameraDirection = camera.position.clone().sub(eventPosition).normalize();
+    const cameraRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), cameraDirection);
+    if (cameraRight.lengthSq() < 0.001) cameraRight.set(1, 0, 0);
+    cameraRight.normalize();
+    eventHorizonLabel.position.copy(eventPosition)
+      .add(cameraDirection.multiplyScalar(eventRadius * 1.8))
+      .add(cameraRight.multiplyScalar(eventRadius * 3.6))
+      .add(new THREE.Vector3(0, eventRadius * 3.4, 0));
+  } else {
+    eventHorizonLabel.position.copy(eventPosition).add(eventPosition.clone().normalize().multiplyScalar(eventRadius * 6));
+  }
   eventHorizonLabel.visible = eventFocused;
 
   labels.sun.position.set(0, scale.sunRadius + 4, 0);

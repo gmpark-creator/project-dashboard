@@ -81,16 +81,16 @@ export const reportData = {
       label: '태양계 3D 시뮬레이터',
       state: '공개 비교본 개선 완료',
       health: 'active',
-      progress: 98,
+      progress: 99,
       stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
       summary: '현재 날짜 기준으로 태양, 행성, 달, 외태양계 구조, 성간 랜드마크를 배치하고 타임머신, 카메라 포커싱, 정보 패널을 제공하는 3D 천체 시뮬레이터.',
-      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, Codex 버전은 카이퍼/오르트, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선, 부산 조석표와 실시간 달 위상까지 확장했다.',
+      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, Codex 버전은 카이퍼/오르트, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선, 부산 조석표와 실시간 달 위상까지 확장했다. 사건의 지평선은 accretion disk와 렌즈 링이 보이는 블랙홀 장면으로 보강했다.',
       links: [
         {
           label: 'Solar Project - Codex',
           url: '../solar-project-codex/',
           probe: 'GitHub Pages 200',
-          note: '태양계 전체, 외태양계, 성간 랜드마크, 사건의 지평선 포커스 포함',
+          note: '태양계 전체, 외태양계, 성간 랜드마크, 블랙홀형 사건의 지평선 포커스 포함',
         },
         {
           label: 'Solar Project - Claude',
@@ -104,6 +104,7 @@ export const reportData = {
         '연도 이동 버튼은 현재 위치 대비 즉시 점프가 아니라, 목표 날짜까지 중간 날짜를 거치며 재생되는 방식으로 수정했다.',
         'Codex 버전은 실제 지구 텍스처, 구름층, 야간 조명, 달 텍스처, 목성 대적점, 화성/수성 표면 디테일, 토성 고리 결을 추가했다.',
         '포커스 메뉴는 태양계 전체, 카이퍼 벨트, 오르트 구름, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선까지 확장됐다.',
+        '사건의 지평선 시각화는 단순 검은 구체에서 accretion disk, 렌즈 링, 헤일로, 제트가 있는 블랙홀 장면으로 보강됐다.',
       ],
       risks: [
         { level: 'medium', text: '천체 위치는 간소화된 궤도요소 기반이므로 실제 항법·관측용 정밀 천문력으로 오해하지 않게 안내가 필요하다.' },
