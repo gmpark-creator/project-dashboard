@@ -213,8 +213,8 @@
 
 <div id="loading">
   <div class="spinner"></div>
-  <p>태양계를 불러오는 중… <strong style="color:#9ec3ff">[BUILD-v3-TDZFIX]</strong></p>
-  <p class="sub">박사님이 이 [BUILD-v3-TDZFIX] 마커가 화면에 보이면 캐시 우회 성공. 안 보이면 캐시된 옛 버전입니다.</p>
+  <p>태양계를 불러오는 중… <strong style="color:#9ec3ff">[BUILD-v4-ROVERFIX]</strong></p>
+  <p class="sub">박사님이 이 [BUILD-v4-ROVERFIX] 마커가 화면에 보이면 캐시 우회 성공. 안 보이면 캐시된 옛 버전입니다.</p>
 </div>
 
 <script type="importmap">
@@ -1472,25 +1472,27 @@ function latLonToUnitVec(lat, lon) {
 }
 
 const roverObjs = {};
-for (const R of MARS_ROVERS) {
-  // 핀은 화성 mesh의 자식 (회전하면 함께 회전)
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-    map:makeGlowSprite(R.color, true), transparent:true,
-    blending:THREE.AdditiveBlending, depthWrite:false }));
-  sp.userData.bodyKey = R.key;
-  sp.position.copy(latLonToUnitVec(R.lat, R.lon)).multiplyScalar(1.02);   // mesh 반경 1 + 살짝 위
-  bodyObjs.mars.mesh.add(sp);
-  const lb = new THREE.Sprite(new THREE.SpriteMaterial({
-    map:makeLabelTexture(R.name), transparent:true, depthWrite:false }));
-  lb.userData.bodyKey = R.key;
-  lb.position.copy(sp.position).multiplyScalar(1.12);
-  bodyObjs.mars.mesh.add(lb);
-  sp.visible = false; lb.visible = false;
-  roverObjs[R.key] = { R, sprite:sp, label:lb };
-  OBJ_BY_KEY[R.key] = { kind:'rover', obj: roverObjs[R.key] };
-  INFO[R.key] = { name:R.name, type:'화성 로버 · NASA',
-    accent:'#'+new THREE.Color(R.color).getHexString(),
-    stats:R.stats, desc:R.desc };
+// 화성 로버 빌드는 PLANETS 빌드 이후 호출 (bodyObjs.mars.mesh가 존재해야 함)
+function buildMarsRovers() {
+  for (const R of MARS_ROVERS) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:makeGlowSprite(R.color, true), transparent:true,
+      blending:THREE.AdditiveBlending, depthWrite:false }));
+    sp.userData.bodyKey = R.key;
+    sp.position.copy(latLonToUnitVec(R.lat, R.lon)).multiplyScalar(1.02);
+    bodyObjs.mars.mesh.add(sp);
+    const lb = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:makeLabelTexture(R.name), transparent:true, depthWrite:false }));
+    lb.userData.bodyKey = R.key;
+    lb.position.copy(sp.position).multiplyScalar(1.12);
+    bodyObjs.mars.mesh.add(lb);
+    sp.visible = false; lb.visible = false;
+    roverObjs[R.key] = { R, sprite:sp, label:lb };
+    OBJ_BY_KEY[R.key] = { kind:'rover', obj: roverObjs[R.key] };
+    INFO[R.key] = { name:R.name, type:'화성 로버 · NASA',
+      accent:'#'+new THREE.Color(R.color).getHexString(),
+      stats:R.stats, desc:R.desc };
+  }
 }
 
 function updateRovers() {
@@ -1625,6 +1627,8 @@ function buildPlanet(P) {
   bodyObjs[P.key] = obj;
 }
 for (const P of PLANETS) buildPlanet(P);
+// 화성 로버 핀 — PLANETS 빌드 직후, bodyObjs.mars.mesh 존재 보장
+buildMarsRovers();
 
 // ===== 달 =====
 const moonMat = new THREE.MeshStandardMaterial({ roughness:1, metalness:0, color:0x999999 });
