@@ -125,14 +125,19 @@
           <span>조석 기준</span>
           <select id="tide-region" aria-label="조석 지역">
             <option value="busan" selected>Busan (부산)</option>
+            <option value="incheon">Incheon (인천)</option>
           </select>
         </div>
+        <div id="tide-source" class="tide-source">Busan data loading</div>
         <dl>
           <div><dt>관측지</dt><dd id="tide-location">35.1796°N, 129.0756°E</dd></div>
-          <div><dt>달 고도</dt><dd id="tide-moon-altitude">-</dd></div>
-          <div><dt>달 방위</dt><dd id="tide-moon-azimuth">-</dd></div>
+          <div><dt>현재 조위</dt><dd id="tide-current-level">-</dd></div>
+          <div><dt>다음 물때</dt><dd id="tide-next-event">-</dd></div>
+          <div><dt>달 위치</dt><dd id="tide-moon-position">-</dd></div>
           <div><dt>조석 경향</dt><dd id="tide-strength">-</dd></div>
         </dl>
+        <div id="tide-table" class="tide-table" aria-label="조석표"></div>
+        <canvas id="tide-chart" class="tide-chart" width="600" height="150" aria-label="부산 조위 곡선"></canvas>
       </aside>
     </section>
 

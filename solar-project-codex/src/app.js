@@ -12,6 +12,8 @@ const MOON_RADIUS_KM = 1_737.4;
 const LY_AU = 63_241.077;
 const OBLIQUITY_DEG = 23.4392911;
 const EPOCH_2000_JAN_0 = Date.UTC(1999, 11, 31, 0, 0, 0);
+const KNOWN_NEW_MOON_MS = Date.UTC(2000, 0, 6, 18, 14, 0);
+const SYNODIC_MONTH_DAYS = 29.530588861;
 const BASE_SIMULATION_MS = new Date(2026, 4, 22, 0, 0, 0).getTime();
 const PLANET_TEXTURE_BASE = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';
 const PLANET_TEXTURES = {
@@ -61,6 +63,32 @@ const BUSAN_OBSERVER = {
   latitude: 35.1796,
   longitude: 129.0756,
 };
+
+const TIDE_STATIONS = {
+  busan: {
+    id: 'busan',
+    label: 'Busan (부산)',
+    korean: '부산',
+    obsCode: 'DT_0005',
+    latitude: 35.1796,
+    longitude: 129.0756,
+    meanLevelCm: 92,
+    constituents: { m2: 42, s2: 18, k1: 9, o1: 7 },
+    phaseHours: { m2: 2.1, s2: 1.2, k1: 5.8, o1: 3.4 },
+  },
+  incheon: {
+    id: 'incheon',
+    label: 'Incheon (인천)',
+    korean: '인천',
+    obsCode: 'DT_0001',
+    latitude: 37.4563,
+    longitude: 126.7052,
+    meanLevelCm: 460,
+    constituents: { m2: 270, s2: 105, k1: 32, o1: 28 },
+    phaseHours: { m2: 4.8, s2: 2.6, k1: 8.3, o1: 6.2 },
+  },
+};
+const DEFAULT_TIDE_STATION_ID = 'busan';
 
 const OUTER_REGION_DEFS = [
   {
@@ -445,9 +473,13 @@ const tidePanel = {
   root: document.getElementById('tide-panel'),
   region: document.getElementById('tide-region'),
   location: document.getElementById('tide-location'),
-  moonAltitude: document.getElementById('tide-moon-altitude'),
-  moonAzimuth: document.getElementById('tide-moon-azimuth'),
+  source: document.getElementById('tide-source'),
+  currentLevel: document.getElementById('tide-current-level'),
+  nextEvent: document.getElementById('tide-next-event'),
+  moonPosition: document.getElementById('tide-moon-position'),
   strength: document.getElementById('tide-strength'),
+  table: document.getElementById('tide-table'),
+  chart: document.getElementById('tide-chart'),
 };
 
 const jumpButtons = Array.from(document.querySelectorAll('[data-time-jump]'));
@@ -691,15 +723,40 @@ function moonPhaseKorean(angle) {
   return '그믐달';
 }
 
-function moonPhaseSvg(angle) {
-  const illumination = (1 - cosDeg(angle)) / 2;
-  const waxing = angle > 0 && angle < 180;
+function liveMoonPhase(date = new Date()) {
+  const days = (date.getTime() - KNOWN_NEW_MOON_MS) / DAY_MS;
+  const age = ((days % SYNODIC_MONTH_DAYS) + SYNODIC_MONTH_DAYS) % SYNODIC_MONTH_DAYS;
+  const phase = age / SYNODIC_MONTH_DAYS;
+  const illumination = (1 - Math.cos(Math.PI * 2 * phase)) / 2;
+  return {
+    age,
+    phase,
+    illumination,
+    name: moonPhaseNameFromFraction(phase),
+  };
+}
+
+function moonPhaseNameFromFraction(phase) {
+  if (phase < 0.03 || phase >= 0.97) return '삭';
+  if (phase < 0.18) return '초승달';
+  if (phase < 0.245) return '상현전 초승달';
+  if (phase < 0.285) return '상현달';
+  if (phase < 0.47) return '상현후 차오르는 달';
+  if (phase < 0.53) return '보름달';
+  if (phase < 0.715) return '하현전 기우는 달';
+  if (phase < 0.755) return '하현달';
+  if (phase < 0.94) return '그믐달';
+  return '그믐 끝달';
+}
+
+function moonPhaseSvg(phase, illumination) {
+  const waxing = phase > 0 && phase < 0.5;
   const shadowWidth = Math.max(0.02, Math.abs(1 - illumination * 2));
   const litSide = waxing ? 1 : -1;
   const ellipseCx = 32 + litSide * shadowWidth * 18;
   const ellipseRx = Math.max(2, 28 * shadowWidth);
   return `
-    <svg viewBox="0 0 64 64" role="img" aria-label="${moonPhaseKorean(angle)}">
+    <svg viewBox="0 0 64 64" role="img" aria-label="${moonPhaseNameFromFraction(phase)}">
       <defs>
         <clipPath id="moon-disc-clip"><circle cx="32" cy="32" r="28"/></clipPath>
         <radialGradient id="moon-lit" cx="35%" cy="28%" r="70%">
@@ -746,6 +803,177 @@ function horizontalCoordinates(date, raDeg, decDeg, observer) {
     altitudeDeg: altitude * RAD,
     azimuthDeg: rev(azimuth * RAD),
   };
+}
+
+function ymdKst(date = new Date()) {
+  const kstMs = date.getTime() + 9 * 3600 * 1000;
+  return new Date(kstMs).toISOString().slice(0, 10).replaceAll('-', '');
+}
+
+function formatTimeKst(date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
+function formatDateTimeKst(date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
+function getKhoaServiceKey() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return window.KHOA_SERVICE_KEY
+      || window.localStorage.getItem('KHOA_SERVICE_KEY')
+      || params.get('khoaKey')
+      || '';
+  } catch {
+    return window.KHOA_SERVICE_KEY || '';
+  }
+}
+
+function parseKhoaDate(value) {
+  if (!value) return null;
+  const text = String(value).replace('T', ' ');
+  const match = text.match(/(\d{4})[-/]?(\d{2})[-/]?(\d{2})\s+(\d{2}):?(\d{2})/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return new Date(`${year}-${month}-${day}T${hour}:${minute}:00+09:00`);
+}
+
+async function fetchKhoaBusanTideData(station, date = new Date()) {
+  const serviceKey = getKhoaServiceKey();
+  if (!serviceKey) throw new Error('KHOA ServiceKey not configured');
+
+  const dateToken = ymdKst(date);
+  const base = 'https://www.khoa.go.kr/api/oceangrid';
+  const params = new URLSearchParams({
+    ServiceKey: serviceKey,
+    ObsCode: station.obsCode,
+    Date: dateToken,
+    ResultType: 'json',
+  });
+  const preResponse = await fetch(`${base}/tideObsPre/search.do?${params.toString()}`);
+  if (!preResponse.ok) throw new Error(`KHOA tideObsPre ${preResponse.status}`);
+  const preJson = await preResponse.json();
+  const rawEvents = preJson?.result?.data ? (Array.isArray(preJson.result.data) ? preJson.result.data : [preJson.result.data]) : [];
+
+  const recentParams = new URLSearchParams({
+    ServiceKey: serviceKey,
+    ObsCode: station.obsCode,
+    ResultType: 'json',
+  });
+  const recentResponse = await fetch(`${base}/tideObsRecent/search.do?${recentParams.toString()}`);
+  const recentJson = recentResponse.ok ? await recentResponse.json() : null;
+  const recentRaw = recentJson?.result?.data;
+  const recent = Array.isArray(recentRaw) ? recentRaw[0] : recentRaw;
+
+  const events = rawEvents
+    .map((item) => ({
+      time: parseKhoaDate(item.tph_time || item.tide_time || item.record_time),
+      levelCm: Number(item.tph_level ?? item.tide_level ?? item.level),
+      type: String(item.hl_code || item.tide_code || '').toUpperCase().startsWith('H') ? 'H' : 'L',
+    }))
+    .filter((event) => event.time && Number.isFinite(event.levelCm))
+    .sort((a, b) => a.time - b.time);
+
+  const currentTime = parseKhoaDate(recent?.record_time);
+  const currentHeightCm = Number(recent?.tide_level);
+  const samples = generateTideSamples(station, date, currentTime || new Date());
+  return {
+    stationId: station.id,
+    source: 'KHOA 실측/예보',
+    loadedAt: new Date(),
+    currentTime: currentTime || new Date(),
+    currentHeightCm: Number.isFinite(currentHeightCm) ? currentHeightCm : tideHeightCmAt(Date.now(), station),
+    events,
+    samples,
+  };
+}
+
+function tideHeightCmAt(timeMs, station) {
+  const hours = timeMs / 3600000;
+  const c = station.constituents;
+  const p = station.phaseHours;
+  return station.meanLevelCm
+    + c.m2 * Math.cos((2 * Math.PI * (hours - p.m2)) / 12.4206012)
+    + c.s2 * Math.cos((2 * Math.PI * (hours - p.s2)) / 12)
+    + c.k1 * Math.cos((2 * Math.PI * (hours - p.k1)) / 23.934472)
+    + c.o1 * Math.cos((2 * Math.PI * (hours - p.o1)) / 25.819338);
+}
+
+function generateTideSamples(station, date = new Date(), center = new Date()) {
+  const start = new Date(center.getTime() - 6 * 3600 * 1000);
+  start.setMinutes(0, 0, 0);
+  const samples = [];
+  for (let i = 0; i <= 60; i += 1) {
+    const time = new Date(start.getTime() + i * 30 * 60000);
+    samples.push({ time, levelCm: tideHeightCmAt(time.getTime(), station) });
+  }
+  return samples;
+}
+
+function generateTideEvents(station, center = new Date()) {
+  const start = new Date(center.getTime() - 2 * 3600 * 1000);
+  const points = [];
+  for (let i = 0; i <= 112; i += 1) {
+    const time = new Date(start.getTime() + i * 15 * 60000);
+    points.push({ time, levelCm: tideHeightCmAt(time.getTime(), station) });
+  }
+
+  const events = [];
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const prev = points[i - 1].levelCm;
+    const curr = points[i].levelCm;
+    const next = points[i + 1].levelCm;
+    if ((curr >= prev && curr >= next) || (curr <= prev && curr <= next)) {
+      const type = curr >= prev && curr >= next ? 'H' : 'L';
+      if (!events.length || Math.abs(points[i].time - events[events.length - 1].time) > 2.5 * 3600 * 1000) {
+        events.push({ time: points[i].time, levelCm: curr, type });
+      }
+    }
+  }
+  return events.filter((event) => event.time.getTime() >= center.getTime() - 30 * 60000).slice(0, 6);
+}
+
+function generateTheoreticalTideData(station, date = new Date()) {
+  const now = new Date();
+  return {
+    stationId: station.id,
+    source: `${station.korean} 이론 조위표`,
+    loadedAt: now,
+    currentTime: now,
+    currentHeightCm: tideHeightCmAt(now.getTime(), station),
+    events: generateTideEvents(station, now),
+    samples: generateTideSamples(station, date, now),
+  };
+}
+
+async function loadTideData(stationId = tideStationId, date = new Date()) {
+  const station = TIDE_STATIONS[stationId] || TIDE_STATIONS[DEFAULT_TIDE_STATION_ID];
+  tideStationId = station.id;
+  const key = `${station.id}:${ymdKst(date)}`;
+  if (tideLoadingKey === key && tideData) return tideData;
+  tideLoadingKey = key;
+  if (tidePanel.source) tidePanel.source.textContent = `${station.label} 조석자료 불러오는 중`;
+
+  try {
+    tideData = await fetchKhoaBusanTideData(station, date);
+  } catch {
+    tideData = generateTheoreticalTideData(station, date);
+  }
+  updateTidePanel(new Date());
+  return tideData;
 }
 
 function canvasTexture(width, height, painter) {
@@ -1630,6 +1858,9 @@ let previousAnimationMs = performance.now();
 let previousFocus = new THREE.Vector3();
 let lastHudUpdate = 0;
 let lastMoonWidgetUpdate = 0;
+let tideStationId = DEFAULT_TIDE_STATION_ID;
+let tideData = null;
+let tideLoadingKey = '';
 let lastMoonOrbitBucket = Number.NaN;
 let lastSolarOrbitBucket = Number.NaN;
 let firstFrameRendered = false;
@@ -2292,23 +2523,114 @@ function updateMoonAndTideWidget(now) {
 
   const liveDate = new Date();
   const liveState = computeState(liveDate);
-  const phaseName = moonPhaseKorean(liveState.phaseAngle);
-  const illumination = liveState.illumination * 100;
+  const livePhase = liveMoonPhase(liveDate);
+  const phaseName = livePhase.name;
+  const illumination = livePhase.illumination * 100;
   const equatorial = eclipticToEquatorial(liveState.moon.longitude, liveState.moon.latitude);
-  const horizontal = horizontalCoordinates(liveDate, equatorial.raDeg, equatorial.decDeg, BUSAN_OBSERVER);
-  const springFactor = Math.abs(Math.cos(liveState.phaseAngle * DEG));
+  const station = TIDE_STATIONS[tideStationId] || TIDE_STATIONS[DEFAULT_TIDE_STATION_ID];
+  const horizontal = horizontalCoordinates(liveDate, equatorial.raDeg, equatorial.decDeg, station);
+  const springFactor = Math.abs(Math.cos(Math.PI * 2 * livePhase.phase));
   const tideStrength = springFactor > 0.78 ? '대조기에 가까움' : springFactor > 0.42 ? '중간 조차' : '소조기에 가까움';
 
-  if (moonWidget.visual) moonWidget.visual.innerHTML = moonPhaseSvg(liveState.phaseAngle);
+  if (moonWidget.visual) moonWidget.visual.innerHTML = moonPhaseSvg(livePhase.phase, livePhase.illumination);
   if (moonWidget.name) moonWidget.name.textContent = phaseName;
   if (moonWidget.illumination) moonWidget.illumination.textContent = `${illumination.toFixed(1)}%`;
   if (moonWidget.observer) moonWidget.observer.textContent = BUSAN_OBSERVER.label;
 
-  if (tidePanel.region) tidePanel.region.value = 'busan';
-  if (tidePanel.location) tidePanel.location.textContent = `${BUSAN_OBSERVER.latitude.toFixed(4)}°N, ${BUSAN_OBSERVER.longitude.toFixed(4)}°E`;
-  if (tidePanel.moonAltitude) tidePanel.moonAltitude.textContent = `${horizontal.altitudeDeg.toFixed(1)}°`;
-  if (tidePanel.moonAzimuth) tidePanel.moonAzimuth.textContent = `${horizontal.azimuthDeg.toFixed(1)}°`;
-  if (tidePanel.strength) tidePanel.strength.textContent = tideStrength;
+  if (!tideData || tideData.stationId !== station.id || ymdKst(tideData.loadedAt) !== ymdKst(liveDate)) {
+    loadTideData(station.id, liveDate);
+  }
+  updateTidePanel(liveDate, horizontal, tideStrength);
+}
+
+function updateTidePanel(liveDate = new Date(), horizontal = null, tideStrength = '') {
+  const station = TIDE_STATIONS[tideStationId] || TIDE_STATIONS[DEFAULT_TIDE_STATION_ID];
+  const data = tideData || generateTheoreticalTideData(station, liveDate);
+  const nextEvent = data.events.find((event) => event.time.getTime() >= liveDate.getTime()) || data.events[0];
+  if (tidePanel.region) tidePanel.region.value = station.id;
+  if (tidePanel.location) tidePanel.location.textContent = `${station.latitude.toFixed(4)}°N, ${station.longitude.toFixed(4)}°E`;
+  if (tidePanel.source) tidePanel.source.textContent = `${data.source} · ${formatDateTimeKst(data.loadedAt)}`;
+  if (tidePanel.currentLevel) tidePanel.currentLevel.textContent = `${Math.round(data.currentHeightCm).toLocaleString('ko-KR')} cm`;
+  if (tidePanel.nextEvent) {
+    tidePanel.nextEvent.textContent = nextEvent
+      ? `${nextEvent.type === 'H' ? '만조' : '간조'} ${formatTimeKst(nextEvent.time)} · ${Math.round(nextEvent.levelCm)} cm`
+      : '-';
+  }
+  if (tidePanel.moonPosition) {
+    tidePanel.moonPosition.textContent = horizontal
+      ? `고도 ${horizontal.altitudeDeg.toFixed(1)}° / 방위 ${horizontal.azimuthDeg.toFixed(1)}°`
+      : '-';
+  }
+  if (tidePanel.strength) tidePanel.strength.textContent = tideStrength || '-';
+  renderTideTable(data.events);
+  drawTideChart(data.samples, data.currentTime || liveDate);
+}
+
+function renderTideTable(events = []) {
+  if (!tidePanel.table) return;
+  const rows = events.slice(0, 4).map((event) => `
+    <div class="tide-row">
+      <span>${event.type === 'H' ? '만조' : '간조'}</span>
+      <strong>${formatTimeKst(event.time)}</strong>
+      <em>${Math.round(event.levelCm).toLocaleString('ko-KR')} cm</em>
+    </div>
+  `).join('');
+  tidePanel.table.innerHTML = rows || '<div class="tide-row"><span>조석</span><strong>-</strong><em>-</em></div>';
+}
+
+function drawTideChart(samples = [], currentTime = new Date()) {
+  const canvas = tidePanel.chart;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = 'rgba(3, 8, 16, 0.52)';
+  ctx.fillRect(0, 0, width, height);
+  if (samples.length < 2) return;
+
+  const levels = samples.map((sample) => sample.levelCm);
+  const min = Math.min(...levels);
+  const max = Math.max(...levels);
+  const span = Math.max(1, max - min);
+  const xFor = (i) => (i / (samples.length - 1)) * (width - 24) + 12;
+  const yFor = (level) => height - 18 - ((level - min) / span) * (height - 34);
+
+  ctx.strokeStyle = 'rgba(125, 180, 255, 0.18)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i += 1) {
+    const y = 14 + i * ((height - 28) / 3);
+    ctx.beginPath();
+    ctx.moveTo(10, y);
+    ctx.lineTo(width - 10, y);
+    ctx.stroke();
+  }
+
+  const gradient = ctx.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, '#7db4ff');
+  gradient.addColorStop(0.5, '#ffca67');
+  gradient.addColorStop(1, '#7db4ff');
+  ctx.strokeStyle = gradient;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  samples.forEach((sample, i) => {
+    const x = xFor(i);
+    const y = yFor(sample.levelCm);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  const first = samples[0].time.getTime();
+  const last = samples[samples.length - 1].time.getTime();
+  const t = (currentTime.getTime() - first) / Math.max(1, last - first);
+  const markerX = Math.max(12, Math.min(width - 12, 12 + t * (width - 24)));
+  ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(markerX, 10);
+  ctx.lineTo(markerX, height - 10);
+  ctx.stroke();
 }
 
 function changeSpeed(delta) {
@@ -2389,6 +2711,14 @@ buttons.toggleOrbits.addEventListener('click', () => {
   setButtonStates();
 });
 infoPanel.overview.addEventListener('click', () => returnToOverview());
+if (tidePanel.region) {
+  tidePanel.region.value = DEFAULT_TIDE_STATION_ID;
+  tidePanel.region.addEventListener('change', () => {
+    tideStationId = tidePanel.region.value || DEFAULT_TIDE_STATION_ID;
+    tideData = null;
+    loadTideData(tideStationId, new Date());
+  });
+}
 
 function setPointerFromEvent(event) {
   const rect = renderer.domElement.getBoundingClientRect();
@@ -2478,6 +2808,7 @@ function animate(now) {
 applyScale();
 setButtonStates();
 updateTimeControls();
+loadTideData(DEFAULT_TIDE_STATION_ID, new Date());
 frameFocus();
 requestAnimationFrame(animate);
 
@@ -2520,6 +2851,24 @@ window.solarProject = {
       oortVisible: outerRegionParticles['oort-cloud'].visible,
       alphaCentauriGuideVisible: interstellarGuideLines['alpha-centauri'].visible,
       fortyEridaniGuideVisible: interstellarGuideLines['forty-eridani-a'].visible,
+    };
+  },
+  getMoonPhaseForDate(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    const phase = liveMoonPhase(date);
+    return {
+      name: phase.name,
+      illuminationPercent: Number((phase.illumination * 100).toFixed(1)),
+      ageDays: Number(phase.age.toFixed(2)),
+      phase: Number(phase.phase.toFixed(4)),
+    };
+  },
+  getTidePanelState() {
+    return {
+      stationId: tideStationId,
+      source: tideData?.source || '',
+      currentHeightCm: tideData ? Math.round(tideData.currentHeightCm) : null,
+      eventCount: tideData?.events?.length || 0,
     };
   },
 };
