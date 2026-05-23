@@ -62,8 +62,8 @@
   #moonWidget .mwTh .mwLoc { font-size: 11.5px; color: #8b97b4; font-weight: 600; }
   #moonWidget .mwBody { display: flex; gap: 14px; align-items: center; }
   #moonCanvas { width: 110px; height: 110px; border-radius: 50%; flex-shrink: 0;
-    background: radial-gradient(circle at 30% 30%, rgba(40,52,84,0.35) 0%, rgba(4,8,18,0.85) 80%);
-    box-shadow: 0 0 24px rgba(140,170,240,0.18) inset; }
+    background: radial-gradient(circle at 30% 30%, rgba(60,52,40,0.35) 0%, rgba(14,10,6,0.88) 82%);
+    box-shadow: 0 0 26px rgba(244,208,102,0.16) inset, 0 2px 14px rgba(0,0,0,0.45); }
   #moonWidget .mwInfo { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   #moonWidget .mwRow { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
   #moonWidget .mwRow .k { color: #8b97b4; flex-shrink: 0; }
@@ -1399,7 +1399,8 @@ function drawMoonPhase(ctx, cx, cy, r, phaseAngle) {
   const cosA = Math.cos(phaseAngle * Math.PI / 180);
   const illumination = (1 - cosA) / 2;
   const waxing = phaseAngle < 180;
-  const LIT = '#e6e9f2', DARK = '#171a26';
+  // 2026년 5월 부산 조석예보표 톤 — 따뜻한 황금빛 노란 + 어두운 회색
+  const LIT = '#f4d066', DARK = '#2c2d3e';
   // 1) 어두운 면 (전체 원)
   ctx.clearRect(cx-r-2, cy-r-2, (r+2)*2, (r+2)*2);
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
@@ -1413,12 +1414,12 @@ function drawMoonPhase(ctx, cx, cy, r, phaseAngle) {
   ctx.beginPath();
   ctx.ellipse(cx, cy, r * Math.abs(cosA), r, 0, 0, Math.PI*2);
   ctx.fillStyle = (illumination < 0.5) ? DARK : LIT; ctx.fill();
-  // 4) 가장자리 림 라이트 — 입체감
+  // 4) 살짝의 림 라이트 — 황금빛 가장자리 (단순, 조석표 미니멀 스타일 유지)
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-  const grad = ctx.createRadialGradient(cx-r*0.25, cy-r*0.25, r*0.1, cx, cy, r*1.05);
-  grad.addColorStop(0, 'rgba(255,255,255,0.10)');
-  grad.addColorStop(0.85, 'rgba(255,255,255,0)');
-  grad.addColorStop(1, 'rgba(140,170,230,0.18)');
+  const grad = ctx.createRadialGradient(cx-r*0.3, cy-r*0.3, r*0.15, cx, cy, r*1.02);
+  grad.addColorStop(0, 'rgba(255,240,180,0.08)');
+  grad.addColorStop(0.88, 'rgba(255,220,120,0)');
+  grad.addColorStop(1, 'rgba(220,170,80,0.22)');
   ctx.fillStyle = grad; ctx.fill();
 }
 
