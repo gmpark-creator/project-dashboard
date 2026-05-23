@@ -1824,29 +1824,41 @@ const ehtDiskMat = new THREE.ShaderMaterial({
       // === Kepler 회전 (가르강튀아보다 느림 — EHT 관측 정적 인상) ===
       float vel = uTime * 0.18 / max(0.3, r);
 
-      // === 노이즈 — 가르강튀아보다 부드럽고 차분 ===
+      // === 노이즈 — 부드럽고 차분 ===
       float n = fbm(vec2(theta * 3.0 + vel, r * 2.5));
-      float plasma = 0.55 + n * 0.55;
+      float n2 = fbm(vec2(theta * 7.0 - vel * 0.7, r * 5.5));
+      float plasma = 0.50 + n * 0.55 + n2 * 0.25;
 
       // === 색감 — M87* EHT 사진 톤 (따뜻한 오렌지 ring) ===
-      vec3 deepOrange = vec3(0.95, 0.42, 0.10);     // 안쪽 진한 오렌지
-      vec3 midOrange  = vec3(1.00, 0.62, 0.22);     // 중간 밝은 오렌지
-      vec3 fadeOrange = vec3(0.50, 0.18, 0.05);     // 바깥쪽 페이드
+      vec3 deepOrange = vec3(0.95, 0.42, 0.10);
+      vec3 midOrange  = vec3(1.00, 0.62, 0.22);
+      vec3 brightCore = vec3(1.20, 0.85, 0.45);
+      vec3 fadeOrange = vec3(0.50, 0.18, 0.05);
       vec3 col = mix(deepOrange, midOrange, smoothstep(0.05, 0.30, r));
       col      = mix(col,        fadeOrange, smoothstep(0.30, 0.90, r));
       col *= plasma;
 
-      // === Photon Ring — 가장 안쪽 가는 ring (EHT 시그니처) ===
-      float photon = smoothstep(0.045, 0.065, r) * (1.0 - smoothstep(0.065, 0.10, r));
-      col += vec3(1.4, 1.1, 0.7) * photon * 0.85;
+      // === Photon Ring — EHT 시그니처 가는 흰 ring (강화) ===
+      float photon = smoothstep(0.045, 0.062, r) * (1.0 - smoothstep(0.062, 0.095, r));
+      col += vec3(1.6, 1.3, 0.85) * photon * 1.1;
 
-      // === 약한 Doppler 비대칭 — 한쪽 약 30% 더 밝음 (EHT M87 관측 사실 반영) ===
-      float weakDoppler = 0.75 + 0.30 * sin(theta);
-      col *= weakDoppler;
+      // === Relativistic Doppler Beaming 강화 — 강한 비대칭 crescent ===
+      // EHT M87 실측: 한쪽 약 2~3배 밝음. 시각적 강조 위해 3.5배 차이 적용
+      float doppler = 0.42 + 0.58 * sin(theta);
+      col *= doppler * 1.4;
+
+      // === Crescent 강조 — 밝은 쪽에 추가 ring (EHT 사진의 시그니처 초승달) ===
+      float bright = max(0.0, sin(theta));
+      float crescent = smoothstep(0.062, 0.10, r) * (1.0 - smoothstep(0.10, 0.20, r));
+      col += brightCore * bright * crescent * 0.85;
+
+      // === Gravitational Lens 가장자리 빛 ===
+      float lensEdge = smoothstep(0.85, 1.00, r) * 0.4;
+      col += vec3(0.6, 0.32, 0.10) * lensEdge;
 
       // === 가장자리 fade ===
       float edgeAlpha = smoothstep(1.0, 0.92, r) * smoothstep(0.0, 0.04, r);
-      float alpha = edgeAlpha * (0.65 + plasma * 0.25);
+      float alpha = edgeAlpha * (0.65 + plasma * 0.30);
 
       gl_FragColor = vec4(col, alpha);
     }
@@ -2114,9 +2126,75 @@ function setOuterRegionVisible(focusKey) {
   trojanL5Label.visible    = showT && labelsOn;
 }
 
-// ===== 태양 (글로우 + 자체발광) =====
+// ===== 태양 (GLSL 셰이더 — granulation + sunspot + limb darkening) =====
 // unitGeo / earthGeo는 위에서 공용으로 선언됨 (TDZ 회피용)
-const sunMesh = new THREE.Mesh(unitGeo, new THREE.MeshBasicMaterial({ map:makeSunTexture() }));
+const sunUniforms = { uTime: { value: 0 } };
+const sunMat = new THREE.ShaderMaterial({
+  uniforms: sunUniforms,
+  vertexShader: `
+    varying vec3 vPos;
+    varying vec3 vNormal;
+    void main() {
+      vPos = position;
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vPos;
+    varying vec3 vNormal;
+    uniform float uTime;
+
+    float hash3(vec3 p) { return fract(sin(dot(p, vec3(12.989, 78.233, 45.164))) * 43758.5453); }
+    float noise3(vec3 p) {
+      vec3 i = floor(p), f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(mix(hash3(i+vec3(0,0,0)), hash3(i+vec3(1,0,0)), f.x),
+            mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
+        mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x),
+            mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y),
+        f.z);
+    }
+    float fbm3(vec3 p) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 5; i++) { v += a * noise3(p); p *= 2.0; a *= 0.5; }
+      return v;
+    }
+
+    void main() {
+      // 1) Granulation — 작은 셀 패턴, 시간에 따라 흐름
+      vec3 p1 = vPos * 6.5 + vec3(0.0, uTime * 0.06, 0.0);
+      vec3 p2 = vPos * 14.0 + vec3(uTime * 0.10, 0.0, uTime * 0.08);
+      float g1 = fbm3(p1);
+      float g2 = fbm3(p2);
+      float granul = g1 * 0.6 + g2 * 0.4;
+
+      // 2) Sunspot — 큰 노이즈로 어두운 흑점 영역
+      float spotNoise = fbm3(vPos * 1.7 + vec3(uTime * 0.015));
+      float sunspot = smoothstep(0.62, 0.72, spotNoise);
+
+      // 3) 색 그라데이션 — 안쪽 흰-노랑 hot, 바깥쪽 진한 오렌지·빨강
+      vec3 core   = vec3(1.00, 0.97, 0.78);
+      vec3 mid    = vec3(1.00, 0.65, 0.20);
+      vec3 outer  = vec3(0.92, 0.32, 0.08);
+      vec3 col = mix(mid, core, smoothstep(0.40, 0.70, granul));
+      col = mix(col, outer, smoothstep(0.0, 0.30, 1.0 - granul) * 0.5);
+      // 흑점 — 어둡게
+      col = mix(col, vec3(0.55, 0.20, 0.04), sunspot * 0.75);
+
+      // 4) Limb darkening — 가장자리 어둠 (별 표면 광학 특성)
+      float limb = clamp(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+      col *= 0.55 + pow(limb, 0.6) * 0.55;
+
+      // 5) 작은 시간 변동 (코로나 떨림)
+      col += vec3(0.06, 0.02, 0.00) * sin(uTime * 0.7 + granul * 8.0);
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `
+});
+const sunMesh = new THREE.Mesh(unitGeo, sunMat);
 sunMesh.userData.bodyKey = 'sun';
 scene.add(sunMesh);
 const glow = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -2142,6 +2220,43 @@ function buildPlanet(P) {
     if (P.texMap && TEX[P.texMap]) {
       loadColorTex(TEX[P.texMap], t=>{ mat.map=t; mat.needsUpdate=true; });
     }
+    // 가스 행성 atmospheric halo — 행성 외곽에 발광 sphere (Fresnel 기반 GLSL)
+    // 박사님 지시 "최대 퀄리티" — 토성·천왕성·해왕성도 동일 적용
+    const haloColor = new THREE.Color(P.palette ? P.palette[0] : 0xd8c79a);
+    const haloMat = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: haloColor }, uIntensity: { value: 0.65 } },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vViewDir;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvp = modelViewMatrix * vec4(position, 1.0);
+          vViewDir = normalize(-mvp.xyz);
+          gl_Position = projectionMatrix * mvp;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        varying vec3 vViewDir;
+        uniform vec3 uColor;
+        uniform float uIntensity;
+        void main() {
+          // Fresnel — 가장자리만 발광
+          float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), 2.8);
+          gl_FragColor = vec4(uColor, fresnel * uIntensity);
+        }
+      `,
+      side: THREE.BackSide,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    // unitGeo 재사용
+    const haloMesh = new THREE.Mesh(unitGeo, haloMat);
+    haloMesh.userData.isHalo = true;
+    tilt.add(haloMesh);
+    // 빌드 후 obj에 보관 (스케일 적용 위해)
+    P._haloMesh = haloMesh;
   } else {
     mat = new THREE.MeshStandardMaterial({ map:makeRockyTexture(P), roughness:0.92, metalness:0 });
     if (P.texMap && TEX[P.texMap]) {
@@ -2156,6 +2271,7 @@ function buildPlanet(P) {
   mesh.userData.bodyKey = P.key;
   tilt.add(mesh);
   const obj = { P, group, tilt, mesh };
+  if (P._haloMesh) obj.halo = P._haloMesh;     // 가스 행성 atmospheric halo 연결
 
   if (P.style==='earth') {
     const cloudMat = new THREE.MeshStandardMaterial({ color:0xffffff, transparent:true, opacity:0.92, depthWrite:false, roughness:1 });
@@ -2598,6 +2714,7 @@ function applyScales() {
     if (o.atmo) o.atmo.scale.setScalar(r*1.16);
     if (o.axis) o.axis.scale.setScalar(r);
     if (o.ring) o.ring.scale.setScalar(r);
+    if (o.halo) o.halo.scale.setScalar(r * 1.085);     // 가스 행성 atmospheric halo
     // 위성 — 궤도 거리 = 행성 반경 × distMult, 위성 크기 = realR × MOON_SIZE_FACTOR (최소 r*0.04 보장)
     if (o.moons) for (const m of o.moons) {
       const moonR = Math.max(r * 0.04, m.data.realR * MOON_SIZE_FACTOR);
@@ -3499,6 +3616,7 @@ function animate() {
   try { updateKamooalewa(st.d); }   catch(e) { if(!window._errKamo){   console.warn('updateKamo:',e); window._errKamo=1; } }
   try { updateOumuamua(); }         catch(e) { if(!window._errOum){    console.warn('updateOumuamua:',e); window._errOum=1; } }
   try { updatePlanetNine(st.d); }   catch(e) { if(!window._errP9){     console.warn('updatePlanetNine:',e); window._errP9=1; } }
+  try { sunUniforms.uTime.value = st.d * 0.5; } catch(e) {}
   try { updateGargantua(dt, st.d * 0.01); } catch(e) { if(!window._errGarg){ console.warn('updateGargantua:',e); window._errGarg=1; } }
   try { updateEHT(dt, st.d * 0.01); }       catch(e) { if(!window._errEHT){  console.warn('updateEHT:',e);       window._errEHT=1; } }
   try { updateWormhole(st.d, st.d * 0.01); } catch(e) { if(!window._errWh){ console.warn('updateWormhole:',e); window._errWh=1; } }
