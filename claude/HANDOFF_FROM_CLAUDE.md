@@ -1,4 +1,34 @@
-# Claude → Codex 핸드오프 (2026-05-23 ~ 24)
+# Claude → Codex 핸드오프 (2026-05-23 ~ 24 · 최종)
+
+> **🏁 2026-05-24 최종 마무리** — 오늘 작업 전체 종료. 협업 체제 전환 공지:
+> 디렉터님 판단으로 WebGL/GLSL·프론트엔드 비주얼 분야는 Claude가 메인 구현 라인,
+> Codex는 런타임 오류 진단·TDZ 분석 등 디버깅 서포트 라인으로 역할 분담 (AI 강점 분리 모델).
+>
+> 오늘 추가된 항목 (Phase 1~6 + 후속 fix #1~#4 + 보고서 재정비):
+> 1. Phase 1: 화성 로버 제거 / 라그랑주 L1~L5 depthTest:false / JWST 황금 6각형 mesh
+> 2. Phase 2: 가르강튀아 GLSL (Kepler·fBm·Doppler·Lensing Halo Torus) + 웜홀 + 밀러/맨/에드먼즈
+> 3. Phase 3a: 외계 항성계 메뉴 3 optgroup + 가르강튀아 셰이더 view-warp/Einstein Ring 강화
+> 4. Phase 3b: 목성 트로이 L4·L5 60° 호 바운딩 (선택 시 표시)
+> 5. Phase 3c: EHT 사건의 지평선 (M87* 기반, 가르강튀아와 별도 GLSL)
+> 6. Phase 4·5: 위성 4종 카테고리 GLSL 셰이더 (Cratered·Volcanic·Icy·Hazy)
+> 7. Phase 6: 태양 GLSL (granulation·sunspot·limb darkening) + 가스 행성 halo + EHT 강화
+> 8. 후속 fix #1: 위성 라벨 본체 반대편 표시 버그 (Three.js Y rotation 부호)
+> 9. 후속 fix #2: 웜홀 회전·셰이더 감속 (회전 0.0006, 진동 = 0, 셰이더 흐름 0.008/0.005)
+> 10. 후속 fix #3: 웜홀 천문학 사실 기반 재작성 (deep space + 별 분광형 4종 + Einstein Ring)
+> 11. 후속 fix #4: 탐사선 3D 모델 (Voyager 큰 접시·RTG, Parker 태양 가리개, NH 작은 접시) + 항적 점선 + 방향 화살표
+>
+> ★ 핵심 디버깅 스토리: Phase 2 직후 3단 TDZ 에러 → GPT 진단 → Claude 즉시 fix
+>   1차 normalize → 2차 moonSphereGeo TDZ → 3차 bodyObjs TDZ
+>   (Codex가 정확히 짚어준 덕분에 빠른 해결 — AI 협업의 모범 사례)
+>
+> 보고서 재정비: 메인 페이지 HAZE STORY 앰블럼 + 영어 문구 가로 레이아웃, 보라 그라데이션,
+> 「박사님」 → 「디렉터님」 일괄 교체, ITYPE 신규 카테고리(분홍·푸시아 강조 박스),
+> milestones 시간순 정렬, Codex 미리보기 제거 + AI 협업 일원화 설명.
+>
+> **남은 작업 (다음 단계 후보)**: NASA 공식 GLB 3D 모델 로드(GLTFLoader)로 탐사선·행성을
+> 진짜 실사 수준까지 격상. 현재는 단순화된 mesh로 시그니처 부품만 반영 — 실사는 아님.
+
+---
 
 > **🔄 2026-05-24 갱신** — 디렉터 G.M.PARK 박사님 지시로 NASA/IAU/SIMBAD/Gaia DR3 표준값 대비 팩트체크 완료. 발견된 3건 차이를 모두 정밀화 반영:
 >

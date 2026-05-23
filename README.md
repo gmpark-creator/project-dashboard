@@ -20,7 +20,12 @@
 
 ## 최신 반영
 
-- 태양계 Claude 버전 — 인류 탐사선·라그랑주·공궤도·성간/미지 천체 통합 레이어 추가 (Voyager 1·2 / New Horizons / Parker Solar / JWST / 화성 로버 2기 / 지구-태양 L1~L5 동적 / 목성 트로이 군집 / 카모오알레와 1:1 공명 / 오무아무아 쌍곡선 / Planet Nine 가상). 「🛰 탐사선」「⚖ 라그랑주」「👽 미지」 UI 토글 3개로 카테고리 표시. 셀렉터 그룹 구분자
+- 태양계 Claude 버전 — 인류 탐사선 3D 모델 (sprite 점 → Voyager 큰 접시·RTG·Mag 붐 / Parker 태양 가리개·패널 / NewHorizons 작은 접시 / JWST 황금 6각형) + 항적 점선(과거 청·미래 주황) + 방향 화살표
+- 태양계 Claude 버전 — 태양 GLSL 셰이더(granulation·sunspot·limb darkening) + 가스 행성 atmospheric halo(목·토·천왕·해왕 Fresnel) + 위성 4종 카테고리 GLSL(Cratered·Volcanic·Icy·Hazy)
+- 태양계 Claude 버전 — 두 블랙홀 분리 GLSL: 가르강튀아(영화 인터스텔라, view-warp + Einstein Ring + 청색편이) / 사건의 지평선(EHT M87*, 사실 기반 + Doppler crescent)
+- 태양계 Claude 버전 — 웜홀 천문학 사실 셰이더 (deep space + 별 분광형 4종 + Einstein Ring lensing, Kip Thorne 자문)
+- 보고서 재정비 — HAZE STORY 앰블럼 + 영어 메인 문구 가로 레이아웃, 보라 그라데이션, 「박사님→디렉터님」 일괄 교체, milestones 시간순, Codex 미리보기 제거 + AI 협업 일원화 설명(Claude 메인 구현 + Codex 디버깅 서포트)
+- 태양계 Claude 버전 — 인류 탐사선·라그랑주·공궤도·성간/미지 천체 통합 레이어 추가 (Voyager 1·2 / New Horizons / Parker Solar / JWST / 지구-태양 L1~L5 동적 / 목성 트로이 군집 / 카모오알레와 1:1 공명 / 오무아무아 쌍곡선 / Planet Nine 가상). 「🛰 탐사선」「⚖ 라그랑주」「👽 미지」 UI 토글 3개로 카테고리 표시. 셀렉터 그룹 구분자
 - 태양계 Claude 버전 — Phase 2: 「인터스텔라」 영화 시스템 통합 (가르강튀아 GLSL 블랙홀 + 웜홀 + 밀러·맨·에드먼즈 행성). Custom GLSL ShaderMaterial로 케플러 회전·fBm 플라즈마 노이즈·Doppler 빔잉·휘어진 lensing halo 실시간 렌더
 - 태양계 Claude 버전 — Phase 1: 화성 로버 완전 제거 (박사님 지시), 라그랑주 L1~L5 depthTest:false + renderOrder 강화로 지구 뒤로 안 가려짐, JWST 황금 6각형 mesh + halo로 차별화
 - 태양계 Claude 버전 — 위성 셀렉터 계층화 + 클릭 정보: 「초점」 메뉴에 위성 11개 행성 아래 들여쓰기(└), INFO 등록으로 셀렉터/mesh/라벨 클릭 시 사이드바 정보 표시. 위성 라벨을 mesh 본체 크기 비례(meshR×1.6 위, ×3.2 크기)로 본체에 근접하게 보정
