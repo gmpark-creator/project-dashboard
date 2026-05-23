@@ -2281,8 +2281,23 @@ function buildMoonsForPlanet(planetKey, moons) {
   planet.moonsGroup = moonsGroup;
 
   for (const M of moons) {
-    // 위성 본체
-    const mat = new THREE.MeshStandardMaterial({ color:M.color, roughness:1, metalness:0, transparent:true, opacity:1 });
+    // 위성 PBR — NASA 달 텍스처(moon_1024.jpg)를 표면 디테일로 공유하고 위성별 color tint 적용
+    // (위성 전용 무료 CDN 텍스처가 사실상 부재 — 달 텍스처를 베이스로 색조 변경)
+    const mat = new THREE.MeshStandardMaterial({
+      color: M.color, roughness: 0.92, metalness: 0.02,
+      transparent: true, opacity: 1
+    });
+    // 달 텍스처 — 표면 크레이터·바다 디테일
+    loadColorTex(TEX.moon, t => {
+      mat.map = t;
+      mat.needsUpdate = true;
+    });
+    // 같은 텍스처를 bump map으로도 사용 → 표면 굴곡감 (포보스/데이모스는 크게, 큰 위성은 작게)
+    loadDataTex(TEX.moon, t => {
+      mat.bumpMap = t;
+      mat.bumpScale = M.realR < 50 ? 0.05 : 0.022;
+      mat.needsUpdate = true;
+    });
     const mesh = new THREE.Mesh(moonSphereGeo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.userData.bodyKey = M.key;                  // 영문 단독 키 (포보스 → 'phobos')
