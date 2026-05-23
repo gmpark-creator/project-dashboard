@@ -193,7 +193,8 @@ const PROJECTS = [
       { type:'완료', title:'고해상 행성 텍스처 + 주요 위성 시스템 (Claude · 2026-05-24)', desc:'7행성(수성·금성·화성·목성·토성·천왕성·해왕성)에 NASA 출처 디퓨즈·범프 텍스처 적용(jsDelivr/threex.planets). 토성 고리도 실제 색상 텍스처. 주요 위성 11개 추가 — Phobos·Deimos·Io·Europa·Ganymede·Callisto·Titan·Rhea·Titania·Oberon·Triton. parent.group→pivot→mesh 계층으로 행성 이동 자동 추적. 이중 가시성 로직: (A) 행성 포커스 시 그 행성 위성만 fade-in (B) 「🌙 위성」 토글로 전체 동시 표시. opacity 트윈으로 0.25초 부드러운 전환.' },
       { type:'완료', title:'위성 셀렉터 계층화 + 클릭 정보 + 라벨 보정 (Claude · 2026-05-24)', desc:'「초점」 메뉴 위성 11개를 모행성 아래에 「└ 위성명」 형식으로 계층 표시. INFO 객체에 모든 위성의 천문학 정보 등록 — 셀렉터/mesh/라벨 어느 곳을 클릭해도 사이드바에 지름·모행성·공전주기·모행성과 거리·특징·해설이 「달」과 동일하게 표시. 위성 라벨이 본체에서 멀어 보이던 문제 해결 — 라벨 위치를 meshR×1.6 위로, 크기를 meshR×3.2로 본체 비례 산정해 위성에 근접하게 표시. opacity 0인 위성은 raycaster 자동 제외.' },
       { type:'완료', title:'부산 기준 실시간 달 모양 위젯 (Claude · 2026-05-24)', desc:'조석 패널 위에 신설 — Canvas 2D + NASA moon_1024.jpg 텍스처를 globalCompositeOperation 「multiply」로 합성. 표면 디테일(크레이터·바다·고지)을 유지하면서 위상별 그림자만 정확히 변화. 한국어 8단계 위상명 + 조명률(%) + 달 나이 표시.' },
-      { type:'완료', title:'조석 기본 지점을 부산으로 (Claude · 2026-05-24)', desc:'curLoc 초기값을 인천 → 부산으로 변경, 셀렉터 selected 속성도 부산. 달 위젯 관측 지점과 일관성 확보.' }
+      { type:'완료', title:'조석 기본 지점을 부산으로 (Claude · 2026-05-24)', desc:'curLoc 초기값을 인천 → 부산으로 변경, 셀렉터 selected 속성도 부산. 달 위젯 관측 지점과 일관성 확보.' },
+      { type:'핵심', title:'GPT 협업 — 3단 TDZ 에러 진단·해결기록', desc:'2026-05-24 Phase 2 대규모 패치 직후 시뮬레이터 검은 화면 다운. Claude(나)가 첫 에러만 잡고 캐시 의심에 빠져 헛수고하던 중 GPT가 정확히 진단 — JavaScript TDZ(Temporal Dead Zone) 3단 연쇄. ①1차: buildProbes의 PR.direction.normalize() — Parker/JWST는 direction 필드 없는데 호출. Claude가 if 가드로 해결. ②2차 (GPT 진단): const moonSphereGeo가 line 1703 선언인데 line 1233 카모오알레와에서 먼저 참조 → unitGeo·earthGeo·moonSphereGeo 세 공용 geometry를 신규 코드 위로 이동. ③3차 (GPT 재진단): 화성 로버 즉시 실행 for문이 bodyObjs 선언 전 실행 → buildMarsRovers() 함수로 감싸고 PLANETS 빌드 후 호출. 3단 모두 해결 후 정상 복귀. AI 협업의 모범 사례 — Claude는 구현, GPT는 정밀 진단.' }
     ],
     milestones: [
       { date:'2026-05-21', title:'Step 1 — 태양·지구·달 실시간', desc:'우주 배경·카메라 조작·실시간 자전/공전' },
@@ -216,7 +217,7 @@ const PROJECTS = [
       { date:'2026-05-24', title:'Phase 4 — 위성 PBR 텍스처 절충 적용', desc:'디렉터님 지시: 위성을 평면 sphere가 아닌 PBR 텍스처로 강화. 무료 CDN 위성 전용 텍스처가 사실상 없어(검색: jeromeetienne/threex.planets·solarsystemscope.com 모두 행성·달·명왕성만 제공) 절충안 적용 — NASA 달 텍스처(moon_1024.jpg)를 map+bumpMap으로 공유 + 위성별 color tint로 고유 색감(이오 노란·유로파 흰·가니메데 갈색·칼리스토 어두운회·타이탄 오렌지 등). bumpScale은 포보스/데이모스 같은 작은 위성에 더 강하게(0.05), 큰 위성은 약하게(0.022). 진짜 위성별 PBR은 디렉터님이 NASA 텍스처를 직접 폴더에 제공해주시면 즉시 적용 가능.' },
       { date:'2026-05-24', title:'Phase 5 — 위성별 GLSL 셰이더 (옵션 B 완전 구현)', desc:'디렉터님 선택 「B 절차적 셰이더」 진행. 4종 카테고리 ShaderMaterial 작성 — (1) CRATERED: 3D fbm 노이즈 + smoothstep 크레이터 패턴 (포보스·데이모스·칼리스토·레아·티타니아·오베론), (2) VOLCANIC: 황 화산 노랑/주황/검은 얼룩 (이오), (3) ICY: 얼음 + 갈라진 라인(abs sin pattern) (유로파·가니메데·트리톤), (4) HAZY: 두꺼운 오렌지 대기 + Fresnel 가장자리 발광 (타이탄). 각 위성에 surface:{type, color params, scale} 추가. 공통 hash3·noise3·fbm3 헬퍼 + MOON_VERTEX_SHADER + makeMoonShaderMaterial() 팩토리. uOpacity uniform으로 페이드 트윈 완벽 통합. 더 이상 단색 sphere 아님 — 11개 위성 모두 고유 표면 패턴.' },
       { date:'2026-05-24', title:'Phase 6 — 태양 GLSL 셰이더 + 가스 행성 atmospheric halo + EHT 강화', desc:'디렉터님 지시 「태양·토성·천왕성·해왕성도 최대 퀄리티」 + EHT 셰이더 보강. (1) 태양: MeshBasicMaterial → ShaderMaterial 전환. 3D fbm 노이즈로 표면 granulation(시간에 따라 흐름) + sunspot(어두운 흑점) + limb darkening(가장자리 어둠) + 코로나 떨림. (2) 가스 행성(목성·토성·천왕성·해왕성) atmospheric halo: 행성 외곽 unitGeo halo + Fresnel 셰이더 + BackSide + AdditiveBlending. 각 행성 palette 첫 색을 발광 색으로 적용. (3) EHT 셰이더 강화: Doppler 0.30→0.58 진폭(3.5배 차이), brightCore crescent 강조 ring(EHT 사진의 초승달 시그니처), gravitational lens edge 가장자리 빛, photon ring 1.1배 강화.' },
-      { date:'2026-05-24', title:'★ 핵심 디버깅 스토리 — GPT 협업으로 3단 TDZ 에러 해결', desc:'Phase 2 대규모 패치(인터스텔라 시스템) 직후 시뮬레이터가 검은 화면 + 「실행에 실패했습니다」로 완전 다운. Claude(나)가 첫 에러만 잡고 캐시 의심으로 빠져 헛수고하던 중, GPT가 정확히 진단 — JavaScript의 TDZ(Temporal Dead Zone, const 선언 전 접근 불가) 문제가 3단으로 누적돼 있었음. (1차) buildProbes 안 PR.direction.normalize() — Parker/JWST가 direction 필드 없는데 호출 → 「Cannot read properties of undefined」. Claude가 if 가드로 1차 해결. (2차) GPT 진단: const moonSphereGeo가 line 1703에 선언됐는데 line 1233 카모오알레와에서 먼저 참조 → 「Cannot access before initialization」. unitGeo·earthGeo·moonSphereGeo 세 공용 geometry를 신규 코드 블록 시작 위로 이동해 해결. (3차) GPT 재진단: 화성 로버 즉시 실행 for문이 bodyObjs 선언 전 실행되어 「Cannot access bodyObjs before initialization」. 로버 빌드 코드를 buildMarsRovers() 함수로 감싸고 PLANETS 빌드 직후 호출하도록 재구조. 3단 모두 해결 후 시뮬레이터 정상 동작 복귀. 캐시 진단용 [BUILD-vN-FIX] 마커를 로딩 화면에 임시 표시했다가 해결 후 제거. AI 협업의 모범 사례 — 각 AI 강점 활용.' },
+      { date:'2026-05-24', title:'핵심 디버깅 스토리 — GPT 협업으로 3단 TDZ 에러 해결', desc:'Phase 2 대규모 패치(인터스텔라 시스템) 직후 시뮬레이터가 검은 화면 + 「실행에 실패했습니다」로 완전 다운. Claude(나)가 첫 에러만 잡고 캐시 의심으로 빠져 헛수고하던 중, GPT가 정확히 진단 — JavaScript의 TDZ(Temporal Dead Zone, const 선언 전 접근 불가) 문제가 3단으로 누적돼 있었음. (1차) buildProbes 안 PR.direction.normalize() — Parker/JWST가 direction 필드 없는데 호출 → 「Cannot read properties of undefined」. Claude가 if 가드로 1차 해결. (2차) GPT 진단: const moonSphereGeo가 line 1703에 선언됐는데 line 1233 카모오알레와에서 먼저 참조 → 「Cannot access before initialization」. unitGeo·earthGeo·moonSphereGeo 세 공용 geometry를 신규 코드 블록 시작 위로 이동해 해결. (3차) GPT 재진단: 화성 로버 즉시 실행 for문이 bodyObjs 선언 전 실행되어 「Cannot access bodyObjs before initialization」. 로버 빌드 코드를 buildMarsRovers() 함수로 감싸고 PLANETS 빌드 직후 호출하도록 재구조. 3단 모두 해결 후 시뮬레이터 정상 동작 복귀. 캐시 진단용 [BUILD-vN-FIX] 마커를 로딩 화면에 임시 표시했다가 해결 후 제거. AI 협업의 모범 사례 — 각 AI 강점 활용.' },
       { date:'2026-05-24', title:'후속 fix #1 — 위성 라벨이 본체 반대편에 표시되던 버그', desc:'디렉터님 지적: 위성 라벨이 위성 본체에 안 붙고 반대편에 떠 있음. 원인 분석: Three.js의 Y축 회전 매트릭스 R_y(θ) × (1,0,0) = (cos(θ), 0, -sin(θ)). 기존 라벨 코드는 (cos(θ), 0, +sin(θ))로 Z 부호 반대였음 → 라벨이 mesh 정반대 방향에 위치. 수정: mesh.getWorldPosition() → label.parent.worldToLocal() 변환으로 mesh의 실제 위치를 라벨 좌표로 직접 복사. 회전 매트릭스 부호 계산 자체를 안 함 → 버그 원천 차단. Y 오프셋 1.6 → 1.4로 더 가깝게.' },
       { date:'2026-05-24', title:'후속 fix #2 — 웜홀 회전·셰이더 흐름 대폭 감속 (디렉터님 눈 피로)', desc:'디렉터님: 「웜홀 빙빙 돌아 눈 아프다」. 단계별 감속: 1차 회전 0.02→0.0028 + 진동 줄임 + 셰이더 흐름 0.30→0.04. 2차 더 강하게: 회전 0.0006(거의 정지), 진동 완전 제거(= 0), 셰이더 흐름 0.008/0.005로 사실상 정적. 격자 패턴 유지하되 매우 천천히 흐름.' },
       { date:'2026-05-24', title:'후속 fix #3 — 웜홀 천문학 사실 기반 셰이더 완전 재작성', desc:'디렉터님: 「푸른 sphere는 현실성 없음」. 이론물리 사실 반영 — 웜홀 자체는 시공간 통로(자체 빛 없음), 우리가 보는 건 반대편 우주의 빛이 강한 중력렌즈로 표면에 비친 모습. 새 셰이더: (1) 배경 검은 deep space(0.005,0.010,0.020) + 가장자리 옅은 푸른 lensTint, (2) Procedural Star Field 3 레이어 — 작은·중간·매우 큰 별, (3) 별 분광형 4종 — O/B 청색 5% · G 노랑 7% · K/M 적색 6% · 흰빛 82%(실제 천문학 분포), (4) Gravitational Lensing — starP += vNormal × fresnel × 4.5로 가장자리에서 별 휨, (5) Einstein Ring 청록 발광 ring(0.45,0.72,1.00), (6) AdditiveBlending → NormalBlending(검은 우주가 진짜 검정으로). Kip Thorne 자문 영화 인터스텔라 + 천문학 사실 충실.' },
@@ -266,9 +267,10 @@ const STATUS = {
     badge:'bg-violet-50 text-violet-700 ring-1 ring-violet-200',    bar:'from-violet-500 to-fuchsia-400' }
 };
 const ITYPE = {
-  '완료': { cls:'bg-emerald-50 text-emerald-700 ring-emerald-200', icon:'check-circle-2' },
-  '이슈': { cls:'bg-amber-50 text-amber-700 ring-amber-200',       icon:'alert-triangle' },
-  '보류': { cls:'bg-violet-50 text-violet-700 ring-violet-200',    icon:'pause-circle' }
+  '완료': { cls:'bg-emerald-50 text-emerald-700 ring-emerald-200',       icon:'check-circle-2' },
+  '이슈': { cls:'bg-rose-50 text-rose-700 ring-rose-200',                icon:'alert-circle' },        // amber → rose
+  '보류': { cls:'bg-slate-100 text-slate-600 ring-slate-300',            icon:'pause-circle' },        // violet → slate
+  '핵심': { cls:'bg-gradient-to-br from-fuchsia-100 via-pink-100 to-rose-100 text-fuchsia-700 ring-fuchsia-300', icon:'sparkles' }  // 신규
 };
 
 // ===== 헬퍼 =====
@@ -412,17 +414,37 @@ function renderDetail(p) {
 
   const issues = p.issues.map(it => {
     const m = ITYPE[it.type];
+    const isCore = it.type === '핵심';
+    // 「핵심」 타입: 분홍·푸시아 그라데이션 박스 + 진한 ring + 그림자 — 시각적으로 두드러지게
+    const boxCls = isCore
+      ? 'flex gap-3.5 rounded-xl bg-gradient-to-br from-fuchsia-50 via-pink-50 to-rose-50 ring-2 ring-fuchsia-300 p-4 shadow-md shadow-fuchsia-200/40'
+      : 'flex gap-3.5 rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-3.5';
+    const iconBoxCls = isCore
+      ? 'grid place-items-center w-10 h-10 rounded-lg shrink-0 ring-2 ring-fuchsia-300 bg-white shadow-sm'
+      : `grid place-items-center w-9 h-9 rounded-lg shrink-0 ring-1 ${m.cls}`;
+    const iconCls = isCore
+      ? 'w-[20px] h-[20px] text-fuchsia-600'
+      : 'w-[18px] h-[18px]';
+    const titleCls = isCore
+      ? 'text-[13.5px] font-extrabold text-fuchsia-900'
+      : 'text-[13px] font-semibold text-slate-800';
+    const descCls = isCore
+      ? 'text-[12px] text-fuchsia-800/85 mt-1.5 leading-relaxed'
+      : 'text-[12px] text-slate-500 mt-1 leading-relaxed';
+    const badgeCls = isCore
+      ? 'text-[10.5px] font-bold px-2 py-0.5 rounded-md ring-1 bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white border-0'
+      : `text-[10.5px] font-bold px-1.5 py-0.5 rounded ring-1 ${m.cls}`;
     return `
-    <div class="flex gap-3.5 rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-3.5">
-      <span class="grid place-items-center w-9 h-9 rounded-lg shrink-0 ring-1 ${m.cls}">
-        <i data-lucide="${m.icon}" class="w-[18px] h-[18px]"></i>
+    <div class="${boxCls}">
+      <span class="${iconBoxCls}">
+        <i data-lucide="${m.icon}" class="${iconCls}"></i>
       </span>
       <div class="min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-[10.5px] font-bold px-1.5 py-0.5 rounded ring-1 ${m.cls}">${it.type}</span>
-          <p class="text-[13px] font-semibold text-slate-800">${it.title}</p>
+          <span class="${badgeCls}">${isCore ? '★ '+it.type : it.type}</span>
+          <p class="${titleCls}">${it.title}</p>
         </div>
-        <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">${it.desc}</p>
+        <p class="${descCls}">${it.desc}</p>
       </div>
     </div>`;
   }).join('');
