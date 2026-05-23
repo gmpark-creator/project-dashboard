@@ -3271,24 +3271,24 @@ function updateStarSystemVisuals() {
   }
 }
 
-// 위성 라벨 — mesh 크기에 비례, 본체에 근접 (멀리서도 보이게 카메라 거리 최소 보장)
+// 위성 라벨 — mesh의 실제 world position 기반으로 정확히 위치 (Three.js Y 회전 부호 이슈 회피)
+const _moonLabelTmp = new THREE.Vector3();
 function updateMoonLabels() {
-  const worldP = new THREE.Vector3();
   for (const L of moonLabelObjs) {
     const m = L.moonObj;
     if (m.currentOpacity < 0.05) { m.label.visible = false; continue; }
     m.label.visible = labelsOn;
-    // 라벨 위치 = pivot 회전 후 mesh 위치 (moonsGroup local), Y로 mesh 반경만큼 살짝 위
-    const angle = m.pivot.rotation.y;
     const meshR = m.mesh.scale.x;
-    m.label.position.x = Math.cos(angle) * m.orbitDist;
-    m.label.position.y = meshR * 1.6;                          // mesh 위 1.6배 (본체에 근접)
-    m.label.position.z = Math.sin(angle) * m.orbitDist;
-    // 라벨 크기 — mesh 본체 크기 비례를 최우선, 가독성 위해 카메라 거리에서 최소 보장
-    m.label.getWorldPosition(worldP);
-    const cd = camera.position.distanceTo(worldP);
-    const labelH = Math.max(meshR * 3.2, cd * 0.012);           // mesh×3.2 vs cd×0.012 중 큰 값
-    m.label.scale.set(labelH * 4, labelH, 1);                   // 4:1 비율 (텍스처 256x64)
+    // mesh의 world position을 가져와 label의 parent(moonsGroup) local 좌표로 변환
+    m.mesh.getWorldPosition(_moonLabelTmp);
+    m.label.parent.worldToLocal(_moonLabelTmp);
+    m.label.position.copy(_moonLabelTmp);
+    m.label.position.y += meshR * 1.4;                          // mesh 바로 위 1.4배
+    // 라벨 크기 — mesh 본체 크기 우선, 멀리서도 가독성 보장
+    m.label.getWorldPosition(_moonLabelTmp);
+    const cd = camera.position.distanceTo(_moonLabelTmp);
+    const labelH = Math.max(meshR * 3.2, cd * 0.012);
+    m.label.scale.set(labelH * 4, labelH, 1);
     m.label.material.opacity = m.currentOpacity;
   }
 }
