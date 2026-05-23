@@ -1084,7 +1084,7 @@ const PROBE_DATA = [
 const probeObjs = {};
 function buildProbes() {
   for (const PR of PROBE_DATA) {
-    PR.direction.normalize();
+    if (PR.direction) PR.direction.normalize();              // static_au 타입만 direction 사용
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({
       map:makeGlowSprite(PR.color, false), transparent:true,
       blending:THREE.AdditiveBlending, depthWrite:false }));
