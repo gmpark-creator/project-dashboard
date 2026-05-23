@@ -213,8 +213,8 @@
 
 <div id="loading">
   <div class="spinner"></div>
-  <p>태양계를 불러오는 중… <strong style="color:#9ec3ff">[BUILD-v4-ROVERFIX]</strong></p>
-  <p class="sub">박사님이 이 [BUILD-v4-ROVERFIX] 마커가 화면에 보이면 캐시 우회 성공. 안 보이면 캐시된 옛 버전입니다.</p>
+  <p>태양계를 불러오는 중…</p>
+  <p class="sub">이 화면이 계속 보이면 인터넷 연결을 확인하세요. (Three.js·텍스처를 CDN에서 받아옵니다)</p>
 </div>
 
 <script type="importmap">
@@ -1094,16 +1094,36 @@ function buildProbes() {
     if (PR.direction) PR.direction.normalize();              // static_au 타입만 direction 사용
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({
       map:makeGlowSprite(PR.color, false), transparent:true,
-      blending:THREE.AdditiveBlending, depthWrite:false }));
+      blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false }));
+    sp.renderOrder = 998;
     sp.userData.bodyKey = PR.key;
     scene.add(sp);
     const lb = new THREE.Sprite(new THREE.SpriteMaterial({
-      map:makeProbeLabel(PR.shortLabel), transparent:true, depthWrite:false }));
+      map:makeProbeLabel(PR.shortLabel), transparent:true, depthWrite:false, depthTest:false }));
+    lb.renderOrder = 999;
     scene.add(lb);
     lb.userData.bodyKey = PR.key;
-    probeObjs[PR.key] = { PR, sprite:sp, label:lb, currentOpacity:0, targetOpacity:0 };
+    let extra = null;
+    // JWST는 명확한 3D 마커 추가 — 황금 6각형 + 추가 글로우 halo
+    if (PR.type === 'earth_l2') {
+      const hexGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.06, 6);
+      const hexMat = new THREE.MeshStandardMaterial({ color:0xffd060, metalness:0.85, roughness:0.25,
+        emissive:0xaa8800, emissiveIntensity:0.5 });
+      const hexMesh = new THREE.Mesh(hexGeo, hexMat);
+      hexMesh.userData.bodyKey = PR.key;
+      hexMesh.renderOrder = 997;
+      scene.add(hexMesh);
+      // 황금 halo sprite (더 진한)
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:makeGlowSprite(0xfff0c0, false), transparent:true,
+        blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false, opacity:0.65 }));
+      halo.renderOrder = 996;
+      scene.add(halo);
+      extra = { hexMesh, halo };
+    }
+    probeObjs[PR.key] = { PR, sprite:sp, label:lb, extra,
+      currentOpacity:0, targetOpacity:0 };
     OBJ_BY_KEY[PR.key] = { kind:'probe', obj: probeObjs[PR.key] };
-    // INFO 등록
     INFO[PR.key] = { name: PR.name, type:'인류 탐사선', accent:'#'+new THREE.Color(PR.color).getHexString(),
       stats: PR.stats, desc: PR.desc };
   }
@@ -1128,13 +1148,16 @@ const L_AXIS_Y = new THREE.Vector3(0,1,0);
 const lagrangeGroup = new THREE.Group(); scene.add(lagrangeGroup);
 
 for (const Lp of LAGRANGE_KEYS) {
+  // 지구 뒤(L2)에 있어도 가려지지 않도록 depthTest:false + renderOrder 상위로
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({
     map: makeGlowSprite(Lp.color, true), transparent:true,
-    blending:THREE.AdditiveBlending, depthWrite:false }));
+    blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false }));
+  sp.renderOrder = 999;
   sp.userData.bodyKey = Lp.k;
   lagrangeGroup.add(sp);
   const lb = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: makeLabelTexture(Lp.k), transparent:true, depthWrite:false }));
+    map: makeLabelTexture(Lp.k), transparent:true, depthWrite:false, depthTest:false }));
+  lb.renderOrder = 1000;
   lagrangeGroup.add(lb);
   lb.userData.bodyKey = Lp.k;
   lagrangeObjs[Lp.k] = { meta:Lp, sprite:sp, label:lb };
@@ -1161,10 +1184,11 @@ function updateLagrangePoints() {
   for (const Lp of LAGRANGE_KEYS) {
     const o = lagrangeObjs[Lp.k];
     const cd = camera.position.distanceTo(o.sprite.position);
-    o.sprite.scale.setScalar(Math.max(2.0, cd * 0.014));
+    // 더 큰 sprite — 멀리서도 마커가 명확히 보이도록
+    o.sprite.scale.setScalar(Math.max(3.5, cd * 0.022));
     o.label.position.copy(o.sprite.position);
-    o.label.position.y += cd * 0.025;
-    o.label.scale.set(cd * 0.04, cd * 0.01, 1);
+    o.label.position.y += cd * 0.035;
+    o.label.scale.set(cd * 0.05, cd * 0.0125, 1);
   }
 }
 
@@ -1450,55 +1474,7 @@ function updatePlanetNine(d) {
   p9Label.scale.set(cd*0.07, cd*0.0175, 1);
 }
 
-// ---- 화성 로버 핀 (Mars 표면, mars 포커스 시에만 표시) ----
-const MARS_ROVERS = [
-  { key:'perseverance', name:'퍼서비어런스', lat:18.44, lon:77.45, color:0xff4444,
-    stats:[['착륙','2021-02-18'],['착륙지','예제로 분화구 (Jezero Crater)'],
-      ['임무','고대 생명 흔적 + 시료 채취'],['특이점','마스 헬리콥터 인제뉴이티 동반'],['상태','활동 중']],
-    desc:'NASA의 화성 로버. 고대 호수였던 예제로 분화구를 탐사 중이며, 생명 흔적이 있을 만한 토양 시료를 미래 회수 임무용으로 채취·저장한다.' },
-  { key:'curiosity', name:'큐리오시티', lat:-4.59, lon:137.44, color:0xff8844,
-    stats:[['착륙','2012-08-06'],['착륙지','게일 분화구 (Gale Crater)'],
-      ['임무','과거 거주가능성 평가 + 지질학 탐사'],['활동 기간','13년+ (예상의 12배)'],['상태','활동 중']],
-    desc:'NASA가 보낸 자동차 크기의 화성 로버. 게일 분화구의 샤프 산을 오르며 과거 화성에 물과 생명이 존재했을 환경 조건을 입증해왔다.' }
-];
-
-function latLonToUnitVec(lat, lon) {
-  const phi = (90 - lat) * DEG, theta = lon * DEG;
-  return new THREE.Vector3(
-    Math.sin(phi) * Math.cos(theta),
-    Math.cos(phi),
-    Math.sin(phi) * Math.sin(theta)
-  );
-}
-
-const roverObjs = {};
-// 화성 로버 빌드는 PLANETS 빌드 이후 호출 (bodyObjs.mars.mesh가 존재해야 함)
-function buildMarsRovers() {
-  for (const R of MARS_ROVERS) {
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-      map:makeGlowSprite(R.color, true), transparent:true,
-      blending:THREE.AdditiveBlending, depthWrite:false }));
-    sp.userData.bodyKey = R.key;
-    sp.position.copy(latLonToUnitVec(R.lat, R.lon)).multiplyScalar(1.02);
-    bodyObjs.mars.mesh.add(sp);
-    const lb = new THREE.Sprite(new THREE.SpriteMaterial({
-      map:makeLabelTexture(R.name), transparent:true, depthWrite:false }));
-    lb.userData.bodyKey = R.key;
-    lb.position.copy(sp.position).multiplyScalar(1.12);
-    bodyObjs.mars.mesh.add(lb);
-    sp.visible = false; lb.visible = false;
-    roverObjs[R.key] = { R, sprite:sp, label:lb };
-    OBJ_BY_KEY[R.key] = { kind:'rover', obj: roverObjs[R.key] };
-    INFO[R.key] = { name:R.name, type:'화성 로버 · NASA',
-      accent:'#'+new THREE.Color(R.color).getHexString(),
-      stats:R.stats, desc:R.desc };
-  }
-}
-
-function updateRovers() {
-  // 화성 mesh 크기가 변하므로 핀 크기도 매번 보정
-  const marsR = planetRadius(EARTH.constructor === Object ? PLANETS.find(p=>p.key==='mars') : null) || 1;
-}
+// (화성 로버 데이터·코드 — 박사님 지시로 제거됨 · 2026-05-24)
 
 // 탐사선 위치 갱신
 function updateProbes(d) {
@@ -1533,6 +1509,17 @@ function updateProbes(d) {
     obj.label.scale.set(cd * 0.07, cd * 0.0175, 1);
     obj.sprite.material.opacity = obj.currentOpacity;
     obj.label.material.opacity = obj.currentOpacity * (labelsOn ? 1 : 0);
+    // JWST 황금 hex 마커 + halo (extra)
+    if (obj.extra) {
+      const sz = Math.max(0.5, cd * 0.006);
+      obj.extra.hexMesh.position.copy(pos);
+      obj.extra.hexMesh.scale.setScalar(sz);
+      obj.extra.hexMesh.rotation.y += 0.012;             // 천천히 회전
+      obj.extra.hexMesh.visible = obj.currentOpacity > 0.05;
+      obj.extra.halo.position.copy(pos);
+      obj.extra.halo.scale.setScalar(Math.max(5, cd * 0.035));
+      obj.extra.halo.material.opacity = obj.currentOpacity * 0.65;
+    }
   }
 }
 
@@ -1627,8 +1614,6 @@ function buildPlanet(P) {
   bodyObjs[P.key] = obj;
 }
 for (const P of PLANETS) buildPlanet(P);
-// 화성 로버 핀 — PLANETS 빌드 직후, bodyObjs.mars.mesh 존재 보장
-buildMarsRovers();
 
 // ===== 달 =====
 const moonMat = new THREE.MeshStandardMaterial({ roughness:1, metalness:0, color:0x999999 });
@@ -1977,7 +1962,6 @@ function bodyWorldPos(key,out) {
   if (OBJ_BY_KEY[key]) {
     const e = OBJ_BY_KEY[key];
     if (e.kind === 'probe' || e.kind === 'lagrange') return out.copy(e.obj.sprite.position);
-    if (e.kind === 'rover') return e.obj.sprite.getWorldPosition(out);   // mars mesh의 자식 → world 좌표
     if (e.kind === 'kamooalewa' || e.kind === 'oumuamua' || e.kind === 'planetnine')
       return out.copy(e.obj.mesh.position);
     if (e.kind === 'trojans') return out.set(0,0,0);   // 시스템 중심
@@ -2023,7 +2007,6 @@ function computeFocusOffset(key) {
     let r = 20;
     if (e.kind === 'probe') r = 30;
     else if (e.kind === 'lagrange') r = 25;
-    else if (e.kind === 'rover') r = planetRadius(PLANETS.find(p=>p.key==='mars')) * 3 + 0.5;
     else if (e.kind === 'kamooalewa') r = 3;
     else if (e.kind === 'oumuamua')   r = 5;
     else if (e.kind === 'planetnine') r = 25;
@@ -2478,7 +2461,6 @@ for (const planetKey of Object.keys(MOON_DATA)) {
 // 탐사선·라그랑주·로버·카모오알레와·오무아무아·Planet Nine — 모두 클릭 가능
 for (const PR of PROBE_DATA)   { clickable.push(probeObjs[PR.key].sprite, probeObjs[PR.key].label); }
 for (const Lp of LAGRANGE_KEYS) { clickable.push(lagrangeObjs[Lp.k].sprite, lagrangeObjs[Lp.k].label); }
-for (const R of MARS_ROVERS)   { clickable.push(roverObjs[R.key].sprite, roverObjs[R.key].label); }
 clickable.push(kamoObj.mesh, kamoObj.label);
 clickable.push(oumuMesh, oumuLabel);
 clickable.push(p9Mesh, p9Label);
@@ -2532,9 +2514,6 @@ const FOCUS_LIST=[
   ['newhorizons','뉴 호라이즌스호 · 58 AU'],
   ['parker','파커 솔라 프로브 · 코로나 궤도'],
   ['jwst','제임스 웹 우주 망원경 · L2'],
-  ['__sep_rovers','──── 🚀 화성 로버 ────'],
-  ['perseverance','퍼서비어런스 (예제로 분화구)'],
-  ['curiosity','큐리오시티 (게일 분화구)'],
   ['__sep_lag','──── ⚖ 라그랑주 점 (지구-태양) ────'],
   ['L1','L1 (태양 쪽)'],['L2','L2 (반대편)'],['L3','L3 (태양 너머)'],
   ['L4','L4 (앞 60°)'],['L5','L5 (뒤 60°)'],
@@ -2631,12 +2610,7 @@ function applyCategoryVisibility() {
   p9Mesh.visible    = showExo;
   p9Label.visible   = showExo && labelsOn;
   p9Path.visible    = showExo;
-  // 화성 로버: 화성 포커스 시 또는 로버 직접 포커스 시
-  const showRovers = focusKey === 'mars' || focusKey === 'perseverance' || focusKey === 'curiosity';
-  for (const R of MARS_ROVERS) {
-    roverObjs[R.key].sprite.visible = showRovers;
-    roverObjs[R.key].label.visible  = showRovers && labelsOn;
-  }
+  // (화성 로버 가시성 — 박사님 지시로 제거됨)
 }
 $('btnProbes').onclick   = () => { showProbes   = !showProbes;   $('btnProbes').classList.toggle('on', showProbes);     applyCategoryVisibility(); };
 $('btnLagrange').onclick = () => { showLagrange = !showLagrange; $('btnLagrange').classList.toggle('on', showLagrange); applyCategoryVisibility(); };
