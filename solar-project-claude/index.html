@@ -207,27 +207,9 @@
   <button id="btnLagrange" title="라그랑주 점 L1~L5 + 공궤도 천체">⚖ 라그랑주</button>
   <button id="btnExotic" title="성간 천체 + 가상 행성 (오무아무아·Planet Nine)">👽 미지</button>
   <button id="btnView" title="시점 리셋 (R)">🎯 뷰</button>
-  <button id="btnNasaEyes" title="NASA Eyes 공식 실사 (JPL 자산) 오버레이">📡 NASA Eyes</button>
 </div>
 
 <div id="hint">행성 클릭 = 정보 보기 · 드래그 = 회전 · 휠 = 줌 · Space = 정지</div>
-
-<!-- NASA Eyes 실사 오버레이 — 별도 NASA JPL 시각화 (인터랙티브 iframe) -->
-<div id="nasaEyesOverlay" style="display:none; position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.92);">
-  <div style="position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:61;
-       padding:8px 14px; background:rgba(10,16,32,0.95); border:1px solid rgba(120,160,240,0.3);
-       border-radius:10px; color:#e8ecf4; font-family:'Pretendard','Malgun Gothic',sans-serif;
-       font-size:12.5px; display:flex; align-items:center; gap:14px;">
-    <span style="color:#9ec3ff; font-weight:700;">📡 NASA Eyes — 공식 실사 (JPL)</span>
-    <span style="color:#8b97b4;">|</span>
-    <span style="color:#cfe2ff;">행성·위성·탐사선 실사 자산 직접 탐색</span>
-    <button id="nasaEyesClose" style="margin-left:8px; background:#b5642f; color:#fff;
-        border:1px solid #e0935a; border-radius:7px; padding:5px 11px; font-size:11.5px;
-        cursor:pointer; font-family:inherit;">✕ 닫기</button>
-  </div>
-  <iframe id="nasaEyesFrame" src="" allowfullscreen
-    style="width:100%; height:100%; border:0; display:block;"></iframe>
-</div>
 
 <div id="loading">
   <div class="spinner"></div>
@@ -3788,38 +3770,6 @@ function applyCategoryVisibility() {
   ehtGroup.visible = showEHT;
   // (화성 로버 가시성 — 박사님 지시로 제거됨)
 }
-// NASA Eyes 오버레이 토글 — JPL 공식 실사 자산 직접 탐색
-$('btnNasaEyes').onclick = () => {
-  const ov = document.getElementById('nasaEyesOverlay');
-  const fr = document.getElementById('nasaEyesFrame');
-  if (ov.style.display === 'none') {
-    // 현재 focusKey에 따라 NASA Eyes URL 동적 결정
-    const NASA_EYES_MAP = {
-      'voyager1':'sc_voyager_1', 'voyager2':'sc_voyager_2',
-      'newhorizons':'sc_new_horizons', 'parker':'sc_parker_solar_probe', 'jwst':'sc_jwst',
-      'sun':'sun', 'mercury':'mercury', 'venus':'venus', 'earth':'earth', 'moon':'earth_moon',
-      'mars':'mars', 'jupiter':'jupiter', 'saturn':'saturn', 'uranus':'uranus', 'neptune':'neptune',
-      'phobos':'phobos','deimos':'deimos','io':'io','europa':'europa','ganymede':'ganymede',
-      'callisto':'callisto','titan':'titan','rhea':'rhea','titania':'titania','oberon':'oberon','triton':'triton'
-    };
-    const target = NASA_EYES_MAP[focusKey] || 'sc_voyager_2';
-    fr.src = `https://eyes.nasa.gov/apps/solar-system/#/${target}?interactPrompt=true&surfaceMapTiling=true&hd=true`;
-    ov.style.display = 'block';
-    $('btnNasaEyes').classList.add('on');
-  } else {
-    ov.style.display = 'none';
-    fr.src = '';                                    // iframe 정지
-    $('btnNasaEyes').classList.remove('on');
-  }
-};
-document.getElementById('nasaEyesClose').onclick = () => {
-  const ov = document.getElementById('nasaEyesOverlay');
-  const fr = document.getElementById('nasaEyesFrame');
-  ov.style.display = 'none';
-  fr.src = '';
-  $('btnNasaEyes').classList.remove('on');
-};
-
 $('btnProbes').onclick   = () => { showProbes   = !showProbes;   $('btnProbes').classList.toggle('on', showProbes);     applyCategoryVisibility(); };
 $('btnLagrange').onclick = () => { showLagrange = !showLagrange; $('btnLagrange').classList.toggle('on', showLagrange); applyCategoryVisibility(); };
 $('btnExotic').onclick   = () => { showExotic   = !showExotic;   $('btnExotic').classList.toggle('on', showExotic);     applyCategoryVisibility(); };
