@@ -200,6 +200,7 @@
   <button id="btnOrbit" title="궤도선 On/Off">🛰 궤도</button>
   <button id="btnTide" title="조석 시각화">🌊 조석</button>
   <button id="btnLabels" title="이름표 On/Off">🏷 이름표</button>
+  <button id="btnMoons" title="모든 위성 표시 (기본: 행성 포커싱 시에만)">🌙 위성</button>
   <button id="btnView" title="시점 리셋 (R)">🎯 뷰</button>
 </div>
 
@@ -313,10 +314,21 @@ const STAR_SYSTEMS = [
 for (const S of STAR_SYSTEMS) S.distAU = S.distLY * LY_TO_AU;
 
 const TEXBASE = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';
+// 행성 표면 텍스처 — Jerome Etienne의 threex.planets 미러 (NASA 출처 · CC 라이선스 · jsDelivr CDN)
+const PLANTEX = 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/';
 const TEX = {
   earthDay: TEXBASE+'earth_atmos_2048.jpg', earthNormal: TEXBASE+'earth_normal_2048.jpg',
   earthClouds: TEXBASE+'earth_clouds_1024.png', earthLights: TEXBASE+'earth_lights_2048.png',
-  moon: TEXBASE+'moon_1024.jpg'
+  moon: TEXBASE+'moon_1024.jpg',
+  // 7행성 표면 텍스처 (디퓨즈 + 범프, jeromeetienne/threex.planets)
+  mercuryMap: PLANTEX+'mercurymap.jpg',   mercuryBump: PLANTEX+'mercurybump.jpg',
+  venusMap:   PLANTEX+'venusmap.jpg',     venusBump:   PLANTEX+'venusbump.jpg',
+  marsMap:    PLANTEX+'marsmap1k.jpg',    marsBump:    PLANTEX+'marsbump1k.jpg',
+  jupiterMap: PLANTEX+'jupitermap.jpg',
+  saturnMap:  PLANTEX+'saturnmap.jpg',
+  saturnRing: PLANTEX+'saturnringcolor.jpg',
+  uranusMap:  PLANTEX+'uranusmap.jpg',    uranusRing: PLANTEX+'uranusringcolor.jpg',
+  neptuneMap: PLANTEX+'neptunemap.jpg'
 };
 const LOCATIONS = [
   { name:'인천', lat:37.45, lon:126.59 }, { name:'평택·당진', lat:36.97, lon:126.82 },
@@ -329,11 +341,13 @@ let curLoc = LOCATIONS.find(L => L.name === '부산') || LOCATIONS[0];
 // ===== 행성 데이터 (Keplerian 궤도요소 2000.0 기준 [기준값, 1일당 변화율] / 프로필) =====
 const PLANETS = [
   { key:'mercury', name:'수성', style:'rocky', color:0x9a8c7d, vRadius:0.95, realR:2439.7, rotH:1407.6, tilt:0.03,
+    texMap:'mercuryMap', texBump:'mercuryBump',
     el:{ N:[48.3313,3.24587e-5], i:[7.0047,5.00e-8], w:[29.1241,1.01444e-5],
          a:[0.387098,0], e:[0.205635,5.59e-10], M:[168.6562,4.0923344368] },
     info:{ dia:'4,879 km', rot:'58.6일', moons:'0개',
       desc:'태양에서 가장 가깝고 가장 작은 행성. 대기가 거의 없어 낮(430°C)과 밤(-180°C)의 온도차가 극심하다.' } },
   { key:'venus', name:'금성', style:'rocky', color:0xe3d2a8, vRadius:2.15, realR:6051.8, rotH:-5832.5, tilt:177.4,
+    texMap:'venusMap', texBump:'venusBump',
     el:{ N:[76.6799,2.46590e-5], i:[3.3946,2.75e-8], w:[54.8910,1.38374e-5],
          a:[0.723330,0], e:[0.006773,-1.302e-9], M:[48.0052,1.6021302244] },
     info:{ dia:'12,104 km', rot:'243일 (역행)', moons:'0개',
@@ -344,29 +358,34 @@ const PLANETS = [
     info:{ dia:'12,742 km', rot:'24시간', moons:'1개 (달)',
       desc:'액체 상태의 바다와 생명체가 존재하는, 알려진 유일한 행성. 표면의 71%가 물로 덮여 있다.' } },
   { key:'mars', name:'화성', style:'rocky', color:0xc15a33, vRadius:1.35, realR:3389.5, rotH:24.6229, tilt:25.19,
+    texMap:'marsMap', texBump:'marsBump',
     el:{ N:[49.5574,2.11081e-5], i:[1.8497,-1.78e-8], w:[286.5016,2.92961e-5],
          a:[1.523688,0], e:[0.093405,2.516e-9], M:[18.6021,0.5240207766] },
     info:{ dia:'6,779 km', rot:'24.6시간', moons:'2개',
       desc:'산화철로 붉게 보이는 행성. 태양계 최대 화산 올림푸스산(높이 약 22km)이 있다.' } },
   { key:'jupiter', name:'목성', style:'gas', vRadius:7.6, realR:69911, rotH:9.925, tilt:3.13, redSpot:true,
+    texMap:'jupiterMap',
     palette:['#c9a87c','#e3cda6','#a8794f','#d8bf99','#8a5f3c','#ead9c0'],
     el:{ N:[100.4542,2.76854e-5], i:[1.3030,-1.557e-7], w:[273.8777,1.64505e-5],
          a:[5.20256,0], e:[0.048498,4.469e-9], M:[19.8950,0.0830853001] },
     info:{ dia:'139,820 km', rot:'9.9시간', moons:'95개+',
       desc:'태양계에서 가장 큰 행성. 대적점은 수백 년째 몰아치는, 지구보다 큰 거대 폭풍이다.' } },
   { key:'saturn', name:'토성', style:'gas', vRadius:6.4, realR:58232, rotH:10.656, tilt:26.73, ring:true,
+    texMap:'saturnMap', texRing:'saturnRing',
     palette:['#e8dab0','#f2e8cc','#d2bd8e','#ece0bd','#dccba0'],
     el:{ N:[113.6634,2.38980e-5], i:[2.4886,-1.081e-7], w:[339.3939,2.97661e-5],
          a:[9.55475,0], e:[0.055546,-9.499e-9], M:[316.9670,0.0334442282] },
     info:{ dia:'116,460 km', rot:'10.7시간', moons:'140개+',
       desc:'얼음과 암석으로 된 화려한 고리로 유명. 밀도가 물보다 낮아, 물에 띄우면 뜬다.' } },
   { key:'uranus', name:'천왕성', style:'gas', vRadius:4.1, realR:25362, rotH:-17.24, tilt:97.77,
+    texMap:'uranusMap',
     palette:['#aee0e6','#c8eef2','#93d2da','#bae8ec'],
     el:{ N:[74.0005,1.3978e-5], i:[0.7733,1.90e-8], w:[96.6612,3.0565e-5],
          a:[19.18171,-1.55e-8], e:[0.047318,7.45e-9], M:[142.5905,0.011725806] },
     info:{ dia:'50,724 km', rot:'17.2시간 (역행)', moons:'28개',
       desc:'자전축이 약 98° 기울어, 거의 누운 채로 굴러가듯 공전하는 독특한 행성이다.' } },
   { key:'neptune', name:'해왕성', style:'gas', vRadius:4.0, realR:24622, rotH:16.11, tilt:28.32,
+    texMap:'neptuneMap',
     palette:['#3a5fcc','#5278e6','#2c49a8','#6b90f0'],
     el:{ N:[131.7806,3.0173e-5], i:[1.7700,-2.55e-7], w:[272.8461,-6.027e-6],
          a:[30.05826,3.313e-8], e:[0.008606,2.15e-9], M:[260.2471,0.005995147] },
@@ -1040,9 +1059,19 @@ function buildPlanet(P) {
     loadColorTex(TEX.earthLights, t=>{ mat.emissiveMap=t; mat.emissive=new THREE.Color(0xffd9a0);
       mat.emissiveIntensity=1.15; mat.needsUpdate=true; });
   } else if (P.style==='gas') {
+    // 절차적 텍스처를 폴백으로 유지, 외부 텍스처 로드 성공 시 교체
     mat = new THREE.MeshStandardMaterial({ map:makeBandedTexture(P), roughness:1, metalness:0 });
+    if (P.texMap && TEX[P.texMap]) {
+      loadColorTex(TEX[P.texMap], t=>{ mat.map=t; mat.needsUpdate=true; });
+    }
   } else {
-    mat = new THREE.MeshStandardMaterial({ map:makeRockyTexture(P), roughness:1, metalness:0 });
+    mat = new THREE.MeshStandardMaterial({ map:makeRockyTexture(P), roughness:0.92, metalness:0 });
+    if (P.texMap && TEX[P.texMap]) {
+      loadColorTex(TEX[P.texMap], t=>{ mat.map=t; mat.needsUpdate=true; });
+    }
+    if (P.texBump && TEX[P.texBump]) {
+      loadDataTex(TEX[P.texBump], t=>{ mat.bumpMap=t; mat.bumpScale=0.04; mat.needsUpdate=true; });
+    }
   }
   const mesh = new THREE.Mesh(geo,mat);
   mesh.castShadow = true; mesh.receiveShadow = true;
@@ -1067,8 +1096,15 @@ function buildPlanet(P) {
     const rg=new THREE.RingGeometry(inner,outer,96,1);
     const rp=rg.attributes.position,ru=rg.attributes.uv,tmp=new THREE.Vector3();
     for (let k=0;k<rp.count;k++){ tmp.fromBufferAttribute(rp,k); ru.setXY(k,(tmp.length()-inner)/(outer-inner),1); }
-    const ring=new THREE.Mesh(rg,new THREE.MeshStandardMaterial({
-      map:makeRingTexture(), side:THREE.DoubleSide, transparent:true, roughness:1, metalness:0 }));
+    const ringMat = new THREE.MeshStandardMaterial({
+      map:makeRingTexture(), side:THREE.DoubleSide, transparent:true, roughness:1, metalness:0 });
+    if (P.texRing && TEX[P.texRing]) {
+      loadColorTex(TEX[P.texRing], t=>{
+        // 1D 고리 색 텍스처를 환형(annular)으로 매핑 — UV는 ringGeometry 생성 시 이미 (반지름 비율, 1)로 설정됨
+        ringMat.map = t; ringMat.needsUpdate = true;
+      });
+    }
+    const ring=new THREE.Mesh(rg, ringMat);
     ring.rotation.x=Math.PI/2; ring.castShadow=true; ring.receiveShadow=true;
     tilt.add(ring); obj.ring = ring;
   }
@@ -1083,6 +1119,97 @@ const moonMesh = new THREE.Mesh(unitGeo,moonMat);
 moonMesh.castShadow = true; moonMesh.receiveShadow = true;
 moonMesh.userData.bodyKey = 'moon';
 bodyObjs.earth.group.add(moonMesh);
+
+// ============================================================
+// 주요 위성 시스템 — 화성 / 목성 / 토성 / 천왕성 / 해왕성
+//   계층: bodyObjs[planet].group → moonsGroup → moon.pivot → moon.mesh
+//   • pivot 회전으로 단순 원궤도 (공전 주기는 일 단위로 정확)
+//   • 행성 반경 대비 거리 factor + 위성 반경 factor로 시각적 분리
+//   • 가시성: showAllMoons(전역) || focusKey===planetKey 일 때만 표시
+// ============================================================
+//
+// 거리/크기는 실제값을 압축. 너무 실제 비율로 두면 위성이 행성에 너무 가까이 붙어 보임.
+// visualDist = planetRadius × distMult (시각용 배수)
+// visualSize = 위성 실제 km × scale → 행성에 가려지지 않을 크기
+//
+const MOON_DATA = {
+  mars: [
+    { name:'포보스',     realR:11.27, distMult:2.6, periodDays:0.32, color:0xa08070 },
+    { name:'데이모스',   realR:6.2,   distMult:4.5, periodDays:1.26, color:0x9a8d7c }
+  ],
+  jupiter: [
+    { name:'이오',       realR:1821,  distMult:2.4, periodDays:1.77, color:0xf5d784 },
+    { name:'유로파',     realR:1560,  distMult:3.1, periodDays:3.55, color:0xe8d8c0 },
+    { name:'가니메데',   realR:2634,  distMult:4.5, periodDays:7.15, color:0xa89880 },
+    { name:'칼리스토',   realR:2410,  distMult:6.8, periodDays:16.69, color:0x6a5d50 }
+  ],
+  saturn: [
+    { name:'타이탄',     realR:2575,  distMult:5.2, periodDays:15.95, color:0xd4a868 },
+    { name:'레아',       realR:763,   distMult:3.4, periodDays:4.52,  color:0xb8b0a8 }
+  ],
+  uranus: [
+    { name:'티타니아',   realR:788,   distMult:3.8, periodDays:8.71,  color:0x9a8d80 },
+    { name:'오베론',     realR:761,   distMult:5.2, periodDays:13.46, color:0x8e8278 }
+  ],
+  neptune: [
+    { name:'트리톤',     realR:1353,  distMult:3.6, periodDays:-5.88, color:0xc4b8a8 }    // 역행 (음수)
+  ]
+};
+
+const MOON_SIZE_FACTOR = 0.00018;     // 위성 실제 반경 km → 시각 단위
+const moonSphereGeo = new THREE.SphereGeometry(1, 24, 16);
+const moonOrbitMat  = new THREE.LineBasicMaterial({ color:0x7a8090, transparent:true, opacity:0.32 });
+const moonLabelObjs = [];             // 라벨도 통합 갱신
+
+function buildMoonsForPlanet(planetKey, moons) {
+  const planet = bodyObjs[planetKey];
+  const moonsGroup = new THREE.Group();
+  planet.group.add(moonsGroup);
+  planet.moons = [];
+  planet.moonsGroup = moonsGroup;
+
+  for (const M of moons) {
+    // 위성 본체
+    const mat = new THREE.MeshStandardMaterial({ color:M.color, roughness:1, metalness:0, transparent:true, opacity:1 });
+    const mesh = new THREE.Mesh(moonSphereGeo, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.userData.bodyKey = planetKey + ':' + M.name;
+    // 거리는 행성 반경 + distMult 배수 (applyMoonScales에서 적용)
+    mesh.position.x = 1;                                 // 단위 거리, scale로 실제 거리 적용
+    // 공전 pivot — Y축 회전
+    const pivot = new THREE.Group();
+    pivot.add(mesh);
+    moonsGroup.add(pivot);
+    // 궤도선 — 단순 원
+    const orbitPts = [];
+    const SEGS = 96;
+    for (let i=0; i<=SEGS; i++) {
+      const a = i/SEGS * Math.PI*2;
+      orbitPts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
+    }
+    const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
+    const orbit = new THREE.LineLoop(orbitGeo, moonOrbitMat.clone());
+    orbit.material.transparent = true;
+    moonsGroup.add(orbit);
+    // 라벨 sprite
+    const labelTex = makeLabelTexture(M.name);
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map:labelTex, transparent:true, depthWrite:false }));
+    moonsGroup.add(label);
+
+    const moonObj = {
+      data: M, mesh, pivot, orbit, label,
+      orbitDist: 0,                                      // applyMoonScales에서 채움
+      currentOpacity: 0, targetOpacity: 0                // 페이드 트윈용
+    };
+    planet.moons.push(moonObj);
+    moonLabelObjs.push({ key: mesh.userData.bodyKey, moonObj, planetKey });
+  }
+  moonsGroup.visible = false;                            // 기본 숨김 (전역 보기)
+}
+
+for (const [pk, moons] of Object.entries(MOON_DATA)) {
+  buildMoonsForPlanet(pk, moons);
+}
 
 // ===== 조석 바다 껍질 =====
 const oceanGeo = new THREE.SphereGeometry(1,64,40);
@@ -1183,6 +1310,13 @@ function applyScales() {
     if (o.atmo) o.atmo.scale.setScalar(r*1.16);
     if (o.axis) o.axis.scale.setScalar(r);
     if (o.ring) o.ring.scale.setScalar(r);
+    // 위성 — 궤도 거리 = 행성 반경 × distMult, 위성 크기 = realR × MOON_SIZE_FACTOR (최소 r*0.04 보장)
+    if (o.moons) for (const m of o.moons) {
+      const moonR = Math.max(r * 0.04, m.data.realR * MOON_SIZE_FACTOR);
+      m.mesh.scale.setScalar(moonR);
+      m.orbitDist = r * m.data.distMult;
+      m.orbit.scale.setScalar(m.orbitDist);
+    }
   }
   ocean.scale.setScalar(planetRadius(EARTH));
   moonMesh.scale.setScalar(moonRadius());
@@ -1203,11 +1337,59 @@ function updateScene(st) {
     const o=bodyObjs[P.key];
     o.group.position.copy(sceneScale(st.bodies[P.key].helio));
     o.mesh.rotation.y = (P.key==='earth' ? st.rotDeg : planetSpin(st.d,P))*DEG;
+    // 위성 공전 — pivot Y축 회전, 위성 mesh의 X는 orbitDist
+    if (o.moons) for (const m of o.moons) {
+      const angle = (st.d / m.data.periodDays) * Math.PI * 2;
+      m.pivot.rotation.y = angle;
+      m.mesh.position.x = m.orbitDist;                   // 단위 위치 × scale 안 됨, 직접 설정
+      // 라벨 — 위성 위치 따라가도록 (행성 로컬 좌표계)
+      m.label.position.set(
+        Math.cos(angle) * m.orbitDist,
+        m.mesh.scale.x * 1.5,
+        Math.sin(angle) * m.orbitDist
+      );
+    }
   }
   const eo=bodyObjs.earth;
   if (eo.clouds) eo.clouds.rotation.y = (st.rotDeg+st.d*3)*DEG;
   moonMesh.position.copy(st.moonGeo).multiplyScalar(moonDistFactor());
   moonMesh.lookAt(eo.group.position);
+}
+
+// 위성 가시성 페이드 — 매 프레임 currentOpacity → targetOpacity로 lerp
+function updateMoonFade(dt) {
+  const FADE_SPEED = 4.0;  // 1/0.25초
+  for (const P of PLANETS) {
+    const o = bodyObjs[P.key];
+    if (!o.moons) continue;
+    let anyVisible = false;
+    for (const m of o.moons) {
+      const cur = m.currentOpacity, tgt = m.targetOpacity;
+      if (Math.abs(cur - tgt) > 0.001) {
+        m.currentOpacity = cur + (tgt - cur) * Math.min(1, dt * FADE_SPEED);
+      } else {
+        m.currentOpacity = tgt;
+      }
+      const op = m.currentOpacity;
+      m.mesh.material.opacity = op;
+      m.orbit.material.opacity = op * 0.45;
+      m.label.material.opacity = op;
+      if (op > 0.02) anyVisible = true;
+    }
+    // moonsGroup 자체는 hidden 상태로 두면 children도 안 그려지니까, opacity 0이 아닐 땐 항상 visible
+    o.moonsGroup.visible = anyVisible;
+  }
+}
+
+// 위성 가시성 결정 — 전역 토글 || 해당 행성 포커스
+let showAllMoons = false;
+function updateMoonsVisibility() {
+  for (const P of PLANETS) {
+    const o = bodyObjs[P.key];
+    if (!o.moons) continue;
+    const shouldShow = showAllMoons || focusKey === P.key;
+    for (const m of o.moons) m.targetOpacity = shouldShow ? 1 : 0;
+  }
 }
 
 // ===== 초점 / 카메라 =====
@@ -1291,6 +1473,7 @@ function startFocus(key,instant) {
   if (focusSel.value!==key) focusSel.value = key;
   adjustCameraExtents(key);                                     // far/maxDistance 먼저 확장
   setOuterRegionVisible(key);                                   // 카이퍼/오르트 윤곽선·라벨 토글
+  updateMoonsVisibility();                                      // 위성 페이드 인/아웃 트리거
   focusOffset.copy(computeFocusOffset(key));
   updateSidebar(key);
   bodyWorldPos(key,_fp);
@@ -1621,6 +1804,19 @@ function updateStarSystemVisuals() {
   }
 }
 
+// 위성 라벨 — 카메라 거리 비례
+function updateMoonLabels() {
+  const worldP = new THREE.Vector3();
+  for (const L of moonLabelObjs) {
+    const m = L.moonObj;
+    if (m.currentOpacity < 0.05) { m.label.visible = false; continue; }
+    m.label.visible = labelsOn;
+    m.label.getWorldPosition(worldP);
+    const cd = camera.position.distanceTo(worldP);
+    m.label.scale.set(cd*0.05, cd*0.0125, 1);
+  }
+}
+
 // 카이퍼/오르트 영역 라벨 — 카메라 거리 비례 (가로:세로 6:1)
 function updateRegionLabels() {
   for (const key of ['kuiperLabel','oortLabel']) {
@@ -1716,6 +1912,11 @@ $('btnOrbit').onclick = () => {
 };
 $('btnTide').onclick = () => setTide(!tideOn);
 $('btnLabels').onclick = () => { labelsOn=!labelsOn; $('btnLabels').classList.toggle('on',labelsOn); };
+$('btnMoons').onclick = () => {
+  showAllMoons = !showAllMoons;
+  $('btnMoons').classList.toggle('on', showAllMoons);
+  updateMoonsVisibility();
+};
 $('btnView').onclick = () => startFocus(focusKey,false);
 $('sbBack').onclick = () => startFocus('system',false);
 
@@ -1804,6 +2005,8 @@ function animate() {
   updateLabels();
   updateStarSystemVisuals();
   updateRegionLabels();
+  updateMoonFade(dt);
+  updateMoonLabels();
   renderer.render(scene,camera);
   updateHUD(st,now);
   updateMoonWidget(now);
