@@ -28,11 +28,25 @@
 
 <body class="min-h-screen text-slate-700 antialiased selection:bg-indigo-200/60">
 
+<!-- 모바일 전용: 햄버거 버튼 + 사이드바 오버레이 배경 -->
+<button id="mobileMenuBtn" aria-label="메뉴 열기"
+  class="md:hidden fixed top-3 left-3 z-40 grid place-items-center w-11 h-11 rounded-xl
+         bg-white/95 backdrop-blur shadow-lg ring-1 ring-slate-200 active:scale-95 transition">
+  <svg viewBox="0 0 24 24" class="w-6 h-6 text-slate-800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <line x1="4" y1="7"  x2="20" y2="7"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="17" x2="20" y2="17"/>
+  </svg>
+</button>
+<div id="mobileBackdrop" class="md:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-20
+     opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
 <div class="flex min-h-screen">
 
-  <!-- ===== 좌측 사이드바 ===== -->
-  <aside class="w-[290px] shrink-0 border-r border-slate-200 bg-white/85 backdrop-blur
-               flex flex-col fixed h-screen z-20">
+  <!-- ===== 좌측 사이드바 (PC 고정, 모바일은 슬라이드 인/아웃) ===== -->
+  <aside id="sidebar" class="w-[290px] shrink-0 border-r border-slate-200 bg-white/95 backdrop-blur
+               flex flex-col fixed h-screen z-30
+               -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
     <button id="brandHome" class="block w-full text-left px-5 pt-6 pb-5 border-b border-slate-200
                  transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100
                  focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-inset cursor-pointer">
@@ -59,8 +73,8 @@
   </aside>
 
   <!-- ===== 우측 상세 패널 ===== -->
-  <main class="flex-1 ml-[290px] min-w-0">
-    <div id="detail" class="max-w-5xl mx-auto px-8 py-9"></div>
+  <main class="flex-1 ml-0 md:ml-[290px] min-w-0">
+    <div id="detail" class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-9 pt-20 md:pt-9"></div>
   </main>
 
 </div>
@@ -330,7 +344,10 @@ function renderSidebar() {
     </button>`;
   }).join('');
   $('#projList').querySelectorAll('.proj-btn').forEach(b =>
-    b.addEventListener('click', () => selectProject(b.dataset.id)));
+    b.addEventListener('click', () => {
+      selectProject(b.dataset.id);
+      if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+    }));
 }
 function renderSummary() {
   const cnt = { completed:0, 'in-progress':0, paused:0 };
@@ -649,30 +666,27 @@ function renderHome() {
 
   $('#detail').innerHTML = `
     <!-- ── HERO — HAZE STORY 앰블럼 + 영어 디렉터 명칭 (보라 그라데이션) ── -->
-    <section class="reveal relative overflow-hidden rounded-3xl p-10 sm:p-16 mb-7
+    <section class="reveal relative overflow-hidden rounded-3xl p-6 sm:p-10 md:p-16 mb-7
                     bg-gradient-to-br from-violet-950 via-purple-900 to-indigo-950
                     text-white shadow-2xl shadow-violet-400/30">
       <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/15 blur-3xl"></div>
       <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-sky-300/12 blur-3xl"></div>
       <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-rose-300/10 blur-2xl"></div>
-      <!-- 가로 레이아웃: 앰블럼 왼쪽 + 3줄 텍스트 오른쪽 (높이 합 = 앰블럼 160px) -->
-      <div class="relative flex items-stretch gap-6 sm:gap-8">
-        <!-- HAZE STORY 공식 앰블럼 (왼쪽, 160px) -->
-        <div class="grid place-items-center w-40 h-40 rounded-3xl bg-white/95 ring-1 ring-white/20 shadow-2xl shadow-fuchsia-300/30 shrink-0">
-          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-36 h-36 object-contain" />
+      <!-- 모바일: 세로 (앰블럼 위 + 텍스트 아래) / PC: 가로 (앰블럼 왼쪽 + 3줄 오른쪽) -->
+      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-8">
+        <!-- HAZE STORY 공식 앰블럼 -->
+        <div class="grid place-items-center w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-white/95 ring-1 ring-white/20 shadow-2xl shadow-fuchsia-300/30 shrink-0">
+          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-28 h-28 sm:w-36 sm:h-36 object-contain" />
         </div>
-        <!-- 오른쪽 3줄 텍스트 (높이 합 = 앰블럼 160px) -->
-        <div class="h-40 flex flex-col justify-between py-1 min-w-0">
-          <!-- 1줄: G.M.PARK (작게) -->
-          <p class="text-[16px] sm:text-[20px] font-extrabold text-fuchsia-200 leading-none tracking-tight">
+        <!-- 3줄 텍스트 (PC: 앰블럼 옆 / 모바일: 앰블럼 아래) -->
+        <div class="sm:h-40 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
+          <p class="text-[15px] sm:text-[20px] font-extrabold text-fuchsia-200 leading-none tracking-tight">
             G.M.PARK
           </p>
-          <!-- 2줄: Subtitle (작게) -->
-          <p class="text-[12px] sm:text-[14px] font-medium text-white/75 leading-none tracking-wide">
+          <p class="text-[11.5px] sm:text-[14px] font-medium text-white/75 leading-tight tracking-wide">
             Junior Developer Director at HAZE STORY
           </p>
-          <!-- 3줄: Project Dashboard (가장 크게) -->
-          <h1 class="text-[42px] sm:text-[64px] font-black leading-none tracking-tight bg-gradient-to-r from-pink-300 via-fuchsia-200 to-violet-200 bg-clip-text text-transparent">
+          <h1 class="text-[32px] sm:text-[64px] font-black leading-none tracking-tight bg-gradient-to-r from-pink-300 via-fuchsia-200 to-violet-200 bg-clip-text text-transparent">
             Project Dashboard
           </h1>
         </div>
@@ -707,8 +721,44 @@ function selectProject(id) {
   lucide.createIcons();
 }
 
-// 사이드바 헤더(브랜드) 클릭 → 홈으로
-document.getElementById('brandHome').addEventListener('click', () => selectProject('home'));
+// 사이드바 헤더(브랜드) 클릭 → 홈으로 + 모바일 사이드바 닫기
+document.getElementById('brandHome').addEventListener('click', () => {
+  selectProject('home');
+  closeMobileSidebar();
+});
+
+// ===== 모바일 햄버거 메뉴 =====
+const sidebarEl  = document.getElementById('sidebar');
+const backdropEl = document.getElementById('mobileBackdrop');
+const menuBtn    = document.getElementById('mobileMenuBtn');
+function openMobileSidebar() {
+  sidebarEl.classList.remove('-translate-x-full');
+  backdropEl.classList.remove('opacity-0', 'pointer-events-none');
+  backdropEl.classList.add('opacity-100');
+  menuBtn.style.display = 'none';
+}
+function closeMobileSidebar() {
+  if (window.innerWidth >= 768) return;     // PC 화면에서는 무시
+  sidebarEl.classList.add('-translate-x-full');
+  backdropEl.classList.add('opacity-0', 'pointer-events-none');
+  backdropEl.classList.remove('opacity-100');
+  menuBtn.style.display = '';
+}
+menuBtn.addEventListener('click', openMobileSidebar);
+backdropEl.addEventListener('click', closeMobileSidebar);
+
+// PC ↔ 모바일 리사이즈 시 상태 정리
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 768) {
+    sidebarEl.classList.remove('-translate-x-full');
+    backdropEl.classList.add('opacity-0', 'pointer-events-none');
+    backdropEl.classList.remove('opacity-100');
+    menuBtn.style.display = '';
+  } else {
+    // 모바일 진입 시 사이드바 닫힌 상태로
+    sidebarEl.classList.add('-translate-x-full');
+  }
+});
 
 // ===== 초기화 — 첫 진입은 홈(메인) 페이지 =====
 activeId = 'home';
