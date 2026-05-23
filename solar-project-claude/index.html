@@ -1914,11 +1914,14 @@ function updateEHT(dt, t) {
 // 웜홀 (토성 근처) — 클릭 시 카메라가 가르강튀아로 워프
 // ============================================================
 // ============================================================
-// 웜홀 GLSL 셰이더 — 「인터스텔라」 영화 시그니처 재현
-//   • 구형 sphere에 「웜홀 너머 우주」가 비치는 느낌
-//   • Procedural 별 + 가장자리 렌즈링 빛 휨
-//   • Fresnel 기반 강한 청록 윤곽 발광
-//   • 시간 흐름 매우 느림 (박사님 눈 피로 방지)
+// 웜홀 GLSL 셰이더 — Kip Thorne 자문 「인터스텔라」 영화 + 천문학적 사실 기반
+//   원리: 웜홀은 시공간 통로. 우리가 보는 건 「반대편 우주」의 빛이
+//        강한 중력 렌즈 효과로 표면에 비친 모습.
+//   특징:
+//     • 표면 = 거의 검은 우주 (deep space) + 다양한 별
+//     • 가장자리 = Einstein ring (강한 gravitational lensing, 별이 밀집·휨)
+//     • 청색 발광은 가장자리만 (영화 시그니처 색조 유지, 본체는 검정에 가까움)
+//     • 별이 다양한 크기·색 (실제 별 분광형)
 // ============================================================
 const wormholeUniforms = { uTime: { value: 0 } };
 const wormholeMat = new THREE.ShaderMaterial({
@@ -1941,71 +1944,81 @@ const wormholeMat = new THREE.ShaderMaterial({
     varying vec3 vViewDir;
     uniform float uTime;
 
-    // 3D 해시·노이즈 (Procedural 별을 위함)
     float hash3(vec3 p) { return fract(sin(dot(p, vec3(12.989, 78.233, 45.164))) * 43758.5453); }
-    float noise3(vec3 p) {
-      vec3 i = floor(p), f = fract(p);
-      f = f * f * (3.0 - 2.0 * f);
-      return mix(
-        mix(mix(hash3(i+vec3(0,0,0)), hash3(i+vec3(1,0,0)), f.x),
-            mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
-        mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x),
-            mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y),
-        f.z);
-    }
-    float fbm3(vec3 p) {
-      float v = 0.0, a = 0.5;
-      for (int i = 0; i < 4; i++) { v += a * noise3(p); p *= 2.0; a *= 0.5; }
-      return v;
+
+    // === Procedural Star Field — grid cell마다 확률적 별 1개 ===
+    // probability: 0.02~0.10 사이로 자연스러운 별 밀도
+    // 각 별의 크기·색·밝기는 hash로 다양화
+    vec4 stars(vec3 p, float threshold, float sizeBase) {
+      vec3 ip = floor(p);
+      vec3 fp = fract(p);
+      float h = hash3(ip);
+      if (h < threshold) return vec4(0.0);
+      // 별 중심을 cell 안에서 약간 흔들기
+      vec3 starCenter = vec3(hash3(ip + vec3(1.7, 9.2, 3.3)),
+                             hash3(ip + vec3(4.1, 7.8, 6.5)),
+                             hash3(ip + vec3(2.5, 5.4, 8.9)));
+      float d = length(fp - starCenter);
+      float size = sizeBase * (0.5 + (h - threshold) / (1.0 - threshold));
+      float bright = smoothstep(size, 0.0, d);
+      // 별 색 분광형: 95% 흰빛, 일부 청색·노란색·붉은색
+      float tint = hash3(ip + vec3(11.3, 22.7, 33.1));
+      vec3 starCol;
+      if (tint < 0.05)      starCol = vec3(0.7, 0.85, 1.0);    // 청색 별 (O/B형)
+      else if (tint < 0.12) starCol = vec3(1.0, 0.85, 0.6);    // 노랑별 (G형, 태양 같은)
+      else if (tint < 0.18) starCol = vec3(1.0, 0.55, 0.35);   // 적색 (K/M형)
+      else                  starCol = vec3(1.0, 0.97, 0.92);   // 흰빛 주류
+      return vec4(starCol * bright, bright);
     }
 
     void main() {
-      // === Fresnel — 가장자리 정도 ===
+      // Fresnel — 가장자리 강도
       float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), 2.2);
-      float rimGlow = pow(fresnel, 1.5);
+      float rimGlow = pow(fresnel, 1.4);
 
-      // === 웜홀 너머 별 (procedural) — sphere 표면에 박혀있는 듯 ===
-      // 가장자리에 가까울수록 별이 휘어짐 (gravitational lensing)
-      vec3 starP = vPos * 5.5;
-      starP += vNormal * fresnel * 0.8;   // 가장자리에서 휨
-      float starN = noise3(starP);
-      // 별 점 — 노이즈 고점만 밝게
-      float starBright = smoothstep(0.78, 0.88, starN);
-      // 별이 길게 늘어나는 효과 (방향성 증가)
-      float stretchN = noise3(starP * 0.5 + uTime * 0.01);
-      float stretch = smoothstep(0.70, 0.85, stretchN);
+      // === 별 영역의 좌표 — gravitational lensing으로 가장자리에서 휨 ===
+      // 별이 가장자리에서 normal 방향으로 휘어져 「Einstein ring」 같은 효과
+      vec3 starP = vPos * 18.0;
+      starP += vNormal * fresnel * 4.5;   // 강한 휨 (가장자리에서 별이 늘어남)
 
-      // === 큰 swirling pattern (웜홀 내부 흐름) ===
-      vec3 swirlP = vPos * 1.5 + vec3(0.0, uTime * 0.01, 0.0);
-      float swirl = fbm3(swirlP);
+      // 작은 별 (다수, 작은 사이즈)
+      vec4 s1 = stars(starP, 0.92, 0.15);
+      // 중간 별 (적은 수, 큰 사이즈)
+      vec4 s2 = stars(starP * 0.35, 0.92, 0.20);
+      // 매우 큰 별 (희박, 진한 색)
+      vec4 s3 = stars(starP * 0.12 + vec3(uTime * 0.0008), 0.94, 0.25);
 
-      // === 색감 — 「인터스텔라」 영화 시그니처 푸르스름·청록 ===
-      vec3 deepBlue = vec3(0.04, 0.10, 0.28);    // 안쪽 깊은 청 (웜홀 내부)
-      vec3 midCyan  = vec3(0.20, 0.55, 0.85);    // 중간 시안
-      vec3 edgeBri  = vec3(0.65, 0.92, 1.00);    // 가장자리 밝은 청백
-      vec3 col = mix(deepBlue, midCyan, fresnel * 0.55);
-      col = mix(col, edgeBri, rimGlow);
+      // === 배경 — 거의 검은 deep space + 약간의 푸른 nebula ===
+      // 가장자리만 약간 더 푸른 색조 (lensing 효과)
+      vec3 deepSpace  = vec3(0.005, 0.010, 0.020);   // 우주 검정
+      vec3 lensTint   = vec3(0.020, 0.050, 0.085);   // 가장자리 푸른 옅은 빛
+      vec3 col = mix(deepSpace, lensTint, rimGlow);
 
-      // 큰 swirling 추가 (내부 어두운 흐름)
-      col *= 0.75 + swirl * 0.45;
+      // === 별 합성 ===
+      col += s1.rgb * 0.9;
+      col += s2.rgb * 1.2;
+      col += s3.rgb * 1.5;
 
-      // === 별 추가 — 가장자리에서 더 진한 ===
-      col += vec3(1.00, 0.95, 0.88) * starBright * (0.6 + fresnel * 0.8);
-      col += vec3(0.55, 0.85, 1.00) * stretch * fresnel * 0.4;
+      // === Einstein Ring — 가장자리 강한 청록 lensing 발광 ===
+      // 너무 강하지 않게, 영화 시그니처 색조 유지
+      vec3 ringCol = vec3(0.45, 0.72, 1.00);
+      float einsteinRing = smoothstep(0.62, 0.92, fresnel) * (1.0 - smoothstep(0.92, 1.00, fresnel) * 0.3);
+      col += ringCol * einsteinRing * 0.55;
 
-      // === 강한 가장자리 발광 ring (렌즈링) ===
-      col += vec3(0.50, 0.82, 1.00) * rimGlow * 0.65;
+      // === 가장자리 별 밀집 (lensing으로 별이 모여 보임) ===
+      float ringStarBoost = smoothstep(0.50, 0.85, fresnel);
+      col += (s1.rgb + s2.rgb) * ringStarBoost * 0.6;
 
-      // 알파 — 안쪽은 적당히 보이고, 가장자리는 강한 발광
-      float alpha = 0.85 + fresnel * 0.15;
+      // 알파 — 안쪽은 거의 불투명, 가장자리에 매우 강한 발광
+      float alpha = 0.92 + rimGlow * 0.08;
 
       gl_FragColor = vec4(col, alpha);
     }
   `,
   transparent: true,
-  blending: THREE.AdditiveBlending,
+  blending: THREE.NormalBlending,    // Additive → Normal: 검은 우주가 검정으로 보이도록
   depthWrite: false,
-  side: THREE.FrontSide      // 진짜 sphere — 안쪽 안 보임
+  side: THREE.FrontSide
 });
 // 웜홀 크기 키움 (2.5 → 5) — 영화에서 토성보다 크게 보이는 인상
 const wormhole = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 32), wormholeMat);
