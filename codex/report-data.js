@@ -1,5 +1,5 @@
 export const reportData = {
-  generatedAt: '2026-05-22 KST',
+  generatedAt: '2026-05-24 KST',
   projects: [
     {
       id: 'ship',
@@ -79,41 +79,44 @@ export const reportData = {
       order: '03',
       name: 'Solar System Simulator',
       label: '태양계 3D 시뮬레이터',
-      state: '공개 비교본 개선 완료',
+      state: 'Claude parity 반영 완료',
       health: 'active',
-      progress: 99,
+      progress: 100,
       stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
-      summary: '현재 날짜 기준으로 태양, 행성, 달, 외태양계 구조, 성간 랜드마크를 배치하고 타임머신, 카메라 포커싱, 정보 패널을 제공하는 3D 천체 시뮬레이터.',
-      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, Codex 버전은 카이퍼/오르트, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선, 부산 조석표와 실시간 달 위상까지 확장했다. 사건의 지평선은 accretion disk와 렌즈 링이 보이는 블랙홀 장면으로 보강했다.',
+      summary: '현재 날짜 기준 태양, 행성, 달, 주요 위성, 탐사선, 외태양계 구조, 라그랑주점, 성간/가상 천체를 배치하고 타임머신, 카메라 포커싱, 정보 패널을 제공하는 3D 천체 시뮬레이터.',
+      verdict: 'Codex와 Claude 버전을 각각 공개 주소로 분리했고, Claude가 2026-05-24에 확장한 주요 위성·탐사선·라그랑주점·오무아무아·제9행성·EHT·가르강튀아/웜홀 장면을 Codex 구조로 다시 구현했다. Codex 보고서는 기능 매트릭스, 검증 증거, lane separation 설명을 추가해 왕먀오 박사가 바로 비교 리뷰할 수 있게 보강했다.',
       links: [
         {
           label: 'Solar Project - Codex',
           url: '../solar-project-codex/',
           probe: 'GitHub Pages 200',
-          note: '태양계 전체, 외태양계, 성간 랜드마크, 블랙홀형 사건의 지평선 포커스 포함',
+          note: '태양계 전체, 외태양계, 성간 랜드마크, 위성/탐사선/라그랑주/특수천체/인터스텔라 포커스 포함',
         },
         {
           label: 'Solar Project - Claude',
           url: '../solar-project-claude/',
           probe: 'GitHub Pages 200',
-          note: '단일 HTML 기반 비교 버전',
+          note: 'Claude가 별도 lane에서 유지하는 단일 HTML 기반 비교 버전',
         },
       ],
       review: [
-        '두 버전을 `solar-project-codex`와 `solar-project-claude` 공개 경로로 분리해 다른 사람에게 바로 공유할 수 있게 했다.',
+        '두 버전을 `solar-project-codex`와 `solar-project-claude` 공개 경로로 분리해 왕먀오 박사에게 바로 공유하고 비교할 수 있게 했다.',
         '연도 이동 버튼은 현재 위치 대비 즉시 점프가 아니라, 목표 날짜까지 중간 날짜를 거치며 재생되는 방식으로 수정했다.',
         'Codex 버전은 실제 지구 텍스처, 구름층, 야간 조명, 달 텍스처, 목성 대적점, 화성/수성 표면 디테일, 토성 고리 결을 추가했다.',
         '포커스 메뉴는 태양계 전체, 카이퍼 벨트, 오르트 구름, Alpha Centauri, 40 Eridani A, Sagittarius A* 사건의 지평선까지 확장됐다.',
         '사건의 지평선 시각화는 단순 검은 구체에서 accretion disk, 렌즈 링, 헤일로, 제트가 있는 블랙홀 장면으로 보강됐다.',
+        'Claude의 최신 확장 범위를 참고하되 Codex 폴더 안에서만 주요 위성, 탐사선, L1-L5, 목성 트로이군, 카모오알레와, 오무아무아, 제9행성, EHT M87*, 웜홀, 가르강튀아, 밀러/맨/에드먼즈 행성을 별도 레이어로 구현했다.',
+        'Claude의 모바일 패널 닫기/복원 UX도 Codex 방식으로 구현해 상태, 정보, 부산 달·조석 패널을 chip dock에서 다시 복원할 수 있게 했다.',
+        '태양계 Codex 보고서에는 parity map, 검증 evidence, Claude handoff 항목을 추가해 보고서 자체의 품질과 피드백 가능성을 높였다.',
       ],
       risks: [
         { level: 'medium', text: '천체 위치는 간소화된 궤도요소 기반이므로 실제 항법·관측용 정밀 천문력으로 오해하지 않게 안내가 필요하다.' },
         { level: 'medium', text: '조석/물때 기능으로 확장할 경우 관측 지점, 조화상수, 예측 모델의 출처를 별도로 고정해야 한다.' },
-        { level: 'low', text: '고해상도 텍스처와 WebGL 효과가 늘어났으므로 저사양 모바일 성능 검증은 계속 필요하다.' },
+        { level: 'low', text: '고해상도 텍스처, 입자, 특수 장면, 선택 토글이 늘어났으므로 저사양 모바일 성능 검증은 계속 필요하다.' },
       ],
       next: [
         '정확도 출처와 모델 한계 고지 패널 추가.',
-        '왕먀오 박사 피드백 기준으로 UI 문구, 모바일 배치, 행성 확대 카메라 거리를 한 번 더 조정.',
+        '왕먀오 박사 피드백 기준으로 UI 문구, 모바일 배치, 특수천체 확대 카메라 거리를 한 번 더 조정.',
       ],
     },
     {
@@ -160,16 +163,16 @@ export const reportData = {
   ],
   improvements: [
     {
-      title: '태양계 공개 공유본 완성',
-      body: 'Codex와 Claude 태양계 버전을 각각 공개 경로로 분리했고, 왕먀오 박사에게 바로 보낼 수 있는 URL 두 개를 확보했다.',
+      title: '태양계 Claude parity 반영',
+      body: 'Claude가 오늘 확장한 주요 위성, 탐사선, 라그랑주점, 특수/인터스텔라 장면을 Codex 구조로 따로 구현하고 두 공개 경로를 계속 분리했다.',
     },
     {
       title: '시간 이동 방식 개선',
       body: '1년 전후 이동은 즉시 날짜 점프가 아니라 현재 시점에서 목표 시점까지 시간이 흐르듯 재생되도록 바뀌었다.',
     },
     {
-      title: 'Codex 행성 비주얼 보강',
-      body: '지구 실제 텍스처, 구름, 야간 조명, 달 텍스처, 목성 대적점, 화성/수성 표면 디테일, 토성 고리 디테일을 추가했다.',
+      title: 'Codex 보고서 품질 보강',
+      body: '태양계 Codex 보고서에 feature matrix, 검증 evidence, Claude handoff 기준을 추가해 왕먀오 박사와 Claude가 같은 기준으로 비교할 수 있게 했다.',
     },
     {
       title: '4번 프로젝트 인수인계 완료',
@@ -177,7 +180,7 @@ export const reportData = {
     },
   ],
   actions: [
-    '태양계 Codex/Claude 공개 링크를 왕먀오 박사에게 공유하고 비주얼·조작감 피드백을 받는다.',
+    '태양계 Codex/Claude 공개 링크와 Codex 보고서를 왕먀오 박사에게 공유하고 비주얼·조작감 피드백을 받는다.',
     'INST EXTRACTOR는 집 데스크탑 RTX 4060 Ti에서 실제 음원 분리 테스트를 먼저 진행한다.',
     'AIS 프로젝트는 데이터 공급원과 갱신 실패 정책을 운영 문서로 고정한다.',
     '스포츠 프로젝트는 트래킹 데이터 라이선스 경로가 결정될 때까지 신규 기능 개발을 멈춘다.',

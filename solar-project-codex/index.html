@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>태양계 프로젝트 - Codex Step 8</title>
+  <title>태양계 프로젝트 - Codex Step 9</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./src/styles.css" />
   <script>
@@ -27,8 +27,9 @@
     <section class="hud" aria-label="시뮬레이션 상태">
       <div class="hud-title">
         <strong>태양계 프로젝트</strong>
-        <span>Step 8</span>
+        <span>Step 9</span>
         <a class="hud-report-link" href="./report.html" title="진행 보고서" aria-label="진행 보고서">Report</a>
+        <button class="panel-close" type="button" data-panel-close="hud" title="상태 패널 닫기" aria-label="상태 패널 닫기">&times;</button>
       </div>
       <dl>
         <div><dt>시뮬 날짜</dt><dd id="readout-date">2026-05-22</dd></div>
@@ -92,12 +93,57 @@
         <option value="event-horizon">사건의 지평선</option>
         <option value="alpha-centauri">Alpha Centauri</option>
         <option value="forty-eridani-a">40 Eridani A</option>
+        <optgroup label="주요 위성">
+          <option value="phobos">Phobos</option>
+          <option value="deimos">Deimos</option>
+          <option value="io">Io</option>
+          <option value="europa">Europa</option>
+          <option value="ganymede">Ganymede</option>
+          <option value="callisto">Callisto</option>
+          <option value="titan">Titan</option>
+          <option value="rhea">Rhea</option>
+          <option value="titania">Titania</option>
+          <option value="oberon">Oberon</option>
+          <option value="triton">Triton</option>
+        </optgroup>
+        <optgroup label="탐사선">
+          <option value="voyager1">Voyager 1</option>
+          <option value="voyager2">Voyager 2</option>
+          <option value="newhorizons">New Horizons</option>
+          <option value="parker">Parker Solar Probe</option>
+          <option value="jwst">JWST</option>
+        </optgroup>
+        <optgroup label="라그랑주·공궤도">
+          <option value="L1">L1</option>
+          <option value="L2">L2</option>
+          <option value="L3">L3</option>
+          <option value="L4">L4</option>
+          <option value="L5">L5</option>
+          <option value="trojans-jupiter">Jupiter Trojans</option>
+          <option value="kamooalewa">Kamoʻoalewa</option>
+        </optgroup>
+        <optgroup label="성간·미지·인터스텔라">
+          <option value="oumuamua">ʻOumuamua</option>
+          <option value="planet-nine">Planet Nine</option>
+          <option value="eht-blackhole">EHT M87*</option>
+          <option value="wormhole">Wormhole</option>
+          <option value="gargantua">Gargantua</option>
+          <option value="miller">Miller</option>
+          <option value="mann">Mann</option>
+          <option value="edmunds">Edmunds</option>
+        </optgroup>
       </select>
       <button id="scale-mode" type="button" title="스케일 전환" aria-label="스케일 전환">Visual</button>
       <button id="toggle-orbits" type="button" title="궤도 표시" aria-label="궤도 표시">Orbits</button>
+      <button id="toggle-moons" type="button" title="주요 위성 표시" aria-label="주요 위성 표시">Moons</button>
+      <button id="toggle-probes" type="button" title="탐사선 표시" aria-label="탐사선 표시">Probes</button>
+      <button id="toggle-lagrange" type="button" title="라그랑주·공궤도 표시" aria-label="라그랑주·공궤도 표시">Lagrange</button>
+      <button id="toggle-exotics" type="button" title="성간·미지 천체 표시" aria-label="성간·미지 천체 표시">Exotic</button>
+      <button id="toggle-interstellar" type="button" title="인터스텔라 시스템 표시" aria-label="인터스텔라 시스템 표시">Interstellar</button>
     </div>
 
     <aside id="info-panel" class="info-panel" aria-label="천체 정보" hidden>
+      <button class="panel-close info-close" type="button" data-panel-close="info" title="정보 패널 닫기" aria-label="정보 패널 닫기">&times;</button>
       <button id="overview" class="overview-button" type="button">전체 보기</button>
       <div class="info-kicker" id="info-kicker">Planet Profile</div>
       <h2 id="info-title">Earth</h2>
@@ -110,6 +156,7 @@
     </aside>
 
     <section class="astro-stack" aria-label="부산 기준 달과 조석">
+      <button class="panel-close astro-close" type="button" data-panel-close="astro" title="달·조석 패널 닫기" aria-label="달·조석 패널 닫기">&times;</button>
       <aside id="moon-widget" class="moon-widget" aria-label="부산 기준 달 위상">
         <div class="moon-phase-visual" id="moon-phase-visual" aria-hidden="true"></div>
         <div>
@@ -147,6 +194,7 @@
       <span class="loader"></span>
       <strong>태양계를 불러오는 중</strong>
     </div>
+    <div id="panel-restore-dock" class="panel-restore-dock" aria-label="닫힌 패널 복원"></div>
   </main>
 
   <script type="importmap">

@@ -69,9 +69,30 @@ function renderTimeline() {
   `).join('');
 }
 
+function renderFeatureMatrix() {
+  $('#feature-matrix').innerHTML = reportData.featureMatrix.map((feature) => `
+    <article class="feature-card">
+      <span>${feature.area}</span>
+      <h3>${feature.codex}</h3>
+      <p>${feature.detail}</p>
+      <strong>${feature.status}</strong>
+    </article>
+  `).join('');
+}
+
 function renderLists() {
   $('#verification-list').innerHTML = list(reportData.verification);
   $('#risk-list').innerHTML = list(reportData.redTeam);
+}
+
+function renderEvidence() {
+  $('#evidence-grid').innerHTML = reportData.evidence.map((item) => `
+    <article class="evidence-card">
+      <span>${item.type}</span>
+      <h3>${item.title}</h3>
+      <p>${item.detail}</p>
+    </article>
+  `).join('');
 }
 
 function drawOrbitMap() {
@@ -135,8 +156,10 @@ function init() {
   renderMetrics();
   renderLane('#codex-lane', reportData.codex, 'codex');
   renderLane('#claude-lane', reportData.claude, 'claude');
+  renderFeatureMatrix();
   renderTimeline();
   renderLists();
+  renderEvidence();
   drawOrbitMap();
 }
 

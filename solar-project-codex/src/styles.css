@@ -100,6 +100,53 @@ button.is-active {
   color: #ffffff;
 }
 
+.panel-close {
+  flex: 0 0 26px;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  border-color: rgba(166, 184, 216, 0.2);
+  border-radius: 8px;
+  background: rgba(8, 13, 23, 0.72);
+  color: #cdd8ea;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.is-panel-closed {
+  display: none !important;
+}
+
+.panel-restore-dock {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.panel-restore-dock:empty {
+  display: none;
+}
+
+.panel-restore-dock button {
+  width: auto;
+  min-width: 86px;
+  height: 32px;
+  padding: 0 11px;
+  border-color: rgba(255, 202, 103, 0.38);
+  background: rgba(10, 16, 28, 0.88);
+  color: #f4f8ff;
+  font-size: 12px;
+  pointer-events: auto;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+}
+
 select {
   min-width: 116px;
   appearance: none;
@@ -287,6 +334,12 @@ input[type="range"] {
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
 }
 
+.info-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
 .info-panel[hidden] {
   display: none;
 }
@@ -295,6 +348,7 @@ input[type="range"] {
   float: right;
   min-width: 82px;
   height: 32px;
+  margin-right: 34px;
   color: var(--gold);
 }
 
@@ -359,6 +413,13 @@ input[type="range"] {
   width: min(340px, calc(100vw - 28px));
 }
 
+.astro-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+
 .moon-widget,
 .tide-panel {
   border: 1px solid var(--panel-line);
@@ -373,7 +434,7 @@ input[type="range"] {
   grid-template-columns: 58px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  padding: 10px 12px;
+  padding: 10px 46px 10px 12px;
 }
 
 .moon-phase-visual {
@@ -642,6 +703,17 @@ input[type="range"] {
     padding: 12px;
   }
 
+  .panel-restore-dock {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .panel-restore-dock button {
+    flex: none;
+    min-width: 74px;
+  }
+
   .info-panel h2 {
     font-size: 19px;
   }
@@ -661,7 +733,7 @@ input[type="range"] {
 
   .moon-widget {
     grid-template-columns: 46px minmax(0, 1fr);
-    padding: 8px 10px;
+    padding: 8px 42px 8px 10px;
   }
 
   .moon-phase-visual {

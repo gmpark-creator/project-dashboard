@@ -165,6 +165,8 @@ h1 {
 
 .status-strip span,
 .metric span,
+.feature-card span,
+.evidence-card span,
 .section-head p {
   color: var(--muted);
 }
@@ -215,7 +217,16 @@ h1 {
   gap: 12px;
 }
 
+.feature-grid,
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .metric,
+.feature-card,
+.evidence-card,
 .lane,
 .check-list,
 .risk-list {
@@ -227,6 +238,45 @@ h1 {
 .metric {
   min-height: 112px;
   padding: 16px;
+}
+
+.feature-card,
+.evidence-card {
+  min-height: 158px;
+  padding: 16px;
+}
+
+.feature-card span,
+.evidence-card span {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feature-card h3,
+.evidence-card h3 {
+  margin: 10px 0 8px;
+  font-size: 16px;
+}
+
+.feature-card p,
+.evidence-card p {
+  margin: 0;
+  color: #cbd8ea;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.feature-card strong {
+  display: inline-flex;
+  margin-top: 13px;
+  padding: 5px 8px;
+  border: 1px solid rgba(142, 230, 168, 0.32);
+  border-radius: 6px;
+  color: var(--green);
+  font-size: 11px;
 }
 
 .metric strong {
@@ -448,7 +498,9 @@ h1 {
     text-align: left;
   }
 
-  .metrics-grid {
+  .metrics-grid,
+  .feature-grid,
+  .evidence-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -470,7 +522,9 @@ h1 {
     font-size: 36px;
   }
 
-  .metrics-grid {
+  .metrics-grid,
+  .feature-grid,
+  .evidence-grid {
     grid-template-columns: 1fr;
   }
 

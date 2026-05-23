@@ -327,6 +327,69 @@ const PLANET_DEFS = [
 
 const PLANET_BY_ID = Object.fromEntries(PLANET_DEFS.map((planet) => [planet.id, planet]));
 
+const MAJOR_MOON_DEFS = [
+  { id: 'phobos', parentId: 'mars', name: 'Phobos', koreanName: '포보스', radiusKm: 11.27, distanceKm: 9376, distMult: 3.4, periodDays: 0.3189, color: 0xa08070, type: 'Mars Moon', summary: '화성의 안쪽 위성입니다. 매우 가까운 궤도를 돌며 장기적으로 화성에 충돌하거나 조석력으로 해체될 가능성이 있습니다.' },
+  { id: 'deimos', parentId: 'mars', name: 'Deimos', koreanName: '데이모스', radiusKm: 6.2, distanceKm: 23463, distMult: 5.2, periodDays: 1.263, color: 0x9a8d7c, type: 'Mars Moon', summary: '화성의 바깥쪽 작은 위성입니다. 표면이 두꺼운 레골리스로 덮여 부드럽고 어둡게 보입니다.' },
+  { id: 'io', parentId: 'jupiter', name: 'Io', koreanName: '이오', radiusKm: 1821.6, distanceKm: 421700, distMult: 2.5, periodDays: 1.769, color: 0xf5d784, type: 'Galilean Moon', summary: '목성의 갈릴레이 위성 중 가장 안쪽에 있으며, 조석 가열로 태양계에서 가장 활발한 화산 활동을 보입니다.' },
+  { id: 'europa', parentId: 'jupiter', name: 'Europa', koreanName: '유로파', radiusKm: 1560.8, distanceKm: 671034, distMult: 3.3, periodDays: 3.551, color: 0xe8d8c0, type: 'Galilean Moon', summary: '얼음 지각 아래 액체 바다가 있을 가능성이 큰 위성으로, 생명 가능성 탐사에서 핵심 후보입니다.' },
+  { id: 'ganymede', parentId: 'jupiter', name: 'Ganymede', koreanName: '가니메데', radiusKm: 2634.1, distanceKm: 1070400, distMult: 4.7, periodDays: 7.155, color: 0xa89880, type: 'Galilean Moon', summary: '태양계에서 가장 큰 위성이며, 위성 중 유일하게 자체 자기장을 가진 것으로 알려져 있습니다.' },
+  { id: 'callisto', parentId: 'jupiter', name: 'Callisto', koreanName: '칼리스토', radiusKm: 2410.3, distanceKm: 1882700, distMult: 7.0, periodDays: 16.689, color: 0x6a5d50, type: 'Galilean Moon', summary: '목성의 바깥쪽 갈릴레이 위성입니다. 오래된 충돌구가 매우 많은 표면을 보존하고 있습니다.' },
+  { id: 'titan', parentId: 'saturn', name: 'Titan', koreanName: '타이탄', radiusKm: 2574.7, distanceKm: 1221870, distMult: 5.3, periodDays: 15.945, color: 0xd4a868, type: 'Saturn Moon', summary: '두꺼운 질소 대기와 액체 메탄/에탄 호수로 유명한 토성의 최대 위성입니다.' },
+  { id: 'rhea', parentId: 'saturn', name: 'Rhea', koreanName: '레아', radiusKm: 763.8, distanceKm: 527108, distMult: 3.4, periodDays: 4.518, color: 0xb8b0a8, type: 'Saturn Moon', summary: '토성의 두 번째로 큰 위성입니다. 얼음이 많은 표면과 희박한 산소 대기 관측으로 알려져 있습니다.' },
+  { id: 'titania', parentId: 'uranus', name: 'Titania', koreanName: '티타니아', radiusKm: 788.4, distanceKm: 436300, distMult: 3.8, periodDays: 8.706, color: 0x9a8d80, type: 'Uranus Moon', summary: '천왕성의 가장 큰 위성입니다. 얼음과 암석이 섞인 표면, 협곡과 충돌구를 가진 천체입니다.' },
+  { id: 'oberon', parentId: 'uranus', name: 'Oberon', koreanName: '오베론', radiusKm: 761.4, distanceKm: 583500, distMult: 5.2, periodDays: 13.463, color: 0x8e8278, type: 'Uranus Moon', summary: '천왕성의 바깥쪽 대형 위성입니다. 어두운 표면과 많은 충돌구가 특징입니다.' },
+  { id: 'triton', parentId: 'neptune', name: 'Triton', koreanName: '트리톤', radiusKm: 1353.4, distanceKm: 354759, distMult: 3.6, periodDays: -5.877, color: 0xc4b8a8, type: 'Neptune Moon', summary: '해왕성의 가장 큰 위성입니다. 역행 궤도를 돌며 카이퍼 벨트에서 포획된 천체로 추정됩니다.' },
+];
+const MAJOR_MOON_BY_ID = Object.fromEntries(MAJOR_MOON_DEFS.map((moon) => [moon.id, moon]));
+const MAJOR_MOON_IDS = new Set(MAJOR_MOON_DEFS.map((moon) => moon.id));
+
+const PROBE_DEFS = [
+  { id: 'voyager1', name: 'Voyager 1', koreanName: '보이저 1호', type: 'Human Probe', kind: 'static_au', auDistance: 169, direction: new THREE.Vector3(0.39, 0.86, -0.32), color: 0x88ddff, launch: '1977-09-05', summary: '인류 최초로 헬리오스피어를 벗어나 성간 공간에 진입한 탐사선입니다. 황금 레코드를 싣고 태양계 바깥으로 향하고 있습니다.' },
+  { id: 'voyager2', name: 'Voyager 2', koreanName: '보이저 2호', type: 'Human Probe', kind: 'static_au', auDistance: 141, direction: new THREE.Vector3(0.51, -0.78, 0.36), color: 0x88c8e8, launch: '1977-08-20', summary: '목성, 토성, 천왕성, 해왕성을 모두 근접 비행한 유일한 탐사선입니다. 현재 성간 공간으로 향하고 있습니다.' },
+  { id: 'newhorizons', name: 'New Horizons', koreanName: '뉴 호라이즌스호', type: 'Human Probe', kind: 'static_au', auDistance: 58, direction: new THREE.Vector3(0.81, 0.18, 0.55), color: 0xffd88a, launch: '2006-01-19', summary: '명왕성과 카이퍼 벨트 천체 아로코스를 근접 탐사한 NASA 탐사선입니다.' },
+  { id: 'parker', name: 'Parker Solar Probe', koreanName: '파커 솔라 프로브', type: 'Human Probe', kind: 'eccentric_orbit', a: 0.388, e: 0.804, periodDays: 88.5, inclinationDeg: 3.4, color: 0xff9966, launch: '2018-08-12', summary: '태양 코로나에 가장 가까이 접근해 태양풍과 자기장을 직접 측정하는 탐사선입니다.' },
+  { id: 'jwst', name: 'James Webb Space Telescope', koreanName: '제임스 웹 우주 망원경', type: 'Space Telescope', kind: 'earth_l2', color: 0xfff0d0, launch: '2021-12-25', summary: '지구-태양 L2 주변에서 적외선으로 초기 우주와 외계행성 대기를 관측하는 우주망원경입니다.' },
+];
+for (const probe of PROBE_DEFS) {
+  if (probe.direction) probe.direction.normalize();
+}
+const PROBE_BY_ID = Object.fromEntries(PROBE_DEFS.map((probe) => [probe.id, probe]));
+const PROBE_IDS = new Set(PROBE_DEFS.map((probe) => probe.id));
+
+const LAGRANGE_DEFS = [
+  { id: 'L1', name: 'L1', koreanName: '태양 쪽 L1', color: 0xff88dd, summary: '태양과 지구 사이의 불안정 평형점입니다. SOHO, DSCOVR 같은 태양 관측 임무가 사용합니다.' },
+  { id: 'L2', name: 'L2', koreanName: '지구 뒤 L2', color: 0xff88dd, summary: '지구의 밤쪽 방향에 있는 평형점입니다. JWST, Gaia, Planck 같은 관측 임무의 주요 위치입니다.' },
+  { id: 'L3', name: 'L3', koreanName: '태양 너머 L3', color: 0xff88dd, summary: '태양 반대편 지구 궤도 근처의 불안정 평형점입니다.' },
+  { id: 'L4', name: 'L4', koreanName: '앞 60도 L4', color: 0xffbb55, summary: '지구 궤도에서 60도 앞선 안정 평형점입니다.' },
+  { id: 'L5', name: 'L5', koreanName: '뒤 60도 L5', color: 0xffbb55, summary: '지구 궤도에서 60도 뒤처진 안정 평형점입니다.' },
+];
+const LAGRANGE_BY_ID = Object.fromEntries(LAGRANGE_DEFS.map((point) => [point.id, point]));
+const LAGRANGE_IDS = new Set(LAGRANGE_DEFS.map((point) => point.id));
+
+const SPECIAL_BODY_DEFS = {
+  'trojans-jupiter': { id: 'trojans-jupiter', name: 'Jupiter Trojans', koreanName: '목성 트로이 소행성군', type: 'Co-orbital Region', color: 0xc9a87c, summary: '목성 궤도의 L4/L5 안정 영역에 머무는 소행성군입니다. 선택 시 두 구름 영역을 함께 표시합니다.' },
+  kamooalewa: { id: 'kamooalewa', name: 'Kamoʻoalewa', koreanName: '카모오알레와', type: 'Earth Quasi-satellite', color: 0xc09080, summary: '지구와 1:1 공명 관계를 이루는 작은 준위성입니다. 달 기원 물질 후보로도 논의됩니다.' },
+  oumuamua: { id: 'oumuamua', name: 'ʻOumuamua', koreanName: '오무아무아', type: 'Interstellar Object', color: 0xffaaee, summary: '2017년에 발견된 인류 최초의 성간 천체입니다. 태양계를 쌍곡선 궤도로 통과한 뒤 빠져나갔습니다.' },
+  'planet-nine': { id: 'planet-nine', name: 'Planet Nine', koreanName: '제9행성 가설', type: 'Hypothetical Planet', color: 0x6677ee, summary: '외곽 카이퍼 천체의 궤도 군집을 설명하기 위해 제안된 가설 행성입니다. 아직 직접 관측되지는 않았습니다.' },
+  'eht-blackhole': { id: 'eht-blackhole', name: 'EHT M87* Event Horizon', koreanName: '사건의 지평선 (EHT M87*)', type: 'Observed Black Hole', color: 0xff8a3d, summary: '2019년 Event Horizon Telescope가 공개한 M87* 블랙홀 사진의 도넛형 밝은 고리와 비대칭 밝기를 교육용으로 재현한 장면입니다.' },
+  wormhole: { id: 'wormhole', name: 'Wormhole', koreanName: '웜홀', type: 'Interstellar Landmark', color: 0x88c8ff, summary: '영화 인터스텔라의 토성 근처 웜홀을 천문학적 맥락의 시각 표식으로 재현했습니다.' },
+  gargantua: { id: 'gargantua', name: 'Gargantua', koreanName: '가르강튀아', type: 'Fictional Black Hole', color: 0xffc170, summary: '영화 인터스텔라의 거대 블랙홀입니다. Codex 버전은 영화적 강착원반과 렌즈 링을 별도 장면으로 구성합니다.' },
+  miller: { id: 'miller', name: 'Miller', koreanName: '밀러 행성', type: 'Interstellar Planet', color: 0x4a8ec0, summary: '가르강튀아에 매우 가까워 극단적인 시간 지연과 거대 파도가 나타나는 물 행성입니다.' },
+  mann: { id: 'mann', name: 'Mann', koreanName: '맨 행성', type: 'Interstellar Planet', color: 0xcfdce8, summary: '영화 인터스텔라의 얼음 구름 행성입니다. 구조 신호가 있었지만 실제 환경은 거주에 부적합합니다.' },
+  edmunds: { id: 'edmunds', name: 'Edmunds', koreanName: '에드먼즈 행성', type: 'Interstellar Planet', color: 0xc8a070, summary: '가르강튀아에서 비교적 멀고 거주 가능 후보로 묘사되는 사막형 행성입니다.' },
+};
+const SPECIAL_BODY_IDS = new Set(Object.keys(SPECIAL_BODY_DEFS));
+const EXOTIC_BODY_IDS = new Set(['oumuamua', 'planet-nine', 'eht-blackhole']);
+const INTERSTELLAR_FEATURE_IDS = new Set(['wormhole', 'gargantua', 'miller', 'mann', 'edmunds']);
+const GARGANTUA_POS = new THREE.Vector3(280_000, 42_000, -260_000);
+const EHT_POS = new THREE.Vector3(420_000, -52_000, 210_000);
+const OUMU_PERIHELION_MS = Date.UTC(2017, 8, 9);
+const INTERSTELLAR_PLANET_ORBITS = {
+  miller: { radius: 430, periodDays: 5, y: -18 },
+  mann: { radius: 590, periodDays: 20, y: 52 },
+  edmunds: { radius: 780, periodDays: 50, y: -36 },
+};
+
 const BODY_PROFILES = {
   system: {
     name: '태양계 전체',
@@ -441,6 +504,26 @@ const BODY_PROFILES = {
     type: 'Interstellar Landmark',
     systemId: 'forty-eridani-a',
   },
+  ...Object.fromEntries(MAJOR_MOON_DEFS.map((moon) => [moon.id, {
+    name: moon.name,
+    type: moon.type,
+    majorMoonId: moon.id,
+  }])),
+  ...Object.fromEntries(PROBE_DEFS.map((probe) => [probe.id, {
+    name: probe.name,
+    type: probe.type,
+    probeId: probe.id,
+  }])),
+  ...Object.fromEntries(LAGRANGE_DEFS.map((point) => [point.id, {
+    name: point.name,
+    type: 'Lagrange Point',
+    lagrangeId: point.id,
+  }])),
+  ...Object.fromEntries(Object.values(SPECIAL_BODY_DEFS).map((body) => [body.id, {
+    name: body.name,
+    type: body.type,
+    specialId: body.id,
+  }])),
 };
 
 const readouts = {
@@ -468,6 +551,11 @@ const buttons = {
   focusTarget: document.getElementById('focus-target'),
   scaleMode: document.getElementById('scale-mode'),
   toggleOrbits: document.getElementById('toggle-orbits'),
+  toggleMoons: document.getElementById('toggle-moons'),
+  toggleProbes: document.getElementById('toggle-probes'),
+  toggleLagrange: document.getElementById('toggle-lagrange'),
+  toggleExotics: document.getElementById('toggle-exotics'),
+  toggleInterstellar: document.getElementById('toggle-interstellar'),
 };
 
 const timeControls = {
@@ -514,6 +602,14 @@ const jumpButtons = Array.from(document.querySelectorAll('[data-time-jump]'));
 const speedPresetButtons = Array.from(document.querySelectorAll('[data-speed]'));
 
 const loading = document.getElementById('loading');
+const panelRestoreDock = document.getElementById('panel-restore-dock');
+const panelCloseButtons = Array.from(document.querySelectorAll('[data-panel-close]'));
+const userPanels = {
+  hud: { root: document.querySelector('.hud'), label: '상태' },
+  info: { root: infoPanel.root, label: '정보' },
+  astro: { root: document.querySelector('.astro-stack'), label: '달·조석' },
+};
+const closedPanelIds = new Set();
 const localFormatter = new Intl.DateTimeFormat('ko-KR', {
   dateStyle: 'medium',
   timeStyle: 'medium',
@@ -523,6 +619,47 @@ const rev = (value) => {
   const wrapped = value % 360;
   return wrapped < 0 ? wrapped + 360 : wrapped;
 };
+
+function renderPanelRestoreDock() {
+  if (!panelRestoreDock) return;
+  panelRestoreDock.replaceChildren();
+  for (const panelId of closedPanelIds) {
+    const panel = userPanels[panelId];
+    if (!panel) continue;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.panelRestore = panelId;
+    button.textContent = `${panel.label} 복원`;
+    panelRestoreDock.append(button);
+  }
+}
+
+function closeUserPanel(panelId) {
+  const panel = userPanels[panelId];
+  if (!panel?.root) return;
+  closedPanelIds.add(panelId);
+  if (panelId === 'info') {
+    panel.root.hidden = true;
+  } else {
+    panel.root.classList.add('is-panel-closed');
+  }
+  renderPanelRestoreDock();
+}
+
+function restoreUserPanel(panelId) {
+  const panel = userPanels[panelId];
+  if (!panel?.root) return;
+  closedPanelIds.delete(panelId);
+  panel.root.classList.remove('is-panel-closed');
+  if (panelId === 'info') {
+    showInfoPanel(focusMode);
+  }
+  renderPanelRestoreDock();
+}
+
+function panelIsClosed(panelId) {
+  return closedPanelIds.has(panelId);
+}
 
 const sinDeg = (value) => Math.sin(value * DEG);
 const cosDeg = (value) => Math.cos(value * DEG);
@@ -1848,6 +1985,240 @@ function makeEventHorizonVisual(def, scale) {
   return group;
 }
 
+function tagBody(object, bodyId) {
+  object.userData.bodyId = bodyId;
+  object.traverse?.((child) => {
+    child.userData.bodyId = bodyId;
+  });
+  return object;
+}
+
+function makeSmallBodyTexture(color = 0xffffff) {
+  const base = new THREE.Color(color);
+  const high = base.clone().lerp(new THREE.Color(0xffffff), 0.45);
+  return canvasTexture(256, 128, (ctx, width, height) => {
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, `#${high.getHexString()}`);
+    grad.addColorStop(0.42, `#${base.getHexString()}`);
+    grad.addColorStop(1, '#151821');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalAlpha = 0.18;
+    for (let i = 0; i < 90; i += 1) {
+      const x = (i * 47) % width;
+      const y = (i * 29) % height;
+      ctx.beginPath();
+      ctx.arc(x, y, 2 + (i % 9), 0, Math.PI * 2);
+      ctx.fillStyle = i % 3 ? '#000000' : '#ffffff';
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+function makeProbeCraft(probe) {
+  const group = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: probe.color,
+    metalness: 0.45,
+    roughness: 0.36,
+    emissive: new THREE.Color(probe.color).multiplyScalar(0.08),
+  });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x182033, metalness: 0.35, roughness: 0.62 });
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4a64f, metalness: 0.5, roughness: 0.42 });
+
+  if (probe.id === 'voyager1' || probe.id === 'voyager2') {
+    const dish = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 0.42, 0.3, 32), bodyMat);
+    dish.rotation.x = Math.PI / 2;
+    group.add(dish);
+    const bus = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.7, 0.7), darkMat);
+    bus.position.set(0, -0.85, 0);
+    group.add(bus);
+    const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 3.2, 10), goldMat);
+    boom.rotation.z = Math.PI / 2;
+    boom.position.set(1.7, -0.86, 0);
+    group.add(boom);
+  } else if (probe.id === 'jwst') {
+    for (let i = 0; i < 9; i += 1) {
+      const mirror = new THREE.Mesh(new THREE.CircleGeometry(0.34, 6), goldMat);
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      mirror.position.set((col - 1) * 0.54, (row - 1) * 0.48, 0);
+      group.add(mirror);
+    }
+    const shield = new THREE.Mesh(new THREE.CircleGeometry(1.55, 48), new THREE.MeshBasicMaterial({
+      color: 0xcfd8ff,
+      transparent: true,
+      opacity: 0.22,
+      side: THREE.DoubleSide,
+    }));
+    shield.position.z = -0.15;
+    shield.scale.set(1.55, 0.72, 1);
+    group.add(shield);
+  } else {
+    const bus = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.6, 0.6), bodyMat);
+    group.add(bus);
+    const panelA = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.05, 0.62), darkMat);
+    panelA.position.x = 1.4;
+    const panelB = panelA.clone();
+    panelB.position.x = -1.4;
+    group.add(panelA, panelB);
+  }
+
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(),
+    color: probe.color,
+    transparent: true,
+    opacity: 0.28,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  glow.scale.setScalar(3.2);
+  group.add(glow);
+  tagBody(group, probe.id);
+  return group;
+}
+
+function makeMarkerSprite(color, label) {
+  const group = new THREE.Group();
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(),
+    color,
+    transparent: true,
+    opacity: 0.82,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  group.add(sprite);
+  const labelSprite = makeLabel(label);
+  group.add(labelSprite);
+  group.userData.sprite = sprite;
+  group.userData.label = labelSprite;
+  return group;
+}
+
+function makeLocalBlackHole(bodyId, radius, accentColor = 0xff8a3d) {
+  const group = new THREE.Group();
+  const def = { id: bodyId };
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeBlackHoleHaloTexture(),
+    color: accentColor,
+    transparent: true,
+    opacity: 0.62,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  halo.scale.setScalar(radius * 12);
+  group.add(halo);
+
+  const disk = new THREE.Mesh(
+    makeAnnulusGeometry(radius * 1.1, radius * 5.8, 9, 256),
+    new THREE.MeshBasicMaterial({
+      map: makeAccretionDiskTexture(),
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.74,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  disk.rotation.set(66 * DEG, 0, 8 * DEG);
+  group.add(disk);
+
+  const sparks = makeAccretionDiskParticles(def, radius);
+  sparks.rotation.copy(disk.rotation);
+  group.add(sparks);
+
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 1.72, radius * 0.05, 16, 192),
+    new THREE.MeshBasicMaterial({
+      color: accentColor,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  ring.scale.set(1.12, 0.46, 1);
+  group.add(ring);
+
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 64, 32),
+    new THREE.MeshBasicMaterial({ color: 0x000000 }),
+  );
+  group.add(core);
+  group.userData.disk = disk;
+  group.userData.sparks = sparks;
+  group.userData.halo = halo;
+  group.userData.ring = ring;
+  tagBody(group, bodyId);
+  return group;
+}
+
+function makeWormholeVisual() {
+  const group = new THREE.Group();
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 64, 32),
+    new THREE.MeshBasicMaterial({
+      map: makeGlowTexture(),
+      color: 0x88c8ff,
+      transparent: true,
+      opacity: 0.58,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  group.add(sphere);
+  for (let i = 0; i < 4; i += 1) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.35 + i * 0.28, 0.018, 10, 96),
+      new THREE.MeshBasicMaterial({
+        color: i % 2 ? 0xffe0a0 : 0x8fd3ff,
+        transparent: true,
+        opacity: 0.46 - i * 0.06,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    ring.rotation.set(70 * DEG, i * 0.7, i * 0.35);
+    group.add(ring);
+  }
+  tagBody(group, 'wormhole');
+  return group;
+}
+
+function makeTrojanCloud(sign, color, scale) {
+  const rand = seededRandom(sign > 0 ? 6101 : 6102);
+  const count = 1600;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const base = new THREE.Color(color);
+  for (let i = 0; i < count; i += 1) {
+    const radius = (0.055 + rand() * 0.11) * scale.au;
+    const angle = rand() * Math.PI * 2;
+    const index = i * 3;
+    positions[index] = Math.cos(angle) * radius;
+    positions[index + 1] = (rand() - 0.5) * scale.au * 0.045;
+    positions[index + 2] = Math.sin(angle) * radius;
+    const brightness = 0.45 + rand() * 0.55;
+    colors[index] = base.r * brightness;
+    colors[index + 1] = base.g * brightness;
+    colors[index + 2] = base.b * brightness;
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: 1.5,
+    sizeAttenuation: false,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.7,
+    depthWrite: false,
+  }));
+}
+
 function makeOrbitLine(color, opacity) {
   return new THREE.LineLoop(
     new THREE.BufferGeometry(),
@@ -2150,6 +2521,162 @@ const eventHorizonGuideLine = makeInterstellarGuideLine(EVENT_HORIZON_DEF, SCALE
 eventHorizonGuideLine.visible = false;
 scene.add(eventHorizonGuideLine);
 
+const majorMoonObjects = Object.fromEntries(MAJOR_MOON_DEFS.map((moon) => {
+  const group = new THREE.Group();
+  group.visible = false;
+  group.userData.bodyId = moon.id;
+  const pivot = new THREE.Group();
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 24, 16),
+    new THREE.MeshStandardMaterial({
+      map: makeSmallBodyTexture(moon.color),
+      color: 0xffffff,
+      roughness: 0.94,
+      metalness: 0,
+    }),
+  );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData.bodyId = moon.id;
+  mesh.position.x = 1;
+  pivot.add(mesh);
+  const orbit = makeOrbitLine(moon.color, 0.22);
+  const orbitPoints = [];
+  for (let i = 0; i < 128; i += 1) {
+    const theta = (i / 128) * Math.PI * 2;
+    orbitPoints.push(new THREE.Vector3(Math.cos(theta), 0, Math.sin(theta)));
+  }
+  setLinePoints(orbit, orbitPoints);
+  const label = makeLabel(moon.koreanName);
+  label.userData.bodyId = moon.id;
+  group.add(orbit, pivot, label);
+  scene.add(group);
+  return [moon.id, { def: moon, group, pivot, mesh, orbit, label }];
+}));
+
+const probeObjects = Object.fromEntries(PROBE_DEFS.map((probe) => {
+  const group = makeProbeCraft(probe);
+  group.visible = false;
+  scene.add(group);
+  return [probe.id, { def: probe, group }];
+}));
+
+const lagrangeObjects = Object.fromEntries(LAGRANGE_DEFS.map((point) => {
+  const group = makeMarkerSprite(point.color, point.name);
+  tagBody(group, point.id);
+  group.visible = false;
+  scene.add(group);
+  return [point.id, { def: point, group }];
+}));
+
+const trojanGroup = new THREE.Group();
+const trojanL4 = makeTrojanCloud(1, SPECIAL_BODY_DEFS['trojans-jupiter'].color, SCALES.visual);
+const trojanL5 = makeTrojanCloud(-1, SPECIAL_BODY_DEFS['trojans-jupiter'].color, SCALES.visual);
+tagBody(trojanL4, 'trojans-jupiter');
+tagBody(trojanL5, 'trojans-jupiter');
+trojanGroup.add(trojanL4, trojanL5);
+trojanGroup.visible = false;
+scene.add(trojanGroup);
+const trojanLabel = makeFloatingLabel('Jupiter Trojans', 'L4 / L5');
+scene.add(trojanLabel);
+
+const kamooalewaObject = makeMarkerSprite(SPECIAL_BODY_DEFS.kamooalewa.color, 'Kamoʻoalewa');
+tagBody(kamooalewaObject, 'kamooalewa');
+kamooalewaObject.visible = false;
+scene.add(kamooalewaObject);
+
+const oumuamuaPathPoints = [];
+for (let i = 0; i < 280; i += 1) {
+  const t = (i / 279) * 2 - 1;
+  oumuamuaPathPoints.push(new THREE.Vector3(t * SCALES.visual.au * 8, Math.sin(t * Math.PI) * SCALES.visual.au * 1.1, -Math.abs(t) * SCALES.visual.au * 4));
+}
+const oumuamuaPath = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(oumuamuaPathPoints),
+  new THREE.LineBasicMaterial({ color: SPECIAL_BODY_DEFS.oumuamua.color, transparent: true, opacity: 0.42 }),
+);
+oumuamuaPath.visible = false;
+scene.add(oumuamuaPath);
+const oumuamuaMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 24, 16),
+  new THREE.MeshStandardMaterial({ color: SPECIAL_BODY_DEFS.oumuamua.color, roughness: 0.85, metalness: 0.08 }),
+);
+oumuamuaMesh.scale.set(1.4, 0.36, 0.36);
+tagBody(oumuamuaMesh, 'oumuamua');
+oumuamuaMesh.visible = false;
+scene.add(oumuamuaMesh);
+const oumuamuaLabel = makeFloatingLabel('ʻOumuamua', 'e > 1');
+scene.add(oumuamuaLabel);
+
+const planetNinePath = makeOrbitLine(SPECIAL_BODY_DEFS['planet-nine'].color, 0.38);
+const planetNinePathPoints = [];
+for (let i = 0; i < 360; i += 1) {
+  const theta = (i / 360) * Math.PI * 2;
+  const radius = SCALES.visual.au * (23 + 9 * Math.cos(theta));
+  planetNinePathPoints.push(new THREE.Vector3(Math.cos(theta) * radius, Math.sin(theta) * SCALES.visual.au * 2.6, Math.sin(theta) * radius * 0.82));
+}
+setLinePoints(planetNinePath, planetNinePathPoints);
+planetNinePath.visible = false;
+scene.add(planetNinePath);
+const planetNineMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 24),
+  new THREE.MeshStandardMaterial({ color: SPECIAL_BODY_DEFS['planet-nine'].color, roughness: 0.72, metalness: 0.12 }),
+);
+tagBody(planetNineMesh, 'planet-nine');
+planetNineMesh.visible = false;
+scene.add(planetNineMesh);
+const planetNineLabel = makeFloatingLabel('Planet Nine', '~600 AU model');
+scene.add(planetNineLabel);
+
+const ehtBlackHole = makeLocalBlackHole('eht-blackhole', 70, 0xff8a3d);
+ehtBlackHole.position.copy(EHT_POS);
+ehtBlackHole.visible = false;
+scene.add(ehtBlackHole);
+const ehtLabel = makeFloatingLabel('EHT M87*', '2019 observation');
+scene.add(ehtLabel);
+
+const gargantuaGroup = makeLocalBlackHole('gargantua', 92, 0xffc170);
+gargantuaGroup.position.copy(GARGANTUA_POS);
+gargantuaGroup.visible = false;
+scene.add(gargantuaGroup);
+const gargantuaLabel = makeFloatingLabel('Gargantua', 'Interstellar');
+scene.add(gargantuaLabel);
+
+const wormholeVisual = makeWormholeVisual();
+wormholeVisual.visible = false;
+scene.add(wormholeVisual);
+const wormholeLabel = makeFloatingLabel('Wormhole', 'Saturn near-field');
+scene.add(wormholeLabel);
+
+const interstellarPlanetObjects = Object.fromEntries(['miller', 'mann', 'edmunds'].map((id) => {
+  const body = SPECIAL_BODY_DEFS[id];
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 32, 24),
+    new THREE.MeshStandardMaterial({
+      map: makeSmallBodyTexture(body.color),
+      color: 0xffffff,
+      roughness: 0.86,
+      metalness: 0.03,
+    }),
+  );
+  mesh.scale.setScalar(id === 'miller' ? 16 : 20);
+  tagBody(mesh, id);
+  mesh.visible = false;
+  scene.add(mesh);
+  const orbit = makeOrbitLine(body.color, 0.28);
+  const points = [];
+  const orbitData = INTERSTELLAR_PLANET_ORBITS[id];
+  for (let i = 0; i < 160; i += 1) {
+    const theta = (i / 160) * Math.PI * 2;
+    points.push(new THREE.Vector3(Math.cos(theta) * orbitData.radius, orbitData.y, Math.sin(theta) * orbitData.radius));
+  }
+  setLinePoints(orbit, points.map((point) => point.add(GARGANTUA_POS)));
+  orbit.visible = false;
+  scene.add(orbit);
+  const label = makeFloatingLabel(body.koreanName, 'Gargantua orbit');
+  scene.add(label);
+  return [id, { mesh, orbit, label }];
+}));
+
 const labels = {
   sun: makeLabel('Sun'),
   earth: makeLabel('Earth'),
@@ -2209,6 +2736,23 @@ const clickableBodies = [
   ...Object.values(outerRegionParticles),
   ...interstellarClickableObjects,
   ...eventHorizonVisual.children,
+  ...Object.values(majorMoonObjects).flatMap((object) => [object.mesh, object.label]),
+  ...Object.values(probeObjects).map((object) => object.group),
+  ...Object.values(lagrangeObjects).map((object) => object.group),
+  trojanGroup,
+  trojanLabel,
+  kamooalewaObject,
+  oumuamuaMesh,
+  oumuamuaLabel,
+  planetNineMesh,
+  planetNineLabel,
+  ehtBlackHole,
+  ehtLabel,
+  gargantuaGroup,
+  gargantuaLabel,
+  wormholeVisual,
+  wormholeLabel,
+  ...Object.values(interstellarPlanetObjects).flatMap((object) => [object.mesh, object.label]),
 ];
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 80;
@@ -2227,6 +2771,11 @@ function initialFocusMode() {
 let scaleMode = 'visual';
 let focusMode = initialFocusMode();
 let orbitsVisible = true;
+let moonsVisible = false;
+let probesVisible = false;
+let lagrangeVisible = false;
+let exoticsVisible = false;
+let interstellarVisible = false;
 let paused = false;
 let speedIndex = SPEEDS.indexOf(1);
 let simulationMs = BASE_SIMULATION_MS;
@@ -2379,6 +2928,22 @@ function isEventHorizonBody(bodyId) {
   return bodyId === EVENT_HORIZON_DEF.id;
 }
 
+function isMajorMoonBody(bodyId) {
+  return MAJOR_MOON_IDS.has(bodyId);
+}
+
+function isProbeBody(bodyId) {
+  return PROBE_IDS.has(bodyId);
+}
+
+function isLagrangeBody(bodyId) {
+  return LAGRANGE_IDS.has(bodyId);
+}
+
+function isSpecialBody(bodyId) {
+  return SPECIAL_BODY_IDS.has(bodyId);
+}
+
 function outerRegionRadiusUnits(bodyId, scale) {
   const region = OUTER_REGION_BY_ID[bodyId];
   return region ? region.outerAu * scale.au : 0;
@@ -2393,12 +2958,105 @@ function eventHorizonPositionUnits(scale) {
   return EVENT_HORIZON_DEF.vectorLy.clone().multiplyScalar(LY_AU * scale.au);
 }
 
+function majorMoonPositionUnits(bodyId, state, scale) {
+  const moon = MAJOR_MOON_BY_ID[bodyId];
+  if (!moon) return new THREE.Vector3(0, 0, 0);
+  const parentPosition = planetPositionUnits(state, scale, moon.parentId);
+  const parentRadius = planetRadiusUnits(scale, PLANET_BY_ID[moon.parentId]);
+  const orbitRadius = Math.max(parentRadius * moon.distMult, scale.au * 0.026);
+  const angle = (state.days / moon.periodDays) * Math.PI * 2;
+  return parentPosition.add(new THREE.Vector3(Math.cos(angle) * orbitRadius, Math.sin(angle * 0.41) * orbitRadius * 0.08, Math.sin(angle) * orbitRadius));
+}
+
+function probePositionUnits(bodyId, state, scale) {
+  const probe = PROBE_BY_ID[bodyId];
+  if (!probe) return new THREE.Vector3(0, 0, 0);
+  if (probe.kind === 'static_au') return probe.direction.clone().multiplyScalar(probe.auDistance * scale.au);
+  if (probe.kind === 'earth_l2') {
+    const earth = earthPositionUnits(state, scale);
+    const direction = earth.clone().normalize();
+    return earth.add(direction.multiplyScalar(scale.au * 0.01));
+  }
+  const mean = (state.days / probe.periodDays) * Math.PI * 2;
+  const x = probe.a * (Math.cos(mean) - probe.e);
+  const z = probe.a * Math.sqrt(1 - probe.e * probe.e) * Math.sin(mean);
+  const y = Math.sin(mean) * Math.sin(probe.inclinationDeg * DEG) * probe.a * 0.08;
+  return new THREE.Vector3(x * scale.au, y * scale.au, -z * scale.au);
+}
+
+function rotateY(vector, angle) {
+  return vector.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+}
+
+function lagrangePositionUnits(bodyId, state, scale) {
+  const earth = earthPositionUnits(state, scale);
+  const direction = earth.clone().normalize();
+  if (bodyId === 'L1') return earth.clone().sub(direction.clone().multiplyScalar(scale.au * 0.01));
+  if (bodyId === 'L2') return earth.clone().add(direction.clone().multiplyScalar(scale.au * 0.01));
+  if (bodyId === 'L3') return earth.clone().multiplyScalar(-1.0007);
+  if (bodyId === 'L4') return rotateY(earth, Math.PI / 3);
+  if (bodyId === 'L5') return rotateY(earth, -Math.PI / 3);
+  return new THREE.Vector3(0, 0, 0);
+}
+
+function trojanCenterUnits(state, scale) {
+  const jupiter = planetPositionUnits(state, scale, 'jupiter');
+  return jupiter;
+}
+
+function kamooalewaPositionUnits(state, scale) {
+  const angle = (state.days / 365.93) * Math.PI * 2 + 1.2;
+  const radius = scale.au * (1.001 + 0.1 * Math.cos(angle));
+  return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle * 0.5) * scale.au * 0.05, Math.sin(angle) * radius);
+}
+
+function oumuamuaPositionUnits(state, scale) {
+  const years = (state.date.getTime() - OUMU_PERIHELION_MS) / (DAY_MS * 365.25);
+  const t = Math.max(-1, Math.min(1, years / 12));
+  return new THREE.Vector3(t * scale.au * 8, Math.sin(t * Math.PI) * scale.au * 1.1, -Math.abs(t) * scale.au * 4);
+}
+
+function planetNinePositionUnits(state, scale) {
+  const angle = (state.days / (14_700 * 365.25)) * Math.PI * 2 + 0.8;
+  const radius = scale.au * (23 + 9 * Math.cos(angle));
+  return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * scale.au * 2.6, Math.sin(angle) * radius * 0.82);
+}
+
+function wormholePositionUnits(state, scale) {
+  const saturn = planetPositionUnits(state, scale, 'saturn');
+  const direction = saturn.clone().normalize();
+  return saturn.add(direction.multiplyScalar(scale.au * 0.62)).add(new THREE.Vector3(0, scale.au * 0.18, 0));
+}
+
+function interstellarPlanetPositionUnits(bodyId, state) {
+  const orbit = INTERSTELLAR_PLANET_ORBITS[bodyId];
+  if (!orbit) return GARGANTUA_POS.clone();
+  const angle = (state.days / orbit.periodDays) * Math.PI * 2;
+  return GARGANTUA_POS.clone().add(new THREE.Vector3(Math.cos(angle) * orbit.radius, orbit.y, Math.sin(angle) * orbit.radius));
+}
+
+function specialPositionUnits(bodyId, state, scale) {
+  if (bodyId === 'trojans-jupiter') return trojanCenterUnits(state, scale);
+  if (bodyId === 'kamooalewa') return kamooalewaPositionUnits(state, scale);
+  if (bodyId === 'oumuamua') return oumuamuaPositionUnits(state, scale);
+  if (bodyId === 'planet-nine') return planetNinePositionUnits(state, scale);
+  if (bodyId === 'eht-blackhole') return EHT_POS.clone();
+  if (bodyId === 'gargantua') return GARGANTUA_POS.clone();
+  if (bodyId === 'wormhole') return wormholePositionUnits(state, scale);
+  if (INTERSTELLAR_PLANET_ORBITS[bodyId]) return interstellarPlanetPositionUnits(bodyId, state);
+  return new THREE.Vector3(0, 0, 0);
+}
+
 function bodyPositionUnits(bodyId, state, scale) {
   if (bodyId === 'system') return new THREE.Vector3(0, 0, 0);
   if (bodyId === 'sun') return new THREE.Vector3(0, 0, 0);
   if (isOuterRegionBody(bodyId)) return new THREE.Vector3(0, 0, 0);
   if (isInterstellarBody(bodyId)) return interstellarPositionUnits(bodyId, scale);
   if (isEventHorizonBody(bodyId)) return eventHorizonPositionUnits(scale);
+  if (isMajorMoonBody(bodyId)) return majorMoonPositionUnits(bodyId, state, scale);
+  if (isProbeBody(bodyId)) return probePositionUnits(bodyId, state, scale);
+  if (isLagrangeBody(bodyId)) return lagrangePositionUnits(bodyId, state, scale);
+  if (isSpecialBody(bodyId)) return specialPositionUnits(bodyId, state, scale);
   const earthPosition = earthPositionUnits(state, scale);
   if (bodyId === 'earth') return earthPosition;
   if (bodyId === 'moon') return earthPosition.add(moonOffsetUnits(state, scale));
@@ -2410,6 +3068,20 @@ function bodyRadiusUnits(bodyId, scale) {
   if (bodyId === 'sun') return scale.sunRadius;
   if (bodyId === 'earth') return scale.earthRadius;
   if (bodyId === 'moon') return scale.moonRadius;
+  if (isMajorMoonBody(bodyId)) {
+    const moon = MAJOR_MOON_BY_ID[bodyId];
+    return Math.max(scale.earthRadius * 0.12, (moon.radiusKm / EARTH_RADIUS_KM) * scale.earthRadius * 12);
+  }
+  if (isProbeBody(bodyId)) return Math.max(scale.earthRadius * 0.38, 0.9);
+  if (isLagrangeBody(bodyId)) return Math.max(scale.earthRadius * 0.28, 0.65);
+  if (bodyId === 'trojans-jupiter') return scale.au * 0.18;
+  if (bodyId === 'kamooalewa') return Math.max(scale.earthRadius * 0.22, 0.55);
+  if (bodyId === 'oumuamua') return Math.max(scale.earthRadius * 0.24, 0.7);
+  if (bodyId === 'planet-nine') return Math.max(scale.earthRadius * 2.2, 4);
+  if (bodyId === 'eht-blackhole') return 180;
+  if (bodyId === 'gargantua') return 240;
+  if (bodyId === 'wormhole') return 35;
+  if (INTERSTELLAR_PLANET_ORBITS[bodyId]) return 28;
   if (PLANET_BY_ID[bodyId]) return planetRadiusUnits(scale, PLANET_BY_ID[bodyId]);
   if (isOuterRegionBody(bodyId)) return outerRegionRadiusUnits(bodyId, scale);
   if (isInterstellarBody(bodyId)) {
@@ -2489,7 +3161,7 @@ function applyScale() {
   moonMesh.scale.setScalar(scale.moonRadius);
   earthMarker.scale.setScalar(Math.max(scale.earthRadius * 1.62, scale.earthGlow * 1.15));
   moonMarker.scale.setScalar(Math.max(scale.moonRadius * 2.1, scale.earthGlow * 0.5));
-  const focusMarkerRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) ? scale.earthRadius : bodyRadiusUnits(focusMode, scale);
+  const focusMarkerRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) || isMajorMoonBody(focusMode) || isProbeBody(focusMode) || isLagrangeBody(focusMode) || isSpecialBody(focusMode) ? scale.earthRadius : bodyRadiusUnits(focusMode, scale);
   focusMarker.scale.setScalar(Math.max(focusMarkerRadius * 2.2, scale.earthGlow * 0.72));
   for (const planet of PLANET_DEFS) {
     const radius = planetRadiusUnits(scale, planet);
@@ -2514,6 +3186,11 @@ function setButtonStates() {
   buttons.focusEarth.classList.toggle('is-active', focusMode === 'earth');
   buttons.focusSun.classList.toggle('is-active', focusMode === 'sun');
   buttons.toggleOrbits.classList.toggle('is-active', orbitsVisible);
+  buttons.toggleMoons?.classList.toggle('is-active', moonsVisible);
+  buttons.toggleProbes?.classList.toggle('is-active', probesVisible);
+  buttons.toggleLagrange?.classList.toggle('is-active', lagrangeVisible);
+  buttons.toggleExotics?.classList.toggle('is-active', exoticsVisible);
+  buttons.toggleInterstellar?.classList.toggle('is-active', interstellarVisible);
   buttons.focusTarget.value = focusMode;
   for (const button of speedPresetButtons) {
     button.classList.toggle('is-active', SPEEDS[speedIndex] === Number(button.dataset.speed));
@@ -2521,6 +3198,23 @@ function setButtonStates() {
 }
 
 function cameraDepthForFocus(bodyId, scale) {
+  if (isSpecialBody(bodyId)) {
+    const state = computeState(new Date(simulationMs));
+    const distance = specialPositionUnits(bodyId, state, scale).length();
+    const radius = bodyRadiusUnits(bodyId, scale);
+    return {
+      far: Math.max(CAMERA_BASE_FAR, distance * 5.5, radius * 60),
+      maxDistance: Math.max(32_000, distance * 2.8, radius * 120),
+    };
+  }
+  if (isProbeBody(bodyId)) {
+    const state = computeState(new Date(simulationMs));
+    const distance = probePositionUnits(bodyId, state, scale).length();
+    return {
+      far: Math.max(CAMERA_BASE_FAR, distance * 8),
+      maxDistance: Math.max(32_000, distance * 4),
+    };
+  }
   if (isEventHorizonBody(bodyId)) {
     const distance = eventHorizonPositionUnits(scale).length();
     return {
@@ -2567,6 +3261,9 @@ function applyCameraDepthForFocus(bodyId, scale) {
 }
 
 function cameraDurationForFocus(bodyId) {
+  if (INTERSTELLAR_FEATURE_IDS.has(bodyId) || bodyId === 'eht-blackhole') return 2200;
+  if (isProbeBody(bodyId) || isSpecialBody(bodyId)) return 1400;
+  if (isMajorMoonBody(bodyId) || isLagrangeBody(bodyId)) return 1050;
   if (isEventHorizonBody(bodyId)) return 3600;
   if (isInterstellarBody(bodyId)) return 3200;
   if (bodyId === 'oort-cloud') return 2600;
@@ -2635,6 +3332,18 @@ function cameraFrameFor(bodyId, state, scale) {
         .add(direction.multiplyScalar(visualRadius * 12.8))
         .add(side.multiplyScalar(visualRadius * 4.6))
         .add(lift),
+    };
+  }
+
+  if (isMajorMoonBody(bodyId) || isProbeBody(bodyId) || isLagrangeBody(bodyId) || isSpecialBody(bodyId)) {
+    const distance = Math.max(targetRadius * 9, scale.au * 0.12, 9);
+    const lift = INTERSTELLAR_FEATURE_IDS.has(bodyId) || bodyId === 'eht-blackhole' ? distance * 0.16 : distance * 0.42;
+    const side = INTERSTELLAR_FEATURE_IDS.has(bodyId) || bodyId === 'eht-blackhole'
+      ? new THREE.Vector3(distance * 1.05, lift, distance * 1.25)
+      : new THREE.Vector3(distance * 0.8, lift, distance * 1.35);
+    return {
+      target: targetPosition,
+      position: targetPosition.clone().add(side),
     };
   }
 
@@ -2725,6 +3434,116 @@ function updateScene(state, now) {
     }
   }
 
+  for (const moon of MAJOR_MOON_DEFS) {
+    const object = majorMoonObjects[moon.id];
+    const parentPosition = planetPositionUnits(state, scale, moon.parentId);
+    const parentRadius = planetRadiusUnits(scale, PLANET_BY_ID[moon.parentId]);
+    const orbitRadius = Math.max(parentRadius * moon.distMult, scale.au * 0.026);
+    const angle = (state.days / moon.periodDays) * Math.PI * 2;
+    const visible = moonsVisible || focusMode === moon.parentId || focusMode === moon.id;
+    object.group.position.copy(parentPosition);
+    object.group.visible = visible;
+    object.pivot.rotation.y = -angle;
+    object.mesh.position.x = orbitRadius;
+    object.mesh.scale.setScalar(bodyRadiusUnits(moon.id, scale));
+    object.orbit.visible = visible && orbitsVisible;
+    object.orbit.scale.setScalar(orbitRadius);
+    object.label.position.set(Math.cos(angle) * orbitRadius, bodyRadiusUnits(moon.id, scale) * 4 + 0.8, Math.sin(angle) * orbitRadius);
+    object.label.visible = visible;
+  }
+
+  for (const probe of PROBE_DEFS) {
+    const object = probeObjects[probe.id];
+    const position = probePositionUnits(probe.id, state, scale);
+    const visible = probesVisible || focusMode === probe.id;
+    const cameraDistance = camera.position.distanceTo(position);
+    object.group.position.copy(position);
+    object.group.visible = visible;
+    object.group.scale.setScalar(Math.max(0.9, cameraDistance * 0.0028));
+    object.group.lookAt(camera.position);
+  }
+
+  for (const point of LAGRANGE_DEFS) {
+    const object = lagrangeObjects[point.id];
+    const position = lagrangePositionUnits(point.id, state, scale);
+    const visible = lagrangeVisible || focusMode === point.id;
+    const cameraDistance = camera.position.distanceTo(position);
+    object.group.position.copy(position);
+    object.group.visible = visible;
+    object.group.userData.sprite.scale.setScalar(Math.max(1.4, cameraDistance * 0.012));
+    object.group.userData.label.position.set(0, Math.max(2.8, cameraDistance * 0.03), 0);
+    setLabelScalar(object.group.userData.label, Math.max(0.34, cameraDistance * 0.0025));
+  }
+
+  const jupiterPosition = planetPositionUnits(state, scale, 'jupiter');
+  const jupiterL4 = rotateY(jupiterPosition, Math.PI / 3);
+  const jupiterL5 = rotateY(jupiterPosition, -Math.PI / 3);
+  const trojansVisible = lagrangeVisible || focusMode === 'trojans-jupiter';
+  trojanL4.position.copy(jupiterL4);
+  trojanL5.position.copy(jupiterL5);
+  trojanGroup.visible = trojansVisible;
+  trojanLabel.position.copy(jupiterPosition).add(new THREE.Vector3(0, scale.au * 0.2, 0));
+  trojanLabel.visible = trojansVisible;
+
+  const kamooalewaPosition = kamooalewaPositionUnits(state, scale);
+  kamooalewaObject.position.copy(kamooalewaPosition);
+  kamooalewaObject.visible = lagrangeVisible || focusMode === 'kamooalewa';
+  kamooalewaObject.scale.setScalar(Math.max(1, camera.position.distanceTo(kamooalewaPosition) * 0.008));
+
+  const oumuamuaPosition = oumuamuaPositionUnits(state, scale);
+  const oumuamuaVisible = exoticsVisible || focusMode === 'oumuamua';
+  oumuamuaMesh.position.copy(oumuamuaPosition);
+  oumuamuaMesh.visible = oumuamuaVisible;
+  oumuamuaMesh.rotation.y += 0.015;
+  oumuamuaPath.visible = oumuamuaVisible && orbitsVisible;
+  oumuamuaLabel.position.copy(oumuamuaPosition).add(new THREE.Vector3(0, scale.au * 0.08, 0));
+  oumuamuaLabel.visible = oumuamuaVisible;
+
+  const planetNinePosition = planetNinePositionUnits(state, scale);
+  const planetNineVisible = exoticsVisible || focusMode === 'planet-nine';
+  planetNineMesh.position.copy(planetNinePosition);
+  planetNineMesh.scale.setScalar(bodyRadiusUnits('planet-nine', scale));
+  planetNineMesh.visible = planetNineVisible;
+  planetNinePath.visible = planetNineVisible && orbitsVisible;
+  planetNineLabel.position.copy(planetNinePosition).add(new THREE.Vector3(0, scale.au * 0.2, 0));
+  planetNineLabel.visible = planetNineVisible;
+
+  const ehtVisible = exoticsVisible || focusMode === 'eht-blackhole';
+  ehtBlackHole.visible = ehtVisible;
+  ehtBlackHole.lookAt(camera.position);
+  ehtBlackHole.userData.disk.rotation.z += 0.0015;
+  ehtBlackHole.userData.sparks.rotation.z += 0.002;
+  ehtLabel.position.copy(EHT_POS).add(new THREE.Vector3(160, 210, 0));
+  ehtLabel.visible = ehtVisible;
+
+  const gargantuaVisible = interstellarVisible || ['gargantua', 'miller', 'mann', 'edmunds', 'wormhole'].includes(focusMode);
+  gargantuaGroup.visible = gargantuaVisible;
+  gargantuaGroup.lookAt(camera.position);
+  gargantuaGroup.userData.disk.rotation.z += 0.0022;
+  gargantuaGroup.userData.sparks.rotation.z += 0.0025;
+  gargantuaLabel.position.copy(GARGANTUA_POS).add(new THREE.Vector3(190, 260, 0));
+  gargantuaLabel.visible = gargantuaVisible;
+
+  const wormholePosition = wormholePositionUnits(state, scale);
+  const wormholeVisible = interstellarVisible || focusMode === 'wormhole';
+  wormholeVisual.position.copy(wormholePosition);
+  wormholeVisual.scale.setScalar(18);
+  wormholeVisual.visible = wormholeVisible;
+  wormholeVisual.rotation.y += 0.002;
+  wormholeLabel.position.copy(wormholePosition).add(new THREE.Vector3(0, scale.au * 0.32, 0));
+  wormholeLabel.visible = wormholeVisible;
+
+  for (const [id, object] of Object.entries(interstellarPlanetObjects)) {
+    const position = interstellarPlanetPositionUnits(id, state);
+    const visible = interstellarVisible || focusMode === id || focusMode === 'gargantua';
+    object.mesh.position.copy(position);
+    object.mesh.visible = visible;
+    object.mesh.rotation.y += 0.006;
+    object.orbit.visible = visible && orbitsVisible;
+    object.label.position.copy(position).add(new THREE.Vector3(0, 42, 0));
+    object.label.visible = visible;
+  }
+
   const kuiperOuterRadius = OUTER_REGION_BY_ID['kuiper-belt'].outerAu * scale.au;
   const oortOuterRadius = OUTER_REGION_BY_ID['oort-cloud'].outerAu * scale.au;
   const kuiperFocused = focusMode === 'kuiper-belt';
@@ -2796,8 +3615,8 @@ function updateScene(state, now) {
   earthMarker.position.copy(earthPosition);
   moonMarker.position.copy(moonPosition);
   focusMarker.position.copy(focusTarget);
-  focusMarker.visible = !['system', 'sun', 'earth', 'moon'].includes(focusMode) && !isOuterRegionBody(focusMode) && !isInterstellarBody(focusMode) && !isEventHorizonBody(focusMode);
-  const markerFocusRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) ? scale.earthRadius : focusRadius;
+  focusMarker.visible = !['system', 'sun', 'earth', 'moon'].includes(focusMode) && !isOuterRegionBody(focusMode) && !isInterstellarBody(focusMode) && !isEventHorizonBody(focusMode) && !isMajorMoonBody(focusMode) && !isProbeBody(focusMode) && !isLagrangeBody(focusMode) && !isSpecialBody(focusMode);
+  const markerFocusRadius = isOuterRegionBody(focusMode) || isInterstellarBody(focusMode) || isEventHorizonBody(focusMode) || isMajorMoonBody(focusMode) || isProbeBody(focusMode) || isLagrangeBody(focusMode) || isSpecialBody(focusMode) ? scale.earthRadius : focusRadius;
   focusMarker.scale.setScalar(Math.max(markerFocusRadius * 1.8, scaleMode === 'real' ? 0.04 : 0.9));
   earthMarker.lookAt(camera.position);
   moonMarker.lookAt(camera.position);
@@ -2897,6 +3716,11 @@ function showInfoPanel(bodyId, state = computeState(new Date(simulationMs))) {
     return;
   }
 
+  if (panelIsClosed('info')) {
+    infoPanel.root.hidden = true;
+    return;
+  }
+
   infoPanel.root.hidden = false;
   infoPanel.kicker.textContent = profile.type;
   infoPanel.title.textContent = profile.name;
@@ -2909,6 +3733,61 @@ function showInfoPanel(bodyId, state = computeState(new Date(simulationMs))) {
     infoPanel.orbit.textContent = profile.secondary;
     infoPanel.rotation.textContent = profile.tertiary;
     infoPanel.summary.textContent = profile.summary;
+    return;
+  }
+
+  if (profile.majorMoonId) {
+    const moon = MAJOR_MOON_BY_ID[profile.majorMoonId];
+    const earthDistanceAu = bodyPositionUnits(bodyId, state, currentScale()).sub(state.earthVectorAu.clone().multiplyScalar(currentScale().au)).length() / currentScale().au;
+    infoPanel.primaryLabel.textContent = '모행성';
+    infoPanel.secondaryLabel.textContent = '공전 주기';
+    infoPanel.tertiaryLabel.textContent = '지구 거리';
+    infoPanel.diameter.textContent = PLANET_BY_ID[moon.parentId].label;
+    infoPanel.orbit.textContent = `${Math.abs(moon.periodDays).toFixed(2)} d`;
+    infoPanel.rotation.textContent = `${formatAu(earthDistanceAu)} / ${formatKm(earthDistanceAu * AU_KM)}`;
+    infoPanel.summary.textContent = `${moon.koreanName}. ${moon.summary}`;
+    return;
+  }
+
+  if (profile.probeId) {
+    const probe = PROBE_BY_ID[profile.probeId];
+    const positionAu = probePositionUnits(probe.id, state, currentScale()).length() / currentScale().au;
+    infoPanel.primaryLabel.textContent = '분류';
+    infoPanel.secondaryLabel.textContent = '태양 거리';
+    infoPanel.tertiaryLabel.textContent = '발사일';
+    infoPanel.diameter.textContent = probe.koreanName;
+    infoPanel.orbit.textContent = `${formatAu(positionAu)} / ${formatKm(positionAu * AU_KM)}`;
+    infoPanel.rotation.textContent = probe.launch;
+    infoPanel.summary.textContent = probe.summary;
+    return;
+  }
+
+  if (profile.lagrangeId) {
+    const point = LAGRANGE_BY_ID[profile.lagrangeId];
+    const earthDistanceAu = lagrangePositionUnits(point.id, state, currentScale())
+      .sub(earthPositionUnits(state, currentScale()))
+      .length() / currentScale().au;
+    infoPanel.primaryLabel.textContent = '위치';
+    infoPanel.secondaryLabel.textContent = '지구 거리';
+    infoPanel.tertiaryLabel.textContent = '성격';
+    infoPanel.diameter.textContent = point.koreanName;
+    infoPanel.orbit.textContent = `${formatAu(earthDistanceAu)} / ${formatKm(earthDistanceAu * AU_KM)}`;
+    infoPanel.rotation.textContent = ['L4', 'L5'].includes(point.id) ? '안정점' : '불안정점';
+    infoPanel.summary.textContent = point.summary;
+    return;
+  }
+
+  if (profile.specialId) {
+    const body = SPECIAL_BODY_DEFS[profile.specialId];
+    const position = specialPositionUnits(body.id, state, currentScale());
+    const distanceAu = position.length() / currentScale().au;
+    infoPanel.primaryLabel.textContent = '분류';
+    infoPanel.secondaryLabel.textContent = '기준 거리';
+    infoPanel.tertiaryLabel.textContent = '표시 방식';
+    infoPanel.diameter.textContent = body.koreanName;
+    infoPanel.orbit.textContent = distanceAu > LY_AU ? formatLy(distanceAu / LY_AU) : `${formatAu(distanceAu)} / ${formatKm(distanceAu * AU_KM)}`;
+    infoPanel.rotation.textContent = INTERSTELLAR_FEATURE_IDS.has(body.id) || body.id === 'eht-blackhole' ? '장면 포커스' : '궤도/영역 모델';
+    infoPanel.summary.textContent = body.summary;
     return;
   }
 
@@ -3189,6 +4068,34 @@ buttons.toggleOrbits.addEventListener('click', () => {
   orbitsVisible = !orbitsVisible;
   setButtonStates();
 });
+buttons.toggleMoons?.addEventListener('click', () => {
+  moonsVisible = !moonsVisible;
+  setButtonStates();
+});
+buttons.toggleProbes?.addEventListener('click', () => {
+  probesVisible = !probesVisible;
+  setButtonStates();
+});
+buttons.toggleLagrange?.addEventListener('click', () => {
+  lagrangeVisible = !lagrangeVisible;
+  setButtonStates();
+});
+buttons.toggleExotics?.addEventListener('click', () => {
+  exoticsVisible = !exoticsVisible;
+  setButtonStates();
+});
+buttons.toggleInterstellar?.addEventListener('click', () => {
+  interstellarVisible = !interstellarVisible;
+  setButtonStates();
+});
+for (const button of panelCloseButtons) {
+  button.addEventListener('click', () => closeUserPanel(button.dataset.panelClose));
+}
+panelRestoreDock?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-panel-restore]');
+  if (!button) return;
+  restoreUserPanel(button.dataset.panelRestore);
+});
 infoPanel.overview.addEventListener('click', () => returnToOverview());
 if (tidePanel.region) {
   tidePanel.region.value = DEFAULT_TIDE_STATION_ID;
@@ -3214,7 +4121,7 @@ renderer.domElement.addEventListener('pointerup', (event) => {
   if (moved > 6) return;
   setPointerFromEvent(event);
   raycaster.setFromCamera(pointer, camera);
-  const hit = raycaster.intersectObjects(clickableBodies, false)[0];
+  const hit = raycaster.intersectObjects(clickableBodies, true)[0];
   const bodyId = hit?.object?.userData?.bodyId;
   if (bodyId) {
     selectBodyFocus(bodyId, { smooth: true });
@@ -3331,6 +4238,11 @@ window.solarProject = {
       eventHorizonVisible: eventHorizonVisual.visible && eventHorizonGuideLine.visible,
       alphaCentauriGuideVisible: interstellarGuideLines['alpha-centauri'].visible,
       fortyEridaniGuideVisible: interstellarGuideLines['forty-eridani-a'].visible,
+      majorMoonsVisible: Object.values(majorMoonObjects).some((object) => object.group.visible),
+      probesVisible: Object.values(probeObjects).some((object) => object.group.visible),
+      lagrangeVisible: Object.values(lagrangeObjects).some((object) => object.group.visible),
+      exoticsVisible: oumuamuaMesh.visible || planetNineMesh.visible || ehtBlackHole.visible,
+      interstellarSceneVisible: gargantuaGroup.visible || wormholeVisual.visible,
     };
   },
   getMoonPhaseForDate(value = new Date()) {
@@ -3350,5 +4262,8 @@ window.solarProject = {
       currentHeightCm: tideData ? Math.round(tideData.currentHeightCm) : null,
       eventCount: tideData?.events?.length || 0,
     };
+  },
+  getClosedPanels() {
+    return Array.from(closedPanelIds);
   },
 };
