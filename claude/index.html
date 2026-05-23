@@ -33,18 +33,23 @@
   <!-- ===== 좌측 사이드바 ===== -->
   <aside class="w-[290px] shrink-0 border-r border-slate-200 bg-white/85 backdrop-blur
                flex flex-col fixed h-screen z-20">
-    <div class="px-6 pt-7 pb-5 border-b border-slate-200">
+    <button id="brandHome" class="block w-full text-left px-6 pt-7 pb-5 border-b border-slate-200
+                 transition-all duration-200 hover:bg-gradient-to-r hover:from-fuchsia-50 hover:via-violet-50 hover:to-indigo-50
+                 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-inset cursor-pointer">
       <div class="flex items-center gap-3">
-        <div class="grid place-items-center w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500
-                    shadow-lg shadow-indigo-300/50">
-          <i data-lucide="layout-dashboard" class="w-6 h-6 text-white"></i>
+        <div class="grid place-items-center w-11 h-11 rounded-xl
+                    bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-500
+                    shadow-lg shadow-violet-300/50">
+          <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
         </div>
-        <div>
-          <h1 class="text-[15px] font-extrabold text-slate-900 leading-tight">프로젝트 대시보드</h1>
-          <p class="text-[11px] text-slate-400">Claude 트랙 진행 보고서 · 2026.05.22</p>
+        <div class="min-w-0">
+          <h1 class="text-[15px] font-extrabold text-slate-900 leading-tight truncate">
+            G.M.PARK 프로젝트 대시보드
+          </h1>
+          <p class="text-[11px] text-slate-400">메인 페이지로 돌아가기 · 2026.05.24</p>
         </div>
       </div>
-    </div>
+    </button>
 
     <nav id="projList" class="flex-1 overflow-y-auto px-3.5 py-4 space-y-2"></nav>
 
@@ -166,24 +171,29 @@ const PROJECTS = [
     platform: '웹 애플리케이션',
     status: 'in-progress',
     start: '2026-05-21',
-    latest: '2026-05-22',
-    progress: 92,
-    link: 'https://gmpark-creator.github.io/solar-system/',
+    latest: '2026-05-24',
+    progress: 96,
+    link: 'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/',
     preview: { type:'embed', height:520, items:[
-      { url:'https://gmpark-creator.github.io/solar-system/claude/', label:'태양계 — Claude 버전' },
-      { url:'https://gmpark-creator.github.io/solar-system/codex/',  label:'태양계 — Codex 버전' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/', label:'태양계 — Claude 버전' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-codex/',  label:'태양계 — Codex 버전' }
     ]},
     summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
-           + '같은 Step 1~4 설계를 Claude·Codex 두 버전으로 독립 구현해 한 랜딩에서 비교 공개한다.',
+           + '같은 Step 1~4 설계를 Claude·Codex 두 버전으로 독립 구현해 한 랜딩에서 비교 공개한다. '
+           + '5월 23일 이후 외태양계 영역(카이퍼·오르트)·외계 항성계·부산 기준 실시간 달 위젯까지 확장.',
     method: 'Three.js로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 각 천체 위치를 '
           + '수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 고도화했고, '
-          + '이후 Claude·Codex 두 버전으로 갈라 비교 배포했다.',
+          + '이후 Claude·Codex 두 버전으로 갈라 비교 배포. Claude 버전은 외태양계·외계 항성계·실시간 달 위젯으로 확장 중.',
     stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
     issues: [
       { type:'완료', title:'날짜 기반 천체력 엔진', desc:'8행성 공전주기를 실제값 대비 오차 최대 0.22%로 재현.' },
       { type:'완료', title:'지구–달 정밀 동기화 + 조석 계산', desc:'달 섭동항 12개 반영, 그 위에 조석(물때) 계산을 구축.' },
       { type:'완료', title:'Claude·Codex 두 버전 비교 공개', desc:'같은 설계를 두 AI가 독립 구현 — /claude/ /codex/ 로 분리 배포, 랜딩에서 선택.' },
-      { type:'완료', title:'시간 흐름 재생 타임머신 (Claude 버전)', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생하도록 변경 — 과거·미래로 무제한 진행.' }
+      { type:'완료', title:'시간 흐름 재생 타임머신 (Claude 버전)', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생하도록 변경 — 과거·미래로 무제한 진행.' },
+      { type:'완료', title:'외태양계 영역 시각화 (Claude · 2026-05-23)', desc:'카이퍼 벨트(30~50 AU) 입자 도넛 + 반투명 평면 띠 + 오르트 구름(2,000~100,000 AU) 입자 구형 쉘 + 반투명 sphere shell. 「초점」 메뉴 선택 시에만 영역 윤곽선과 거리 라벨이 표시되도록 통합.' },
+      { type:'완료', title:'외계 항성계 추가 (Claude · 2026-05-23)', desc:'「프로젝트 헤일메리」 40 에리다니 A(16.45 광년 · 약 1,040,316 AU) + 「삼체」 알파 센타우리(4.37 광년 · 약 276,363 AU). 항성간 거리는 visual 모드에서 L^0.35로 압축해 카메라 절단면 내 수용, real 모드에서는 camera.far 동적 확장.' },
+      { type:'완료', title:'부산 기준 실시간 달 모양 위젯 (Claude · 2026-05-24)', desc:'조석 패널 위에 신설 — Canvas 2D + NASA moon_1024.jpg 텍스처를 globalCompositeOperation 「multiply」로 합성. 표면 디테일(크레이터·바다·고지)을 유지하면서 위상별 그림자만 정확히 변화. 한국어 8단계 위상명 + 조명률(%) + 달 나이 표시.' },
+      { type:'완료', title:'조석 기본 지점을 부산으로 (Claude · 2026-05-24)', desc:'curLoc 초기값을 인천 → 부산으로 변경, 셀렉터 selected 속성도 부산. 달 위젯 관측 지점과 일관성 확보.' }
     ],
     milestones: [
       { date:'2026-05-21', title:'Step 1 — 태양·지구·달 실시간', desc:'우주 배경·카메라 조작·실시간 자전/공전' },
@@ -191,7 +201,11 @@ const PROJECTS = [
       { date:'2026-05-22', title:'Step 3 — 조석(물때) 계산', desc:'조석 팽대부 3D, 물때 패널, 48h 조석곡선' },
       { date:'2026-05-22', title:'Step 4 — 인터랙션·비주얼 고도화', desc:'타임머신, 클릭 포커싱, 정보 UI, 그림자' },
       { date:'2026-05-22', title:'Claude·Codex 두 버전 비교 배포', desc:'같은 설계의 두 독립 구현을 랜딩에서 선택' },
-      { date:'2026-05-22', title:'시간 흐름 재생 타임머신', desc:'Claude 버전 — 연 단위 이동을 연속 재생 방식으로 개선' }
+      { date:'2026-05-22', title:'시간 흐름 재생 타임머신', desc:'Claude 버전 — 연 단위 이동을 연속 재생 방식으로 개선' },
+      { date:'2026-05-23', title:'외태양계 영역 시각화', desc:'카이퍼 벨트·오르트 구름 입자 + 윤곽선·반투명 메시 + 거리 라벨, 「초점」 메뉴 연동' },
+      { date:'2026-05-23', title:'외계 항성계 (헤일메리·삼체)', desc:'40 에리다니 A(16.45 ly) + 알파 센타우리(4.37 ly) 실제 거리 반영, 카메라 인터스텔라 줌' },
+      { date:'2026-05-24', title:'부산 기준 실시간 달 위젯', desc:'조석 패널 위 신설 — NASA 텍스처 + multiply 합성으로 사실적 달 표면, 한국어 8단계 위상명' },
+      { date:'2026-05-24', title:'조석 기본 지점 → 부산', desc:'관측 지점 일관성 확보, 달 위젯·조석곡선 모두 부산 기준' }
     ]
   },
   {
@@ -541,19 +555,125 @@ function renderDetail(p) {
   lucide.createIcons();
 }
 
+// ===== 홈(메인) 페이지 =====
+// 박사님의 G.M.PARK 프로젝트 대시보드 — 알록달록 그라데이션 헤로 + 컬러풀 프로젝트 카드
+// (문구는 박사님 후속 지시 대기 — placeholder 영역 유지)
+function renderHome() {
+  const PROJ_COLORS = {
+    'ais':    { grad:'from-emerald-400 via-teal-400 to-cyan-400',     ring:'ring-emerald-200',  text:'text-emerald-700',  pill:'bg-emerald-50' },
+    'sports': { grad:'from-violet-400 via-purple-400 to-fuchsia-400', ring:'ring-violet-200',   text:'text-violet-700',   pill:'bg-violet-50' },
+    'solar':  { grad:'from-amber-400 via-orange-400 to-rose-400',     ring:'ring-amber-200',    text:'text-amber-700',    pill:'bg-amber-50' },
+    'inst':   { grad:'from-sky-400 via-blue-400 to-indigo-400',       ring:'ring-sky-200',      text:'text-sky-700',      pill:'bg-sky-50' }
+  };
+  const cards = PROJECTS.map((p, i) => {
+    const c = PROJ_COLORS[p.id] || PROJ_COLORS.ais;
+    const st = STATUS[p.status];
+    return `
+    <button data-id="${p.id}"
+      class="home-card group relative overflow-hidden rounded-3xl p-5 text-left bg-white ring-1 ring-slate-200
+             shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 reveal"
+      style="animation-delay:${120 + i*70}ms">
+      <div class="absolute inset-0 bg-gradient-to-br ${c.grad} opacity-0 group-hover:opacity-10 transition-opacity"></div>
+      <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-gradient-to-br ${c.grad} opacity-25 blur-2xl"></div>
+      <div class="relative">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="grid place-items-center w-12 h-12 rounded-2xl bg-gradient-to-br ${c.grad} shadow-lg text-white">
+            <i data-lucide="${p.icon}" class="w-6 h-6"></i>
+          </span>
+          <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full ${st.badge}">${st.label}</span>
+        </div>
+        <h3 class="text-[16px] font-extrabold text-slate-900 leading-tight">${p.name}</h3>
+        <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">${p.subtitle}</p>
+        <div class="mt-4 flex items-center justify-between">
+          <span class="text-[11px] font-semibold ${c.text} ${c.pill} px-2 py-1 rounded-md ring-1 ${c.ring}">진행률 ${p.progress}%</span>
+          <span class="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-500 group-hover:text-slate-800">
+            상세 보기 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </span>
+        </div>
+      </div>
+    </button>`;
+  }).join('');
+
+  $('#detail').innerHTML = `
+    <!-- ── HERO (알록달록 그라데이션) ── -->
+    <section class="reveal relative overflow-hidden rounded-3xl p-8 sm:p-12 mb-7
+                    bg-gradient-to-br from-fuchsia-500 via-violet-500 via-indigo-500 to-cyan-400
+                    text-white shadow-2xl shadow-violet-300/40">
+      <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-pink-400/40 blur-3xl"></div>
+      <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-cyan-300/40 blur-3xl"></div>
+      <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-amber-300/30 blur-2xl"></div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 mb-5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span class="text-[11px] font-bold tracking-wide">G.M.PARK · MAIN DASHBOARD · 2026.05.24</span>
+        </div>
+        <h1 class="text-[42px] sm:text-[56px] font-black leading-[1.02] tracking-tight">G.M.PARK<br/>프로젝트 대시보드</h1>
+        <p class="mt-5 text-[14.5px] sm:text-[15.5px] text-white/85 max-w-2xl leading-relaxed">
+          <span class="opacity-70">(문구 영역 — 박사님 지시 대기. 추후 디렉터 메시지·운영 철학·근황 등이 들어갈 자리)</span>
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <div class="px-4 py-2.5 rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/25">
+            <p class="text-[10px] uppercase tracking-wider text-white/70">진행 중 프로젝트</p>
+            <p class="text-[20px] font-extrabold">${PROJECTS.filter(p=>p.status==='in-progress').length}</p>
+          </div>
+          <div class="px-4 py-2.5 rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/25">
+            <p class="text-[10px] uppercase tracking-wider text-white/70">완성</p>
+            <p class="text-[20px] font-extrabold">${PROJECTS.filter(p=>p.status==='completed').length}</p>
+          </div>
+          <div class="px-4 py-2.5 rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/25">
+            <p class="text-[10px] uppercase tracking-wider text-white/70">보류</p>
+            <p class="text-[20px] font-extrabold">${PROJECTS.filter(p=>p.status==='paused').length}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 프로젝트 카드 그리드 ── -->
+    <section class="mb-8">
+      <div class="flex items-center gap-2.5 mb-4 reveal">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-500 text-white">
+          <i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i>
+        </span>
+        <h2 class="text-[16px] font-bold text-slate-800">현재 진행 프로젝트</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">${cards}</div>
+    </section>
+
+    <!-- ── 추가 영역 (TBD — 박사님 후속 지시 대기) ── -->
+    <section class="reveal rounded-3xl border-2 border-dashed border-slate-300 bg-white/50 p-10 text-center"
+             style="animation-delay:520ms">
+      <div class="inline-grid place-items-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 mb-3">
+        <i data-lucide="layout-template" class="w-6 h-6 text-slate-400"></i>
+      </div>
+      <p class="text-[14px] font-bold text-slate-600">추가 콘텐츠 영역</p>
+      <p class="text-[12px] text-slate-400 mt-1">박사님의 후속 지시(문구·섹션·위젯 등)가 들어갈 자리입니다.</p>
+    </section>
+  `;
+  $('#detail').querySelectorAll('.home-card').forEach(b =>
+    b.addEventListener('click', () => selectProject(b.dataset.id)));
+}
+
 // ===== 프로젝트 선택 =====
 function selectProject(id) {
   activeId = id;
   renderSidebar();
-  renderDetail(PROJECTS.find(p => p.id === id));
+  if (id === 'home') {
+    renderHome();
+  } else {
+    renderDetail(PROJECTS.find(p => p.id === id));
+  }
   window.scrollTo({ top:0, behavior:'smooth' });
   lucide.createIcons();
 }
 
-// ===== 초기화 =====
+// 사이드바 헤더(브랜드) 클릭 → 홈으로
+document.getElementById('brandHome').addEventListener('click', () => selectProject('home'));
+
+// ===== 초기화 — 첫 진입은 홈(메인) 페이지 =====
+activeId = 'home';
 renderSidebar();
 renderSummary();
-selectProject(activeId);
+selectProject('home');
 lucide.createIcons();
 </script>
 </body>
