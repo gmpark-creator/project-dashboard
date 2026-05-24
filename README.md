@@ -9,6 +9,7 @@
 - Solar Project - Codex: https://gmpark-creator.github.io/project-dashboard/solar-project-codex/
 - Solar Project - Claude: https://gmpark-creator.github.io/project-dashboard/solar-project-claude/
 - INST EXTRACTOR 브리핑: https://gmpark-creator.github.io/project-dashboard/codex/inst-extractor/
+- **INST EXTRACTOR 직접 사용 (드래그앤드롭 데모)**: https://gmpark-creator.github.io/project-dashboard/inst-app/
 - 2D Match Tracker: https://gmpark-creator.github.io/project-dashboard/match-tracker/
 
 ## 현재 포함 프로젝트
@@ -20,9 +21,25 @@
 
 ## 최신 반영
 
-- INST EXTRACTOR — 비ASCII 파일명 추출 실패 수정: 일본어 원본 파일명에서 결과 WAV 생성 후 `X-Original-Filename` 헤더 인코딩으로 500이 나던 문제를 percent-encoded 헤더로 변경. 같은 MP3 재검증 `POST /extract` 200 OK, 41.5MB WAV, 235.519초
+- **INST EXTRACTOR — 보고서 페이지에 추출기 UI 공개 (`/inst-app/`)**: 원본 frontend를 GitHub Pages 환경에 맞춰 분기 — 데모 모드 기본 ON으로 외부 사용자도 드래그앤드롭 UI 즉시 체험 가능 · 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출 · HTTPS 페이지에서 http:// 호출 시 mixed-content 차단 안내까지 포함
+- **INST EXTRACTOR — Codex 주도로 실음원 추출 성공 (HANDOFF [6])**: 일본어 MP3(`今見える明日_戒める今日_*.mp3`)에서 결과 WAV 생성은 정상이었으나 `X-Original-Filename` 헤더의 비ASCII가 Latin-1 인코딩에 막혀 500이 나던 문제를 Codex가 `urllib.parse.quote()` percent-encoding으로 수정. 재검증 결과 `200 OK` · `41,545,676 bytes` WAV · `235.519초` — 실제 곡에서 보컬 제거 동작 확인됨
 - INST EXTRACTOR — 집 데스크탑 GPU 사양 확정: RTX 4060 Ti **8GB 모델** (4-소스 크로스체크 — nvidia-smi 8188 MiB / 레지스트리 qwMemorySize 8.0 GB / PyTorch total_memory 8.00 GB / WMI는 32-bit 한계로 무시). 일반 곡(3~5분) 검증엔 무관, htdemucs_ft + 매우 긴 음원 조합에서만 OOM 주의
 - INST EXTRACTOR — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 완료 (HANDOFF [5]): PyTorch 2.11+cu128/CUDA 인식 True, separate_instrumental() 직호출 1.86s/543MB VRAM, HTTP /extract 200 OK 0.81s. 실음원 음질 평가는 디렉터 영역으로 남김
+
+### INST EXTRACTOR — AI별 작업 분담 (4번 프로젝트)
+- **Claude (Opus 4.7) 영역**
+  - 프론트엔드 `index.html` 전체 — 다크 믹싱 콘솔 UI, 드래그앤드롭, 모델 드롭다운, 진행바, VU 미터, 데모 모드 토글, 완료 팝업 (Tailwind + Lucide)
+  - FastAPI 뼈대 (`main.py` 초기 골격) — `POST /extract`·`GET /health`·`GET /` 라우팅, 업로드 검증, 모델 화이트리스트
+  - AI 릴레이 로그 시스템 (`HANDOFF.md`·`CODEX_TO_CLAUDE.md`·`NEXT_DESKTOP_STEPS.md`) 설계
+  - 홈 PC 자동 세팅 (`SETUP_HOME_PC.md` + `setup_home.bat` + `start_server.bat` + `scripts/setup_windows_desktop.ps1` + `scripts/run_server.ps1`)
+  - GPU 검증 스크립트 2종 (`scripts/verify_gpu.py`·`verify_http.py`) + HANDOFF [3]·[5]
+  - 보고서 공유판 (`project-dashboard/inst-app/index.html`) — 본 페이지
+- **Codex (ChatGPT) 영역**
+  - `main.py`의 **`separate_instrumental()`** Demucs 핵심 분리 로직 — `get_model()` 로드 + `(model_name, device)` 캐시 + `torch.cuda.is_available()` 분기 + `apply_model(split=True, overlap=0.25, shifts=1)` + `vocals` 스템 제외 후 나머지 합산 + `soundfile`로 PCM_16 WAV 출력
+  - 의존성 확정 (`requirements.txt`의 demucs/torch/torchaudio/soundfile)
+  - **비ASCII 파일명 헤더 인코딩 버그 수정** — `X-Original-Filename-Encoded` percent-encoding으로 변경해 일본어 MP3 등 500 오류 해결
+  - 실음원 검증 (HANDOFF [2]·[6]) — 일본어 곡에서 41.5MB WAV / 235초 실측
+- **디렉터 영역**: 실음원 청취 품질 평가, 카드 사양 확정 (8GB), 외부 공유 정책 결정
 - 태양계 Claude 버전 — NASA Eyes 공식 실사 임베드 (JPL 자산): 시뮬레이터 「📡 NASA Eyes」 토글 버튼 + 보고서 preview에 NASA Eyes iframe 항목 추가. 현재 focus 객체에 따라 NASA Eyes도 자동 이동 (NASA_EYES_MAP)
 - 태양계 Claude 버전 — 인류 탐사선 3D 모델 (sprite 점 → Voyager 큰 접시·RTG·Mag 붐 / Parker 태양 가리개·패널 / NewHorizons 작은 접시 / JWST 황금 6각형) + 항적 점선(과거 청·미래 주황) + 방향 화살표
 - 태양계 Claude 버전 — 태양 GLSL 셰이더(granulation·sunspot·limb darkening) + 가스 행성 atmospheric halo(목·토·천왕·해왕 Fresnel) + 위성 4종 카테고리 GLSL(Cratered·Volcanic·Icy·Hazy)
