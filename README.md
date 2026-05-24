@@ -21,7 +21,8 @@
 
 ## 최신 반영
 
-- **INST EXTRACTOR — 보고서 페이지에 추출기 UI 공개 (`/inst-app/`)**: 원본 frontend를 GitHub Pages 환경에 맞춰 분기 — 데모 모드 기본 ON으로 외부 사용자도 드래그앤드롭 UI 즉시 체험 가능 · 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출 · HTTPS 페이지에서 http:// 호출 시 mixed-content 차단 안내까지 포함
+- **INST EXTRACTOR — Claude 보고서 4번 프로젝트 카드 전면 개편 (2026-05-24)**: 디렉터 지시 반영 — (1) Claude가 만든 부분(UI·FastAPI 골격·홈 PC 자동 세팅·GPU 검증 스크립트·공개 보고서 UI 페이지) 5건을 명시적으로 기재, (2) 「GPT 위주로 만들어진」 사실(separate_instrumental Demucs 엔진 = Codex 영역)과 「AI 협업으로 해결한」 사건(일본어 파일명 500 에러 협업 수정)을 어제 태양계 프로젝트와 동일한 「핵심」 푸시아·핑크 그라데이션 색감으로 시각 구분, (3) 외부인 실사용 불가(GPU 백엔드 필요) → 디렉터 본인 PC 전용 도구로 운영 합의를 summary에 명기. 진척도 68% → 92% 갱신
+- **INST EXTRACTOR — 보고서 페이지에 추출기 UI 공개 (`/inst-app/`)**: 원본 frontend를 GitHub Pages 환경에 맞춰 분기 — 데모 모드 기본 ON으로 외부 사용자도 드래그앤드롭 UI 즉시 체험 가능 · 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출 · HTTPS 페이지에서 http:// 호출 시 mixed-content 차단 안내까지 포함 ※ 실제 GPU 추출은 백엔드가 필요해 외부인 실사용은 구조상 불가 — 디렉터 본인 PC 전용으로 운영
 - **INST EXTRACTOR — Codex 주도로 실음원 추출 성공 (HANDOFF [6])**: 일본어 MP3(`今見える明日_戒める今日_*.mp3`)에서 결과 WAV 생성은 정상이었으나 `X-Original-Filename` 헤더의 비ASCII가 Latin-1 인코딩에 막혀 500이 나던 문제를 Codex가 `urllib.parse.quote()` percent-encoding으로 수정. 재검증 결과 `200 OK` · `41,545,676 bytes` WAV · `235.519초` — 실제 곡에서 보컬 제거 동작 확인됨
 - INST EXTRACTOR — 집 데스크탑 GPU 사양 확정: RTX 4060 Ti **8GB 모델** (4-소스 크로스체크 — nvidia-smi 8188 MiB / 레지스트리 qwMemorySize 8.0 GB / PyTorch total_memory 8.00 GB / WMI는 32-bit 한계로 무시). 일반 곡(3~5분) 검증엔 무관, htdemucs_ft + 매우 긴 음원 조합에서만 OOM 주의
 - INST EXTRACTOR — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 완료 (HANDOFF [5]): PyTorch 2.11+cu128/CUDA 인식 True, separate_instrumental() 직호출 1.86s/543MB VRAM, HTTP /extract 200 OK 0.81s. 실음원 음질 평가는 디렉터 영역으로 남김
