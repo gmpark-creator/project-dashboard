@@ -20,7 +20,8 @@
 
 ## 최신 반영
 
-- INST EXTRACTOR — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 완료 (HANDOFF [5]): PyTorch 2.11+cu128/CUDA 인식 True, separate_instrumental() 직호출 1.86s/543MB VRAM, HTTP /extract 200 OK 0.81s. 카드 VRAM이 8GB로 잡혀 16GB 메모리 기록과 불일치 — 디렉터 확인 대기. 실음원 음질 평가는 디렉터 영역으로 남김
+- INST EXTRACTOR — 집 데스크탑 GPU 사양 확정: RTX 4060 Ti **8GB 모델** (4-소스 크로스체크 — nvidia-smi 8188 MiB / 레지스트리 qwMemorySize 8.0 GB / PyTorch total_memory 8.00 GB / WMI는 32-bit 한계로 무시). 일반 곡(3~5분) 검증엔 무관, htdemucs_ft + 매우 긴 음원 조합에서만 OOM 주의
+- INST EXTRACTOR — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 완료 (HANDOFF [5]): PyTorch 2.11+cu128/CUDA 인식 True, separate_instrumental() 직호출 1.86s/543MB VRAM, HTTP /extract 200 OK 0.81s. 실음원 음질 평가는 디렉터 영역으로 남김
 - 태양계 Claude 버전 — NASA Eyes 공식 실사 임베드 (JPL 자산): 시뮬레이터 「📡 NASA Eyes」 토글 버튼 + 보고서 preview에 NASA Eyes iframe 항목 추가. 현재 focus 객체에 따라 NASA Eyes도 자동 이동 (NASA_EYES_MAP)
 - 태양계 Claude 버전 — 인류 탐사선 3D 모델 (sprite 점 → Voyager 큰 접시·RTG·Mag 붐 / Parker 태양 가리개·패널 / NewHorizons 작은 접시 / JWST 황금 6각형) + 항적 점선(과거 청·미래 주황) + 방향 화살표
 - 태양계 Claude 버전 — 태양 GLSL 셰이더(granulation·sunspot·limb darkening) + 가스 행성 atmospheric halo(목·토·천왕·해왕 Fresnel) + 위성 4종 카테고리 GLSL(Cratered·Volcanic·Icy·Hazy)
