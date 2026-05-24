@@ -1,5 +1,52 @@
 # Claude → Codex 핸드오프 (2026-05-23 ~ 24 · 최종)
 
+---
+
+## 🆕 2026-05-24 추가 핸드오프 — INST EXTRACTOR 보고서 색감 구분 적용 요청
+
+> **요청 주체**: 디렉터 G.M.PARK (박사)
+> **원문 지시**: *"코덱스한테도 똑같이 반영하라고 전달해줘"*
+> **선행 작업**: Claude가 `claude/index.html` INST EXTRACTOR 4번 프로젝트 카드를 디렉터 지시대로 전면 개편 완료 (커밋 `ab1fb03`).
+
+### ▸ Codex가 할 것 — `codex/report-data.js`의 INST EXTRACTOR(`id:'inst'`) 항목 갱신
+
+**디렉터 지시 핵심 3가지**를 Codex 보고서에도 동일하게 반영해주세요:
+
+1. **Claude가 만든 부분을 보고서에 명시적으로 기재**
+   - Claude 1차 빌드: UI(믹싱 콘솔 다크 / 드래그앤드롭 / 진행바 / VU 미터 / 데모 모드 토글 / 완료 팝업) + FastAPI 골격(`/extract`·`/health` 라우팅·업로드 검증·모델 화이트리스트)
+   - Claude — 홈 PC 자동 세팅 일체 (`SETUP_HOME_PC.md` + `setup_home.bat` + `start_server.bat` + `scripts/setup_windows_desktop.ps1` + `scripts/run_server.ps1` + AI 릴레이 로그 시스템 설계)
+   - Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 (`scripts/verify_gpu.py` + `scripts/verify_http.py`)
+   - Claude — 공개 보고서 UI 페이지 (`project-dashboard/inst-app/index.html`) 배포
+
+2. **GPT 위주로 만들어졌다는 사실**(= `separate_instrumental()` Demucs 핵심 엔진은 Codex 영역)을 **시각적으로 두드러지게** 표시
+   - 어제 태양계 프로젝트에서 GPT 협업(3단 TDZ) 표시할 때 적용한 **푸시아·핑크 그라데이션 색감과 동일하게** 시각 구분
+   - Claude 보고서에서는 `type:'핵심'` + `isCore:true` 패턴 사용 (참조: `claude/index.html` line 313~316, 462~478, 502~508의 ITYPE/boxCls/dotCls 로직)
+   - Codex 보고서(`codex/report-data.js`)에서도 동일한 시각 구분 효과가 나도록 — Codex 측 스타일 시스템에 맞게 적용 방식은 Codex가 판단
+
+3. **AI 협업으로 해결한 사건**(2026-05-24 일본어 파일명 500 에러)도 동일한 색감으로 구분
+   - 사실 관계: 디렉터가 일본어 MP3(Hysteric Blue「今見える明日_戒める今日」) 업로드 → 분리는 성공해 outputs/에 WAV 생성됨에도 응답 500 → Codex가 `X-Original-Filename` 헤더의 Latin-1 인코딩 제한 정밀 진단 → `X-Original-Filename-Encoded` + `urllib.parse.quote()` percent-encoding으로 수정 → 235.519초 / 41.5MB WAV / 200 OK 재검증
+
+4. **외부인 실사용 불가 사실 명기** (요약/verdict에)
+   - 디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」을 GitHub Pages에 UI까지는 배포했으나 GPU 백엔드가 필요한 구조라 외부인 실사용 불가
+   - **합의된 운영 방침**: 디렉터 본인 PC 전용 도구로 사용
+
+5. **메타 데이터 갱신** (Codex `report-data.js` 기준)
+   - `state` 또는 `progress` 갱신 (현재 88%로 되어 있는데, Claude 측은 92%로 갱신했음 — Codex 판단)
+   - 필요시 `verdict` / `review` / `next` 항목도 위 사실 반영해 업데이트
+
+### ▸ Claude 영역 (이번 라운드 작업 결과)
+- 수정 파일: `claude/index.html` (INST EXTRACTOR 카드 전면 개편) + `README.md` (최신 반영 항목 추가)
+- 커밋: `ab1fb03`
+- 배포: `master`에 push 완료, GitHub Pages 반영 중
+
+### ▸ 작업 경계 (재확인)
+- Claude는 `claude/`, `inst-app/`, `solar-project-claude/`, 루트 `README.md`만 수정
+- Codex는 `codex/`, `solar-project-codex/` 영역
+- 이번 핸드오프 파일(`claude/HANDOFF_FROM_CLAUDE.md`)은 Claude → Codex 일방 채널이라 Claude가 추가
+- Codex는 작업 후 `inst-extractor/CODEX_TO_CLAUDE.md` 또는 별도 Codex 핸드오프 파일에 답신 권장
+
+---
+
 > **🏁 2026-05-24 최종 마무리** — 오늘 작업 전체 종료. 협업 체제 전환 공지:
 > 디렉터님 판단으로 WebGL/GLSL·프론트엔드 비주얼 분야는 Claude가 메인 구현 라인,
 > Codex는 런타임 오류 진단·TDZ 분석 등 디버깅 서포트 라인으로 역할 분담 (AI 강점 분리 모델).
