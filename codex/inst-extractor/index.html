@@ -248,15 +248,16 @@
         <h1>INST EXTRACTOR</h1>
         <p class="lead">
           음원 파일에서 보컬 stem을 제거하고 반주용 inst WAV를 생성하는 변환 프로그램.
-          현재 백엔드 분리 로직은 구현됐고, 다음 단계는 집 데스크탑 GPU에서 실제 음원으로 품질을 검증하는 것이다.
+          RTX 4060 Ti에서 CUDA 기반 Demucs 추출과 HTTP 다운로드 경로까지 검증했고,
+          비ASCII 파일명 응답 오류도 수정했다.
         </p>
       </div>
       <aside class="panel status">
         <p class="kicker">Current Gate</p>
-        <strong>실음원 검증 대기</strong>
+        <strong>추출 가능</strong>
         <p>
-          FastAPI와 Demucs 연결은 준비됐다. RTX 4060 Ti 환경에서 CUDA PyTorch가 잡히는지 확인한 뒤
-          실제 업로드 파일로 결과 WAV를 들어봐야 한다.
+          실제 MP3 업로드로 235.519초 WAV 결과 반환을 확인했다.
+          다음 판단은 디렉터 청취 기준의 음질 평가와 모델별 비교다.
         </p>
       </aside>
     </section>

@@ -20,6 +20,7 @@
 
 ## 최신 반영
 
+- INST EXTRACTOR — 비ASCII 파일명 추출 실패 수정: 일본어 원본 파일명에서 결과 WAV 생성 후 `X-Original-Filename` 헤더 인코딩으로 500이 나던 문제를 percent-encoded 헤더로 변경. 같은 MP3 재검증 `POST /extract` 200 OK, 41.5MB WAV, 235.519초
 - INST EXTRACTOR — 집 데스크탑 GPU 사양 확정: RTX 4060 Ti **8GB 모델** (4-소스 크로스체크 — nvidia-smi 8188 MiB / 레지스트리 qwMemorySize 8.0 GB / PyTorch total_memory 8.00 GB / WMI는 32-bit 한계로 무시). 일반 곡(3~5분) 검증엔 무관, htdemucs_ft + 매우 긴 음원 조합에서만 OOM 주의
 - INST EXTRACTOR — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증 완료 (HANDOFF [5]): PyTorch 2.11+cu128/CUDA 인식 True, separate_instrumental() 직호출 1.86s/543MB VRAM, HTTP /extract 200 OK 0.81s. 실음원 음질 평가는 디렉터 영역으로 남김
 - 태양계 Claude 버전 — NASA Eyes 공식 실사 임베드 (JPL 자산): 시뮬레이터 「📡 NASA Eyes」 토글 버튼 + 보고서 preview에 NASA Eyes iframe 항목 추가. 현재 focus 객체에 따라 NASA Eyes도 자동 이동 (NASA_EYES_MAP)
