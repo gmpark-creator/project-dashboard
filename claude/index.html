@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&display=swap" />
 
 <!-- ════════════════════════════════════════════════════════════════
      Tailwind 컬러 팔레트 재정의 — Studio Haze 톤 (topaz/lispex/lenacode)
@@ -169,45 +169,20 @@
                  focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-inset cursor-pointer">
       <div class="flex items-center gap-3">
         <!-- ═══════════════════════════════════════════════════════════
-             G.M.PARK 앰블럼 — GM 모노그램 + 4 rooms (4 projects) dots
-             · 외부: 잉크 라운드 사각형
-             · 4 모서리: 화사 톤 점 4개 (4개 프로젝트 = peach·sage·lavender·honey)
-             · 중앙: GM 모노그램 (Inter ExtraBold)
+             G.M.PARK 앰블럼 — E3 Cut Serif Monogram (박사 선택 2026-05-26)
+             · 박스 없음, 글자만 (editorial 모노그램)
+             · Cormorant Garamond italic GM + .park 시그니처 점
+             · currentColor — 부모 텍스트 색 자동 상속 (light/dark 컨텍스트 자동)
              ═══════════════════════════════════════════════════════════ -->
-        <div class="shrink-0">
-          <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" aria-label="G.M.PARK">
-            <defs>
-              <linearGradient id="gmInk" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%"  stop-color="#1f1c17"/>
-                <stop offset="100%" stop-color="#0e0b07"/>
-              </linearGradient>
-              <linearGradient id="gmText" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"  stop-color="#faf8f2"/>
-                <stop offset="100%" stop-color="#e6dfd0"/>
-              </linearGradient>
-            </defs>
-            <!-- 외부 라운드 사각형 -->
-            <rect x="0" y="0" width="44" height="44" rx="11" fill="url(#gmInk)"/>
-            <!-- 미세 inner stroke -->
-            <rect x="0.5" y="0.5" width="43" height="43" rx="10.5"
-                  fill="none" stroke="rgba(250,248,242,0.06)" stroke-width="0.6"/>
-            <!-- 4 rooms (4 projects) — 화사 톤 dot 4개 -->
-            <circle cx="8"  cy="8"  r="1.6" fill="#e8c8a0"/><!-- AIS — peach -->
-            <circle cx="36" cy="8"  r="1.6" fill="#b8d0a8"/><!-- Sports — sage -->
-            <circle cx="8"  cy="36" r="1.6" fill="#d8c0e0"/><!-- Solar — lavender -->
-            <circle cx="36" cy="36" r="1.6" fill="#e8b890"/><!-- INST — honey -->
-            <!-- 4 dots 미세 connector (대각선) — 매우 옅게 -->
-            <line x1="9.2" y1="9.2" x2="34.8" y2="34.8"
-                  stroke="rgba(250,248,242,0.04)" stroke-width="0.4"/>
-            <line x1="34.8" y1="9.2" x2="9.2" y2="34.8"
-                  stroke="rgba(250,248,242,0.04)" stroke-width="0.4"/>
-            <!-- 중앙 GM 모노그램 -->
-            <text x="22" y="28" text-anchor="middle"
-                  font-family="Inter, system-ui, sans-serif" font-weight="800"
-                  font-size="15.5" letter-spacing="-0.06em"
-                  fill="url(#gmText)">GM</text>
-            <!-- 우상단 미세 「.park」 시그니처 점 -->
-            <circle cx="32.5" cy="21" r="0.7" fill="rgba(250,248,242,0.55)"/>
+        <div class="shrink-0 text-slate-900">
+          <svg viewBox="0 0 76 56" xmlns="http://www.w3.org/2000/svg"
+               class="h-11 w-auto" aria-label="G.M.PARK" fill="currentColor">
+            <text x="0" y="42"
+                  font-family="'Cormorant Garamond', 'Times New Roman', serif"
+                  font-weight="600" font-style="italic" font-size="50"
+                  letter-spacing="-0.04em">GM</text>
+            <!-- 「.park」 시그니처 점 -->
+            <circle cx="66" cy="20" r="1.4"/>
           </svg>
         </div>
         <div class="min-w-0 flex-1">
@@ -215,7 +190,7 @@
             G.M.PARK
           </h1>
           <p class="font-mono text-[9.5px] text-slate-500 mt-1 tracking-[0.18em] uppercase">
-            project · dashboard
+            independent
           </p>
         </div>
       </div>
@@ -863,69 +838,49 @@ function renderHome() {
   }).join('');
 
   $('#detail').innerHTML = `
-    <!-- ── HERO — G.M.PARK 앰블럼 + 정체성 (Studio Haze 잉크 + 화사 wash) ── -->
+    <!-- ── HERO — E3 Cut Serif Monogram + C4 editorial copy (박사 선택 2026-05-26) ── -->
     <section class="reveal relative overflow-hidden rounded-3xl p-6 sm:p-10 md:p-16 mb-7
                     bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
                     text-white shadow-2xl shadow-slate-900/40">
-      <!-- 화사 wash blur — peach + sage + honey 3 레이어 (보고서 본문 톤과 동일 팔레트) -->
+      <!-- 화사 wash blur — peach + sage + honey + lavender (본문 팔레트와 동일) -->
       <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/20 blur-3xl"></div>
       <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-emerald-300/15 blur-3xl"></div>
       <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-amber-300/15 blur-2xl"></div>
       <div class="absolute bottom-12 left-1/2 w-48 h-48 rounded-full bg-violet-300/10 blur-3xl"></div>
 
-      <!-- 모바일: 세로 (앰블럼 위 + 텍스트 아래) / PC: 가로 (앰블럼 왼쪽 + 3줄 오른쪽) -->
-      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-9">
+      <!-- 모바일: 세로 / PC: 가로 (앰블럼 왼쪽 + 3줄 오른쪽) -->
+      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-6 sm:gap-12">
 
-        <!-- 새 G.M.PARK 앰블럼 (사이드바와 동일 마크 · 대형 버전) -->
-        <div class="shrink-0">
-          <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"
-               class="w-28 h-28 sm:w-36 sm:h-36" aria-label="G.M.PARK">
-            <defs>
-              <linearGradient id="heroInk" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%"  stop-color="#2a261e"/>
-                <stop offset="100%" stop-color="#0e0b07"/>
-              </linearGradient>
-              <linearGradient id="heroText" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"  stop-color="#faf8f2"/>
-                <stop offset="100%" stop-color="#e6dfd0"/>
-              </linearGradient>
-            </defs>
-            <!-- 외부 라운드 사각형 + 광원 -->
-            <rect x="0" y="0" width="44" height="44" rx="11" fill="url(#heroInk)"/>
-            <rect x="0.5" y="0.5" width="43" height="43" rx="10.5"
-                  fill="none" stroke="rgba(250,248,242,0.10)" stroke-width="0.6"/>
-            <!-- 4 rooms — 화사 톤 dot 4개 (사이드바 앰블럼과 동일 매핑) -->
-            <circle cx="8"  cy="8"  r="1.6" fill="#e8c8a0"/><!-- AIS — peach -->
-            <circle cx="36" cy="8"  r="1.6" fill="#b8d0a8"/><!-- Sports — sage -->
-            <circle cx="8"  cy="36" r="1.6" fill="#d8c0e0"/><!-- Solar — lavender -->
-            <circle cx="36" cy="36" r="1.6" fill="#e8b890"/><!-- INST — honey -->
-            <!-- 대각선 connector 미세 -->
-            <line x1="9.2" y1="9.2" x2="34.8" y2="34.8"
-                  stroke="rgba(250,248,242,0.07)" stroke-width="0.4"/>
-            <line x1="34.8" y1="9.2" x2="9.2" y2="34.8"
-                  stroke="rgba(250,248,242,0.07)" stroke-width="0.4"/>
-            <!-- 중앙 GM 모노그램 -->
-            <text x="22" y="28" text-anchor="middle"
-                  font-family="Inter, system-ui, sans-serif" font-weight="800"
-                  font-size="15.5" letter-spacing="-0.06em"
-                  fill="url(#heroText)">GM</text>
-            <!-- 「.park」 시그니처 dot -->
-            <circle cx="32.5" cy="21" r="0.7" fill="rgba(250,248,242,0.65)"/>
+        <!-- E3 앰블럼 — Cut Serif Monogram (대형, 박스 없음, cream fill) -->
+        <div class="shrink-0 text-[#faf8f2]">
+          <svg viewBox="0 0 76 56" xmlns="http://www.w3.org/2000/svg"
+               class="h-24 sm:h-32 w-auto" aria-label="G.M.PARK" fill="currentColor">
+            <text x="0" y="42"
+                  font-family="'Cormorant Garamond', 'Times New Roman', serif"
+                  font-weight="600" font-style="italic" font-size="50"
+                  letter-spacing="-0.04em">GM</text>
+            <!-- 「.park」 시그니처 점 -->
+            <circle cx="66" cy="20" r="1.4"/>
           </svg>
         </div>
 
-        <!-- 3줄 텍스트 — kicker / 큰 타이틀 / 시그니처 sub -->
-        <div class="sm:h-36 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
-          <p class="font-mono text-[10.5px] sm:text-[12.5px] tracking-[0.22em] uppercase text-amber-200/80 leading-none">
-            G.M.PARK
+        <!-- C4 3줄 — kicker independent / italic serif title / since 2025 -->
+        <div class="sm:h-32 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
+          <p class="font-mono text-[10.5px] sm:text-[12.5px] tracking-[0.22em] uppercase text-amber-200/85 leading-none">
+            G.M.PARK · independent
           </p>
-          <h1 class="text-[34px] sm:text-[64px] font-black leading-[0.95] tracking-tight
+          <h1 class="leading-[0.95] tracking-tight
+                     font-serif italic
                      bg-gradient-to-r from-rose-100 via-amber-100 to-emerald-100
-                     bg-clip-text text-transparent">
-            Project Dashboard
+                     bg-clip-text text-transparent"
+              style="font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+                     font-weight: 600;
+                     font-size: clamp(38px, 6.5vw, 72px);
+                     letter-spacing: -0.015em;">
+            project · dashboard
           </h1>
           <p class="font-mono text-[10.5px] sm:text-[12px] tracking-[0.18em] uppercase text-white/55 leading-tight">
-            ledger of four rooms · personal record
+            04 rooms &mdash; since 2025
           </p>
         </div>
       </div>
