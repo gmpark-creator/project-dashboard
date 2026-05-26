@@ -273,18 +273,18 @@ const PROJECTS = [
     subtitle: '고음질 반주(Inst) 추출기 · 음원 보컬 제거',
     icon: 'music',
     platform: '웹 앱 + 로컬 GPU 서버',
-    status: 'in-progress',
+    status: 'completed',
     start: '2026-05-22',
-    latest: '2026-05-24',
-    progress: 92,
+    latest: '2026-05-26',
+    progress: 100,
     link: 'https://gmpark-creator.github.io/project-dashboard/inst-app/',
-    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 신규 프로젝트. '
+    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트. '
            + '믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다. '
-           + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했으나, 실제 GPU 추출은 백엔드가 필요해 '
-           + '구조상 외부인 실사용은 불가 — 디렉터 본인 데스크탑 전용 도구로 운영.',
+           + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고, 실제 GPU 추출은 백엔드가 필요해 '
+           + '구조상 외부인 실사용은 불가 — 디렉터 본인 데스크탑 전용 도구로 운영하기로 합의하고 디렉터 실음원 분리 확인까지 통과해 100% 마무리됐다.',
     method: '프론트엔드(Claude 영역)는 믹싱 콘솔 다크 UI + 데모 모드 토글, 백엔드(Codex 영역)는 FastAPI + Demucs. '
           + 'AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행 — Claude 1차 UI·API 골격 → Codex 2차 demucs 핵심 엔진 → '
-          + 'Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 순.',
+          + 'Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 → 디렉터 실음원 분리 확인으로 완주.',
     stack: ['Python 3.12', 'FastAPI', 'Demucs', 'PyTorch CUDA', 'HTML5 · Tailwind'],
     issues: [
       { type:'완료', title:'Claude 1차 빌드 — UI + FastAPI 골격', desc:'믹싱 콘솔 다크 UI(드래그앤드롭·진행바·VU 미터·데모 모드 토글·완료 팝업) + FastAPI /extract·/health 라우팅 + 업로드 검증 + 모델 화이트리스트. 프론트엔드 전체는 Claude 영역으로 완성·고정.' },
@@ -292,7 +292,8 @@ const PROJECTS = [
       { type:'완료', title:'Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py + verify_http.py 검증 스크립트 2종 작성·실행. PyTorch 2.11+cu128 / CUDA True / Demucs 직호출 1.86초 / VRAM 543MB / HTTP /extract 200 OK 0.81초 확인. 카드 사양 8GB로 확정(4-소스 크로스체크).' },
       { type:'완료', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 데모 모드 기본 ON으로 드래그앤드롭 UI 즉시 체험 가능. 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출, HTTPS 페이지에서 http:// 호출 시 mixed-content 차단 안내까지 포함. ※ 구조상 GPU 백엔드 없는 외부인은 데모 UI만 체험 가능 — 디렉터 본인 PC 전용 도구로 운영하기로 합의.' },
       { type:'핵심', title:'Codex(GPT) 주도 — 백엔드 핵심 엔진 separate_instrumental()', desc:'프로젝트의 본질적 가치(보컬 제거 자체)는 Codex 영역. main.py의 separate_instrumental()을 Codex가 전적으로 구현 — get_model() 로드 + (model_name, device) 메모리 캐시 + torch.cuda.is_available() 자동 디바이스 분기 + AudioFile read + apply_model(split=True, overlap=0.25, shifts=1) + vocals stem 제외 후 나머지 합산 + soundfile PCM_16 WAV 출력. requirements.txt의 demucs/torch/torchaudio/soundfile 의존성도 Codex가 활성화. 즉 이 프로젝트는 GPT 위주로 만들어졌다.' },
-      { type:'핵심', title:'AI 협업 — 일본어/비ASCII 파일명 500 에러 진단·수정', desc:'2026-05-24 디렉터가 일본어 MP3(Hysteric Blue「今見える明日_戒める今日」)를 업로드하니 분리 자체는 성공해 outputs/에 WAV가 생성됨에도 응답은 500 Internal Server Error. Codex가 정밀 진단 — main.py의 X-Original-Filename 헤더에 비ASCII가 들어가 HTTP 헤더 Latin-1 인코딩 제한에 걸려 Starlette가 500을 내던 문제. Codex가 X-Original-Filename-Encoded로 헤더명 변경 + urllib.parse.quote() percent-encoding 적용으로 즉시 수정. 재검증: 235.519초 / 41.5MB WAV / 200 OK. AI 협업의 모범 사례 — Claude는 UI·인프라, Codex는 백엔드 정밀 진단·수정.' }
+      { type:'핵심', title:'AI 협업 — 일본어/비ASCII 파일명 500 에러 진단·수정', desc:'2026-05-24 디렉터가 일본어 MP3(Hysteric Blue「今見える明日_戒める今日」)를 업로드하니 분리 자체는 성공해 outputs/에 WAV가 생성됨에도 응답은 500 Internal Server Error. Codex가 정밀 진단 — main.py의 X-Original-Filename 헤더에 비ASCII가 들어가 HTTP 헤더 Latin-1 인코딩 제한에 걸려 Starlette가 500을 내던 문제. Codex가 X-Original-Filename-Encoded로 헤더명 변경 + urllib.parse.quote() percent-encoding 적용으로 즉시 수정. 재검증: 235.519초 / 41.5MB WAV / 200 OK. AI 협업의 모범 사례 — Claude는 UI·인프라, Codex는 백엔드 정밀 진단·수정.' },
+      { type:'완료', title:'디렉터 실음원 분리 확인 — 100% 완료 처리 (2026-05-26)', desc:'디렉터(G.M.PARK)가 본인 데스크탑에서 실음원으로 보컬 제거가 성공적으로 작동함을 확인. 분리 품질·처리 흐름 모두 통과. 프로젝트 #4 INST EXTRACTOR 100% 완료 처리.' }
     ],
     milestones: [
       { date:'2026-05-22', title:'Claude 1차 — 레포 초기 빌드 (UI + API 골격)', desc:'프로젝트 #4 신설 — 믹싱 콘솔 UI · FastAPI 골격 · 인수인계 문서 시스템(HANDOFF.md)' },
@@ -300,7 +301,8 @@ const PROJECTS = [
       { date:'2026-05-22', title:'Claude — 홈 PC 자동 세팅 일체', desc:'SETUP_HOME_PC.md + setup_home.bat + start_server.bat + Codex 구현 검수' },
       { date:'2026-05-24', title:'Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py / verify_http.py 작성·실행. CUDA True, 직호출 1.86초/543MB VRAM, HTTP 0.81초. 카드 사양 8GB 확정.' },
       { isCore:true, date:'2026-05-24', title:'AI 협업 — 일본어 파일명 500 에러 진단·수정 (Codex)', desc:'디렉터 일본어 MP3 업로드 시 분리는 성공하나 응답 500. Codex가 X-Original-Filename 헤더의 Latin-1 인코딩 제한을 정밀 진단 → percent-encoded 헤더로 즉시 패치. 재검증 235.519초 41.5MB WAV 200 OK. Claude는 UI·인프라, GPT는 백엔드 정밀 진단 — 역할 분담 협업 모델 재확인.' },
-      { date:'2026-05-24', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 드래그앤드롭 UI 공개. 단 실제 추출은 GPU 백엔드 필요 — 외부인 실사용은 구조상 불가, 디렉터 본인 PC 전용 도구로 운영 합의.' }
+      { date:'2026-05-24', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 드래그앤드롭 UI 공개. 단 실제 추출은 GPU 백엔드 필요 — 외부인 실사용은 구조상 불가, 디렉터 본인 PC 전용 도구로 운영 합의.' },
+      { isCore:true, date:'2026-05-26', title:'디렉터 실음원 분리 확인 — 100% 완료', desc:'디렉터(G.M.PARK)가 본인 데스크탑에서 실음원 보컬 제거가 성공적으로 작동함을 확인. 프로젝트 #4 100% 완료 처리.' }
     ]
   }
 ];
