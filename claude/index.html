@@ -420,7 +420,7 @@ const PROJECTS = [
     status: 'in-progress',
     start: '2026-05-26',
     latest: '2026-05-26',
-    progress: 18,
+    progress: 28,
     link: 'http://127.0.0.1:5173/',
     summary: '대한민국 대통령으로 5년 단임을 사는 정치 시뮬레이션 게임의 5번째 프로젝트. '
            + '메뉴가 아니라 살아있는 지도가 통치판 — 어두운 세계 위에 따뜻한 한지색 한국이 떠오르고, '
@@ -438,13 +438,16 @@ const PROJECTS = [
       { type:'완료', title:'구현 계획 v0.1 (M1~M11) 박사 승인', desc:'리포 구조 · 정적 지도 · 줌 시스템 · 행정구역 · POI · 스키마 · mock store · 호버/클릭 패널 · 레이어 토글 · 정책 타게팅 · 테스트 — 11 마일스톤 의존성 그래프 + 추정 12주 + 소유권 행렬.' },
       { type:'완료', title:'M0 vertical slice (Vite + React + 33 파일)', desc:'package.json·tsconfig·vite.config 셋업 + 7 schema · 17 region mock · 10 POI mock · Zustand store · 13색 design tokens · MapViewport(휠 줌 + 드래그 팬) · WorldBackground · KoreaRegions · POIMarkers · SealIcon · CrisisOverlay · HoverTooltip · ZoomIndicator · RegionalGovernancePanel · POIDialog · LayerToggleSidebar(10토글) · Header · 9개 subagent self-review. tsc 0 에러, vite build 858ms, gzip JS 62KB.' },
       { type:'이슈', title:'1차 슬라이스 지도 퀄리티 미달 (박사 지적)', desc:'세계 6각형 blob + 한국 5-9 정점짜리 다각형으로 손코딩 — 박사가 「쓰레기같은 퀄리티」 지적. 박사 메시지: 「프론트엔드 디자인부터 대한민국 지도 및 세계지도 구현이 제일 중요한데」. 즉시 인정 후 복구 착수.' },
-      { type:'핵심', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps (2026-05-26)', desc:'손코딩 mock 폴리곤을 실데이터로 교체. (1) Natural Earth 1:110m countries(Public Domain, 177개국) — 진짜 대륙·국가 형상. (2) southkorea-maps kostat 2018(CC-BY) — 행정안전부 광역시도 GeoJSON. (3) mapshaper 4% 단순화로 7.2MB→452KB. (4) d3-geo Mercator projection 중심(127.8°E, 36.2°N) 도입. (5) POI 10개 모두 픽셀 좌표→실 위경도 전환(용산 대통령실 37.5326,126.9774 / 여의도 국회 / 부산항 / 인천공항 / 수원 삼성 / 울산 현대 / 나주 KEPCO / 대덕연구단지 / KAIST). (6) 행안부 코드↔ISO 3166-2:KR 매핑 테이블. tsc/build 통과, gzip JS 70KB.' }
+      { type:'핵심', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps (2026-05-26)', desc:'손코딩 mock 폴리곤을 실데이터로 교체. (1) Natural Earth 1:110m countries(Public Domain, 177개국) — 진짜 대륙·국가 형상. (2) southkorea-maps kostat 2018(CC-BY) — 행정안전부 광역시도 GeoJSON. (3) mapshaper 4% 단순화로 7.2MB→452KB. (4) d3-geo Mercator projection 중심(127.8°E, 36.2°N) 도입. (5) POI 10개 모두 픽셀 좌표→실 위경도 전환(용산 대통령실 37.5326,126.9774 / 여의도 국회 / 부산항 / 인천공항 / 수원 삼성 / 울산 현대 / 나주 KEPCO / 대덕연구단지 / KAIST). (6) 행안부 코드↔ISO 3166-2:KR 매핑 테이블. tsc/build 통과, gzip JS 70KB.' },
+      { type:'이슈', title:'2차 시각 품질 미달 (박사 지적 — Frontend Quality Rescue 발동)', desc:'박사 메시지: 「the visual quality is not acceptable」「looks like a developer placeholder, not a premium political simulation」. 디자인 디렉션 재지시 — 다크 네이비/그래파이트 base + 시안 정부 색조 + 골드/앰버 대통령 강조 + glass 패널 + 절제된 그라데이션. 풀스크린 게임 인터페이스로 재구축 지시(top status bar + left rail + center map + right inspector + bottom timeline).' },
+      { type:'핵심', title:'Frontend Art Direction Rebuild — Presidential Situation Room (2026-05-26)', desc:'시각 품질 전면 재구축. (1) 디자인 토큰 v0.2 — 한지 톤 폐기, dark navy(#0B0F1A) + 시안(#4ECDC4) + 골드(#D4A85A) 3원 + 한국 cream/ivory hero(#D8CFB8). (2) 풀스크린 CSS grid 게임 인터페이스 — top PresidentialStatusBar(임기 진행바 + 5종 metric + gold advance button) / left LayerControlRail(10개 토글 + 자체 제작 SVG 아이콘 + hover 슬라이드 툴팁) / center MapViewport(vignette + 미세 그리드 + corner crosshair) / right RegionInspectorPanel(빈 상태 + region 전용 + POI 전용 3 variant + DataBar + MetricBadge + chips + 섹션 위계) / bottom TimelineStrip(60턴 4 phase + 진행 cursor + 연도 마커). (3) UI 프리미티브 — GameGlassPanel(L자 corner glyph) / DataBar(linear-gradient fill) / MetricBadge(delta tone). (4) 지도 자체 — 한국 외곽 골드 halo glow(SVG filter) + selected region gold drop-shadow glow + 5종 한국 lng/lat 좌표 정확. (5) POI 마커 — 육각형 셸 + 한자 글리프(政立司公商港學) + 카테고리 색 + crisis pulse ring + importance dashed ring(★5) + 상태 닷. (6) 위기 — radial gradient bleed + 중간 dashed ring + 코어 dot. (7) 옛 컴포넌트 7개 + CSS 3개 삭제, 신규 11개 + CSS 10개. CSS gzip 3KB→7KB, JS gzip 70KB→73KB.' }
     ],
     milestones: [
       { date:'2026-05-26', title:'설계 v0.1 — Map-first 정치 시뮬 명세 (20개 섹션)', desc:'한지+슬레이트+단청 13색 + 인장 아이콘 + 6종 애니메이션 어휘 + 7단 줌 + 26 layer stack + 5 schema + 9 subagent harness + originality 14항 + Risks + M1~M10 일정.' },
       { date:'2026-05-26', title:'구현 계획 v0.1 — M1~M11 마일스톤', desc:'리포 구조 · 정적 지도 · 줌 · 행정구역 · POI · 스키마 · store · 패널 · 레이어 토글 · 정책 타게팅 · 테스트. 12주 추정 + newton/codex 트랙 분배.' },
       { date:'2026-05-26', title:'M0 vertical slice — Vite + React + 33 파일', desc:'설정 7 + 스키마 7 + mock 데이터 5 + state 2 + map components 9 + panels 2 + layers 1 + UI 1 + styles 3 + utils 2 + subagent review 1. tsc 0 에러, vite build 858ms, dev 부트 317ms.' },
-      { isCore:true, date:'2026-05-26', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps', desc:'손코딩 mock 폴리곤 → 실 데이터. d3-geo Mercator projection 도입. 17 광역시도 진짜 경계 + 177국 진짜 형상 + POI 10개 실 위경도. 박사 지적 즉시 복구.' }
+      { isCore:true, date:'2026-05-26', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps', desc:'손코딩 mock 폴리곤 → 실 데이터. d3-geo Mercator projection 도입. 17 광역시도 진짜 경계 + 177국 진짜 형상 + POI 10개 실 위경도. 박사 지적 즉시 복구.' },
+      { isCore:true, date:'2026-05-26', title:'Frontend Art Direction Rebuild — Presidential Situation Room', desc:'박사 「visual quality not acceptable」 지적 즉시 복구. 한지 톤 폐기 → dark navy + 시안 + 골드 정부 톤. 풀스크린 5-영역 게임 그리드(top status + left rail + center map + right inspector + bottom timeline). 한국 cream hero + 골드 halo + 시안 selected glow. POI 육각형 셸 + 한자 글리프 + 펄스. 옛 컴포넌트 7개 폐기, 신규 11개 + CSS 10개 작성.' }
     ]
   }
 ];
