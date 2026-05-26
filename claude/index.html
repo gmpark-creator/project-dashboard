@@ -165,23 +165,63 @@
                flex flex-col fixed h-screen z-30
                -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
     <button id="brandHome" class="block w-full text-left px-5 pt-6 pb-5 border-b border-slate-200
-                 transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100
+                 transition-all duration-200 hover:bg-slate-50/60
                  focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-inset cursor-pointer">
       <div class="flex items-center gap-3">
-        <!-- HAZE STORY 공식 앰블럼 (그라데이션 H) -->
-        <div class="grid place-items-center w-11 h-11 shrink-0">
-          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-11 h-11 object-contain" />
+        <!-- ═══════════════════════════════════════════════════════════
+             G.M.PARK 앰블럼 — GM 모노그램 + 4 rooms (4 projects) dots
+             · 외부: 잉크 라운드 사각형
+             · 4 모서리: 화사 톤 점 4개 (4개 프로젝트 = peach·sage·lavender·honey)
+             · 중앙: GM 모노그램 (Inter ExtraBold)
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="shrink-0">
+          <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" aria-label="G.M.PARK">
+            <defs>
+              <linearGradient id="gmInk" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"  stop-color="#1f1c17"/>
+                <stop offset="100%" stop-color="#0e0b07"/>
+              </linearGradient>
+              <linearGradient id="gmText" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#faf8f2"/>
+                <stop offset="100%" stop-color="#e6dfd0"/>
+              </linearGradient>
+            </defs>
+            <!-- 외부 라운드 사각형 -->
+            <rect x="0" y="0" width="44" height="44" rx="11" fill="url(#gmInk)"/>
+            <!-- 미세 inner stroke -->
+            <rect x="0.5" y="0.5" width="43" height="43" rx="10.5"
+                  fill="none" stroke="rgba(250,248,242,0.06)" stroke-width="0.6"/>
+            <!-- 4 rooms (4 projects) — 화사 톤 dot 4개 -->
+            <circle cx="8"  cy="8"  r="1.6" fill="#e8c8a0"/><!-- AIS — peach -->
+            <circle cx="36" cy="8"  r="1.6" fill="#b8d0a8"/><!-- Sports — sage -->
+            <circle cx="8"  cy="36" r="1.6" fill="#d8c0e0"/><!-- Solar — lavender -->
+            <circle cx="36" cy="36" r="1.6" fill="#e8b890"/><!-- INST — honey -->
+            <!-- 4 dots 미세 connector (대각선) — 매우 옅게 -->
+            <line x1="9.2" y1="9.2" x2="34.8" y2="34.8"
+                  stroke="rgba(250,248,242,0.04)" stroke-width="0.4"/>
+            <line x1="34.8" y1="9.2" x2="9.2" y2="34.8"
+                  stroke="rgba(250,248,242,0.04)" stroke-width="0.4"/>
+            <!-- 중앙 GM 모노그램 -->
+            <text x="22" y="28" text-anchor="middle"
+                  font-family="Inter, system-ui, sans-serif" font-weight="800"
+                  font-size="15.5" letter-spacing="-0.06em"
+                  fill="url(#gmText)">GM</text>
+            <!-- 우상단 미세 「.park」 시그니처 점 -->
+            <circle cx="32.5" cy="21" r="0.7" fill="rgba(250,248,242,0.55)"/>
+          </svg>
         </div>
         <div class="min-w-0 flex-1">
-          <h1 class="text-[13.5px] font-extrabold text-slate-900 leading-snug">
-            G.M.PARK 프로젝트 대시보드
+          <h1 class="text-[14.5px] font-extrabold text-slate-900 leading-tight tracking-tight">
+            G.M.PARK
           </h1>
-          <p class="text-[10.5px] text-slate-500 mt-0.5">HAZE STORY · Jr. Developer</p>
+          <p class="font-mono text-[9.5px] text-slate-500 mt-1 tracking-[0.18em] uppercase">
+            project · dashboard
+          </p>
         </div>
       </div>
     </button>
 
-    <nav id="projList" class="flex-1 overflow-y-auto px-3.5 py-4 space-y-2"></nav>
+    <nav id="projList" class="flex-1 overflow-y-auto px-3 py-5 space-y-0.5"></nav>
 
     <div class="px-5 py-4 border-t border-slate-200">
       <p class="text-[11px] font-semibold text-slate-400 mb-2.5 tracking-wide">전체 현황</p>
@@ -446,27 +486,59 @@ function stackIcon(t) {
   return 'box';
 }
 
-// ===== 사이드바 =====
+// ═══════════════════════════════════════════════════════════════════
+// 사이드바 메뉴 — Studio Haze ledger 매트릭스 톤 (lenacode + lispex 차용)
+// 구성: § 번호 + 이름 + status dot · 진척도 bar
+// 인터랙션: hover = subtle bg + 좌측 가는 bar emerge / active = solid ink bar
+// ═══════════════════════════════════════════════════════════════════
 let activeId = 'solar';
 function renderSidebar() {
-  $('#projList').innerHTML = PROJECTS.map(p => {
+  $('#projList').innerHTML = PROJECTS.map((p, i) => {
     const st = STATUS[p.status];
     const on = p.id === activeId;
+    const num = String(i+1).padStart(2,'0');
     return `
     <button data-id="${p.id}"
-      class="proj-btn group w-full text-left rounded-xl p-3 flex items-center gap-3 transition-all duration-200
-             ${on ? 'bg-indigo-50 ring-1 ring-indigo-200 shadow-sm'
-                  : 'hover:bg-slate-100'}">
-      <div class="grid place-items-center w-10 h-10 rounded-lg shrink-0 transition-colors
-                  ${on ? 'bg-indigo-500 text-white shadow-md shadow-indigo-300/50'
-                       : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'}">
-        <i data-lucide="${p.icon}" class="w-5 h-5"></i>
+      class="proj-btn group relative block w-full text-left rounded-md
+             px-3.5 py-3 transition-all duration-200 ease-out
+             ${on
+                ? 'bg-slate-900/[0.05]'
+                : 'hover:bg-slate-900/[0.025]'}">
+
+      <!-- 좌측 vertical bar — active: 잉크 / hover: 옅은 회색 / 기본: 투명 -->
+      <span aria-hidden="true"
+            class="absolute left-0 top-3 bottom-3 w-[2px] rounded-full
+                   transition-all duration-200 ease-out
+                   ${on
+                      ? 'bg-slate-900'
+                      : 'bg-transparent group-hover:bg-slate-300'}"></span>
+
+      <!-- 행 1: § 번호 · 이름 · status dot -->
+      <div class="flex items-baseline gap-2.5 pl-2">
+        <span class="font-mono text-[10.5px] tracking-[0.08em] shrink-0
+                     ${on ? 'text-slate-700' : 'text-slate-400'}">§ ${num}</span>
+        <span class="flex-1 min-w-0 truncate text-[13px] tracking-tight transition-colors
+                     ${on ? 'text-slate-900 font-bold' : 'text-slate-700 font-semibold group-hover:text-slate-900'}">${p.name}</span>
+        <span class="relative shrink-0">
+          <span class="block w-1.5 h-1.5 rounded-full ${st.dot} transition-transform duration-200
+                       ${on ? 'scale-125' : 'scale-100'}"></span>
+          ${on ? `<span class="absolute inset-0 w-1.5 h-1.5 rounded-full ${st.dot} animate-ping opacity-50"></span>` : ''}
+        </span>
       </div>
-      <div class="min-w-0 flex-1">
-        <p class="text-[13px] font-semibold truncate ${on ? 'text-indigo-900' : 'text-slate-700'}">${p.name}</p>
-        <p class="text-[11px] text-slate-400 truncate">${p.subtitle}</p>
+
+      <!-- 행 2: meta (status · progress) -->
+      <div class="flex items-center gap-1.5 pl-[26px] mt-1 font-mono text-[10px] tracking-wide leading-none">
+        <span class="${on ? 'text-slate-600' : 'text-slate-400'}">${st.en.toLowerCase()}</span>
+        <span class="text-slate-300">·</span>
+        <span class="${on ? 'text-slate-900 font-medium' : 'text-slate-500'}">${p.progress}<span class="text-slate-300">/100</span></span>
       </div>
-      <span class="w-2 h-2 rounded-full shrink-0 ${st.dot}"></span>
+
+      <!-- 행 3: 진척도 bar (1.5px) -->
+      <div class="ml-[26px] mt-2 h-[1.5px] rounded-full bg-slate-900/[0.06] overflow-hidden">
+        <div class="h-full rounded-full bg-gradient-to-r ${st.bar}
+                    transition-all duration-700 ease-out"
+             style="width:${p.progress}%"></div>
+      </div>
     </button>`;
   }).join('');
   $('#projList').querySelectorAll('.proj-btn').forEach(b =>
