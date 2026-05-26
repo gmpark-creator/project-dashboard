@@ -28,62 +28,62 @@
     theme: {
       extend: {
         colors: {
-          /* 베이스 — 따뜻한 회색조 (slate를 Studio Haze warm grey로 재해석) */
+          /* 베이스 — 따뜻한 cream warm grey (Studio Haze + 명도 +6%) */
           slate: {
-            50:  '#f7f6f1', 100: '#ecebe5', 200: '#d8d6cc', 300: '#c4c2b8',
-            400: '#8a8a82', 500: '#6a6a64', 600: '#5a5a55', 700: '#3a3a36',
-            800: '#1f1f1c', 900: '#0e0e0c'
+            50:  '#fbf9f3', 100: '#f1efe7', 200: '#e0ddd1', 300: '#cccabd',
+            400: '#9c9a8f', 500: '#7c7a71', 600: '#605d54', 700: '#403d36',
+            800: '#26241e', 900: '#181613'
           },
-          /* 브랜드/액센트 — 잉크 톤 (가장 강한 위계 = completed/primary) */
+          /* 브랜드/액센트 — 잉크에 살짝 slate-blue hint (화사함 부여) */
           indigo: {
-            50:  '#ecebe5', 100: '#dad6c6', 200: '#c4c0ad', 300: '#a4a092',
-            400: '#6f6d65', 500: '#3a3a36', 600: '#1f1f1c', 700: '#0e0e0c',
-            800: '#0e0e0c', 900: '#0e0e0c'
+            50:  '#edeae0', 100: '#dcd7c5', 200: '#c2bdaa', 300: '#9d988b',
+            400: '#6c6960', 500: '#3f3f44', 600: '#252630', 700: '#13141a',
+            800: '#0e0f15', 900: '#0a0b10'
           },
-          /* paused — 절제된 deep mauve */
+          /* paused — 살짝 lavender 들어간 deep mauve (화사 hint) */
           violet: {
-            50:  '#efece6', 100: '#e2ddd1', 200: '#c8c0a8', 300: '#a39a82',
-            400: '#7a715f', 500: '#5a5045', 600: '#4a4138', 700: '#3a322b',
-            800: '#2b251f', 900: '#1c1813'
+            50:  '#f1ede6', 100: '#e4dfd0', 200: '#cdc6b0', 300: '#a8a08a',
+            400: '#83796a', 500: '#665b50', 600: '#544a3f', 700: '#413832',
+            800: '#312925', 900: '#211a17'
           },
-          /* completed — deep moss */
+          /* completed — 살짝 sage 들어간 moss (밝은 saturate) */
           emerald: {
-            50:  '#ece9de', 100: '#dcd5bf', 200: '#beb697', 300: '#9c9374',
-            400: '#736c52', 500: '#534e3a', 600: '#3f3b2c', 700: '#2f2c21',
-            800: '#1f1d16', 900: '#13110d'
+            50:  '#eeece0', 100: '#dfd9c4', 200: '#c4bd9d', 300: '#a39c7c',
+            400: '#7c7558', 500: '#605840', 600: '#4a4332', 700: '#373125',
+            800: '#26221a', 900: '#181510'
           },
           teal: {
-            50:  '#e8e7dc', 100: '#d4d2c0', 200: '#b1ad96', 300: '#878270',
-            400: '#605c4d', 500: '#494638', 600: '#37352a', 700: '#28271f',
-            800: '#1b1a14', 900: '#10100c'
+            50:  '#eae9dd', 100: '#d6d4c3', 200: '#b5b099', 300: '#8b8674',
+            400: '#666252', 500: '#4f4c3c', 600: '#3d3b2e', 700: '#2c2a22',
+            800: '#1e1c17', 900: '#13110d'
           },
-          /* in-progress — warm mid (khaki) */
+          /* in-progress — 명도 올린 honey gold (warm 더 화사) */
           amber: {
-            50:  '#efeadd', 100: '#e0d4b5', 200: '#c5b384', 300: '#a59059',
-            400: '#7e6e3f', 500: '#5f5430', 600: '#494023', 700: '#352f1a',
-            800: '#231f12', 900: '#16130b'
+            50:  '#f1ecdc', 100: '#e3d7b0', 200: '#cab57d', 300: '#ad9651',
+            400: '#86723b', 500: '#69592e', 600: '#504421', 700: '#3b3218',
+            800: '#27210f', 900: '#19150a'
           },
           orange: {
-            50:  '#efe6da', 100: '#dec5ab', 200: '#bf9a72', 300: '#996f49',
-            400: '#75502f', 500: '#5a3e23', 600: '#442e1b', 700: '#322116',
-            800: '#211710', 900: '#150f0a'
+            50:  '#f1e8d8', 100: '#e1c8a8', 200: '#c39d6d', 300: '#a07347',
+            400: '#7d542e', 500: '#5f4023', 600: '#473019', 700: '#332314',
+            800: '#22180e', 900: '#161009'
           },
-          /* 이슈 — 절제된 burgundy */
+          /* 이슈 — 명도 올린 terra cotta (rust glow) */
           rose: {
-            50:  '#efe2db', 100: '#dec0b1', 200: '#c69685', 300: '#a66c54',
-            400: '#834d3a', 500: '#67392c', 600: '#4f2c22', 700: '#392019',
-            800: '#251710', 900: '#170d08'
+            50:  '#f3e4d8', 100: '#e3bfab', 200: '#cb9883', 300: '#ae6f55',
+            400: '#8c513c', 500: '#71402e', 600: '#553024', 700: '#3e231a',
+            800: '#291810', 900: '#190d07'
           },
-          /* 핵심(★) 그라데이션 — 절제된 burnt orange */
+          /* 핵심(★) 그라데이션 — coral peach (살짝 더 따뜻하게) */
           fuchsia: {
-            50:  '#f0e6dd', 100: '#e2c9b5', 200: '#c9a385', 300: '#a87a5d',
-            400: '#86583e', 500: '#6a4030', 600: '#523222', 700: '#3e261a',
-            800: '#2a1a11', 900: '#1a0f0a'
+            50:  '#f6e9dc', 100: '#ebd0b7', 200: '#d3a785', 300: '#b27e5b',
+            400: '#905c3e', 500: '#71452f', 600: '#573521', 700: '#41281a',
+            800: '#2c1c11', 900: '#1c1109'
           },
           pink: {
-            50:  '#f0e3da', 100: '#e0c2ad', 200: '#c89880', 300: '#a96e52',
-            400: '#854e38', 500: '#693a29', 600: '#502c1f', 700: '#3a2117',
-            800: '#26160f', 900: '#180e09'
+            50:  '#f6e6d8', 100: '#e9c8ad', 200: '#d2a384', 300: '#ae7a55',
+            400: '#8d533a', 500: '#6f3e29', 600: '#542f1f', 700: '#3d2316',
+            800: '#28160e', 900: '#180d08'
           }
         },
         fontFamily: {
@@ -96,21 +96,22 @@
 </script>
 
 <style>
-  /* Studio Haze warm off-white 베이스 + 매우 옅은 따뜻한 회색 radial */
+  /* Studio Haze warm cream 베이스 + 옅은 peach + sage 더블 wash (화사 hint) */
   body { background:
-    radial-gradient(1000px 520px at 82% -10%, rgba(140, 130, 110, 0.10), transparent 70%),
-    radial-gradient(820px 460px at 0% 108%, rgba(110, 110, 100, 0.08), transparent 70%),
-    #f4f3ee;
+    radial-gradient(1100px 560px at 82% -10%, rgba(230, 195, 165, 0.18), transparent 70%),
+    radial-gradient(880px 500px at 0% 108%, rgba(190, 200, 170, 0.14), transparent 70%),
+    radial-gradient(700px 400px at 100% 60%, rgba(210, 195, 215, 0.10), transparent 70%),
+    #faf8f2;
     font-family: 'Inter', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
   }
   /* monospace 클래스(font-mono)도 자동 적용되지만, code/pre 인라인 안전 */
   code, pre, .mono { font-family: 'JetBrains Mono', 'IBM Plex Mono', Menlo, monospace; }
 
-  ::selection { background: rgba(14, 14, 12, 0.14); }
+  ::selection { background: rgba(24, 22, 19, 0.12); }
 
   ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-thumb { background: #c4c2b8; border-radius: 9px; }
-  ::-webkit-scrollbar-thumb:hover { background: #8a8a82; }
+  ::-webkit-scrollbar-thumb { background: #cccabd; border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9c9a8f; }
   ::-webkit-scrollbar-track { background: transparent; }
   @keyframes reveal { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
   .reveal { opacity:0; animation: reveal .55s cubic-bezier(.2,.7,.2,1) forwards; }
