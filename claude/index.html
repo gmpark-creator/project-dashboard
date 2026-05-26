@@ -863,30 +863,70 @@ function renderHome() {
   }).join('');
 
   $('#detail').innerHTML = `
-    <!-- ── HERO — HAZE STORY 앰블럼 + 영어 디렉터 명칭 (보라 그라데이션) ── -->
+    <!-- ── HERO — G.M.PARK 앰블럼 + 정체성 (Studio Haze 잉크 + 화사 wash) ── -->
     <section class="reveal relative overflow-hidden rounded-3xl p-6 sm:p-10 md:p-16 mb-7
-                    bg-gradient-to-br from-violet-950 via-purple-900 to-indigo-950
-                    text-white shadow-2xl shadow-violet-400/30">
-      <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/15 blur-3xl"></div>
-      <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-sky-300/12 blur-3xl"></div>
-      <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-rose-300/10 blur-2xl"></div>
+                    bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
+                    text-white shadow-2xl shadow-slate-900/40">
+      <!-- 화사 wash blur — peach + sage + honey 3 레이어 (보고서 본문 톤과 동일 팔레트) -->
+      <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/20 blur-3xl"></div>
+      <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-emerald-300/15 blur-3xl"></div>
+      <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-amber-300/15 blur-2xl"></div>
+      <div class="absolute bottom-12 left-1/2 w-48 h-48 rounded-full bg-violet-300/10 blur-3xl"></div>
+
       <!-- 모바일: 세로 (앰블럼 위 + 텍스트 아래) / PC: 가로 (앰블럼 왼쪽 + 3줄 오른쪽) -->
-      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-8">
-        <!-- HAZE STORY 공식 앰블럼 -->
-        <div class="grid place-items-center w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-white/95 ring-1 ring-white/20 shadow-2xl shadow-fuchsia-300/30 shrink-0">
-          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-28 h-28 sm:w-36 sm:h-36 object-contain" />
+      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-9">
+
+        <!-- 새 G.M.PARK 앰블럼 (사이드바와 동일 마크 · 대형 버전) -->
+        <div class="shrink-0">
+          <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"
+               class="w-28 h-28 sm:w-36 sm:h-36" aria-label="G.M.PARK">
+            <defs>
+              <linearGradient id="heroInk" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"  stop-color="#2a261e"/>
+                <stop offset="100%" stop-color="#0e0b07"/>
+              </linearGradient>
+              <linearGradient id="heroText" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#faf8f2"/>
+                <stop offset="100%" stop-color="#e6dfd0"/>
+              </linearGradient>
+            </defs>
+            <!-- 외부 라운드 사각형 + 광원 -->
+            <rect x="0" y="0" width="44" height="44" rx="11" fill="url(#heroInk)"/>
+            <rect x="0.5" y="0.5" width="43" height="43" rx="10.5"
+                  fill="none" stroke="rgba(250,248,242,0.10)" stroke-width="0.6"/>
+            <!-- 4 rooms — 화사 톤 dot 4개 (사이드바 앰블럼과 동일 매핑) -->
+            <circle cx="8"  cy="8"  r="1.6" fill="#e8c8a0"/><!-- AIS — peach -->
+            <circle cx="36" cy="8"  r="1.6" fill="#b8d0a8"/><!-- Sports — sage -->
+            <circle cx="8"  cy="36" r="1.6" fill="#d8c0e0"/><!-- Solar — lavender -->
+            <circle cx="36" cy="36" r="1.6" fill="#e8b890"/><!-- INST — honey -->
+            <!-- 대각선 connector 미세 -->
+            <line x1="9.2" y1="9.2" x2="34.8" y2="34.8"
+                  stroke="rgba(250,248,242,0.07)" stroke-width="0.4"/>
+            <line x1="34.8" y1="9.2" x2="9.2" y2="34.8"
+                  stroke="rgba(250,248,242,0.07)" stroke-width="0.4"/>
+            <!-- 중앙 GM 모노그램 -->
+            <text x="22" y="28" text-anchor="middle"
+                  font-family="Inter, system-ui, sans-serif" font-weight="800"
+                  font-size="15.5" letter-spacing="-0.06em"
+                  fill="url(#heroText)">GM</text>
+            <!-- 「.park」 시그니처 dot -->
+            <circle cx="32.5" cy="21" r="0.7" fill="rgba(250,248,242,0.65)"/>
+          </svg>
         </div>
-        <!-- 3줄 텍스트 (PC: 앰블럼 옆 / 모바일: 앰블럼 아래) -->
-        <div class="sm:h-40 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
-          <p class="text-[15px] sm:text-[20px] font-extrabold text-fuchsia-200 leading-none tracking-tight">
+
+        <!-- 3줄 텍스트 — kicker / 큰 타이틀 / 시그니처 sub -->
+        <div class="sm:h-36 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
+          <p class="font-mono text-[10.5px] sm:text-[12.5px] tracking-[0.22em] uppercase text-amber-200/80 leading-none">
             G.M.PARK
           </p>
-          <p class="text-[11.5px] sm:text-[14px] font-medium text-white/75 leading-tight tracking-wide">
-            Junior Developer Director at HAZE STORY
-          </p>
-          <h1 class="text-[32px] sm:text-[64px] font-black leading-none tracking-tight bg-gradient-to-r from-pink-300 via-fuchsia-200 to-violet-200 bg-clip-text text-transparent">
+          <h1 class="text-[34px] sm:text-[64px] font-black leading-[0.95] tracking-tight
+                     bg-gradient-to-r from-rose-100 via-amber-100 to-emerald-100
+                     bg-clip-text text-transparent">
             Project Dashboard
           </h1>
+          <p class="font-mono text-[10.5px] sm:text-[12px] tracking-[0.18em] uppercase text-white/55 leading-tight">
+            ledger of four rooms · personal record
+          </p>
         </div>
       </div>
     </section>
