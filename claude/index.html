@@ -410,6 +410,42 @@ const PROJECTS = [
       { date:'2026-05-24', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 드래그앤드롭 UI 공개. 단 실제 추출은 GPU 백엔드 필요 — 외부인 실사용은 구조상 불가, 디렉터 본인 PC 전용 도구로 운영 합의.' },
       { isCore:true, date:'2026-05-26', title:'디렉터 실음원 분리 확인 — 100% 완료', desc:'디렉터(G.M.PARK)가 본인 데스크탑에서 실음원 보컬 제거가 성공적으로 작동함을 확인. 프로젝트 #4 100% 완료 처리.' }
     ]
+  },
+  {
+    id: 'korea-gov-sim',
+    name: '대한민국 60',
+    subtitle: '대통령 정치 시뮬레이션 게임 · 5년 단임 60개월',
+    icon: 'landmark',
+    platform: '웹 게임 · Vite + React + TypeScript',
+    status: 'in-progress',
+    start: '2026-05-26',
+    latest: '2026-05-26',
+    progress: 18,
+    link: 'http://127.0.0.1:5173/',
+    summary: '대한민국 대통령으로 5년 단임을 사는 정치 시뮬레이션 게임의 5번째 프로젝트. '
+           + '메뉴가 아니라 살아있는 지도가 통치판 — 어두운 세계 위에 따뜻한 한지색 한국이 떠오르고, '
+           + '플레이어는 지도 위에 정책을 찍고 민심·예산·위기·외교를 굴린다. '
+           + '월 단위 결정론 엔진(60개월)을 LLM이 자연어 이벤트로 감싸는 구조로 설계되어 있으며, '
+           + '현재는 첫 번째 vertical slice — 실 GeoJSON 기반 인터랙티브 지도까지 작동.',
+    method: '설계 v0.1(20+ 섹션) + 구현 계획 v0.1(M1~M11) 박사 승인 후 M0 vertical slice 완성. '
+          + 'Vite + React + Zustand로 단일 Ground Truth 스토어 구축, '
+          + 'd3-geo Mercator projection으로 Natural Earth 1:110m(세계) + southkorea-maps(한국 17 광역시도) 실 GeoJSON 렌더링. '
+          + '디자인 언어 「슬레이트 위의 한지」 — 한지·먹·단청 13색 자체 팔레트 + 인장형 POI 아이콘 + 명조 디스플레이/sans 본문/mono 수치 3계층 타이포. '
+          + 'Paradox · Geopolitical Simulator · Google Earth 등 기존 게임/지도 서비스 모방 0건 검증.',
+    stack: ['Vite', 'React 18', 'TypeScript 5', 'Zustand', 'd3-geo', 'SVG', 'Natural Earth', 'southkorea-maps'],
+    issues: [
+      { type:'완료', title:'설계 문서 v0.1 작성 + 박사 승인', desc:'A~T 20개 섹션 + 9개 Claude Code subagent 명세 + 17 광역시도 줌 7단계 + 인장형 아이콘 시스템 + 한지+슬레이트+단청 팔레트 + 데이터 스키마 5종(Region/POI/Policy/Crisis/MapState/GameState) + originality 14항 체크리스트.' },
+      { type:'완료', title:'구현 계획 v0.1 (M1~M11) 박사 승인', desc:'리포 구조 · 정적 지도 · 줌 시스템 · 행정구역 · POI · 스키마 · mock store · 호버/클릭 패널 · 레이어 토글 · 정책 타게팅 · 테스트 — 11 마일스톤 의존성 그래프 + 추정 12주 + 소유권 행렬.' },
+      { type:'완료', title:'M0 vertical slice (Vite + React + 33 파일)', desc:'package.json·tsconfig·vite.config 셋업 + 7 schema · 17 region mock · 10 POI mock · Zustand store · 13색 design tokens · MapViewport(휠 줌 + 드래그 팬) · WorldBackground · KoreaRegions · POIMarkers · SealIcon · CrisisOverlay · HoverTooltip · ZoomIndicator · RegionalGovernancePanel · POIDialog · LayerToggleSidebar(10토글) · Header · 9개 subagent self-review. tsc 0 에러, vite build 858ms, gzip JS 62KB.' },
+      { type:'이슈', title:'1차 슬라이스 지도 퀄리티 미달 (박사 지적)', desc:'세계 6각형 blob + 한국 5-9 정점짜리 다각형으로 손코딩 — 박사가 「쓰레기같은 퀄리티」 지적. 박사 메시지: 「프론트엔드 디자인부터 대한민국 지도 및 세계지도 구현이 제일 중요한데」. 즉시 인정 후 복구 착수.' },
+      { type:'핵심', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps (2026-05-26)', desc:'손코딩 mock 폴리곤을 실데이터로 교체. (1) Natural Earth 1:110m countries(Public Domain, 177개국) — 진짜 대륙·국가 형상. (2) southkorea-maps kostat 2018(CC-BY) — 행정안전부 광역시도 GeoJSON. (3) mapshaper 4% 단순화로 7.2MB→452KB. (4) d3-geo Mercator projection 중심(127.8°E, 36.2°N) 도입. (5) POI 10개 모두 픽셀 좌표→실 위경도 전환(용산 대통령실 37.5326,126.9774 / 여의도 국회 / 부산항 / 인천공항 / 수원 삼성 / 울산 현대 / 나주 KEPCO / 대덕연구단지 / KAIST). (6) 행안부 코드↔ISO 3166-2:KR 매핑 테이블. tsc/build 통과, gzip JS 70KB.' }
+    ],
+    milestones: [
+      { date:'2026-05-26', title:'설계 v0.1 — Map-first 정치 시뮬 명세 (20개 섹션)', desc:'한지+슬레이트+단청 13색 + 인장 아이콘 + 6종 애니메이션 어휘 + 7단 줌 + 26 layer stack + 5 schema + 9 subagent harness + originality 14항 + Risks + M1~M10 일정.' },
+      { date:'2026-05-26', title:'구현 계획 v0.1 — M1~M11 마일스톤', desc:'리포 구조 · 정적 지도 · 줌 · 행정구역 · POI · 스키마 · store · 패널 · 레이어 토글 · 정책 타게팅 · 테스트. 12주 추정 + newton/codex 트랙 분배.' },
+      { date:'2026-05-26', title:'M0 vertical slice — Vite + React + 33 파일', desc:'설정 7 + 스키마 7 + mock 데이터 5 + state 2 + map components 9 + panels 2 + layers 1 + UI 1 + styles 3 + utils 2 + subagent review 1. tsc 0 에러, vite build 858ms, dev 부트 317ms.' },
+      { isCore:true, date:'2026-05-26', title:'실 GeoJSON 전면 교체 — Natural Earth + southkorea-maps', desc:'손코딩 mock 폴리곤 → 실 데이터. d3-geo Mercator projection 도입. 17 광역시도 진짜 경계 + 177국 진짜 형상 + POI 10개 실 위경도. 박사 지적 즉시 복구.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
