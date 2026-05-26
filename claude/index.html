@@ -3,496 +3,233 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>g.m.park · project dashboard</title>
+<title>프로젝트 대시보드 — Claude 버전 보고서</title>
 
+<!-- Tailwind CSS (Play CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide 아이콘 -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- 폰트 — Studio Haze 톤 (Inter + Pretendard + JetBrains Mono) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+
+<!-- ════════════════════════════════════════════════════════════════
+     Tailwind 컬러 팔레트 재정의 — Studio Haze 톤 (topaz/lispex/lenacode)
+     · 기존 Tailwind 클래스(bg-indigo-500, from-emerald-500 등)는 그대로 둔다
+     · 컬러 키 자체를 모노크롬 + 따뜻한 회색조 + 절제된 액센트로 일괄 치환
+     · 위계는 유지 — completed(deep moss) / in-progress(warm mid) / paused(deep mauve)
+     · 핵심(★) fuchsia/pink/rose 그라데이션 → 절제된 burnt orange/burgundy
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          /* 베이스 — 따뜻한 회색조 (slate를 Studio Haze warm grey로 재해석) */
+          slate: {
+            50:  '#f7f6f1', 100: '#ecebe5', 200: '#d8d6cc', 300: '#c4c2b8',
+            400: '#8a8a82', 500: '#6a6a64', 600: '#5a5a55', 700: '#3a3a36',
+            800: '#1f1f1c', 900: '#0e0e0c'
+          },
+          /* 브랜드/액센트 — 잉크 톤 (가장 강한 위계 = completed/primary) */
+          indigo: {
+            50:  '#ecebe5', 100: '#dad6c6', 200: '#c4c0ad', 300: '#a4a092',
+            400: '#6f6d65', 500: '#3a3a36', 600: '#1f1f1c', 700: '#0e0e0c',
+            800: '#0e0e0c', 900: '#0e0e0c'
+          },
+          /* paused — 절제된 deep mauve */
+          violet: {
+            50:  '#efece6', 100: '#e2ddd1', 200: '#c8c0a8', 300: '#a39a82',
+            400: '#7a715f', 500: '#5a5045', 600: '#4a4138', 700: '#3a322b',
+            800: '#2b251f', 900: '#1c1813'
+          },
+          /* completed — deep moss */
+          emerald: {
+            50:  '#ece9de', 100: '#dcd5bf', 200: '#beb697', 300: '#9c9374',
+            400: '#736c52', 500: '#534e3a', 600: '#3f3b2c', 700: '#2f2c21',
+            800: '#1f1d16', 900: '#13110d'
+          },
+          teal: {
+            50:  '#e8e7dc', 100: '#d4d2c0', 200: '#b1ad96', 300: '#878270',
+            400: '#605c4d', 500: '#494638', 600: '#37352a', 700: '#28271f',
+            800: '#1b1a14', 900: '#10100c'
+          },
+          /* in-progress — warm mid (khaki) */
+          amber: {
+            50:  '#efeadd', 100: '#e0d4b5', 200: '#c5b384', 300: '#a59059',
+            400: '#7e6e3f', 500: '#5f5430', 600: '#494023', 700: '#352f1a',
+            800: '#231f12', 900: '#16130b'
+          },
+          orange: {
+            50:  '#efe6da', 100: '#dec5ab', 200: '#bf9a72', 300: '#996f49',
+            400: '#75502f', 500: '#5a3e23', 600: '#442e1b', 700: '#322116',
+            800: '#211710', 900: '#150f0a'
+          },
+          /* 이슈 — 절제된 burgundy */
+          rose: {
+            50:  '#efe2db', 100: '#dec0b1', 200: '#c69685', 300: '#a66c54',
+            400: '#834d3a', 500: '#67392c', 600: '#4f2c22', 700: '#392019',
+            800: '#251710', 900: '#170d08'
+          },
+          /* 핵심(★) 그라데이션 — 절제된 burnt orange */
+          fuchsia: {
+            50:  '#f0e6dd', 100: '#e2c9b5', 200: '#c9a385', 300: '#a87a5d',
+            400: '#86583e', 500: '#6a4030', 600: '#523222', 700: '#3e261a',
+            800: '#2a1a11', 900: '#1a0f0a'
+          },
+          pink: {
+            50:  '#f0e3da', 100: '#e0c2ad', 200: '#c89880', 300: '#a96e52',
+            400: '#854e38', 500: '#693a29', 600: '#502c1f', 700: '#3a2117',
+            800: '#26160f', 900: '#180e09'
+          }
+        },
+        fontFamily: {
+          sans: ['Inter', 'Pretendard', '"Malgun Gothic"', 'system-ui', '-apple-system', 'sans-serif'],
+          mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'Menlo', 'monospace']
+        }
+      }
+    }
+  }
+</script>
 
 <style>
-  :root {
-    --bg: #f4f3ee;
-    --bg-frame: #ecebe5;
-    --ink: #0e0e0c;
-    --sub: #5a5a55;
-    --mute: #8a8a82;
-    --rule: #c4c2b8;
-    --rule-soft: #d8d6cc;
-    --hi: #e6e3d6;
-    --ring: #1a1a18;
+  /* Studio Haze warm off-white 베이스 + 매우 옅은 따뜻한 회색 radial */
+  body { background:
+    radial-gradient(1000px 520px at 82% -10%, rgba(140, 130, 110, 0.10), transparent 70%),
+    radial-gradient(820px 460px at 0% 108%, rgba(110, 110, 100, 0.08), transparent 70%),
+    #f4f3ee;
+    font-family: 'Inter', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
   }
+  /* monospace 클래스(font-mono)도 자동 적용되지만, code/pre 인라인 안전 */
+  code, pre, .mono { font-family: 'JetBrains Mono', 'IBM Plex Mono', Menlo, monospace; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', 'Pretendard', system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'ss01', 'cv11';
-  }
+  ::selection { background: rgba(14, 14, 12, 0.14); }
 
-  .mono { font-family: 'JetBrains Mono', 'IBM Plex Mono', Menlo, monospace; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #c4c2b8; border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: #8a8a82; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes reveal { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+  .reveal { opacity:0; animation: reveal .55s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes growbar { from { width:0; } }
+  .growbar { animation: growbar 1s cubic-bezier(.2,.7,.2,1); }
 
-  .container {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 64px 28px 120px;
-  }
-
-  /* ───── masthead ───── */
-  .masthead {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-  }
-  .masthead .l {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .masthead .r {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--sub);
-    letter-spacing: 0.02em;
-  }
-
-  .lockup {
-    margin-top: 64px;
-    margin-bottom: 8px;
-  }
-  .lockup .pre {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--mute);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .lockup h1 {
-    font-family: 'Inter', 'Pretendard', sans-serif;
-    font-weight: 700;
-    font-size: clamp(38px, 6vw, 56px);
-    line-height: 1.02;
-    letter-spacing: -0.025em;
-    color: var(--ink);
-  }
-  .lockup .sub {
-    color: var(--sub);
-    font-size: 14.5px;
-    margin-top: 14px;
-    max-width: 540px;
-    line-height: 1.7;
-  }
-
-  /* ───── rules ───── */
-  hr.rule {
-    border: 0;
-    height: 1px;
-    background: var(--ink);
-    margin: 56px 0 0;
-  }
-  hr.rule-thin {
-    border: 0;
-    border-top: 1px dashed var(--rule);
-    margin: 32px 0;
-  }
-  .stars {
-    text-align: center;
-    color: var(--mute);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.5em;
-    margin: 64px 0;
-    font-size: 12px;
-  }
-
-  /* ───── index ledger ───── */
-  .ledger-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin: 56px 0 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--mute);
-  }
-  .ledger {
-    border-top: 1px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
-  }
-  .ledger .row {
-    display: grid;
-    grid-template-columns: 48px 1fr 110px 92px;
-    gap: 14px;
-    align-items: baseline;
-    padding: 14px 4px;
-    border-bottom: 1px dashed var(--rule);
-    color: var(--ink);
-    text-decoration: none;
-    transition: background 0.12s ease;
-  }
-  .ledger .row:last-child { border-bottom: 0; }
-  .ledger .row:hover { background: var(--hi); }
-  .ledger .row .num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    color: var(--sub);
-  }
-  .ledger .row .name {
-    font-weight: 600;
-    font-size: 15.5px;
-    letter-spacing: -0.005em;
-  }
-  .ledger .row .stat {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    text-transform: lowercase;
-    letter-spacing: 0.06em;
-    color: var(--ink);
-  }
-  .ledger .row .stat::before { content: '── '; color: var(--mute); }
-  .ledger .row .pct {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--sub);
-    text-align: right;
-  }
-  .ledger .row.paused .name { color: var(--sub); }
-  .ledger .row.paused .name::after {
-    content: ' †';
-    color: var(--mute);
-    font-weight: 400;
-  }
-
-  /* ───── project section ───── */
-  section.project {
-    margin: 80px 0 0;
-  }
-  .sec-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--mute);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  h2.title {
-    font-weight: 700;
-    font-size: clamp(28px, 4.2vw, 38px);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .subtitle {
-    margin-top: 10px;
-    color: var(--sub);
-    font-size: 14.5px;
-    line-height: 1.6;
-    max-width: 560px;
-  }
-
-  .meta {
-    margin-top: 22px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--sub);
-    line-height: 1.9;
-    letter-spacing: 0.02em;
-  }
-  .meta .stat {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .meta .stat::before { content: '── '; color: var(--mute); }
-  .meta .sep { color: var(--rule); margin: 0 10px; }
-  .meta a {
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid var(--rule);
-  }
-  .meta a:hover { border-bottom-color: var(--ink); }
-
-  .lede {
-    margin-top: 24px;
-    font-size: 15px;
-    line-height: 1.78;
-    color: var(--ink);
-    max-width: 660px;
-  }
-
-  /* ───── block ───── */
-  .block { margin-top: 38px; }
-  .block-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--mute);
-    margin-bottom: 14px;
-  }
-  .block-label::before { content: '─ '; color: var(--rule); }
-  .body {
-    font-size: 14px;
-    line-height: 1.75;
-    color: var(--ink);
-    max-width: 660px;
-  }
-
-  /* stack inline */
-  .stack {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--ink);
-  }
-  .stack .dot { color: var(--rule); margin: 0 10px; }
-
-  /* director quote */
-  .director-quote {
-    margin-top: 30px;
-    border-left: 1px solid var(--ink);
-    padding: 6px 0 6px 22px;
-    background: transparent;
-  }
-  .director-quote .who {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--mute);
-    margin-bottom: 10px;
-  }
-  .director-quote .who::before { content: '─ '; color: var(--rule); }
-  .director-quote .text {
-    font-size: 14px;
-    line-height: 1.85;
-    color: var(--ink);
-    max-width: 640px;
-  }
-
-  /* milestones / issues */
-  .rows {
-    border-top: 1px dashed var(--rule);
-  }
-  .rows .r {
-    display: grid;
-    grid-template-columns: 78px 86px 1fr;
-    gap: 14px;
-    padding: 11px 0;
-    border-bottom: 1px dashed var(--rule);
-    align-items: baseline;
-  }
-  .rows .r .when {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--sub);
-    letter-spacing: 0.02em;
-  }
-  .rows .r .who {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--mute);
-    text-transform: lowercase;
-    letter-spacing: 0.08em;
-  }
-  .rows .r .who.director { color: var(--ink); font-weight: 500; }
-  .rows .r .what {
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: var(--ink);
-  }
-  .rows .r .what .d {
-    display: block;
-    margin-top: 4px;
-    font-size: 12px;
-    color: var(--sub);
-    line-height: 1.6;
-  }
-  .rows .r.core .what .t::after {
-    content: ' ★';
-    color: var(--ink);
-  }
-  .rows .r.issue .what .t,
-  .rows .r.pause .what .t {
-    color: var(--sub);
-  }
-
-  /* preview */
-  .preview {
-    margin-top: 16px;
-  }
-  .preview .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--sub);
-    margin-bottom: 8px;
-    letter-spacing: 0.02em;
-  }
-  .preview .label::before { content: '· '; color: var(--mute); }
-  .preview .frame {
-    border: 1px solid var(--ring);
-    background: #fff;
-    overflow: hidden;
-  }
-  .preview iframe {
-    width: 100%;
-    display: block;
-    border: 0;
-  }
-  .preview .caption {
-    margin-top: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--mute);
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: baseline;
-  }
-  .preview .caption a {
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid var(--rule);
-  }
-  .preview .caption a:hover { border-bottom-color: var(--ink); }
-  .preview + .preview { margin-top: 28px; }
-
-  /* deployments — versions */
-  .deploy .r {
-    grid-template-columns: 168px 1fr;
-  }
-  .deploy .r .when { color: var(--ink); font-weight: 500; font-size: 12.5px; }
-
-  /* ───── footer ───── */
-  footer.colophon {
-    margin-top: 120px;
-    padding-top: 28px;
-    border-top: 1px solid var(--ink);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 18px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--sub);
-    letter-spacing: 0.04em;
-  }
-  footer.colophon .right { text-align: right; line-height: 1.7; }
-  footer.colophon .haze { color: var(--ink); font-weight: 500; }
-
-  /* anchor offset for sticky-less header */
-  section.project { scroll-margin-top: 32px; }
-
-  /* ───── responsive ───── */
-  @media (max-width: 640px) {
-    .container { padding: 44px 18px 80px; }
-    .lockup { margin-top: 36px; }
-    .ledger .row {
-      grid-template-columns: 36px 1fr;
-      gap: 8px;
-      padding: 12px 2px;
+  /* ===========================================================
+     📱 모바일 반응형 — 가로 오버플로우 차단 + 긴 단어 줄바꿈
+     원인: 긴 URL·영어 단어(MeshStandardMaterial 등)가 줄바꿈 안 되어
+           모바일 폭을 넘어가던 문제
+  ============================================================ */
+  html, body { overflow-x: hidden; max-width: 100%; }
+  @media (max-width: 768px) {
+    /* 모든 detail 영역 텍스트 강제 줄바꿈 */
+    #detail, #detail * {
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
-    .ledger .row .stat,
-    .ledger .row .pct {
-      grid-column: 2;
-      text-align: left;
-      padding-top: 2px;
-    }
-    .rows .r { grid-template-columns: 64px 1fr; gap: 8px; padding: 10px 0; }
-    .rows .r .who { display: none; }
-    .deploy .r { grid-template-columns: 1fr; }
-    .meta .sep { display: inline-block; margin: 0 6px; }
+    /* detail 컨테이너 자체 — 가로 스크롤 완전 차단 */
+    #detail { overflow-x: hidden; max-width: 100vw; }
+    main { overflow-x: hidden; max-width: 100vw; }
+    /* iframe — 부모 폭 안에 가둠 */
+    #detail iframe { max-width: 100% !important; width: 100% !important; }
+    /* 「새 탭에서 열기 — URL」 같은 긴 링크 — 줄바꿈 강제 */
+    #detail a { word-break: break-all; }
+    /* stack 칩들 flex-wrap 보장 */
+    #detail .flex { flex-wrap: wrap; }
   }
 </style>
 </head>
 
-<body>
-<div class="container">
+<body class="min-h-screen text-slate-700 antialiased selection:bg-indigo-200/60">
 
-  <!-- ───── masthead ───── -->
-  <header class="masthead">
-    <div class="l">g.m.park · project dashboard</div>
-    <div class="r" id="todayDate">2026.05.26</div>
-  </header>
+<!-- 모바일 전용: 햄버거 버튼 + 사이드바 오버레이 배경 -->
+<button id="mobileMenuBtn" aria-label="메뉴 열기"
+  class="md:hidden fixed top-3 left-3 z-40 grid place-items-center w-11 h-11 rounded-xl
+         bg-white/95 backdrop-blur shadow-lg ring-1 ring-slate-200 active:scale-95 transition">
+  <svg viewBox="0 0 24 24" class="w-6 h-6 text-slate-800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <line x1="4" y1="7"  x2="20" y2="7"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="17" x2="20" y2="17"/>
+  </svg>
+</button>
+<div id="mobileBackdrop" class="md:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-20
+     opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
-  <!-- ───── lockup ───── -->
-  <section class="lockup">
-    <div class="pre">haze story · jr. developer · ledger of four rooms</div>
-    <h1>네 개의 방, 네 개의 상태.<br/>대시보드는 기억이다.</h1>
-    <p class="sub">
-      G.M.PARK이 운영 중인 네 가지 프로젝트의 진행·상태·마일스톤을 한 페이지에 정리한 개인 운영 보고서.
-      카드도, 그림자도, 화려한 인디케이터도 두지 않았다 — 정보가 단지 줄 단위로 흐른다.
-    </p>
-  </section>
+<div class="flex min-h-screen">
 
-  <hr class="rule" />
+  <!-- ===== 좌측 사이드바 (PC 고정, 모바일은 슬라이드 인/아웃) ===== -->
+  <aside id="sidebar" class="w-[290px] shrink-0 border-r border-slate-200 bg-white/95 backdrop-blur
+               flex flex-col fixed h-screen z-30
+               -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
+    <button id="brandHome" class="block w-full text-left px-5 pt-6 pb-5 border-b border-slate-200
+                 transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100
+                 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-inset cursor-pointer">
+      <div class="flex items-center gap-3">
+        <!-- HAZE STORY 공식 앰블럼 (그라데이션 H) -->
+        <div class="grid place-items-center w-11 h-11 shrink-0">
+          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-11 h-11 object-contain" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <h1 class="text-[13.5px] font-extrabold text-slate-900 leading-snug">
+            G.M.PARK 프로젝트 대시보드
+          </h1>
+          <p class="text-[10.5px] text-slate-500 mt-0.5">HAZE STORY · Jr. Developer</p>
+        </div>
+      </div>
+    </button>
 
-  <!-- ───── index ledger ───── -->
-  <div class="ledger-head">
-    <span>index</span>
-    <span id="ledgerCount">04 entries</span>
-  </div>
-  <nav class="ledger" id="indexList"></nav>
+    <nav id="projList" class="flex-1 overflow-y-auto px-3.5 py-4 space-y-2"></nav>
 
-  <div class="stars">·&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;·</div>
-
-  <!-- ───── projects ───── -->
-  <div id="projects"></div>
-
-  <!-- ───── footer ───── -->
-  <footer class="colophon">
-    <div>
-      <span class="haze">haze story</span> · g.m.park · 2026<br/>
-      personal operational ledger · not for distribution
+    <div class="px-5 py-4 border-t border-slate-200">
+      <p class="text-[11px] font-semibold text-slate-400 mb-2.5 tracking-wide">전체 현황</p>
+      <div id="summary" class="grid grid-cols-3 gap-2"></div>
     </div>
-    <div class="right">
-      last update · <span id="footDate">2026.05.26</span><br/>
-      designed in homage to studio haze typographic plainness
-    </div>
-  </footer>
+  </aside>
+
+  <!-- ===== 우측 상세 패널 ===== -->
+  <main class="flex-1 ml-0 md:ml-[290px] min-w-0">
+    <div id="detail" class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-9 pt-20 md:pt-9"></div>
+  </main>
 
 </div>
 
 <script>
 /* ════════════════════════════════════════════════════════════════
-   ▼  PROJECTS DATA  ▼
-   · status   : 'completed' | 'in-progress' | 'paused'
-   · 날짜      : 'YYYY-MM-DD'
-   · issues[].type : '완료' | '이슈' | '보류' | '핵심'
-   · milestones[].isCore : true  ★ core 마커
-   · preview  : { type:'embed', height?:Number, items:[{url, label}] }
+   ▼▼▼  프로젝트 데이터 — 이 부분만 고치면 화면이 바뀝니다  ▼▼▼
+   · status : 'completed'(완성) | 'in-progress'(진행 중) | 'paused'(보류)
+   · 날짜   : 'YYYY-MM-DD'
+   · issues[].type : '완료' | '이슈' | '보류'
+   · preview : 결과물 미리보기
+       - { type:'embed',  items:[{url:'...',label:'...'}] }        → 페이지 안에 라이브 삽입
+       - { type:'images', items:[{src:'previews/x.png',label:'...'}] } → 스크린샷 표시
    ════════════════════════════════════════════════════════════════ */
 const PROJECTS = [
   {
     id: 'ais',
     name: 'AIS Ship Tracker',
     subtitle: '실시간 선박 위치 추적 웹 앱',
+    icon: 'ship',
     platform: '웹 앱 · Vercel 배포',
     status: 'completed',
-    start: '2025-09-15',
-    latest: '2025-12-20',
+    start: '2025-09-15',          // ← 예시 날짜 (실제 값으로 수정)
+    latest: '2025-12-20',         // ← 예시 날짜 (실제 값으로 수정)
     progress: 100,
     link: 'https://ais.vercel.co.kr/ops-main',
     preview: { type:'embed', items:[
       { url:'https://ais.vercel.co.kr/ops-main',       label:'ops-main — PEL · MAGE · OCEAN ACE' },
       { url:'https://ais.vercel.co.kr/kyowa-line-ops', label:'kyowa-line-ops — KYOWA LINE' }
     ]},
-    summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱. 운영 노선에 따라 두 가지 버전으로 배포돼 있다.',
-    method: 'Next.js·React로 UI를 구성하고 Leaflet 지도 위에 선박을 마커로 렌더링한다. 선박 선택 시 MMSI·속도(SOG)·침로(COG)·항행 상태를 사이드바에 표시하며, Vercel에 두 노선 버전(ops-main / kyowa-line-ops)으로 배포했다.',
+    summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱. '
+           + '운영 노선에 따라 두 가지 버전으로 배포돼 있다.',
+    method: 'Next.js·React로 UI를 구성하고 Leaflet 지도 위에 선박을 마커로 렌더링한다. '
+          + '선박 선택 시 MMSI·속도(SOG)·침로(COG)·항행 상태를 사이드바에 표시하며, '
+          + 'Vercel에 두 노선 버전(ops-main / kyowa-line-ops)으로 배포했다.',
     stack: ['Next.js', 'React', 'TypeScript', 'Leaflet', 'Vercel'],
     versions: [
-      { name: 'ops-main',        desc: 'PEL · MAGE · OCEAN ACE 선단 추적 — ais.vercel.co.kr/ops-main' },
-      { name: 'kyowa-line-ops',  desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' }
+      { name: 'ops-main', desc: 'PEL · MAGE · OCEAN ACE 선단 추적 — ais.vercel.co.kr/ops-main' },
+      { name: 'kyowa-line-ops', desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' }
     ],
     issues: [
       { type:'완료', title:'지도 기반 실시간 선박 추적 구현', desc:'Leaflet 지도에 선박 마커·항행 정보를 실시간 표시.' },
@@ -511,27 +248,38 @@ const PROJECTS = [
     id: 'sports',
     name: 'Sports Highlight Generator',
     subtitle: '트래킹 데이터 기반 2D 매치 시각화 · 하이라이트 엔진',
+    icon: 'trophy',
     platform: '웹 애플리케이션',
     status: 'paused',
-    start: '2026-02-20',
+    start: '2026-02-20',          // ← 예시 날짜 (실제 값으로 수정)
     latest: '2026-05-22',
     progress: 78,
     link: 'https://gmpark-creator.github.io/project-dashboard/match-tracker/',
     preview: { type:'embed', height:600, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/match-tracker/', label:'2D 매치 트래커' }
     ]},
-    summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를 2D 경기장 위에 재생하는 매치 시뮬레이터. 이를 토대로 하이라이트 장면을 자동 추출하는 것이 최종 목표.',
-    method: '웨어러블 센서(EPTS/GPS) 트래킹 데이터 — 선수 22명과 공의 시간대별 X·Y 좌표 — 를 파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
+    summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를 2D 경기장 위에 재생하는 '
+           + '매치 시뮬레이터. 이를 토대로 하이라이트 장면을 자동 추출하는 것이 최종 목표.',
+    method: '웨어러블 센서(EPTS/GPS) 트래킹 데이터 — 선수 22명과 공의 시간대별 X·Y 좌표 — 를 '
+          + '파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 '
+          + '뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
     stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS', 'EPTS 트래킹 데이터'],
     directorNote: {
       author: 'G.M.PARK',
       date: '2026-05-22',
-      text: '본 프로젝트는 「실제 경기의 선수·공 위치 데이터를 확보해 2D로 재현한다」는 목표 아래 진행해 왔다. 기획 초기 자문(GPT) 단계에서는 경기 데이터 수집이 가능하다는 전제로 출발했고, 디렉터는 이 데이터 확보 문제의 해결을 요구했다. 그러나 실제 개발 단계에서 다음 장벽이 확인됐다 — 선수·공의 연속 광학 트래킹 데이터는 리그 공식 트래킹 업체가 구단·방송사에 유료로만 판매하는 비공개 상업 데이터이며, 웹상에 공개돼 있지 않다. 따라서 무료·합법 경로로 확보 가능한 연속 트래킹은 Metrica Sports가 연구용으로 공개한 익명 샘플 몇 경기(및 SkillCorner 공개 소수 경기)에 한정되며, 임의의 최신 경기를 경기 종료 직후 트래킹 데이터로 확보하는 것은 유료 라이선스 없이는 구조적으로 불가능함이 드러났다. 즉 초기 GPT 자문이 가능하다고 본 「데이터 수집」은 실제로는 Metrica 기본 샘플을 벗어나는 순간 성립하지 않는다. 이에 디렉터 판단으로, 데이터 수급 경로(유료 트래킹 라이선스 도입 또는 이벤트 데이터 기반 재설계)가 정해질 때까지 본 프로젝트의 개발을 잠정 보류한다.'
+      text: '본 프로젝트는 「실제 경기의 선수·공 위치 데이터를 확보해 2D로 재현한다」는 목표 아래 진행해 왔다. '
+          + '기획 초기 자문(GPT) 단계에서는 경기 데이터 수집이 가능하다는 전제로 출발했고, 디렉터는 이 데이터 확보 문제의 해결을 요구했다. '
+          + '그러나 실제 개발 단계에서 다음 장벽이 확인됐다 — 선수·공의 연속 광학 트래킹 데이터는 리그 공식 트래킹 업체가 '
+          + '구단·방송사에 유료로만 판매하는 비공개 상업 데이터이며, 웹상에 공개돼 있지 않다. 따라서 무료·합법 경로로 확보 가능한 '
+          + '연속 트래킹은 Metrica Sports가 연구용으로 공개한 익명 샘플 몇 경기(및 SkillCorner 공개 소수 경기)에 한정되며, '
+          + '임의의 최신 경기를 경기 종료 직후 트래킹 데이터로 확보하는 것은 유료 라이선스 없이는 구조적으로 불가능함이 드러났다. '
+          + '즉 초기 GPT 자문이 가능하다고 본 「데이터 수집」은 실제로는 Metrica 기본 샘플을 벗어나는 순간 성립하지 않는다. '
+          + '이에 디렉터 판단으로, 데이터 수급 경로(유료 트래킹 라이선스 도입 또는 이벤트 데이터 기반 재설계)가 정해질 때까지 본 프로젝트의 개발을 잠정 보류한다.'
     },
     issues: [
       { type:'완료', title:'2D 매치 트래커 프로토타입 완성', desc:'트래킹 데이터를 2D 경기장에 시각화 — 재생·타임라인·득점 마커·선수 클릭 분석.' },
       { type:'완료', title:'데이터 기반 방식으로 방향 전환', desc:'영상 CV 추출 대신 웨어러블 위치 데이터 기반으로 전환 — 구현 난도·라이선스 부담 감소.' },
-      { type:'완료', title:'실측 25Hz 광학 트래킹 적용', desc:'Metrica Sports 공개 실측 경기 데이터를 연동 — 재구성이 아닌 실제 트래킹.' },
+      { type:'완료', title:'실측 25Hz 광학 트래킹 적용', desc:'Metrica Sports 공개 실측 경기 데이터를 연동 — 재구성이 아닌 실제 트래킹. (임의 최신 경기의 연속 트래킹은 비공개 상업데이터)' },
       { type:'보류', title:'데이터 수급 장벽 — 개발 잠정 보류', desc:'임의 최신 경기의 선수 연속 광학 트래킹은 비공개 상업 데이터로 웹에 존재하지 않음. 무료·합법 확보 범위는 Metrica 기본 공개 샘플 몇 경기에 한정. 데이터 수급 경로 확정 시까지 디렉터 결정으로 보류.' }
     ],
     milestones: [
@@ -540,13 +288,14 @@ const PROJECTS = [
       { date:'2026-05-22', title:'트래킹 데이터 방식 확정', desc:'영상 CV → 웨어러블/EPTS 위치 데이터 기반으로 전환' },
       { date:'2026-05-22', title:'2D 매치 트래커 프로토타입', desc:'경기장·재생·타임라인·선수 분석 UI 완성' },
       { date:'2026-05-22', title:'실측 트래킹 데이터 적용', desc:'Metrica Sports 공개 25Hz 광학 트래킹 — 실측 경기 데이터로 구동' },
-      { isCore:true, date:'2026-05-22', title:'개발 잠정 보류 (디렉터 결정)', desc:'데이터 수급 장벽 확인 — 광학 트래킹 데이터 확보 경로 미정으로 개발 잠정 중단' }
+      { date:'2026-05-22', title:'개발 잠정 보류 (디렉터 결정)', desc:'데이터 수급 장벽 확인 — 광학 트래킹 데이터 확보 경로 미정으로 개발 잠정 중단' }
     ]
   },
   {
     id: 'solar',
     name: 'Solar System Simulator',
-    subtitle: '3D 실시간 태양계 시뮬레이터 · 외태양계·외계 항성계 확장',
+    subtitle: '3D 실시간 태양계 시뮬레이터',
+    icon: 'orbit',
     platform: '웹 애플리케이션',
     status: 'in-progress',
     start: '2026-05-21',
@@ -554,285 +303,594 @@ const PROJECTS = [
     progress: 99,
     link: 'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/',
     preview: { type:'embed', height:520, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/', label:'태양계 시뮬레이터 — Claude' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/', label:'태양계 시뮬레이터' }
     ]},
-    summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. 초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나, WebGL/GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단해 Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류·TDZ 진단 등 디버깅 서포트 역할로 전환. 외태양계 영역(카이퍼·오르트)·외계 항성계·인터스텔라 영화 시스템·부산 실시간 달 위젯까지 확장.',
-    method: 'Three.js + 커스텀 GLSL ShaderMaterial로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 각 천체 위치를 수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 고도화. 협업 체제 전환 후 Claude는 메인 구현 라인(텍스처·셰이더·UI·인터랙션)을 담당하고, Codex는 정밀 코드 진단(예: 3단 TDZ 에러를 GPT가 정확히 짚어 Claude가 즉시 fix)으로 문제 발생 시 보조 라인에서 빠른 해결 — AI 협업의 강점 분리·역할 분담 모델.',
-    stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GLSL', 'GitHub Pages'],
+    summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
+           + '초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나, '
+           + 'WebGL/GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단해 '
+           + 'Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류·TDZ 진단 등 디버깅 서포트 역할로 전환. '
+           + '외태양계 영역(카이퍼·오르트)·외계 항성계·인터스텔라 영화 시스템·부산 실시간 달 위젯까지 확장.',
+    method: 'Three.js + 커스텀 GLSL ShaderMaterial로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 '
+          + '각 천체 위치를 수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 '
+          + '고도화. 협업 체제 전환 후 Claude는 메인 구현 라인(텍스처·셰이더·UI·인터랙션)을 담당하고, '
+          + 'Codex는 정밀 코드 진단(예: 3단 TDZ 에러를 GPT가 정확히 짚어 Claude가 즉시 fix)으로 '
+          + '문제 발생 시 보조 라인에서 빠른 해결 — AI 협업의 강점 분리·역할 분담 모델.',
+    stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
     issues: [
       { type:'완료', title:'날짜 기반 천체력 엔진', desc:'8행성 공전주기를 실제값 대비 오차 최대 0.22%로 재현.' },
       { type:'완료', title:'지구–달 정밀 동기화 + 조석 계산', desc:'달 섭동항 12개 반영, 그 위에 조석(물때) 계산을 구축.' },
-      { type:'완료', title:'AI 협업 체제 전환 — Claude 단일 구현 + Codex 디버깅 서포트', desc:'프로젝트 초기: Claude·Codex 듀얼 트랙 → /claude/ /codex/ 분리 배포. 진행 중 WebGL·GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단 → Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류 진단·TDZ 분석 등 디버깅 서포트.' },
-      { type:'완료', title:'시간 흐름 재생 타임머신', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생 — 과거·미래로 무제한 진행.' },
-      { type:'완료', title:'외태양계 영역 시각화', desc:'카이퍼 메인 벨트(30~50 AU) + 산란 원반(50~1,000 AU) 입자 + 외곽 윤곽선. 오르트 구름(2,000~100,000 AU) 입자 구형 쉘 + 반투명 sphere shell.' },
-      { type:'완료', title:'외계 항성계 (헤일메리·삼체)', desc:'40 에리다니 A — Gaia DR3 16.340 ± 0.010 광년. α Centauri AB 4.344 광년, Proxima C 4.2465 광년. visual 모드 L^0.35 압축 / real 모드 camera.far 동적 확장.' },
-      { type:'완료', title:'고해상 행성 텍스처 + 주요 위성 11개', desc:'7행성 NASA 출처 텍스처(jsDelivr/threex.planets). 위성 11개 — Phobos·Deimos·Io·Europa·Ganymede·Callisto·Titan·Rhea·Titania·Oberon·Triton. parent→pivot→mesh 계층 + 가시성 이중 로직 + opacity 트윈.' },
-      { type:'완료', title:'부산 기준 실시간 달 모양 위젯', desc:'조석 패널 위 신설 — Canvas 2D + NASA moon_1024.jpg를 multiply 합성. 한국어 8단계 위상명 + 조명률 + 달 나이.' },
-      { type:'핵심', title:'GPT 협업 — 3단 TDZ 에러 진단·해결', desc:'2026-05-24 Phase 2 패치 직후 검은 화면 다운. Claude(나)가 첫 에러만 잡고 헛수고하던 중 GPT가 3단 TDZ 누적을 정확히 진단 — buildProbes direction · moonSphereGeo 등 공용 geometry 선언 순서 · 화성 로버 즉시 실행 for문. 3단 모두 해결로 복귀. AI 협업 모범 사례.' }
+      { type:'완료', title:'AI 협업 체제 전환 — Claude 단일 구현 + Codex 디버깅 서포트', desc:'프로젝트 초기: Claude·Codex 듀얼 트랙으로 동일 설계 독립 구현 → /claude/ /codex/ 분리 배포. 진행 중 WebGL·GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단 → Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류 진단·TDZ 분석 등 디버깅 서포트 역할로 전환 (AI 강점 분리 모델).' },
+      { type:'완료', title:'시간 흐름 재생 타임머신 (Claude 버전)', desc:'«1년/1년» 이동을 즉시 점프가 아니라 1년치를 약 3초에 걸쳐 연속 재생하도록 변경 — 과거·미래로 무제한 진행.' },
+      { type:'완료', title:'외태양계 영역 시각화 (Claude · 2026-05-23 / 24 정밀화)', desc:'카이퍼 메인 벨트(30~50 AU) + 산란 원반 Scattered Disk(50~1,000 AU) 입자 + 외곽 윤곽선 + 반투명 평면 띠. 오르트 구름(2,000~100,000 AU) 입자 구형 쉘 + 반투명 sphere shell. 「초점」 메뉴 선택 시에만 표시. NASA 카이퍼 영역 분류(메인+산란)를 전부 반영.' },
+      { type:'완료', title:'외계 항성계 추가 (Claude · 2026-05-23 / 24 정밀화)', desc:'「프로젝트 헤일메리」 40 에리다니 A — Gaia DR3 측정값 16.340 ± 0.010 광년(5.010 pc · 약 1,033,359 AU · 154.6조 km). 「삼체」 α Centauri AB 4.344 광년(1.3319 pc · 약 274,719 AU · 41.1조 km), Proxima C 4.2465 광년. 항성간 거리는 visual 모드에서 L^0.35로 압축, real 모드에서는 camera.far 동적 확장.' },
+      { type:'완료', title:'고해상 행성 텍스처 + 주요 위성 시스템 (Claude · 2026-05-24)', desc:'7행성(수성·금성·화성·목성·토성·천왕성·해왕성)에 NASA 출처 디퓨즈·범프 텍스처 적용(jsDelivr/threex.planets). 토성 고리도 실제 색상 텍스처. 주요 위성 11개 추가 — Phobos·Deimos·Io·Europa·Ganymede·Callisto·Titan·Rhea·Titania·Oberon·Triton. parent.group→pivot→mesh 계층으로 행성 이동 자동 추적. 이중 가시성 로직: (A) 행성 포커스 시 그 행성 위성만 fade-in (B) 「🌙 위성」 토글로 전체 동시 표시. opacity 트윈으로 0.25초 부드러운 전환.' },
+      { type:'완료', title:'위성 셀렉터 계층화 + 클릭 정보 + 라벨 보정 (Claude · 2026-05-24)', desc:'「초점」 메뉴 위성 11개를 모행성 아래에 「└ 위성명」 형식으로 계층 표시. INFO 객체에 모든 위성의 천문학 정보 등록 — 셀렉터/mesh/라벨 어느 곳을 클릭해도 사이드바에 지름·모행성·공전주기·모행성과 거리·특징·해설이 「달」과 동일하게 표시. 위성 라벨이 본체에서 멀어 보이던 문제 해결 — 라벨 위치를 meshR×1.6 위로, 크기를 meshR×3.2로 본체 비례 산정해 위성에 근접하게 표시. opacity 0인 위성은 raycaster 자동 제외.' },
+      { type:'완료', title:'부산 기준 실시간 달 모양 위젯 (Claude · 2026-05-24)', desc:'조석 패널 위에 신설 — Canvas 2D + NASA moon_1024.jpg 텍스처를 globalCompositeOperation 「multiply」로 합성. 표면 디테일(크레이터·바다·고지)을 유지하면서 위상별 그림자만 정확히 변화. 한국어 8단계 위상명 + 조명률(%) + 달 나이 표시.' },
+      { type:'완료', title:'조석 기본 지점을 부산으로 (Claude · 2026-05-24)', desc:'curLoc 초기값을 인천 → 부산으로 변경, 셀렉터 selected 속성도 부산. 달 위젯 관측 지점과 일관성 확보.' },
+      { type:'핵심', title:'GPT 협업 — 3단 TDZ 에러 진단·해결기록', desc:'2026-05-24 Phase 2 대규모 패치 직후 시뮬레이터 검은 화면 다운. Claude(나)가 첫 에러만 잡고 캐시 의심에 빠져 헛수고하던 중 GPT가 정확히 진단 — JavaScript TDZ(Temporal Dead Zone) 3단 연쇄. ①1차: buildProbes의 PR.direction.normalize() — Parker/JWST는 direction 필드 없는데 호출. Claude가 if 가드로 해결. ②2차 (GPT 진단): const moonSphereGeo가 line 1703 선언인데 line 1233 카모오알레와에서 먼저 참조 → unitGeo·earthGeo·moonSphereGeo 세 공용 geometry를 신규 코드 위로 이동. ③3차 (GPT 재진단): 화성 로버 즉시 실행 for문이 bodyObjs 선언 전 실행 → buildMarsRovers() 함수로 감싸고 PLANETS 빌드 후 호출. 3단 모두 해결 후 정상 복귀. AI 협업의 모범 사례 — Claude는 구현, GPT는 정밀 진단.' }
     ],
     milestones: [
       { date:'2026-05-21', title:'Step 1 — 태양·지구·달 실시간', desc:'우주 배경·카메라 조작·실시간 자전/공전' },
       { date:'2026-05-21', title:'Step 2 — 8행성 + 케플러 천체력', desc:'전 행성 확장, 토성 고리, 지구 NASA 텍스처' },
       { date:'2026-05-22', title:'Step 3 — 조석(물때) 계산', desc:'조석 팽대부 3D, 물때 패널, 48h 조석곡선' },
       { date:'2026-05-22', title:'Step 4 — 인터랙션·비주얼 고도화', desc:'타임머신, 클릭 포커싱, 정보 UI, 그림자' },
-      { date:'2026-05-22', title:'AI 협업 체제 전환', desc:'Claude 단일 구현 라인 + Codex 디버깅 서포트' },
-      { date:'2026-05-23', title:'외태양계 영역 시각화', desc:'카이퍼 벨트·오르트 구름 입자 + 윤곽선·반투명 메시 + 거리 라벨' },
+      { date:'2026-05-22', title:'AI 협업 체제 전환 — Claude 단일 구현 라인 + Codex 디버깅 서포트', desc:'프론트엔드 비주얼 우위로 Claude 일원화, Codex는 코드 진단 서포트로 역할 분담' },
+      { date:'2026-05-22', title:'시간 흐름 재생 타임머신', desc:'Claude 버전 — 연 단위 이동을 연속 재생 방식으로 개선' },
+      { date:'2026-05-23', title:'외태양계 영역 시각화', desc:'카이퍼 벨트·오르트 구름 입자 + 윤곽선·반투명 메시 + 거리 라벨, 「초점」 메뉴 연동' },
       { date:'2026-05-23', title:'외계 항성계 (헤일메리·삼체)', desc:'40 에리다니 A + 알파 센타우리 실제 거리 반영, 카메라 인터스텔라 줌' },
-      { date:'2026-05-23', title:'부산 기준 실시간 달 위젯', desc:'NASA 텍스처 + multiply 합성으로 사실적 달 표면, 한국어 8단계 위상명' },
-      { date:'2026-05-24', title:'NASA/Gaia DR3 팩트체크 정밀화', desc:'40 에리다니 A 16.340 ly, α Cen 4.344 ly. 산란 원반(50~1,000 AU) 추가. 데이터 정확도 ~99.5%' },
-      { date:'2026-05-24', title:'고해상 행성 텍스처 + 위성 시스템', desc:'7행성 NASA 텍스처. 위성 11개 추가 — 부모-자식 계층, 가시성 이중 로직, opacity 페이드.' },
-      { date:'2026-05-24', title:'위성 셀렉터 계층화 + 클릭 정보', desc:'행성 아래 위성 「└ 표기」. 모든 위성 INFO 등록. 라벨 위치/크기를 mesh 비례로 재산정.' },
-      { date:'2026-05-24', title:'인류 탐사선·라그랑주·공궤도·미지 천체 통합', desc:'보이저 1·2 / 뉴 호라이즌스 / 파커 / JWST. L1~L5 동적 갱신. 트로이 소행성군. 카모오알레와. 오무아무아. Planet Nine.' },
-      { date:'2026-05-24', title:'Phase 1 — 화성 로버 제거 + 라그랑주/JWST 강화', desc:'depthTest:false + renderOrder 999, sprite 50% 강화. JWST 황금 6각형 mesh + 자전.' },
-      { date:'2026-05-24', title:'Phase 2 — 인터스텔라 영화 시스템', desc:'가르강튀아 GLSL(Event Horizon + Accretion Disk fBm + Lensing Halo Torus) + 웜홀 + 밀러·맨·에드먼즈 3행성.' },
-      { isCore:true, date:'2026-05-24', title:'3단 TDZ 에러 — GPT 협업 해결', desc:'Phase 2 직후 검은 화면. GPT가 3단 TDZ 누적 정확히 진단 — direction guard / 공용 geometry 선언 순서 / for문 함수 래핑. 3단 모두 해결 후 복귀.' },
-      { date:'2026-05-24', title:'Phase 3a — 외계 항성계 메뉴 재편 + 가르강튀아 셰이더 강화', desc:'optgroup 3개(인터스텔라·삼체·헤일메리). view-dependent UV warp + 6단 fBm + Einstein Ring.' },
-      { date:'2026-05-24', title:'Phase 3b — 목성 트로이 영역 시각화', desc:'L4(그리스)·L5(트로이) 60° 반폭 반투명 호 + LineLoop + 라벨.' },
-      { date:'2026-05-24', title:'Phase 3c — 사건의 지평선 (EHT M87*)', desc:'영화 시그니처와 별개 EHT 관측 기반 두 번째 블랙홀. Photon Ring 강조 + 약한 Doppler + 정면 관측 그대로.' },
-      { date:'2026-05-24', title:'Phase 4 — 위성 PBR 텍스처 절충', desc:'NASA 달 텍스처 공유 + 위성별 color tint. bumpScale 크기 비례.' },
-      { date:'2026-05-24', title:'Phase 5 — 위성별 GLSL 셰이더 (옵션 B 완전 구현)', desc:'4종 카테고리 — CRATERED / VOLCANIC / ICY / HAZY. 공통 fbm3 헬퍼 + ShaderMaterial 팩토리. 11개 위성 모두 고유 표면.' },
-      { date:'2026-05-24', title:'Phase 6 — 태양 GLSL + 가스 행성 atmospheric halo + EHT 강화', desc:'태양 granulation·sunspot·limb darkening. Fresnel halo (목·토·천·해). EHT Doppler 3.5배 강화.' },
-      { date:'2026-05-24', title:'fix #1 — 위성 라벨 반대편 버그', desc:'회전 매트릭스 부호 계산 폐기, getWorldPosition → worldToLocal 직접 복사로 원천 차단.' },
-      { date:'2026-05-24', title:'fix #2 — 웜홀 회전·셰이더 흐름 대폭 감속 (디렉터 눈 피로)', desc:'회전 0.02 → 0.0006, 셰이더 흐름 0.30 → 0.008. 사실상 정적.' },
-      { date:'2026-05-24', title:'fix #3 — 웜홀 천문학 사실 기반 셰이더 재작성', desc:'배경 deep space + Procedural Star Field 3 레이어 + 분광형 4종(O/B/G/K/M) + Gravitational Lensing + Einstein Ring. Kip Thorne 자문 영화 사실 충실.' },
-      { date:'2026-05-24', title:'fix #4 — 탐사선 3D 모델 + 항적·예상 궤적·방향 화살표', desc:'sprite 점 → Group of Mesh. 과거 옅은 청 LineDashed + 미래 주황 LineDashed + Cone 화살표.' },
-      { date:'2026-05-24', title:'fix #5 — NASA Eyes 공식 실사 임베드 (JPL)', desc:'시뮬레이터에 「📡 NASA Eyes」 토글. focusKey에 따라 NASA Eyes의 해당 객체 자동 이동.' }
+      { date:'2026-05-23', title:'부산 기준 실시간 달 위젯', desc:'조석 패널 위 신설 — NASA 텍스처 + multiply 합성으로 사실적 달 표면, 한국어 8단계 위상명' },
+      { date:'2026-05-23', title:'조석 기본 지점 → 부산', desc:'관측 지점 일관성 확보, 달 위젯·조석곡선 모두 부산 기준' },
+      { date:'2026-05-24', title:'NASA/Gaia DR3 팩트체크 정밀화', desc:'40 에리다니 A 16.45 → 16.340 ly(Gaia DR3), α Cen 4.37 → 4.344 ly. 카이퍼 영역에 NASA 분류상 산란 원반(Scattered Disk, 50~1,000 AU) 입자·윤곽 추가. 데이터 정확도 97% → ~99.5%' },
+      { date:'2026-05-24', title:'고해상 행성 텍스처 + 위성 시스템', desc:'7행성에 NASA 출처 디퓨즈·범프 텍스처(jsDelivr/threex.planets) 적용. 주요 위성 11개 추가 — 화성(포보스·데이모스), 목성(갈릴레오 4), 토성(타이탄·레아), 천왕성(티타니아·오베론), 해왕성(트리톤). 부모-자식 계층(planet→pivot→moon), 가시성 이중 로직(focus 자동 표시 + 「🌙 위성」 전역 토글), opacity 페이드 트윈.' },
+      { date:'2026-05-24', title:'위성 셀렉터 계층화 + 클릭 정보 + 라벨 보정', desc:'「초점」 셀렉터에 행성 아래 위성 들여쓰기 (└ 표기). 위성 11개 모두 INFO 등록 — 셀렉터 또는 mesh/라벨 직접 클릭 시 사이드바에 천문학 정보 표시(지름·공전주기·모행성 거리·특징·설명). 위성 라벨 위치/크기를 mesh 본체 크기 비례로 재산정(meshR×1.6 위, meshR×3.2 크기), 본체에 근접하게 표시. 보이지 않는 위성은 raycaster에서 자동 제외.' },
+      { date:'2026-05-24', title:'인류 탐사선·라그랑주·공궤도·성간/미지 천체 통합 레이어', desc:'대규모 천체 추가 — 보이저 1·2호(169·141 AU), 뉴 호라이즌스호(58 AU), 파커 솔라 프로브(코로나 타원 궤도), JWST(L2). 지구-태양 라그랑주 L1~L5 매 프레임 동적 갱신(홀로그래픽 십자 마커). 목성 트로이 소행성군 2,400 입자×2(L4·L5). 카모오알레와 1:1 공명 궤도. 오무아무아 쌍곡선 궤도 + 미리 그린 path. Planet Nine 가상 행성 점선 궤도(a=600 AU). 「🛰 탐사선」「⚖ 라그랑주」「👽 미지」 3개 UI 토글로 카테고리별 표시. 셀렉터 구분자(──)로 그룹화.' },
+      { date:'2026-05-24', title:'Phase 1 정리 — 화성 로버 제거 + 라그랑주/JWST 가시성 강화', desc:'디렉터님 지시로 화성 로버(퍼서비어런스·큐리오시티) 데이터·코드·셀렉터 완전 제거. 라그랑주 L1~L5 마커에 depthTest:false + renderOrder 999 적용해 지구 뒤에 있어도 가려지지 않음. sprite 크기 50% 강화로 멀리서도 명확. JWST는 황금 6각형 CylinderGeometry mesh + 진한 halo sprite로 차별화된 3D 마커 적용, 천천히 자전.' },
+      { date:'2026-05-24', title:'Phase 2 — 인터스텔라 영화 시스템 (가르강튀아 GLSL + 웜홀 + 3행성)', desc:'영화 「인터스텔라」 시스템 통합 추가. 가르강튀아 초대질량 블랙홀: Event Horizon(검은 구) + 커스텀 GLSL Accretion Disk(케플러 회전·fBm 플라즈마 노이즈·Doppler 빔잉) + 위·아래 휘어진 Lensing Halo Torus(영화 시그니처) — 모두 GLSL ShaderMaterial로 실시간 렌더. 웜홀(토성 근처 발광 sphere, 홀로그래픽 격자 셰이더). 가르강튀아 주위 공전하는 3행성: 밀러(물·시간 지연 1시간=지구 7년) · 맨(얼음·거짓 신호) · 에드먼즈(사막·거주가능). 셀렉터 「🎬 인터스텔라 영화 시스템」 섹션 신설, 「👽 미지」 토글에 통합. 카메라 far 1.2e6까지 동적 확장.' },
+      { isCore:true, date:'2026-05-24', title:'핵심 디버깅 스토리 — GPT 협업으로 3단 TDZ 에러 해결', desc:'Phase 2 대규모 패치(인터스텔라 시스템) 직후 시뮬레이터가 검은 화면 + 「실행에 실패했습니다」로 완전 다운. Claude(나)가 첫 에러만 잡고 캐시 의심으로 빠져 헛수고하던 중, GPT가 정확히 진단 — JavaScript의 TDZ(Temporal Dead Zone, const 선언 전 접근 불가) 문제가 3단으로 누적돼 있었음. (1차) buildProbes 안 PR.direction.normalize() — Parker/JWST가 direction 필드 없는데 호출 → 「Cannot read properties of undefined」. Claude가 if 가드로 1차 해결. (2차) GPT 진단: const moonSphereGeo가 line 1703에 선언됐는데 line 1233 카모오알레와에서 먼저 참조 → 「Cannot access before initialization」. unitGeo·earthGeo·moonSphereGeo 세 공용 geometry를 신규 코드 블록 시작 위로 이동해 해결. (3차) GPT 재진단: 화성 로버 즉시 실행 for문이 bodyObjs 선언 전 실행되어 「Cannot access bodyObjs before initialization」. 로버 빌드 코드를 buildMarsRovers() 함수로 감싸고 PLANETS 빌드 직후 호출하도록 재구조. 3단 모두 해결 후 시뮬레이터 정상 동작 복귀. 캐시 진단용 [BUILD-vN-FIX] 마커를 로딩 화면에 임시 표시했다가 해결 후 제거. AI 협업의 모범 사례 — 각 AI 강점 활용.' },
+      { date:'2026-05-24', title:'Phase 3a — 「외계 항성계」 메뉴 재편 + 가르강튀아 셰이더 강화', desc:'디렉터님 지시 사양 반영: 셀렉터의 외계 항성계 항목을 「외계 항성계」 메인 카테고리 + 3개 optgroup 서브로 재편 — (1) 인터스텔라(웜홀·가르강튀아·밀러·맨·에드먼즈) (2) 삼체(알파 센타우리) (3) 프로젝트 헤일메리(40 에리다니 A). 가르강튀아 강착원반 셰이더 강화: view-dependent UV warp(카메라가 옆에서 볼수록 디스크가 휘어 보임) + 6단계 fBm 노이즈 + Einstein Ring 추가(가장 안쪽 강한 빛) + Doppler 청색편이 강화(밝은 쪽에 청색 가산) + 초고온 안쪽 청백색 그라데이션.' },
+      { date:'2026-05-24', title:'Phase 3b — 목성 트로이 영역 시각화 (선택 시 바운딩)', desc:'디렉터님 지시: 「목성 트로이 소행성군」 선택 시 시각적으로 범위를 표현. L4(그리스 진영, 황갈색)·L5(트로이 진영, 연보라색) 위치에 60° 반폭의 반투명 호 + 외곽 LineLoop + 라벨 두 개(그리스 진영/트로이 진영). 입자 분포와 동일한 baseAng/회전 보정 사용해 입자와 정확히 겹침. 셀렉터 「목성 트로이 소행성군」 선택 시에만 표시(다른 선택 시 자동 숨김). 카메라는 목성 거리의 1.8배에서 호 전체 조망.' },
+      { date:'2026-05-24', title:'Phase 3c — 「사건의 지평선 (과학적 실증)」 EHT 블랙홀 신규', desc:'디렉터님 지시: 가르강튀아(영화)와 별개로 EHT 관측 기반 두 번째 블랙홀 추가. M87* 발표(2019-04) 사진의 톤을 모티브 — 따뜻한 오렌지 ring + Photon Ring 강조(가장 안쪽 가는 빛) + 약한 Doppler(30% 비대칭, 가르강튀아 7배의 1/20) + view-warp 없음(정면 관측 사진 그대로) + 4단계 fBm 부드러운 노이즈. 가르강튀아와 완전 별도 GLSL ShaderMaterial. INFO에 EHT 협력단·M87*·관측 방식·VLBI 8개 망원경·Sgr A* 후속 등 천문학 사실 등록. 셀렉터 「⚫ 블랙홀」 카테고리 신설. 위치 (400000, -50000, 200000) — 가르강튀아와 별도 좌표.' },
+      { date:'2026-05-24', title:'Phase 4 — 위성 PBR 텍스처 절충 적용', desc:'디렉터님 지시: 위성을 평면 sphere가 아닌 PBR 텍스처로 강화. 무료 CDN 위성 전용 텍스처가 사실상 없어(검색: jeromeetienne/threex.planets·solarsystemscope.com 모두 행성·달·명왕성만 제공) 절충안 적용 — NASA 달 텍스처(moon_1024.jpg)를 map+bumpMap으로 공유 + 위성별 color tint로 고유 색감(이오 노란·유로파 흰·가니메데 갈색·칼리스토 어두운회·타이탄 오렌지 등). bumpScale은 포보스/데이모스 같은 작은 위성에 더 강하게(0.05), 큰 위성은 약하게(0.022). 진짜 위성별 PBR은 디렉터님이 NASA 텍스처를 직접 폴더에 제공해주시면 즉시 적용 가능.' },
+      { date:'2026-05-24', title:'Phase 5 — 위성별 GLSL 셰이더 (옵션 B 완전 구현)', desc:'디렉터님 선택 「B 절차적 셰이더」 진행. 4종 카테고리 ShaderMaterial 작성 — (1) CRATERED: 3D fbm 노이즈 + smoothstep 크레이터 패턴 (포보스·데이모스·칼리스토·레아·티타니아·오베론), (2) VOLCANIC: 황 화산 노랑/주황/검은 얼룩 (이오), (3) ICY: 얼음 + 갈라진 라인(abs sin pattern) (유로파·가니메데·트리톤), (4) HAZY: 두꺼운 오렌지 대기 + Fresnel 가장자리 발광 (타이탄). 각 위성에 surface:{type, color params, scale} 추가. 공통 hash3·noise3·fbm3 헬퍼 + MOON_VERTEX_SHADER + makeMoonShaderMaterial() 팩토리. uOpacity uniform으로 페이드 트윈 완벽 통합. 더 이상 단색 sphere 아님 — 11개 위성 모두 고유 표면 패턴.' },
+      { date:'2026-05-24', title:'Phase 6 — 태양 GLSL 셰이더 + 가스 행성 atmospheric halo + EHT 강화', desc:'디렉터님 지시 「태양·토성·천왕성·해왕성도 최대 퀄리티」 + EHT 셰이더 보강. (1) 태양: MeshBasicMaterial → ShaderMaterial 전환. 3D fbm 노이즈로 표면 granulation(시간에 따라 흐름) + sunspot(어두운 흑점) + limb darkening(가장자리 어둠) + 코로나 떨림. (2) 가스 행성(목성·토성·천왕성·해왕성) atmospheric halo: 행성 외곽 unitGeo halo + Fresnel 셰이더 + BackSide + AdditiveBlending. 각 행성 palette 첫 색을 발광 색으로 적용. (3) EHT 셰이더 강화: Doppler 0.30→0.58 진폭(3.5배 차이), brightCore crescent 강조 ring(EHT 사진의 초승달 시그니처), gravitational lens edge 가장자리 빛, photon ring 1.1배 강화.' },
+      { date:'2026-05-24', title:'후속 fix #1 — 위성 라벨이 본체 반대편에 표시되던 버그', desc:'디렉터님 지적: 위성 라벨이 위성 본체에 안 붙고 반대편에 떠 있음. 원인 분석: Three.js의 Y축 회전 매트릭스 R_y(θ) × (1,0,0) = (cos(θ), 0, -sin(θ)). 기존 라벨 코드는 (cos(θ), 0, +sin(θ))로 Z 부호 반대였음 → 라벨이 mesh 정반대 방향에 위치. 수정: mesh.getWorldPosition() → label.parent.worldToLocal() 변환으로 mesh의 실제 위치를 라벨 좌표로 직접 복사. 회전 매트릭스 부호 계산 자체를 안 함 → 버그 원천 차단. Y 오프셋 1.6 → 1.4로 더 가깝게.' },
+      { date:'2026-05-24', title:'후속 fix #2 — 웜홀 회전·셰이더 흐름 대폭 감속 (디렉터님 눈 피로)', desc:'디렉터님: 「웜홀 빙빙 돌아 눈 아프다」. 단계별 감속: 1차 회전 0.02→0.0028 + 진동 줄임 + 셰이더 흐름 0.30→0.04. 2차 더 강하게: 회전 0.0006(거의 정지), 진동 완전 제거(= 0), 셰이더 흐름 0.008/0.005로 사실상 정적. 격자 패턴 유지하되 매우 천천히 흐름.' },
+      { date:'2026-05-24', title:'후속 fix #5 — NASA Eyes 공식 실사 임베드 (JPL 자산 직접 참조)', desc:'디렉터님: 「실사로 반영」. 우리 시뮬레이터 자체에 NASA Eyes 자산 직접 가져오기는 라이센스·엔진 차이로 어려움 → 두 가지로 절충 — (1) 보고서 Solar 프로젝트 preview에 NASA Eyes iframe 항목 추가 「공식 실사 참조 (JPL)」, (2) 시뮬레이터 컨트롤바에 「📡 NASA Eyes」 토글 버튼 신설. 클릭 시 전체 화면 오버레이로 NASA Eyes iframe 표시 + 현재 focusKey에 따라 NASA Eyes의 해당 객체 자동 이동(NASA_EYES_MAP 매핑 — voyager1·voyager2·newhorizons·parker·jwst·sun·mercury~neptune·moon·갈릴레오 위성·titan·rhea·티타니아·오베론·트리톤·phobos·deimos). ✕ 닫기 버튼으로 iframe src 초기화(메모리 해제). Claude 자체 구현 + NASA 공식 실사 두 자산을 한 사용자 흐름에서 비교 가능.' },
+      { date:'2026-05-24', title:'후속 fix #4 — 인류 탐사선 3D 모델 + 항적·예상 궤적·방향 화살표', desc:'디렉터님 지적: 「탐사선이 소행성같은 점」. sprite 점 → 실제 NASA 사양 기반 3D Group of Mesh로 교체. Voyager: BoxGeometry 황금 MLI 본체 + CylinderGeometry 큰 접시 안테나(3.7m) + TorusGeometry 림 + RTG 붐(2.4 길이) + RTG 모듈 + Magnetometer 붐(반대편 3.0). NewHorizons: 사다리꼴 본체 + 작은 접시(2.1m) + 측면 RTG. Parker Solar Probe: 어두운 본체 + 큰 흰 태양 가리개(1.6 반경, emissive) + 양옆 푸른 태양 패널 2개. JWST: 황금 6각형 거울(기존 유지). 각 탐사선 진행 방향으로 lookAt 회전. 포커스 시 항적 표시 — 과거(태양→현재, 옅은 청 LineDashedMaterial dashSize 60 gapSize 40, opacity 0.65) + 미래 예상(현재→1.55배, 주황 LineDashedMaterial dashSize 50 gapSize 55, opacity 0.60) + 현재 위치 +8 unit 앞에 ConeGeometry 화살표 (lookAt 방향). applyScales에서 스케일 모드 변경 시 line geometry 재생성.' },
+      { date:'2026-05-24', title:'후속 fix #3 — 웜홀 천문학 사실 기반 셰이더 완전 재작성', desc:'디렉터님: 「푸른 sphere는 현실성 없음」. 이론물리 사실 반영 — 웜홀 자체는 시공간 통로(자체 빛 없음), 우리가 보는 건 반대편 우주의 빛이 강한 중력렌즈로 표면에 비친 모습. 새 셰이더: (1) 배경 검은 deep space(0.005,0.010,0.020) + 가장자리 옅은 푸른 lensTint, (2) Procedural Star Field 3 레이어 — 작은·중간·매우 큰 별, (3) 별 분광형 4종 — O/B 청색 5% · G 노랑 7% · K/M 적색 6% · 흰빛 82%(실제 천문학 분포), (4) Gravitational Lensing — starP += vNormal × fresnel × 4.5로 가장자리에서 별 휨, (5) Einstein Ring 청록 발광 ring(0.45,0.72,1.00), (6) AdditiveBlending → NormalBlending(검은 우주가 진짜 검정으로). Kip Thorne 자문 영화 인터스텔라 + 천문학 사실 충실.' }
     ]
   },
   {
     id: 'inst',
     name: 'INST EXTRACTOR',
     subtitle: '고음질 반주(Inst) 추출기 · 음원 보컬 제거',
+    icon: 'music',
     platform: '웹 앱 + 로컬 GPU 서버',
     status: 'completed',
     start: '2026-05-22',
     latest: '2026-05-26',
     progress: 100,
     link: 'https://gmpark-creator.github.io/project-dashboard/inst-app/',
-    preview: { type:'embed', height:540, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/inst-app/', label:'INST EXTRACTOR — 드래그앤드롭 데모 UI' }
-    ]},
-    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트. 믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다. 디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고, 실제 GPU 추출은 백엔드가 필요해 구조상 외부인 실사용은 불가 — 디렉터 본인 데스크탑 전용 도구로 운영하기로 합의하고 디렉터 실음원 분리 확인까지 통과해 100% 마무리됐다.',
-    method: '프론트엔드(Claude 영역)는 믹싱 콘솔 다크 UI + 데모 모드 토글, 백엔드(Codex 영역)는 FastAPI + Demucs. AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행 — Claude 1차 UI·API 골격 → Codex 2차 demucs 핵심 엔진 → Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 → 디렉터 실음원 분리 확인으로 완주.',
-    stack: ['Python 3.12', 'FastAPI', 'Demucs', 'PyTorch CUDA', 'HTML5', 'Tailwind'],
+    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트. '
+           + '믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다. '
+           + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고, 실제 GPU 추출은 백엔드가 필요해 '
+           + '구조상 외부인 실사용은 불가 — 디렉터 본인 데스크탑 전용 도구로 운영하기로 합의하고 디렉터 실음원 분리 확인까지 통과해 100% 마무리됐다.',
+    method: '프론트엔드(Claude 영역)는 믹싱 콘솔 다크 UI + 데모 모드 토글, 백엔드(Codex 영역)는 FastAPI + Demucs. '
+          + 'AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행 — Claude 1차 UI·API 골격 → Codex 2차 demucs 핵심 엔진 → '
+          + 'Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 → 디렉터 실음원 분리 확인으로 완주.',
+    stack: ['Python 3.12', 'FastAPI', 'Demucs', 'PyTorch CUDA', 'HTML5 · Tailwind'],
     issues: [
       { type:'완료', title:'Claude 1차 빌드 — UI + FastAPI 골격', desc:'믹싱 콘솔 다크 UI(드래그앤드롭·진행바·VU 미터·데모 모드 토글·완료 팝업) + FastAPI /extract·/health 라우팅 + 업로드 검증 + 모델 화이트리스트. 프론트엔드 전체는 Claude 영역으로 완성·고정.' },
-      { type:'완료', title:'Claude — 홈 PC 자동 세팅 일체', desc:'집 데스크탑(RTX 4060 Ti)용 입문자 가이드(SETUP_HOME_PC.md) + 더블클릭 자동 세팅(setup_home.bat / scripts/setup_windows_desktop.ps1) + 서버 실행(start_server.bat / scripts/run_server.ps1) + AI 릴레이 로그 시스템.' },
-      { type:'완료', title:'Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py + verify_http.py 작성·실행. PyTorch 2.11+cu128 / CUDA True / Demucs 직호출 1.86초 / VRAM 543MB / HTTP /extract 200 OK 0.81초.' },
-      { type:'완료', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'데모 모드 기본 ON으로 드래그앤드롭 UI 즉시 체험 가능. 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출. ※ GPU 백엔드 없는 외부인은 데모 UI만 체험 가능 — 디렉터 본인 PC 전용 운영.' },
-      { type:'핵심', title:'Codex(GPT) 주도 — 백엔드 핵심 엔진 separate_instrumental()', desc:'프로젝트의 본질적 가치는 Codex 영역. main.py의 separate_instrumental() 전적 구현 — get_model() 로드 + 캐시 + torch.cuda 자동 분기 + AudioFile read + apply_model + vocals stem 제외 + soundfile WAV 출력. requirements.txt 의존성도 Codex 활성화.' },
-      { type:'핵심', title:'AI 협업 — 일본어/비ASCII 파일명 500 에러 진단·수정', desc:'2026-05-24 일본어 MP3(Hysteric Blue「今見える明日_戒める今日」) 업로드 시 분리는 성공해도 응답 500. Codex가 X-Original-Filename 헤더의 Latin-1 인코딩 제한을 정밀 진단 → percent-encoded 헤더로 즉시 패치. 재검증 235.519초 / 41.5MB WAV / 200 OK.' },
+      { type:'완료', title:'Claude — 홈 PC 자동 세팅 일체', desc:'집 데스크탑(RTX 4060 Ti)용 입문자 가이드(SETUP_HOME_PC.md) + 더블클릭 자동 세팅(setup_home.bat / scripts/setup_windows_desktop.ps1) + 서버 실행(start_server.bat / scripts/run_server.ps1) + AI 릴레이 로그 시스템 설계.' },
+      { type:'완료', title:'Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py + verify_http.py 검증 스크립트 2종 작성·실행. PyTorch 2.11+cu128 / CUDA True / Demucs 직호출 1.86초 / VRAM 543MB / HTTP /extract 200 OK 0.81초 확인. 카드 사양 8GB로 확정(4-소스 크로스체크).' },
+      { type:'완료', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 데모 모드 기본 ON으로 드래그앤드롭 UI 즉시 체험 가능. 실제 추출 모드 토글 시 본인 백엔드 주소 입력란 노출, HTTPS 페이지에서 http:// 호출 시 mixed-content 차단 안내까지 포함. ※ 구조상 GPU 백엔드 없는 외부인은 데모 UI만 체험 가능 — 디렉터 본인 PC 전용 도구로 운영하기로 합의.' },
+      { type:'핵심', title:'Codex(GPT) 주도 — 백엔드 핵심 엔진 separate_instrumental()', desc:'프로젝트의 본질적 가치(보컬 제거 자체)는 Codex 영역. main.py의 separate_instrumental()을 Codex가 전적으로 구현 — get_model() 로드 + (model_name, device) 메모리 캐시 + torch.cuda.is_available() 자동 디바이스 분기 + AudioFile read + apply_model(split=True, overlap=0.25, shifts=1) + vocals stem 제외 후 나머지 합산 + soundfile PCM_16 WAV 출력. requirements.txt의 demucs/torch/torchaudio/soundfile 의존성도 Codex가 활성화. 즉 이 프로젝트는 GPT 위주로 만들어졌다.' },
+      { type:'핵심', title:'AI 협업 — 일본어/비ASCII 파일명 500 에러 진단·수정', desc:'2026-05-24 디렉터가 일본어 MP3(Hysteric Blue「今見える明日_戒める今日」)를 업로드하니 분리 자체는 성공해 outputs/에 WAV가 생성됨에도 응답은 500 Internal Server Error. Codex가 정밀 진단 — main.py의 X-Original-Filename 헤더에 비ASCII가 들어가 HTTP 헤더 Latin-1 인코딩 제한에 걸려 Starlette가 500을 내던 문제. Codex가 X-Original-Filename-Encoded로 헤더명 변경 + urllib.parse.quote() percent-encoding 적용으로 즉시 수정. 재검증: 235.519초 / 41.5MB WAV / 200 OK. AI 협업의 모범 사례 — Claude는 UI·인프라, Codex는 백엔드 정밀 진단·수정.' },
       { type:'완료', title:'디렉터 실음원 분리 확인 — 100% 완료 처리 (2026-05-26)', desc:'디렉터(G.M.PARK)가 본인 데스크탑에서 실음원으로 보컬 제거가 성공적으로 작동함을 확인. 분리 품질·처리 흐름 모두 통과. 프로젝트 #4 INST EXTRACTOR 100% 완료 처리.' }
     ],
     milestones: [
       { date:'2026-05-22', title:'Claude 1차 — 레포 초기 빌드 (UI + API 골격)', desc:'프로젝트 #4 신설 — 믹싱 콘솔 UI · FastAPI 골격 · 인수인계 문서 시스템(HANDOFF.md)' },
-      { isCore:true, date:'2026-05-22', title:'Codex(GPT) 2차 — Demucs 분리 엔진 구현', desc:'main.py separate_instrumental() 전체 구현. 모델 로드·캐시·디바이스 분기·stem 분리·vocals 제외 합산·WAV 저장.' },
+      { isCore:true, date:'2026-05-22', title:'Codex(GPT) 2차 — Demucs 분리 엔진 구현 (프로젝트 핵심 가치)', desc:'AI 릴레이로 인수 — main.py separate_instrumental() 전체 구현. Demucs 모델 로드·캐시·디바이스 분기·stem 분리·vocals 제외 합산·WAV 저장까지. 이 프로젝트의 본질적 변환 능력은 전적으로 Codex(GPT) 작업.' },
       { date:'2026-05-22', title:'Claude — 홈 PC 자동 세팅 일체', desc:'SETUP_HOME_PC.md + setup_home.bat + start_server.bat + Codex 구현 검수' },
-      { date:'2026-05-24', title:'Claude — RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py / verify_http.py. CUDA True, 직호출 1.86초/543MB VRAM, HTTP 0.81초. 카드 사양 8GB 확정.' },
-      { isCore:true, date:'2026-05-24', title:'AI 협업 — 일본어 파일명 500 에러 진단·수정 (Codex)', desc:'분리는 성공하나 응답 500. Codex가 Latin-1 인코딩 제한을 정밀 진단 → percent-encoded 헤더로 즉시 패치. 재검증 235.519초 41.5MB WAV 200 OK.' },
-      { date:'2026-05-24', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'GitHub Pages에 드래그앤드롭 UI 공개. 외부인 실사용은 구조상 불가, 디렉터 본인 PC 전용 운영 합의.' },
+      { date:'2026-05-24', title:'Claude — 집 데스크탑 RTX 4060 Ti 풀스택 GPU 검증', desc:'verify_gpu.py / verify_http.py 작성·실행. CUDA True, 직호출 1.86초/543MB VRAM, HTTP 0.81초. 카드 사양 8GB 확정.' },
+      { isCore:true, date:'2026-05-24', title:'AI 협업 — 일본어 파일명 500 에러 진단·수정 (Codex)', desc:'디렉터 일본어 MP3 업로드 시 분리는 성공하나 응답 500. Codex가 X-Original-Filename 헤더의 Latin-1 인코딩 제한을 정밀 진단 → percent-encoded 헤더로 즉시 패치. 재검증 235.519초 41.5MB WAV 200 OK. Claude는 UI·인프라, GPT는 백엔드 정밀 진단 — 역할 분담 협업 모델 재확인.' },
+      { date:'2026-05-24', title:'Claude — 공개 보고서 UI 페이지 (/inst-app/) 배포', desc:'디렉터 지시 「웹에서 다른 사람도 드래그하면 inst 생성」 반영. GitHub Pages에 드래그앤드롭 UI 공개. 단 실제 추출은 GPU 백엔드 필요 — 외부인 실사용은 구조상 불가, 디렉터 본인 PC 전용 도구로 운영 합의.' },
       { isCore:true, date:'2026-05-26', title:'디렉터 실음원 분리 확인 — 100% 완료', desc:'디렉터(G.M.PARK)가 본인 데스크탑에서 실음원 보컬 제거가 성공적으로 작동함을 확인. 프로젝트 #4 100% 완료 처리.' }
     ]
   }
 ];
+/* ▲▲▲  데이터 끝  ▲▲▲ */
 
-/* ════════════════════════════════════════════════════════════════
-   ▼  RENDER  ▼
-   ════════════════════════════════════════════════════════════════ */
-const STATUS_LABEL = {
-  'completed':   'complete',
-  'in-progress': 'active',
-  'paused':      'paused'
+// ===== 상태 / 타입 메타 (밝은 테마) =====
+const STATUS = {
+  'completed':   { label:'완성',    en:'Completed',   dot:'bg-emerald-500',
+    badge:'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', bar:'from-emerald-500 to-teal-400' },
+  'in-progress': { label:'진행 중', en:'In Progress', dot:'bg-amber-500',
+    badge:'bg-amber-50 text-amber-700 ring-1 ring-amber-200',       bar:'from-amber-500 to-orange-400' },
+  'paused':      { label:'보류',    en:'Paused',      dot:'bg-violet-500',
+    badge:'bg-violet-50 text-violet-700 ring-1 ring-violet-200',    bar:'from-violet-500 to-fuchsia-400' }
+};
+const ITYPE = {
+  '완료': { cls:'bg-emerald-50 text-emerald-700 ring-emerald-200',       icon:'check-circle-2' },
+  '이슈': { cls:'bg-rose-50 text-rose-700 ring-rose-200',                icon:'alert-circle' },        // amber → rose
+  '보류': { cls:'bg-slate-100 text-slate-600 ring-slate-300',            icon:'pause-circle' },        // violet → slate
+  '핵심': { cls:'bg-gradient-to-br from-fuchsia-100 via-pink-100 to-rose-100 text-fuchsia-700 ring-fuchsia-300', icon:'sparkles' }  // 신규
 };
 
-const ISSUE_META = {
-  '완료': { cls: 'done',   label: 'done'  },
-  '이슈': { cls: 'issue',  label: 'open'  },
-  '보류': { cls: 'pause',  label: 'pause' },
-  '핵심': { cls: 'core',   label: 'core'  }
-};
-
-function fmtDate(s) {
-  const [y, m, d] = s.split('-');
-  return `${y}.${m}.${d}`;
+// ===== 헬퍼 =====
+const $ = s => document.querySelector(s);
+function parseD(s) { return new Date(s + 'T00:00:00'); }
+function fmtD(s) {
+  const d = parseD(s);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
 }
-function fmtShort(s) {
-  const [y, m, d] = s.split('-');
-  const monNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-  return `${d} ${monNames[parseInt(m,10)-1]} ${y.slice(2)}`;
+function durationText(a, b) {
+  const days = Math.round((parseD(b) - parseD(a)) / 86400000);
+  if (days < 1) return '1일';
+  if (days < 31) return days + '일';
+  const m = Math.round(days / 30.44);
+  return m < 12 ? '약 ' + m + '개월' : '약 ' + (days/365.25).toFixed(1) + '년';
 }
-
-function extractWho(title) {
-  const t = title.toLowerCase();
-  if (/디렉터/.test(title) && !/협업/.test(title)) return { tag: 'director', isDirector: true };
-  if (/ai 협업|협업/.test(title)) return { tag: 'claude × codex' };
-  if (/\(codex\)|^codex|codex\(gpt\)|codex 2차/i.test(title)) return { tag: 'codex' };
-  if (/\(claude\)|^claude|claude 1차/i.test(title)) return { tag: 'claude' };
-  if (/^step/i.test(title)) return { tag: 'claude' };
-  if (/^phase|^fix/i.test(title)) return { tag: 'claude' };
-  return { tag: '·' };
-}
-
-function cleanTitle(title) {
-  return title
-    .replace(/\s*\((Claude|Codex|GPT)(?:\(GPT\))?\)/gi, '')
-    .replace(/^Claude\s+1차\s*[—\-:]\s*/i, '')
-    .replace(/^Codex(?:\(GPT\))?\s+2차\s*[—\-:]\s*/i, '')
-    .replace(/^Claude\s*[—\-]\s*/, '')
-    .replace(/^Codex(?:\(GPT\))?\s*[—\-]\s*/i, '')
-    .trim();
+function stackIcon(t) {
+  const s = t.toLowerCase();
+  if (/three|webgl|3d/.test(s)) return 'box';
+  if (/electron/.test(s)) return 'app-window';
+  if (/next|react/.test(s)) return 'atom';
+  if (/vercel|github|pages|배포/.test(s)) return 'git-branch';
+  if (/script|html|css|type/.test(s)) return 'code';
+  if (/python/.test(s)) return 'terminal';
+  if (/leaflet|map|지도/.test(s)) return 'map';
+  if (/ai|모델|파이프/.test(s)) return 'cpu';
+  if (/영상|video/.test(s)) return 'film';
+  return 'box';
 }
 
-function renderIndex() {
-  const html = PROJECTS.map((p, i) => {
-    const n = String(i+1).padStart(2, '0');
+// ===== 사이드바 =====
+let activeId = 'solar';
+function renderSidebar() {
+  $('#projList').innerHTML = PROJECTS.map(p => {
+    const st = STATUS[p.status];
+    const on = p.id === activeId;
     return `
-      <a class="row ${p.status === 'paused' ? 'paused' : ''}" href="#p${i+1}">
-        <span class="num">§ ${n}</span>
-        <span class="name">${p.name}</span>
-        <span class="stat">${STATUS_LABEL[p.status]}</span>
-        <span class="pct">${p.progress}/100</span>
-      </a>`;
+    <button data-id="${p.id}"
+      class="proj-btn group w-full text-left rounded-xl p-3 flex items-center gap-3 transition-all duration-200
+             ${on ? 'bg-indigo-50 ring-1 ring-indigo-200 shadow-sm'
+                  : 'hover:bg-slate-100'}">
+      <div class="grid place-items-center w-10 h-10 rounded-lg shrink-0 transition-colors
+                  ${on ? 'bg-indigo-500 text-white shadow-md shadow-indigo-300/50'
+                       : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'}">
+        <i data-lucide="${p.icon}" class="w-5 h-5"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] font-semibold truncate ${on ? 'text-indigo-900' : 'text-slate-700'}">${p.name}</p>
+        <p class="text-[11px] text-slate-400 truncate">${p.subtitle}</p>
+      </div>
+      <span class="w-2 h-2 rounded-full shrink-0 ${st.dot}"></span>
+    </button>`;
   }).join('');
-  document.getElementById('indexList').innerHTML = html;
-  document.getElementById('ledgerCount').textContent =
-    String(PROJECTS.length).padStart(2,'0') + ' entries';
+  $('#projList').querySelectorAll('.proj-btn').forEach(b =>
+    b.addEventListener('click', () => {
+      selectProject(b.dataset.id);
+      if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+    }));
+}
+function renderSummary() {
+  const cnt = { completed:0, 'in-progress':0, paused:0 };
+  PROJECTS.forEach(p => cnt[p.status]++);
+  const cell = (n, label, color) => `
+    <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 px-2 py-2.5 text-center">
+      <div class="text-lg font-extrabold ${color}">${n}</div>
+      <div class="text-[10px] text-slate-400 mt-0.5">${label}</div>
+    </div>`;
+  $('#summary').innerHTML =
+    cell(cnt.completed,'완성','text-emerald-600') +
+    cell(cnt['in-progress'],'진행 중','text-amber-600') +
+    cell(cnt.paused,'보류','text-violet-600');
 }
 
-function renderRowsList(items, isMilestones) {
-  if (!items || items.length === 0) return '';
-  return `<div class="rows">${items.map(it => {
-    if (isMilestones) {
-      const who = extractWho(it.title);
-      const cls = it.isCore ? 'core' : '';
+// ===== 결과물 미리보기 =====
+function resultBlock(p) {
+  const pv = p.preview;
+  if (!pv) return '';
+  let body, note;
+  if (pv.type === 'embed') {
+    const multi = pv.items.length > 1;
+    const h = pv.height || (multi ? 380 : 460);
+    body = pv.items.map(it => `
+      <div class="mb-5 last:mb-0">
+        ${multi ? `<div class="flex items-center gap-1.5 mb-2 text-[12.5px] font-bold text-slate-700">
+          <i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i>${it.label}</div>` : ''}
+        <div class="rounded-xl overflow-hidden ring-1 ring-slate-200 bg-slate-900">
+          <iframe src="${it.url}" loading="lazy" title="${it.label}"
+                  class="w-full block" style="height:${h}px;border:0"></iframe>
+        </div>
+        <a href="${it.url}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 mt-2 text-[12px] font-semibold text-indigo-600 hover:text-indigo-500">
+          <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>새 탭에서 열기 — ${it.url}</a>
+      </div>`).join('');
+    note = '웹 앱이라 보고서 페이지 안에서 바로 실행됩니다.';
+  } else {
+    body = `<div class="grid sm:grid-cols-2 gap-4">` + pv.items.map(it => {
+      const fname = it.src.split('/').pop();
       return `
-        <div class="r ${cls}">
-          <span class="when mono">${fmtShort(it.date)}</span>
-          <span class="who ${who.isDirector ? 'director' : ''}">${who.tag}</span>
-          <span class="what">
-            <span class="t">${cleanTitle(it.title)}</span>
-            <span class="d">${it.desc}</span>
-          </span>
-        </div>`;
-    } else {
-      const meta = ISSUE_META[it.type] || { cls: '', label: it.type };
-      return `
-        <div class="r ${meta.cls}">
-          <span class="when mono">${meta.label}</span>
-          <span class="who"></span>
-          <span class="what">
-            <span class="t">${it.title}</span>
-            <span class="d">${it.desc}</span>
-          </span>
-        </div>`;
-    }
-  }).join('')}</div>`;
-}
-
-function renderPreview(p) {
-  if (!p.preview || p.preview.type !== 'embed') return '';
-  const items = p.preview.items;
-  const h = p.preview.height || (items.length > 1 ? 380 : 460);
-  return items.map(it => `
-    <div class="preview">
-      <div class="label">${it.label}</div>
-      <div class="frame">
-        <iframe src="${it.url}" loading="lazy" title="${it.label}" style="height:${h}px"></iframe>
-      </div>
-      <div class="caption">
-        <span>${it.url.replace(/^https?:\/\//, '')}</span>
-        <a href="${it.url}" target="_blank" rel="noopener">open ↗</a>
-      </div>
-    </div>`).join('');
-}
-
-function renderVersions(p) {
-  if (!p.versions) return '';
+      <figure class="rounded-xl overflow-hidden ring-1 ring-slate-200 bg-slate-50">
+        <img src="${it.src}" alt="${it.label}" class="w-full block bg-slate-100"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div style="display:none" class="flex-col items-center justify-center gap-2 h-48 text-center px-5">
+          <i data-lucide="image-plus" class="w-7 h-7 text-slate-300"></i>
+          <p class="text-[11.5px] text-slate-400 leading-relaxed">
+            스크린샷 대기 중 — <code class="text-slate-500 text-[10.5px]">previews/${fname}</code><br>
+            이 파일명으로 저장하면 여기에 자동 표시됩니다</p>
+        </div>
+        <figcaption class="px-3 py-2 text-[12px] font-semibold text-slate-600 bg-white border-t border-slate-200
+                           flex items-center gap-1.5">
+          <i data-lucide="image" class="w-3.5 h-3.5 text-indigo-500"></i>${it.label}</figcaption>
+      </figure>`;
+    }).join('') + `</div>`;
+    note = '개발용 앱이라 실행 화면 스크린샷으로 표시합니다.';
+  }
   return `
-    <div class="block">
-      <div class="block-label">deployments</div>
-      <div class="rows deploy">
+    <section class="reveal mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" style="animation-delay:170ms">
+      <div class="flex items-center gap-2.5 mb-1">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="monitor-play" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">결과물 미리보기</h3>
+      </div>
+      <p class="text-[11.5px] text-slate-400 mb-4 ml-[42px]">${note}</p>
+      ${body}
+    </section>`;
+}
+
+// ===== 상세 패널 =====
+function renderDetail(p) {
+  const st = STATUS[p.status];
+  const span = Math.max(1, parseD(p.latest) - parseD(p.start));
+
+  const dots = p.milestones.map(m => {
+    const f = Math.min(100, Math.max(0, (parseD(m.date) - parseD(p.start)) / span * 100));
+    return `<div class="absolute -top-[7px] w-4 h-4 rounded-full bg-white ring-2 ring-slate-300
+                 hover:ring-indigo-400 hover:scale-125 transition-all cursor-default shadow-sm"
+                 style="left:calc(${f}% - 8px)" title="${m.date} · ${m.title}"></div>`;
+  }).join('');
+
+  const stack = p.stack.map(t => `
+    <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 ring-1 ring-slate-200
+                 px-2.5 py-1.5 text-[12px] text-slate-600 font-medium">
+      <i data-lucide="${stackIcon(t)}" class="w-3.5 h-3.5 text-indigo-500"></i>${t}
+    </span>`).join('');
+
+  const issues = p.issues.map(it => {
+    const m = ITYPE[it.type];
+    const isCore = it.type === '핵심';
+    // 「핵심」 타입: 분홍·푸시아 그라데이션 박스 + 진한 ring + 그림자 — 시각적으로 두드러지게
+    const boxCls = isCore
+      ? 'flex gap-3.5 rounded-xl bg-gradient-to-br from-fuchsia-50 via-pink-50 to-rose-50 ring-2 ring-fuchsia-300 p-4 shadow-md shadow-fuchsia-200/40'
+      : 'flex gap-3.5 rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-3.5';
+    const iconBoxCls = isCore
+      ? 'grid place-items-center w-10 h-10 rounded-lg shrink-0 ring-2 ring-fuchsia-300 bg-white shadow-sm'
+      : `grid place-items-center w-9 h-9 rounded-lg shrink-0 ring-1 ${m.cls}`;
+    const iconCls = isCore
+      ? 'w-[20px] h-[20px] text-fuchsia-600'
+      : 'w-[18px] h-[18px]';
+    const titleCls = isCore
+      ? 'text-[13.5px] font-extrabold text-fuchsia-900'
+      : 'text-[13px] font-semibold text-slate-800';
+    const descCls = isCore
+      ? 'text-[12px] text-fuchsia-800/85 mt-1.5 leading-relaxed'
+      : 'text-[12px] text-slate-500 mt-1 leading-relaxed';
+    const badgeCls = isCore
+      ? 'text-[10.5px] font-bold px-2 py-0.5 rounded-md ring-1 bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white border-0'
+      : `text-[10.5px] font-bold px-1.5 py-0.5 rounded ring-1 ${m.cls}`;
+    // 「핵심」 타입도 배지 텍스트는 「완료」로 표시 (디렉터님 지시: 색감만 다르게 구분)
+    const badgeText = isCore ? '완료' : it.type;
+    return `
+    <div class="${boxCls}">
+      <span class="${iconBoxCls}">
+        <i data-lucide="${m.icon}" class="${iconCls}"></i>
+      </span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="${badgeCls}">${badgeText}</span>
+          <p class="${titleCls}">${it.title}</p>
+        </div>
+        <p class="${descCls}">${it.desc}</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  const timeline = p.milestones.map((m, i) => {
+    const last = i === p.milestones.length - 1;
+    // 「핵심」 마일스톤은 그라데이션 dot + fuchsia 색감으로 구분
+    const isCore = m.isCore === true;
+    const dotCls = isCore
+      ? 'absolute left-0 top-1 w-4 h-4 -ml-[1px] rounded-full bg-gradient-to-br from-fuchsia-500 via-pink-500 to-rose-500 ring-4 ring-fuchsia-100 shadow-lg shadow-fuchsia-300/60'
+      : `absolute left-0 top-1 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${st.bar} ring-4 ring-white shadow`;
+    const dateCls  = isCore ? 'text-[11px] font-bold text-fuchsia-600' : 'text-[11px] font-semibold text-indigo-600';
+    const titleCls = isCore ? 'text-[13.5px] font-extrabold text-fuchsia-900 mt-0.5' : 'text-[13.5px] font-semibold text-slate-800 mt-0.5';
+    const descCls  = isCore ? 'text-[12px] text-fuchsia-800/85 mt-0.5 leading-relaxed' : 'text-[12px] text-slate-500 mt-0.5';
+    return `
+    <div class="relative pl-8 ${last ? '' : 'pb-5'}">
+      ${last ? '' : '<div class="absolute left-[7px] top-4 bottom-0 w-px bg-slate-200"></div>'}
+      <div class="${dotCls}"></div>
+      <p class="${dateCls}">${fmtD(m.date)}</p>
+      <p class="${titleCls}">${m.title}</p>
+      <p class="${descCls}">${m.desc}</p>
+    </div>`;
+  }).join('');
+
+  const versionsBlock = p.versions ? `
+    <section class="reveal lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm
+             hover:shadow-md transition-shadow" style="animation-delay:350ms">
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="layers-3" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">운영 버전</h3>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3">
         ${p.versions.map(v => `
-          <div class="r">
-            <span class="when mono">${v.name}</span>
-            <span class="what"><span class="t">${v.desc}</span></span>
+          <div class="rounded-xl bg-slate-50/80 ring-1 ring-slate-200 p-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="git-fork" class="w-4 h-4 text-indigo-500"></i>
+              <p class="text-[13px] font-bold text-slate-800">${v.name}</p>
+            </div>
+            <p class="text-[12px] text-slate-500 mt-1.5 leading-relaxed">${v.desc}</p>
           </div>`).join('')}
       </div>
+    </section>` : '';
+
+  const directorBlock = p.directorNote ? `
+    <section class="reveal mt-7 rounded-2xl border border-violet-200 border-l-4 border-l-violet-500
+             bg-violet-50/60 p-6 shadow-sm" style="animation-delay:60ms">
+      <div class="flex items-center gap-2.5 mb-3">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-violet-100 text-violet-600">
+          <i data-lucide="gavel" class="w-[18px] h-[18px]"></i></span>
+        <div>
+          <h3 class="text-[14px] font-bold text-slate-800">디렉터 총평 · 개발 잠정 보류</h3>
+          <p class="text-[11px] text-slate-500">개발자 디렉터 ${p.directorNote.author} · ${fmtD(p.directorNote.date)}</p>
+        </div>
+      </div>
+      <p class="text-[13px] text-slate-700 leading-relaxed">${p.directorNote.text}</p>
+    </section>` : '';
+
+  const chip = (icon, label, val) => `
+    <div class="flex items-center gap-2.5 rounded-xl bg-white ring-1 ring-slate-200 px-3.5 py-2.5 shadow-sm">
+      <i data-lucide="${icon}" class="w-4 h-4 text-indigo-500"></i>
+      <div><p class="text-[10px] text-slate-400 leading-none">${label}</p>
+        <p class="text-[13px] font-semibold text-slate-800 mt-1">${val}</p></div>
     </div>`;
+
+  const card = (icon, title, body, delay, span2) => `
+    <section class="reveal ${span2 ? 'lg:col-span-2' : ''} rounded-2xl border border-slate-200 bg-white
+             p-6 shadow-sm hover:shadow-md transition-shadow" style="animation-delay:${delay}ms">
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600">
+          <i data-lucide="${icon}" class="w-[18px] h-[18px]"></i></span>
+        <h3 class="text-[14px] font-bold text-slate-800">${title}</h3>
+      </div>${body}
+    </section>`;
+
+  $('#detail').innerHTML = `
+    <!-- 히어로 -->
+    <header class="reveal" style="animation-delay:0ms">
+      <div class="flex items-start gap-5 flex-wrap">
+        <div class="grid place-items-center w-16 h-16 rounded-2xl bg-gradient-to-br ${st.bar} shadow-lg shadow-slate-300/60">
+          <i data-lucide="${p.icon}" class="w-8 h-8 text-white"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h2 class="text-[26px] font-extrabold text-slate-900 leading-tight">${p.name}</h2>
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-bold px-2.5 py-1 rounded-full ${st.badge}">
+              <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>${st.label} · ${st.en}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap mt-1.5">
+            <p class="text-[13.5px] text-slate-500">${p.subtitle}</p>
+            <span class="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-100 ring-1 ring-slate-200
+                         rounded-full px-2 py-0.5">
+              <i data-lucide="monitor" class="w-3 h-3"></i>${p.platform}</span>
+          </div>
+        </div>
+        ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition-colors
+                 px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-indigo-300/50">
+          <i data-lucide="external-link" class="w-4 h-4"></i>라이브 보기</a>` : ''}
+      </div>
+      <p class="text-[13.5px] text-slate-600 leading-relaxed mt-5 max-w-3xl">${p.summary}</p>
+    </header>
+
+    ${directorBlock}
+
+    <!-- 가로형 타임라인 바 -->
+    <section class="reveal mt-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" style="animation-delay:80ms">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-[13px] font-bold text-slate-700 flex items-center gap-2">
+          <i data-lucide="git-commit-horizontal" class="w-4 h-4 text-indigo-500"></i>진행 타임라인</h3>
+        <span class="text-[12px] font-semibold ${st.badge.split(' ')[1]}">진척도 ${p.progress}%</span>
+      </div>
+      <div class="relative mt-5 mb-1">
+        <div class="h-2.5 rounded-full bg-slate-200"></div>
+        <div class="growbar absolute top-0 h-2.5 rounded-full bg-gradient-to-r ${st.bar}"
+             style="width:${p.progress}%"></div>
+        ${dots}
+      </div>
+      <div class="flex justify-between text-[11.5px] text-slate-400 mt-3">
+        <span class="flex items-center gap-1"><i data-lucide="play" class="w-3 h-3"></i>${fmtD(p.start)}</span>
+        <span class="flex items-center gap-1">${fmtD(p.latest)}<i data-lucide="flag" class="w-3 h-3"></i></span>
+      </div>
+    </section>
+
+    <!-- 퀵 스탯 -->
+    <div class="reveal grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4" style="animation-delay:140ms">
+      ${chip('calendar-clock','진행 기간', durationText(p.start, p.latest))}
+      ${chip('milestone','마일스톤', p.milestones.length + '단계')}
+      ${chip('layers','기술 스택', p.stack.length + '종')}
+      ${chip('activity','현재 상태', st.label)}
+    </div>
+
+    <!-- 결과물 미리보기 -->
+    ${resultBlock(p)}
+
+    <!-- 카드 그리드 -->
+    <div class="grid lg:grid-cols-2 gap-5 mt-5">
+      ${card('workflow','진행 방식',
+        `<p class="text-[13px] text-slate-600 leading-relaxed">${p.method}</p>`, 200)}
+      ${card('layers','기술 스택',
+        `<div class="flex flex-wrap gap-2">${stack}</div>`, 260)}
+      ${versionsBlock}
+      ${card('clipboard-list','핵심 이슈 · 완료 내역',
+        `<div class="grid sm:grid-cols-2 gap-3">${issues}</div>`, 320, true)}
+      ${card('git-commit-vertical','프로젝트 마일스톤',
+        `<div class="mt-1">${timeline}</div>`, 380, true)}
+    </div>
+
+    <p class="text-[11px] text-slate-400 text-center mt-8">
+      AI 협업 진행 보고서 · GPT × Claude &nbsp;|&nbsp; 데이터는 코드 상단 <code class="text-slate-500">PROJECTS</code> 객체에서 수정
+    </p>`;
+
+  lucide.createIcons();
 }
 
-function renderDirector(p) {
-  if (!p.directorNote) return '';
-  return `
-    <div class="director-quote">
-      <div class="who">director · ${p.directorNote.author} · ${fmtDate(p.directorNote.date)}</div>
-      <div class="text">${p.directorNote.text}</div>
-    </div>`;
-}
-
-function renderProjects() {
-  document.getElementById('projects').innerHTML = PROJECTS.map((p, i) => {
-    const n = String(i+1).padStart(2, '0');
-    const span = (p.start !== p.latest)
-      ? `${fmtDate(p.start)} ─ ${fmtDate(p.latest)}`
-      : fmtDate(p.start);
-    const externalLink = p.link
-      ? `<span class="sep">·</span><a href="${p.link}" target="_blank" rel="noopener">live ↗</a>`
-      : '';
-
+// ===== 홈(메인) 페이지 =====
+// 디렉터님의 G.M.PARK 프로젝트 대시보드 — 알록달록 그라데이션 헤로 + 컬러풀 프로젝트 카드
+// (문구는 디렉터님 후속 지시 대기 — placeholder 영역 유지)
+function renderHome() {
+  const PROJ_COLORS = {
+    'ais':    { grad:'from-emerald-400 via-teal-400 to-cyan-400',     ring:'ring-emerald-200',  text:'text-emerald-700',  pill:'bg-emerald-50' },
+    'sports': { grad:'from-violet-400 via-purple-400 to-fuchsia-400', ring:'ring-violet-200',   text:'text-violet-700',   pill:'bg-violet-50' },
+    'solar':  { grad:'from-amber-400 via-orange-400 to-rose-400',     ring:'ring-amber-200',    text:'text-amber-700',    pill:'bg-amber-50' },
+    'inst':   { grad:'from-sky-400 via-blue-400 to-indigo-400',       ring:'ring-sky-200',      text:'text-sky-700',      pill:'bg-sky-50' }
+  };
+  const cards = PROJECTS.map((p, i) => {
+    const c = PROJ_COLORS[p.id] || PROJ_COLORS.ais;
+    const st = STATUS[p.status];
     return `
-      <section class="project" id="p${i+1}">
-        <div class="sec-num">§ ${n} · project</div>
-        <h2 class="title">${p.name}</h2>
-        <div class="subtitle">${p.subtitle}</div>
-
-        <div class="meta">
-          <span class="stat">${STATUS_LABEL[p.status]}</span>
-          <span class="sep">·</span>${span}
-          <span class="sep">·</span>${p.platform}
-          <span class="sep">·</span>${p.progress}/100
-          ${externalLink}
+    <button data-id="${p.id}"
+      class="home-card group relative overflow-hidden rounded-3xl p-5 text-left bg-white ring-1 ring-slate-200
+             shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 reveal"
+      style="animation-delay:${120 + i*70}ms">
+      <div class="absolute inset-0 bg-gradient-to-br ${c.grad} opacity-0 group-hover:opacity-10 transition-opacity"></div>
+      <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-gradient-to-br ${c.grad} opacity-25 blur-2xl"></div>
+      <div class="relative">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="grid place-items-center w-12 h-12 rounded-2xl bg-gradient-to-br ${c.grad} shadow-lg text-white">
+            <i data-lucide="${p.icon}" class="w-6 h-6"></i>
+          </span>
+          <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full ${st.badge}">${st.label}</span>
         </div>
-
-        <p class="lede">${p.summary}</p>
-
-        ${renderDirector(p)}
-
-        <div class="block">
-          <div class="block-label">method</div>
-          <div class="body">${p.method}</div>
+        <h3 class="text-[16px] font-extrabold text-slate-900 leading-tight">${p.name}</h3>
+        <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">${p.subtitle}</p>
+        <div class="mt-4 flex items-center justify-between">
+          <span class="text-[11px] font-semibold ${c.text} ${c.pill} px-2 py-1 rounded-md ring-1 ${c.ring}">진행률 ${p.progress}%</span>
+          <span class="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-500 group-hover:text-slate-800">
+            상세 보기 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </span>
         </div>
-
-        <div class="block">
-          <div class="block-label">stack</div>
-          <div class="stack">${p.stack.map((t,j) => j ? `<span class="dot">·</span>${t}` : t).join('')}</div>
-        </div>
-
-        ${renderVersions(p)}
-
-        <div class="block">
-          <div class="block-label">live preview</div>
-          ${renderPreview(p)}
-        </div>
-
-        <div class="block">
-          <div class="block-label">status · ${p.issues.length} entries</div>
-          ${renderRowsList(p.issues, false)}
-        </div>
-
-        <div class="block">
-          <div class="block-label">milestones · ${p.milestones.length} entries</div>
-          ${renderRowsList(p.milestones, true)}
-        </div>
-      </section>
-
-      ${i < PROJECTS.length - 1 ? '<div class="stars">·&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;·</div>' : ''}
-    `;
+      </div>
+    </button>`;
   }).join('');
+
+  $('#detail').innerHTML = `
+    <!-- ── HERO — HAZE STORY 앰블럼 + 영어 디렉터 명칭 (보라 그라데이션) ── -->
+    <section class="reveal relative overflow-hidden rounded-3xl p-6 sm:p-10 md:p-16 mb-7
+                    bg-gradient-to-br from-violet-950 via-purple-900 to-indigo-950
+                    text-white shadow-2xl shadow-violet-400/30">
+      <div class="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/15 blur-3xl"></div>
+      <div class="absolute -bottom-20 -right-10 w-80 h-80 rounded-full bg-sky-300/12 blur-3xl"></div>
+      <div class="absolute top-10 right-12 w-40 h-40 rounded-full bg-rose-300/10 blur-2xl"></div>
+      <!-- 모바일: 세로 (앰블럼 위 + 텍스트 아래) / PC: 가로 (앰블럼 왼쪽 + 3줄 오른쪽) -->
+      <div class="relative flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-8">
+        <!-- HAZE STORY 공식 앰블럼 -->
+        <div class="grid place-items-center w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-white/95 ring-1 ring-white/20 shadow-2xl shadow-fuchsia-300/30 shrink-0">
+          <img src="./hazepark-logo.webp" alt="HAZE STORY" class="w-28 h-28 sm:w-36 sm:h-36 object-contain" />
+        </div>
+        <!-- 3줄 텍스트 (PC: 앰블럼 옆 / 모바일: 앰블럼 아래) -->
+        <div class="sm:h-40 flex flex-col justify-between gap-2 sm:gap-0 sm:py-1 min-w-0 text-center sm:text-left">
+          <p class="text-[15px] sm:text-[20px] font-extrabold text-fuchsia-200 leading-none tracking-tight">
+            G.M.PARK
+          </p>
+          <p class="text-[11.5px] sm:text-[14px] font-medium text-white/75 leading-tight tracking-wide">
+            Junior Developer Director at HAZE STORY
+          </p>
+          <h1 class="text-[32px] sm:text-[64px] font-black leading-none tracking-tight bg-gradient-to-r from-pink-300 via-fuchsia-200 to-violet-200 bg-clip-text text-transparent">
+            Project Dashboard
+          </h1>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 프로젝트 카드 그리드 ── -->
+    <section class="mb-8">
+      <div class="flex items-center gap-2.5 mb-4 reveal">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-slate-800 text-white">
+          <i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i>
+        </span>
+        <h2 class="text-[16px] font-bold text-slate-800">현재 진행 프로젝트</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">${cards}</div>
+    </section>
+  `;
+  $('#detail').querySelectorAll('.home-card').forEach(b =>
+    b.addEventListener('click', () => selectProject(b.dataset.id)));
 }
 
-renderIndex();
-renderProjects();
+// ===== 프로젝트 선택 =====
+function selectProject(id) {
+  activeId = id;
+  renderSidebar();
+  if (id === 'home') {
+    renderHome();
+  } else {
+    renderDetail(PROJECTS.find(p => p.id === id));
+  }
+  window.scrollTo({ top:0, behavior:'smooth' });
+  lucide.createIcons();
+}
+
+// 사이드바 헤더(브랜드) 클릭 → 홈으로 + 모바일 사이드바 닫기
+document.getElementById('brandHome').addEventListener('click', () => {
+  selectProject('home');
+  closeMobileSidebar();
+});
+
+// ===== 모바일 햄버거 메뉴 =====
+const sidebarEl  = document.getElementById('sidebar');
+const backdropEl = document.getElementById('mobileBackdrop');
+const menuBtn    = document.getElementById('mobileMenuBtn');
+function openMobileSidebar() {
+  sidebarEl.classList.remove('-translate-x-full');
+  backdropEl.classList.remove('opacity-0', 'pointer-events-none');
+  backdropEl.classList.add('opacity-100');
+  menuBtn.style.display = 'none';
+}
+function closeMobileSidebar() {
+  if (window.innerWidth >= 768) return;     // PC 화면에서는 무시
+  sidebarEl.classList.add('-translate-x-full');
+  backdropEl.classList.add('opacity-0', 'pointer-events-none');
+  backdropEl.classList.remove('opacity-100');
+  menuBtn.style.display = '';
+}
+menuBtn.addEventListener('click', openMobileSidebar);
+backdropEl.addEventListener('click', closeMobileSidebar);
+
+// PC ↔ 모바일 리사이즈 시 상태 정리
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 768) {
+    sidebarEl.classList.remove('-translate-x-full');
+    backdropEl.classList.add('opacity-0', 'pointer-events-none');
+    backdropEl.classList.remove('opacity-100');
+    menuBtn.style.display = '';
+  } else {
+    // 모바일 진입 시 사이드바 닫힌 상태로
+    sidebarEl.classList.add('-translate-x-full');
+  }
+});
+
+// ===== 초기화 — 첫 진입은 홈(메인) 페이지 =====
+activeId = 'home';
+renderSidebar();
+renderSummary();
+selectProject('home');
+lucide.createIcons();
 </script>
 </body>
 </html>
