@@ -483,6 +483,41 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-27', title:'KGS-ENGINE-1 — Codex 게임 엔진 backend foundation', desc:'Codex 직접 patch (commit 4b81f0e). src/game/ 독립 엔진 계층 신설(1646 lines, 13 파일). core/GameState.ts: 2026 PRESIDENT KOREA Ground Truth 계약(대통령·clock·approval·economy·budget·media·liveFeed·cabinet·ministries·국회·judiciary·local governments·policies·events·crises·diplomacy·security·social metrics·election·notifications·schedule). core/GameInitializer.ts: createInitialGameState/cloneGameState/getGamePhase/isGameOver/migrateGameStateIfNeeded. core/GameClock.ts: pauseGame/resumeGame/setTimeScale/advanceClockByDays + term progress selectors. shared/* engine constants·types·utils·validation. selectors/* dashboard·map view-model. api/gameApi.ts in-memory facade(frontend 직접 engine state 조작 금지). 박사 standing: Phase 1은 UI 비침습 엔진 골격 — 정책 30개, 이벤트 40개, region/ministry dataset, full simulation loop는 후속 Phase.' },
       { type:'핵심', title:'Nano Banana Korea — 전면 미학 전환 설계 + mockup 2종 (2026-05-27)', desc:'박사 발화: "지금 구현된 한반도 지도가 아닌, 이 느낌의 이미지대로 한반도 지도를 싸그리 뜯어 고쳐서 구현. 구현에는 박사 오더 전까지 실행하지마. 설계 진행한 다음에 결과물부터 보여줘." 박사 reference: Gemini Nano Banana 10 시야 한반도 (라임 #A5C946 + 청록 #5CB0CC + 미소 cloud + 클레이 토이). internal/notes/REDESIGN_NANO_BANANA.md 영속화 — 10 시야 분석, 현 구현 충돌 매트릭스, 결정 트리 A(variant 신설) / B(default 교체, 권장) / C(별도 mode), 변경 영향 영역, KGS-NANO-1~8 단계. sample-nano-1-national.html(한반도 클레이 3D + 4 미소 cloud) + sample-nano-10-street.html(isometric 카툰 도시 + ranch 집 + 강 + 다리). production 코드 미수정 (박사 standing 명시). 박사 결정 트리 발화 대기.' }
     ]
+  },
+  {
+    id: 'jpglobal-web',
+    name: 'JPGLOBAL Website Rebuild',
+    subtitle: '회사 홈페이지 자체 리빌드 · WordPress 외주 운영비 절감 목적',
+    icon: 'anchor',
+    platform: '정적 웹사이트 · HTML/CSS/Vanilla JS',
+    status: 'in-progress',
+    start: '2026-05-27',
+    latest: '2026-05-27',
+    progress: 1,
+    link: 'http://127.0.0.1:5050/',
+    summary: '박사가 다니는 부산 물류 회사 JPGLOBAL CO.,LTD의 기존 홈페이지(jpglobal.kr)를 '
+           + '자체 정적 사이트로 리빌드. 기존 사이트는 WordPress + The7 건설 테마 기반인데 '
+           + '운영비를 과하게 청구당하고 있어 박사가 직접 갈아엎기로 결정. '
+           + '레퍼런스 톤: coens.com (풀스크린 배너+섹터 그리드) + hmm21.com (딥네이비 코퍼레이트). '
+           + '첫페이지(index.html) v1 빌드 완료 — 박사 브라우저 확인 대기.',
+    method: '(1) jpglobal.kr 콘텐츠 전량 추출 → 진짜 회사 정보(사명·슬로건·사업 3종·프로젝트 4종·부산 연락처)와 '
+          + '버려진 워드프레스 건설 테마 데모 잔재(Construction Management / Mining Infrastructure / '
+          + 'Lorem ipsum 증언글 / © Seven Construction 2016 푸터) 분리. '
+          + '(2) 디자인 토큰 — deep navy #0a2540 (HMM21 기조) + bronze #b88a3e (한국적 모던 럭셔리 큐) + Pretendard 한글 폰트. '
+          + '(3) 풀스크린 SVG 히어로(부산항 컨테이너선·크레인 실루엣) + About 분할 + Services 3카드 + Projects 4카드 + '
+          + 'Capabilities 다크 밴드 + Contact CTA + 5컬럼 푸터. '
+          + '(4) 반응형 + 스티키 헤더 + 모바일 nav 클론 + IntersectionObserver 리빌. '
+          + '(5) ../jpglobal-web 신규 폴더, git init, 로컬 http.server 5050 띄움.',
+    stack: ['HTML5', 'CSS3 (custom vars + Grid)', 'Vanilla JS', 'Pretendard', 'SVG'],
+    issues: [
+      { type:'핵심', title:'기존 사이트의 워드프레스 건설 테마 데모 잔재 발견 (2026-05-27)', desc:'jpglobal.kr 분석 중 진짜 회사 콘텐츠 외에 The7 워드프레스 건설 테마 데모가 그대로 남아있는 흔적 다수 발견 — Construction Management / Facility Maintenance / Mining Infrastructure / Pavement Preservation / Residential Construction / Site Location 6개 placeholder 카드, Lorem ipsum 증언글(Gregor Blackwod 등) 3건, "© Seven Construction 2016" 푸터, hello@dream-theme.com 이메일, 011-987-65-43 전화 등. 로지스틱스 회사인데 건설 테마 데모가 라이브 상태로 노출 중. 새 사이트엔 전부 제거. 박사가 "다 살려" 지시 시 복구 가능.' },
+      { type:'완료', title:'v1 첫페이지 빌드 — 6섹션 풀 코딩 (2026-05-27)', desc:'index.html(530줄) + css/style.css(약 750줄) + js/main.js. 히어로(2014 부산 설립 강조 + 4 stat) / About(EST.2014 배지 + 3 pillar) / Services(Port Operations·Shipping Agency·Support Services) / Projects(TCO·Martin Linge·Wind Resource·SR Input SVC) / Capabilities 밴드 / Contact + 5컬럼 푸터. 한국어/영문 병기.' },
+      { type:'이슈', title:'박사 브라우저 시각 확인 대기 (2026-05-27)', desc:'로컬 http://127.0.0.1:5050/ 서빙 확인(HTTP 200, 18.5KB). Claude는 CLI 환경이라 실 브라우저 렌더링은 직접 못 봄. 박사가 브라우저로 열어 톤·디테일 확인 후 수정 지시 필요. 깃허브 push는 박사 결정 대기.' }
+    ],
+    milestones: [
+      { isCore:true, date:'2026-05-27', title:'프로젝트 신설 — JPGLOBAL 홈페이지 자체 리빌드 결정', desc:'박사 발화: 기존 jpglobal.kr이 워드프레스 외주로 운영비를 과하게 청구당하고 있어 자체 리빌드. coens.com + hmm21.com 톤 레퍼런스 지정. ../jpglobal-web 폴더 신설, git init.' },
+      { isCore:true, date:'2026-05-27', title:'v1 첫페이지 빌드 완료 — 박사 확인 대기', desc:'딥네이비+브론즈 디자인 토큰 + 풀스크린 SVG 히어로(부산항 컨테이너선) + 6섹션 + 반응형 + 모바일 nav. 로컬 5050 서빙 중. 박사 브라우저 확인 후 피드백 반영 예정.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
