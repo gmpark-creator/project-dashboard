@@ -494,7 +494,7 @@ const PROJECTS = [
     start: '2026-05-27',
     latest: '2026-05-27',
     progress: 1,
-    link: 'http://127.0.0.1:5050/',
+    link: 'https://github.com/gmpark-creator/jpglobal-web',
     summary: '박사가 다니는 부산 물류 회사 JPGLOBAL CO.,LTD의 기존 홈페이지(jpglobal.kr)를 '
            + '자체 정적 사이트로 리빌드. 기존 사이트는 WordPress + The7 건설 테마 기반인데 '
            + '운영비를 과하게 청구당하고 있어 박사가 직접 갈아엎기로 결정. '
@@ -512,11 +512,17 @@ const PROJECTS = [
     issues: [
       { type:'핵심', title:'기존 사이트의 워드프레스 건설 테마 데모 잔재 발견 (2026-05-27)', desc:'jpglobal.kr 분석 중 진짜 회사 콘텐츠 외에 The7 워드프레스 건설 테마 데모가 그대로 남아있는 흔적 다수 발견 — Construction Management / Facility Maintenance / Mining Infrastructure / Pavement Preservation / Residential Construction / Site Location 6개 placeholder 카드, Lorem ipsum 증언글(Gregor Blackwod 등) 3건, "© Seven Construction 2016" 푸터, hello@dream-theme.com 이메일, 011-987-65-43 전화 등. 로지스틱스 회사인데 건설 테마 데모가 라이브 상태로 노출 중. 새 사이트엔 전부 제거. 박사가 "다 살려" 지시 시 복구 가능.' },
       { type:'완료', title:'v1 첫페이지 빌드 — 6섹션 풀 코딩 (2026-05-27)', desc:'index.html(530줄) + css/style.css(약 750줄) + js/main.js. 히어로(2014 부산 설립 강조 + 4 stat) / About(EST.2014 배지 + 3 pillar) / Services(Port Operations·Shipping Agency·Support Services) / Projects(TCO·Martin Linge·Wind Resource·SR Input SVC) / Capabilities 밴드 / Contact + 5컬럼 푸터. 한국어/영문 병기.' },
-      { type:'이슈', title:'박사 브라우저 시각 확인 대기 (2026-05-27)', desc:'로컬 http://127.0.0.1:5050/ 서빙 확인(HTTP 200, 18.5KB). Claude는 CLI 환경이라 실 브라우저 렌더링은 직접 못 봄. 박사가 브라우저로 열어 톤·디테일 확인 후 수정 지시 필요. 깃허브 push는 박사 결정 대기.' }
+      { type:'이슈', title:'박사 브라우저 시각 확인 대기 (2026-05-27)', desc:'로컬 http://127.0.0.1:5050/ 서빙 확인(HTTP 200, 18.5KB). Claude는 CLI 환경이라 실 브라우저 렌더링은 직접 못 봄. 박사가 브라우저로 열어 톤·디테일 확인 후 수정 지시 필요. 깃허브 push는 박사 결정 대기.' },
+      { type:'핵심', title:'v2 톤 라이트닝 — 박사 피드백 "조금 더 밝고 화사하게" 반영 (2026-05-27)', desc:'deep navy(#0a2540) + bronze 베이스 → 화이트/스카이/크림 베이스 + golden honey + soft coral 액센트로 전면 교체. 히어로 SVG 어두운 navy → 화이트→스카이→크림 그라데이션 + sunset glow + 컬러풀 컨테이너 야드(coral/gold/sky/navy 믹스). 푸터·utility bar·band 섹션 톤 동시 조정. 카드 hover shadow 더 부드럽게.' },
+      { type:'핵심', title:'v2 원본 jpglobal.kr 잔재 풀 복원 (걷어낼 거는 _curate-list.md로 영속) (2026-05-27)', desc:'박사 지시 "기존 jpglobal.kr 문구로 우선 진행, 나중 정리할 용어 따로 간추림" 반영. 5개 섹션 신설: Brand Promises 3-row(Highly Skilled Team / People Technology / Large to Small) + What We Do 6 카드(Construction Management / Facility Maintenance / Mining Infrastructure / Pavement Preservation / Residential Construction / Site Location) + Testimonials 3건(Gregor Blackwod / Tiffany White / Charles Dug) + Join Our Team CTA + Partners 6(Design & Build 외). 모두 원본 Lorem ipsum 그대로 보존. 정리 대상 카탈로그는 _curate-list.md 영속화(워드프레스 The7 건설 테마 잔재 분류 + 박사 결정 대기 4항목).' },
+      { type:'핵심', title:'v2 About Us 페이지(about.html) 신설 (2026-05-27)', desc:'다음 페이지 진입 — 메뉴 트리 첫 항목. page hero(breadcrumb + 큰 타이틀 + lead) + Company Profile 재구성 + Mission Statement(label + 큰 카피 + pull quote) + History Timeline 5건(2014/2015-17 TCO/2018-20 Martin Linge/2021-23 풍력+산업/2024 10주년) + Values 4 카드(Client First/Tailor-Made/Specialist Team/Busan Roots) + Reference 4 카드 + Contact band + 푸터. GNB About Us 링크 about.html로 연결, is-current 표기. 브라우저 200 OK 18KB 확인.' },
+      { type:'완료', title:'GitHub repo 생성 + push — gmpark-creator/jpglobal-web (private) (2026-05-27)', desc:'박사 지시 "커밋 푸쉬 레포저장도 프로젝트 6번에 따로 빼서 진행" 반영. gh repo create로 private 리포 생성. v1+v2 commit 2건 push 완료. URL: https://github.com/gmpark-creator/jpglobal-web (private). 박사 다른 프로젝트(DDuim/korea-gov-sim 등)와 동일 패턴.' }
     ],
     milestones: [
       { isCore:true, date:'2026-05-27', title:'프로젝트 신설 — JPGLOBAL 홈페이지 자체 리빌드 결정', desc:'박사 발화: 기존 jpglobal.kr이 워드프레스 외주로 운영비를 과하게 청구당하고 있어 자체 리빌드. coens.com + hmm21.com 톤 레퍼런스 지정. ../jpglobal-web 폴더 신설, git init.' },
-      { isCore:true, date:'2026-05-27', title:'v1 첫페이지 빌드 완료 — 박사 확인 대기', desc:'딥네이비+브론즈 디자인 토큰 + 풀스크린 SVG 히어로(부산항 컨테이너선) + 6섹션 + 반응형 + 모바일 nav. 로컬 5050 서빙 중. 박사 브라우저 확인 후 피드백 반영 예정.' }
+      { isCore:true, date:'2026-05-27', title:'v1 첫페이지 빌드 완료 — deep navy 베이스', desc:'딥네이비+브론즈 디자인 토큰 + 풀스크린 SVG 히어로(부산항 컨테이너선) + 6섹션 + 반응형 + 모바일 nav. 로컬 5050 서빙 시작.' },
+      { isCore:true, date:'2026-05-27', title:'v2 톤 라이트닝 + 원본 문구 풀 복원 + About 페이지 신설', desc:'박사 피드백 "조금 더 밝고 화사하게" 즉시 반영 → 화이트/스카이/크림 + golden honey + soft coral 팔레트 전면 교체. 원본 jpglobal.kr 5섹션(Promises/WhatWeDo/Testimonials/Join/Partners) 풀 복원. 워드프레스 데모 잔재 정리 후보는 _curate-list.md로 영속. About Us 페이지(about.html) 신설 — page hero + Mission + History 5 + Values 4 + Reference 4. index 32KB + about 18KB.' },
+      { isCore:true, date:'2026-05-27', title:'GitHub repo 생성 + 푸시 — gmpark-creator/jpglobal-web (private)', desc:'박사 지시 "커밋 푸쉬 레포저장도 프로젝트 6번에 따로 빼서 진행". gh repo create로 private 리포 생성 + v1/v2 commit 2건 push. 박사 다른 프로젝트 패턴과 동일.' }
     ]
   }
 ];
