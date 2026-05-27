@@ -3,562 +3,425 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a2540">
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="description" content="JPGLOBAL CO.,LTD — 부산 거점 통합 물류 솔루션. Port Operations, Shipping Agency, Project Cargo Support. Since 2014.">
   <title>JPGLOBAL CO.,LTD — Integrated Logistics Solution</title>
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- ============== TOP UTILITY BAR ============== -->
-<div class="utility-bar">
-  <div class="container utility-inner">
-    <ul class="utility-info">
-      <li><span class="ut-label">TEL</span> +82 51 442 0720</li>
-      <li><span class="ut-label">HOURS</span> Mon — Fri 09:00 — 18:00</li>
-      <li class="hide-mobile"><span class="ut-label">HQ</span> Centum, Haeundae, Busan</li>
-    </ul>
-    <ul class="utility-lang">
-      <li><a href="#" class="active">KOR</a></li>
-      <li><a href="#">ENG</a></li>
-    </ul>
+<!-- ============== CORNER UI (fixed, mix-blend-mode) ============== -->
+<div class="corner-ui corner-tl">
+  <a href="index.html" class="logo-mark">JPGLOBAL <span class="brand-sub">CO.,LTD</span></a>
+</div>
+<div class="corner-ui corner-tr">
+  <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="label">MENU</span>
+  </button>
+</div>
+<div class="corner-ui corner-bl">
+  <div class="clock-display">
+    <span class="clock-now" id="clock-now">--:--:--</span>
+    <span class="clock-meta">KST · BUSAN</span>
+  </div>
+</div>
+<div class="corner-ui corner-br">
+  <div class="section-index">
+    <span class="current" id="section-index-current">01</span>
+    <span class="sep">/</span>
+    <span class="total" id="section-index-total">11</span>
   </div>
 </div>
 
-<!-- ============== HEADER ============== -->
-<header class="site-header" id="siteHeader">
-  <div class="container header-inner">
-    <a href="#" class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" width="36" height="36">
-          <path d="M4 26 L20 14 L36 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="square"/>
-          <path d="M4 32 L20 20 L36 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="square" opacity=".55"/>
-        </svg>
-      </span>
-      <span class="brand-text">
-        <span class="brand-name">JPGLOBAL</span>
-        <span class="brand-sub">CO.,LTD</span>
-      </span>
-    </a>
-
-    <nav class="gnb" aria-label="주 메뉴">
-      <ul>
-        <li><a href="about.html">About Us</a>
-          <ul class="lnb">
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="about.html#mission">Mission Statement</a></li>
-            <li><a href="about.html#reference">Reference</a></li>
-          </ul>
-        </li>
-        <li><a href="#services">Services</a>
-          <ul class="lnb">
-            <li><a href="#services">Port Operations</a></li>
-            <li><a href="#services">Agent</a></li>
-            <li><a href="#services">Support Services</a></li>
-          </ul>
-        </li>
-        <li><a href="#projects">Project</a>
-          <ul class="lnb">
-            <li><a href="#projects">TCO</a></li>
-            <li><a href="#projects">Martin Linge</a></li>
-            <li><a href="#projects">Wind Resource</a></li>
-            <li><a href="#projects">SR Input SVC</a></li>
-          </ul>
-        </li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-
-    <a href="#contact" class="header-cta">Get a Quote</a>
-
-    <button type="button" class="hamburger" id="hamburger" aria-label="메뉴 열기" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+<!-- ============== OVERLAY NAV ============== -->
+<nav class="overlay-nav" id="overlay-nav" aria-label="주 메뉴">
+  <ul class="nav-list">
+    <li><a href="about.html"><span>About Us</span><span class="nav-num">001</span></a></li>
+    <li><a href="#services"><span>Services</span><span class="nav-num">002</span></a></li>
+    <li><a href="#projects"><span>Project</span><span class="nav-num">003</span></a></li>
+    <li><a href="#contact"><span>Contact</span><span class="nav-num">004</span></a></li>
+  </ul>
+  <div class="nav-meta">
+    <div><strong>Head Office</strong>97, Centum jungang-ro,<br>Haeundae-gu, Busan, Korea</div>
+    <div><strong>Contact</strong>+82 51 442 0720<br>contact@jpglobal.kr</div>
+    <div><strong>Hours</strong>Mon — Fri<br>09:00 — 18:00 KST</div>
   </div>
-</header>
+</nav>
 
-<!-- ============== HERO ============== -->
-<section class="hero" id="top">
-  <div class="hero-bg" aria-hidden="true">
-    <svg class="hero-horizon" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0"   stop-color="#ffffff"/>
-          <stop offset=".55" stop-color="#eef3fa"/>
-          <stop offset="1"   stop-color="#fdf4e3"/>
-        </linearGradient>
-        <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0"  stop-color="#e7f0fb"/>
-          <stop offset="1"  stop-color="#cfe0f3"/>
-        </linearGradient>
-        <radialGradient id="sun" cx="78%" cy="22%" r="20%">
-          <stop offset="0"   stop-color="#fdebc4" stop-opacity=".95"/>
-          <stop offset="1"   stop-color="#fdebc4" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <rect width="1600" height="900" fill="url(#skyGrad)"/>
-      <rect y="540" width="1600" height="360" fill="url(#seaGrad)"/>
-      <rect width="1600" height="900" fill="url(#sun)"/>
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
 
-      <!-- soft horizon line in gold -->
-      <line x1="0" y1="540" x2="1600" y2="540" stroke="#e2a64a" stroke-width="0.9" opacity=".55"/>
-
-      <!-- distant ship silhouette (right) -->
-      <g opacity=".42" fill="#154277">
-        <rect x="950"  y="495" width="420" height="42"/>
-        <polygon points="1370,495 1430,517 1370,537"/>
-        <rect x="970"  y="470" width="22" height="25"/>
-        <rect x="996"  y="465" width="22" height="30"/>
-        <rect x="1022" y="472" width="22" height="23"/>
-        <rect x="1048" y="468" width="22" height="27"/>
-        <rect x="1074" y="475" width="22" height="20"/>
-        <rect x="1100" y="465" width="22" height="30"/>
-        <rect x="1126" y="470" width="22" height="25"/>
-        <rect x="1152" y="468" width="22" height="27"/>
-        <rect x="1180" y="450" width="40" height="45"/>
-      </g>
-      <!-- ship reflection -->
-      <g opacity=".12" fill="#154277">
-        <rect x="950" y="540" width="280" height="6"/>
-        <rect x="1020" y="552" width="180" height="3"/>
-      </g>
-
-      <!-- crane silhouette (left, gantry) -->
-      <g opacity=".28" fill="#154277">
-        <rect x="120" y="380" width="6" height="160"/>
-        <rect x="260" y="380" width="6" height="160"/>
-        <rect x="80"  y="378" width="230" height="6"/>
-        <rect x="80"  y="378" width="6" height="40"/>
-        <rect x="140" y="540" width="6" height="14"/>
-        <rect x="240" y="540" width="6" height="14"/>
-      </g>
-      <!-- 2nd crane (further) -->
-      <g opacity=".18" fill="#154277">
-        <rect x="350" y="420" width="4" height="120"/>
-        <rect x="430" y="420" width="4" height="120"/>
-        <rect x="325" y="418" width="135" height="4"/>
-      </g>
-
-      <!-- soft clouds -->
-      <g fill="#ffffff" opacity=".55">
-        <ellipse cx="280" cy="130" rx="80" ry="14"/>
-        <ellipse cx="320" cy="120" rx="55" ry="10"/>
-        <ellipse cx="1120" cy="180" rx="110" ry="14"/>
-        <ellipse cx="1180" cy="170" rx="60" ry="10"/>
-      </g>
-    </svg>
-  </div>
-
-  <div class="container hero-inner">
-    <div class="hero-meta">
-      <span class="hero-eyebrow">Since 2014 · Busan, Republic of Korea</span>
+<!-- ============== 01 — HERO ============== -->
+<section class="s-hero" data-index="01" data-theme="dark" id="top">
+  <div class="container">
+    <div class="hero-meta reveal-up">
+      <div class="hero-meta-item"><span class="label">Est.</span><span class="value"><strong>2014</strong> · Busan, KR</span></div>
+      <div class="hero-meta-item"><span class="label">Industry</span><span class="value">Integrated Logistics</span></div>
+      <div class="hero-meta-item"><span class="label">Core SVC</span><span class="value">Port · Agency · Cargo</span></div>
+      <div class="hero-meta-item"><span class="label">Scope</span><span class="value">Global Delivery</span></div>
     </div>
 
     <h1 class="hero-title">
-      <span class="line">Our service</span>
-      <span class="line accent">is your satisfaction.</span>
+      <span class="reveal-line">Our service</span>
+      <span class="reveal-line"><em>is your</em></span>
+      <span class="reveal-line">satisfaction.</span>
     </h1>
 
-    <p class="hero-sub">
-      Integrated logistics solution for shipping, port operations<br>
-      and project cargo — built on two decades of frontline experience.
-    </p>
-
-    <div class="hero-cta">
-      <a href="#services" class="btn btn-primary">View Services <span aria-hidden="true">→</span></a>
-      <a href="#contact" class="btn btn-ghost">Contact Us</a>
+    <div class="hero-tagline">
+      <p class="lead reveal-up">
+        Integrated logistics solution for <strong>shipping, port operations</strong>
+        and <strong>project cargo</strong> — built on two decades of frontline experience.
+      </p>
+      <div class="marker reveal-up">
+        <strong>Build Your Future.</strong>
+        Together with JPGLOBAL.
+      </div>
     </div>
 
-    <div class="hero-stats">
-      <div class="stat">
-        <span class="stat-num">2014</span>
-        <span class="stat-label">설립연도<br>Established</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">03</span>
-        <span class="stat-label">핵심 서비스<br>Core Services</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">04+</span>
-        <span class="stat-label">주요 프로젝트<br>Major Projects</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">BUSAN</span>
-        <span class="stat-label">본사<br>Headquarters</span>
-      </div>
+    <div class="hero-cta reveal-up">
+      <a href="#services" class="btn btn-fill">View Services <span class="arrow">→</span></a>
+      <a href="#contact" class="btn btn-invert">Contact Us <span class="arrow">→</span></a>
     </div>
-  </div>
-
-  <a href="#about" class="hero-scroll" aria-label="다음 섹션">
-    <span>SCROLL</span>
-    <span class="line"></span>
-  </a>
-</section>
-
-<!-- ============== BRAND PROMISES (3-row mosaic from original jpglobal.kr) ============== -->
-<section class="section-promises">
-  <div class="container promises-grid">
-    <article class="promise">
-      <div class="promise-icon" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><path d="M24 6 L40 14 L40 28 C40 36 32 42 24 44 C16 42 8 36 8 28 L8 14 Z M24 12 L14 16 L14 28 C14 33 18 37 24 40 C30 37 34 33 34 28 L34 16 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
-      </div>
-      <p class="promise-eyebrow">We Have an Awesome</p>
-      <h3 class="promise-title">Highly Skilled Team</h3>
-      <p class="promise-body">
-        Vitae bibendum lorem viverra id. Curabitur sed augue vehicula, commodo eros id,
-        varius purus. Quisque ultrices nibh at erat sollicitudin, et dictum neque pulvinar.
-        Nunc quis convallis ex. Praesent a lacinia libero, nec fermentum purus.
-      </p>
-      <div class="promise-actions">
-        <a href="#about">See Our Team <span aria-hidden="true">→</span></a>
-        <a href="#contact">Contact Us</a>
-      </div>
-    </article>
-
-    <article class="promise">
-      <div class="promise-icon" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><circle cx="24" cy="18" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 40 C10 32 16 28 24 28 C32 28 38 32 38 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M6 22 L10 22 M38 22 L42 22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-      </div>
-      <p class="promise-eyebrow">People, Technology</p>
-      <h3 class="promise-title">&amp; Experience</h3>
-      <p class="promise-body">
-        Curabitur pellentesque - neque eget diam posuere porta. Quisque ut nulla oin
-        porta tellus, ut feugiat nibh. Lorem ipsum nulla amos eget purus vel mauris
-        tincidunt tincidunt nibh tortor.
-      </p>
-      <div class="promise-actions">
-        <a href="#about">About Us <span aria-hidden="true">→</span></a>
-        <a href="#contact">Contact Us</a>
-      </div>
-    </article>
-
-    <article class="promise">
-      <div class="promise-icon" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><rect x="6" y="20" width="14" height="22" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="22" y="10" width="20" height="32" fill="none" stroke="currentColor" stroke-width="2.2"/><line x1="26" y1="18" x2="30" y2="18" stroke="currentColor" stroke-width="2.2"/><line x1="34" y1="18" x2="38" y2="18" stroke="currentColor" stroke-width="2.2"/><line x1="26" y1="26" x2="30" y2="26" stroke="currentColor" stroke-width="2.2"/><line x1="34" y1="26" x2="38" y2="26" stroke="currentColor" stroke-width="2.2"/></svg>
-      </div>
-      <p class="promise-eyebrow">From Large Buildings</p>
-      <h3 class="promise-title">to Small Houses</h3>
-      <p class="promise-body">
-        Sed est tellus, vulputate sit amet justo non, varius malesuada dolor. Nullam
-        ullamcorper, metus non rhoncus placerat auctor nibh, non finibus sapien turpis
-        ut mauris.
-      </p>
-      <div class="promise-actions">
-        <a href="#services">Our Services <span aria-hidden="true">→</span></a>
-        <a href="#contact">Contact Us</a>
-      </div>
-    </article>
   </div>
 </section>
 
-<!-- ============== ABOUT ============== -->
-<section class="section section-about" id="about">
-  <div class="container about-grid">
-    <div class="about-visual">
-      <div class="about-image">
-        <svg viewBox="0 0 600 720" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Busan port — stacked containers, gantry crane, evening glow">
-          <defs>
-            <linearGradient id="abGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0"   stop-color="#fdf4e3"/>
-              <stop offset=".55" stop-color="#fde4d6"/>
-              <stop offset="1"   stop-color="#cfe0f3"/>
-            </linearGradient>
-            <radialGradient id="abSun" cx="78%" cy="22%" r="32%">
-              <stop offset="0"   stop-color="#ffd89a"/>
-              <stop offset=".55" stop-color="#fde4d6" stop-opacity=".4"/>
-              <stop offset="1"   stop-color="#fde4d6" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <rect width="600" height="720" fill="url(#abGrad)"/>
-          <rect width="600" height="720" fill="url(#abSun)"/>
-          <line x1="0" y1="540" x2="600" y2="540" stroke="#e2a64a" stroke-width="1" opacity=".6"/>
-
-          <!-- container yard (color palette: coral / gold / sky / navy) -->
-          <g opacity=".92">
-            <rect x="40"  y="500" width="80" height="38" fill="#ec8b6e"/>
-            <rect x="40"  y="460" width="80" height="38" fill="#e2a64a" opacity=".82"/>
-            <rect x="40"  y="420" width="80" height="38" fill="#3d85d8" opacity=".55"/>
-            <rect x="130" y="500" width="80" height="38" fill="#154277"/>
-            <rect x="130" y="460" width="80" height="38" fill="#ec8b6e" opacity=".78"/>
-            <rect x="220" y="500" width="80" height="38" fill="#e2a64a"/>
-            <rect x="220" y="460" width="80" height="38" fill="#3d85d8" opacity=".68"/>
-            <rect x="220" y="420" width="80" height="38" fill="#ec8b6e" opacity=".62"/>
-            <rect x="220" y="380" width="80" height="38" fill="#154277" opacity=".42"/>
-            <rect x="310" y="500" width="80" height="38" fill="#3d85d8"/>
-            <rect x="310" y="460" width="80" height="38" fill="#ec8b6e" opacity=".72"/>
-            <rect x="400" y="500" width="80" height="38" fill="#e2a64a" opacity=".82"/>
-            <rect x="490" y="500" width="80" height="38" fill="#154277" opacity=".7"/>
-          </g>
-
-          <!-- gantry crane -->
-          <g stroke="#154277" stroke-width="2" fill="none" opacity=".7">
-            <line x1="450" y1="200" x2="450" y2="540"/>
-            <line x1="540" y1="200" x2="540" y2="540"/>
-            <line x1="430" y1="200" x2="560" y2="200"/>
-            <line x1="430" y1="200" x2="430" y2="240"/>
-            <line x1="495" y1="200" x2="495" y2="260"/>
-          </g>
-
-          <!-- soft cloud -->
-          <g fill="#ffffff" opacity=".7">
-            <ellipse cx="160" cy="130" rx="60" ry="10"/>
-            <ellipse cx="195" cy="120" rx="40" ry="8"/>
-          </g>
-        </svg>
-        <div class="about-badge">
-          <span class="badge-num">EST.<br>2014</span>
+<!-- ============== 02 — BRAND PROMISES (원본 3-row) ============== -->
+<section class="s-promises" data-index="02" data-theme="light">
+  <div class="container">
+    <div class="promises-stack">
+      <article class="promise">
+        <div class="promise-num">001</div>
+        <h3 class="promise-title">
+          <span class="small">We Have an Awesome</span>
+          Highly Skilled Team
+        </h3>
+        <p class="promise-body">
+          Vitae bibendum lorem viverra id. Curabitur sed augue vehicula, commodo eros id,
+          varius purus. Quisque ultrices nibh at erat sollicitudin, et dictum neque pulvinar.
+          Nunc quis convallis ex. Praesent a lacinia libero, nec fermentum purus.
+        </p>
+        <div class="promise-actions">
+          <a href="#about">See Our Team <span>→</span></a>
+          <a href="#contact">Contact Us <span>→</span></a>
         </div>
-      </div>
-    </div>
+      </article>
 
-    <div class="about-text">
-      <span class="section-eyebrow">About Our Company</span>
-      <h2 class="section-title">Company Profile</h2>
-      <p class="lead">
-        부산을 거점으로 한 통합 물류 솔루션 기업.<br>
-        Build Your Future, together with JPGLOBAL.
-      </p>
-      <p class="body">
-        We began working with complex projects in <strong>2014 in Busan, Korea</strong> with specialists at each field
-        and have been considered a market leader in container transport and project logistics innovation ever since.
-      </p>
-      <p class="body">
-        Over the years, a team of specialists with vast experience has been formed
-        to provide tailor-made solutions to meet the requirements of our clients.
-        <strong>JP GLOBAL's dedication of service is your satisfaction.</strong>
-      </p>
+      <article class="promise">
+        <div class="promise-num">002</div>
+        <h3 class="promise-title">
+          <span class="small">People, Technology</span>
+          &amp; Experience
+        </h3>
+        <p class="promise-body">
+          Curabitur pellentesque - neque eget diam posuere porta. Quisque ut nulla oin
+          porta tellus, ut feugiat nibh. Lorem ipsum nulla amos eget purus vel mauris
+          tincidunt tincidunt nibh tortor.
+        </p>
+        <div class="promise-actions">
+          <a href="about.html">About Us <span>→</span></a>
+          <a href="#contact">Contact Us <span>→</span></a>
+        </div>
+      </article>
 
-      <ul class="about-pillars">
-        <li>
-          <span class="pillar-mark">01</span>
-          <h4>Shipping &amp; Port Operations</h4>
-          <p>컨테이너 및 프로젝트 화물 항만 운영 전문성</p>
-        </li>
-        <li>
-          <span class="pillar-mark">02</span>
-          <h4>Specialist Team</h4>
-          <p>각 분야 전문 인력이 구성하는 맞춤 솔루션</p>
-        </li>
-        <li>
-          <span class="pillar-mark">03</span>
-          <h4>Client-First Dedication</h4>
-          <p>고객 만족이 곧 우리의 서비스 기준</p>
-        </li>
-      </ul>
-
-      <a href="#contact" class="btn btn-line">More about us <span aria-hidden="true">→</span></a>
+      <article class="promise">
+        <div class="promise-num">003</div>
+        <h3 class="promise-title">
+          <span class="small">From Large Buildings</span>
+          to Small Houses
+        </h3>
+        <p class="promise-body">
+          Sed est tellus, vulputate sit amet justo non, varius malesuada dolor. Nullam
+          ullamcorper, metus non rhoncus placerat auctor nibh, non finibus sapien turpis
+          ut mauris.
+        </p>
+        <div class="promise-actions">
+          <a href="#services">Our Services <span>→</span></a>
+          <a href="#contact">Contact Us <span>→</span></a>
+        </div>
+      </article>
     </div>
   </div>
 </section>
 
-<!-- ============== SERVICES ============== -->
-<section class="section section-services" id="services">
+<!-- ============== 03 — ABOUT ============== -->
+<section class="s-about" data-index="03" data-theme="dark" id="about">
+  <div class="container">
+    <div class="about-eyebrow">
+      <span>About / Company Profile</span>
+      <span class="orange-marker">+ EST. 2014</span>
+    </div>
+
+    <h2 class="about-headline">
+      <span class="reveal-line">We began with</span>
+      <span class="reveal-line">complex projects</span>
+      <span class="reveal-line"><em>in Busan, Korea.</em></span>
+    </h2>
+
+    <div class="about-grid">
+      <div class="about-meta">
+        <h4>+ Profile</h4>
+        <p style="font-family:var(--font-mono); font-size:13px; color:var(--gray-7); line-height:1.7; letter-spacing:0.02em;">
+          JP GLOBAL CO.,LTD<br>
+          Integrated Logistics Solution<br>
+          Est. 2014 · Busan, Republic of Korea<br>
+          Core: Shipping · Port Service · Project Cargo
+        </p>
+      </div>
+
+      <div class="about-body">
+        <p>
+          We began working with complex projects in <strong>2014 in Busan, Korea</strong>
+          with specialists at each field and have been considered a market leader in
+          container transport and project logistics innovation ever since.
+        </p>
+        <p>
+          Over the years, a team of specialists with vast experience has been formed to
+          provide tailor-made solutions to meet the requirements of our clients.
+          <strong>JP GLOBAL's dedication of service is your satisfaction.</strong>
+        </p>
+      </div>
+    </div>
+
+    <ul class="about-pillars">
+      <li class="pillar">
+        <span class="pillar-mark">+ 01</span>
+        <h5>Shipping &amp; Port Operations</h5>
+        <p>컨테이너 및 프로젝트 화물 항만 운영 전문성</p>
+      </li>
+      <li class="pillar">
+        <span class="pillar-mark">+ 02</span>
+        <h5>Specialist Team</h5>
+        <p>각 분야 전문 인력이 구성하는 맞춤 솔루션</p>
+      </li>
+      <li class="pillar">
+        <span class="pillar-mark">+ 03</span>
+        <h5>Client-First Dedication</h5>
+        <p>고객 만족이 곧 우리의 서비스 기준</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== 04 — SERVICES ============== -->
+<section class="s-services" data-index="04" data-theme="light" id="services">
   <div class="container">
     <div class="section-head">
-      <span class="section-eyebrow">What We Do</span>
-      <h2 class="section-title">Our Services</h2>
-      <p class="section-desc">
+      <div>
+        <div class="head-meta"><strong>+ 04</strong> · What We Do</div>
+        <h2 style="margin-top:18px;">Our <em>Services</em></h2>
+      </div>
+      <p class="head-side">
         해운, 항만 서비스, 프로젝트 카고에 이르는 통합 물류 라인업.<br>
         Shipping · Port Service · Project Cargo with full supporting services.
       </p>
     </div>
 
-    <div class="service-grid">
-      <article class="service-card">
-        <div class="service-num">01</div>
-        <div class="service-body">
+    <div class="services-stack">
+      <article class="svc-row">
+        <div class="svc-num">001</div>
+        <div class="svc-title">
           <h3>Port Operations</h3>
-          <p class="service-kr">항만 운영</p>
-          <p class="service-desc">
-            부산항을 비롯한 국내 주요 항만에서 컨테이너 및 일반화물의
-            하역·보관·운송 전반을 책임지는 항만 오퍼레이션 서비스.
-          </p>
-          <ul class="service-tags">
+          <span class="kr">항만 운영</span>
+        </div>
+        <div class="svc-desc">
+          부산항을 비롯한 국내 주요 항만에서 컨테이너 및 일반화물의
+          하역·보관·운송 전반을 책임지는 항만 오퍼레이션 서비스.
+          <ul>
             <li>Container Handling</li>
             <li>Stevedoring</li>
             <li>Warehousing</li>
           </ul>
-          <a href="#contact" class="service-more">자세히 보기 <span aria-hidden="true">→</span></a>
         </div>
+        <a href="#contact" class="svc-link">자세히 보기 <span>→</span></a>
       </article>
 
-      <article class="service-card">
-        <div class="service-num">02</div>
-        <div class="service-body">
+      <article class="svc-row">
+        <div class="svc-num">002</div>
+        <div class="svc-title">
           <h3>Shipping Agency</h3>
-          <p class="service-kr">선박 대리점</p>
-          <p class="service-desc">
-            입출항 클리어런스, 선원 교대, 선용품 공급 등
-            기항선박의 모든 행정·운영 업무를 대행하는 에이전시 서비스.
-          </p>
-          <ul class="service-tags">
+          <span class="kr">선박 대리점</span>
+        </div>
+        <div class="svc-desc">
+          입출항 클리어런스, 선원 교대, 선용품 공급 등
+          기항선박의 모든 행정·운영 업무를 대행하는 에이전시 서비스.
+          <ul>
             <li>Port Clearance</li>
             <li>Crew Change</li>
             <li>Ship Supply</li>
           </ul>
-          <a href="#contact" class="service-more">자세히 보기 <span aria-hidden="true">→</span></a>
         </div>
+        <a href="#contact" class="svc-link">자세히 보기 <span>→</span></a>
       </article>
 
-      <article class="service-card">
-        <div class="service-num">03</div>
-        <div class="service-body">
+      <article class="svc-row">
+        <div class="svc-num">003</div>
+        <div class="svc-title">
           <h3>Support Services</h3>
-          <p class="service-kr">서포트 서비스</p>
-          <p class="service-desc">
-            프로젝트 카고 운송, 통관 자문, 현장 인력 지원 등
-            대형 프로젝트 수행에 필요한 일체의 부가 지원 서비스.
-          </p>
-          <ul class="service-tags">
+          <span class="kr">서포트 서비스</span>
+        </div>
+        <div class="svc-desc">
+          프로젝트 카고 운송, 통관 자문, 현장 인력 지원 등
+          대형 프로젝트 수행에 필요한 일체의 부가 지원 서비스.
+          <ul>
             <li>Project Cargo</li>
             <li>Customs Advisory</li>
             <li>Site Support</li>
           </ul>
-          <a href="#contact" class="service-more">자세히 보기 <span aria-hidden="true">→</span></a>
         </div>
+        <a href="#contact" class="svc-link">자세히 보기 <span>→</span></a>
       </article>
     </div>
   </div>
 </section>
 
-<!-- ============== WHAT WE DO (6 cards — 원본 카테고리 그대로) ============== -->
-<section class="section section-whatwedo">
+<!-- ============== 05 — WHAT WE DO (원본 6 카드) ============== -->
+<section class="s-whatwedo" data-index="05" data-theme="light">
+  <div class="container" style="padding-top:40px;">
+    <div class="partners-head">
+      <p><strong>+ 05</strong> · Capabilities · What We Do</p>
+      <p>06 categories · 원본 jpglobal.kr</p>
+    </div>
+  </div>
+  <div class="ww-grid">
+    <article class="ww-card">
+      <span class="ww-num">+ 001</span>
+      <h4>Construction Management</h4>
+      <p>Eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus ut glavrida.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+    <article class="ww-card">
+      <span class="ww-num">+ 002</span>
+      <h4>Facility Maintenance</h4>
+      <p>Sed est tellus, vulputate sit amet justo non, varius malesuada dolor. Nullam ullamcorper, metus non rhoncus placerat auctor nibh, non finibus sapien turpis ut mauris. Maecenas nec tellus ultricies.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+    <article class="ww-card">
+      <span class="ww-num">+ 003</span>
+      <h4>Mining Infrastructure</h4>
+      <p>Mauris eget efficitur consequat. Praesent tempus suscipit ante, eu egestas orci porttitor interdum. Integer luctus, leo porta lacinia convallis, diam purus finibus lectus, ut rutrum quam velit id orci.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+    <article class="ww-card">
+      <span class="ww-num">+ 004</span>
+      <h4>Pavement Preservation</h4>
+      <p>Lorem eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus nulla.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+    <article class="ww-card">
+      <span class="ww-num">+ 005</span>
+      <h4>Residential Construction</h4>
+      <p>Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+    <article class="ww-card">
+      <span class="ww-num">+ 006</span>
+      <h4>Site Location</h4>
+      <p>Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus ut.</p>
+      <a href="#" class="ww-link">Read More <span>→</span></a>
+    </article>
+  </div>
+</section>
+
+<!-- ============== 06 — PROJECTS ============== -->
+<section class="s-projects" data-index="06" data-theme="dark" id="projects">
   <div class="container">
     <div class="section-head">
-      <span class="section-eyebrow">Capabilities</span>
-      <h2 class="section-title">What We Do</h2>
-      <p class="section-desc">
-        프로젝트 단위의 다양한 영역에서 통합 물류 솔루션을 제공합니다.
-      </p>
-    </div>
-
-    <div class="whatwedo-grid">
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 26 L16 8 L28 26 Z M10 26 L10 18 L22 18 L22 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <h4>Construction Management</h4>
-        <p>Eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus ut glavrida.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 2 L16 6 M16 26 L16 30 M2 16 L6 16 M26 16 L30 16 M6 6 L9 9 M23 23 L26 26 M26 6 L23 9 M9 23 L6 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <h4>Facility Maintenance</h4>
-        <p>Sed est tellus, vulputate sit amet justo non, varius malesuada dolor. Nullam ullamcorper, metus non rhoncus placerat auctor nibh, non finibus sapien turpis ut mauris. Maecenas nec tellus ultricies.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 28 L12 14 L20 22 L28 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="4" cy="28" r="2" fill="currentColor"/><circle cx="28" cy="8" r="2" fill="currentColor"/></svg></div>
-        <h4>Mining Infrastructure</h4>
-        <p>Mauris eget efficitur consequat. Praesent tempus suscipit ante, eu egestas orci porttitor interdum. Integer luctus, leo porta lacinia convallis, diam purus finibus lectus, ut rutrum quam velit id orci.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="3" y="20" width="26" height="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="14" x2="8" y2="20" stroke="currentColor" stroke-width="2"/><line x1="14" y1="10" x2="14" y2="20" stroke="currentColor" stroke-width="2"/><line x1="20" y1="14" x2="20" y2="20" stroke="currentColor" stroke-width="2"/><line x1="26" y1="10" x2="26" y2="20" stroke="currentColor" stroke-width="2"/></svg></div>
-        <h4>Pavement Preservation</h4>
-        <p>Lorem eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus nulla.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 28 L4 14 L16 4 L28 14 L28 28 Z M12 28 L12 18 L20 18 L20 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <h4>Residential Construction</h4>
-        <p>Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-
-      <article class="ww-card">
-        <div class="ww-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4 C10 4 6 8 6 14 C6 22 16 30 16 30 C16 30 26 22 26 14 C26 8 22 4 16 4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
-        <h4>Site Location</h4>
-        <p>Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla, molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis, auctor suscipit lacus dapibus ut.</p>
-        <a href="#" class="ww-more">Read More <span aria-hidden="true">→</span></a>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ============== PROJECTS ============== -->
-<section class="section section-projects" id="projects">
-  <div class="container">
-    <div class="section-head section-head-split">
       <div>
-        <span class="section-eyebrow">Our Reference</span>
-        <h2 class="section-title">Project Portfolio</h2>
+        <div class="head-meta"><strong>+ 06</strong> · Our Reference</div>
+        <h2 style="margin-top:18px;">Project <em>Portfolio</em></h2>
       </div>
-      <p class="section-desc-right">
+      <p class="head-side">
         JPGLOBAL이 수행해온 주요 프로젝트 레퍼런스.<br>
         Selected references across oil &amp; gas, offshore and renewable energy.
       </p>
     </div>
 
-    <div class="project-grid">
-      <article class="project-card">
-        <div class="project-tag">Oil &amp; Gas</div>
-        <h3>TCO</h3>
-        <p class="project-en">Tengizchevroil Project</p>
-        <p class="project-desc">
+    <div class="projects-stack">
+      <article class="proj-row">
+        <div class="proj-num">001</div>
+        <h3 class="proj-name">
+          TCO
+          <span class="en">Tengizchevroil Project</span>
+        </h3>
+        <p class="proj-desc">
           카자흐스탄 텡기즈 유전 확장 프로젝트 화물 핸들링.
           중량물 운송 및 사이트 서포트 수행.
         </p>
+        <div class="proj-tag">Oil &amp; Gas</div>
       </article>
 
-      <article class="project-card">
-        <div class="project-tag">Offshore</div>
-        <h3>Martin Linge</h3>
-        <p class="project-en">North Sea Offshore Platform</p>
-        <p class="project-desc">
+      <article class="proj-row">
+        <div class="proj-num">002</div>
+        <h3 class="proj-name">
+          Martin Linge
+          <span class="en">North Sea Offshore Platform</span>
+        </h3>
+        <p class="proj-desc">
           노르웨이 북해 마틴 링게 플랫폼 관련
           프로젝트 카고 운송 및 항만 서비스 지원.
         </p>
+        <div class="proj-tag">Offshore</div>
       </article>
 
-      <article class="project-card">
-        <div class="project-tag">Renewable</div>
-        <h3>Wind Resource Assessment</h3>
-        <p class="project-en">Offshore Wind Survey Logistics</p>
-        <p class="project-desc">
+      <article class="proj-row">
+        <div class="proj-num">003</div>
+        <h3 class="proj-name">
+          Wind Resource Assessment
+          <span class="en">Offshore Wind Survey Logistics</span>
+        </h3>
+        <p class="proj-desc">
           해상풍력 자원 조사 장비 운송 및 설치 사이트
           서포트, 조사 인력 모빌리티 지원.
         </p>
+        <div class="proj-tag">Renewable</div>
       </article>
 
-      <article class="project-card">
-        <div class="project-tag">Industrial</div>
-        <h3>SR Input SVC</h3>
-        <p class="project-en">Industrial Input Services</p>
-        <p class="project-desc">
+      <article class="proj-row">
+        <div class="proj-num">004</div>
+        <h3 class="proj-name">
+          SR Input SVC
+          <span class="en">Industrial Input Services</span>
+        </h3>
+        <p class="proj-desc">
           산업 플랜트향 핵심 자재 및 장비
           정시 공급 체인 운영 (Just-In-Time Logistics).
         </p>
+        <div class="proj-tag">Industrial</div>
       </article>
     </div>
   </div>
 </section>
 
-<!-- ============== CAPABILITIES BAND ============== -->
-<section class="section-band">
-  <div class="container band-inner">
-    <p class="band-eyebrow">Our Activities</p>
-    <p class="band-text">
+<!-- ============== 07 — CAPABILITIES BAND ============== -->
+<section class="s-capabilities" data-index="07" data-theme="orange">
+  <div class="container">
+    <p class="cap-eyebrow">+ 07 · Our Activities</p>
+    <p class="cap-text">
       Our activities are mainly focused on <em>shipping</em>,
       <em>port service</em> and <em>project cargo</em> with full supporting services.
       Over the years, a team of specialists with vast experience has been formed
       to provide tailor-made solutions to meet the requirements of our clients.
     </p>
-    <p class="band-signature">— JPGLOBAL CO.,LTD</p>
+    <p class="cap-signature">— JPGLOBAL CO.,LTD</p>
   </div>
 </section>
 
-<!-- ============== TESTIMONIALS (원본 3건) ============== -->
-<section class="section section-testimonials">
+<!-- ============== 08 — TESTIMONIALS (원본 3건) ============== -->
+<section class="s-testimonials" data-index="08" data-theme="light">
   <div class="container">
     <div class="section-head">
-      <span class="section-eyebrow">Testimonials</span>
-      <h2 class="section-title">What People Say</h2>
+      <div>
+        <div class="head-meta"><strong>+ 08</strong> · Testimonials</div>
+        <h2 style="margin-top:18px;">What People <em>Say</em></h2>
+      </div>
     </div>
 
     <div class="testi-grid">
@@ -570,10 +433,10 @@
           tristique congue lacus ultrices. Pellentesque non risus urna.
           Curabitur hendrerit convallis euismod.
         </p>
-        <footer class="testi-by">
+        <div class="testi-by">
           <span class="testi-name">Gregor Blackwod</span>
           <span class="testi-role">Investor</span>
-        </footer>
+        </div>
       </article>
 
       <article class="testi-card">
@@ -584,10 +447,10 @@
           lacinia convallis, diam purus finibus lectus, ut rutrum quam velit id orci.
           Aenean hendrerit ante sed turpis interdum consequat. Proin eleifend nulla!
         </p>
-        <footer class="testi-by">
+        <div class="testi-by">
           <span class="testi-name">Tiffany White</span>
           <span class="testi-role">Business Owner</span>
-        </footer>
+        </div>
       </article>
 
       <article class="testi-card">
@@ -597,44 +460,46 @@
           vitae elit vitae consequat. Ut imperdiet ex sed quam ultrices accumsan.
           Maecenas nec nulla dapibus, mollis nisi id, fringilla orci.
         </p>
-        <footer class="testi-by">
+        <div class="testi-by">
           <span class="testi-name">Charles Dug</span>
           <span class="testi-role">Condo Owner</span>
-        </footer>
+        </div>
       </article>
     </div>
   </div>
 </section>
 
-<!-- ============== JOIN OUR TEAM CTA (원본) ============== -->
-<section class="section-join">
-  <div class="container join-inner">
-    <div class="join-text">
-      <span class="section-eyebrow">Careers</span>
-      <h2>Join Our Team!</h2>
-      <p>
-        Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla,
-        molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis,
-        auctor suscipit lacus dapibus ut – lorem ipsum dolor amet!
-      </p>
+<!-- ============== 09 — JOIN OUR TEAM ============== -->
+<section class="s-join" data-index="09" data-theme="dark">
+  <div class="container">
+    <div class="join-grid">
+      <div class="join-text">
+        <span class="label">+ 09 · Careers</span>
+        <h2>Join Our <em>Team!</em></h2>
+        <p>
+          Integer eget venenatis massa. Mauris sed tellus quam. Suspendisse risus nulla,
+          molestie quis risus elementum, viverra viverra ipsum. Nulla aliquam dolor turpis,
+          auctor suscipit lacus dapibus ut – lorem ipsum dolor amet!
+        </p>
+      </div>
+      <a href="mailto:careers@jpglobal.kr?subject=CV%20Submission" class="btn btn-fill btn-lg">
+        Send Your CV <span class="arrow">→</span>
+      </a>
     </div>
-    <a href="mailto:careers@jpglobal.kr?subject=CV%20Submission" class="btn btn-primary btn-lg">Send Your CV <span aria-hidden="true">→</span></a>
   </div>
 </section>
 
-<!-- ============== CONTACT CTA ============== -->
-<section class="section section-contact" id="contact">
-  <div class="container contact-grid">
-    <div class="contact-left">
-      <span class="section-eyebrow">Get in Touch</span>
-      <h2 class="section-title">Have a Large Project?<br>Let's talk.</h2>
-      <p class="section-desc">
-        프로젝트 카고, 항만 운영, 선박 대리점 어떤 문의든
-        부담 없이 연락 주십시오. 영업일 기준 1일 이내 회신드립니다.
-      </p>
-    </div>
+<!-- ============== 10 — CONTACT ============== -->
+<section class="s-contact" data-index="10" data-theme="light" id="contact">
+  <div class="container">
+    <p class="contact-eyebrow"><strong>+ 10</strong> · Get in Touch</p>
+    <h2 class="contact-headline">
+      <span class="reveal-line">Have a large</span>
+      <span class="reveal-line"><em>project?</em></span>
+      <span class="reveal-line">Let's talk.</span>
+    </h2>
 
-    <div class="contact-right">
+    <div class="contact-grid">
       <ul class="contact-info">
         <li>
           <span class="ci-label">Phone</span>
@@ -645,78 +510,93 @@
           <span class="ci-value">97, Centum jungang-ro, Haeundae-gu,<br>Busan, Republic of Korea</span>
         </li>
         <li>
-          <span class="ci-label">Open Hours</span>
+          <span class="ci-label">Hours</span>
           <span class="ci-value">Mon — Fri · 09:00 — 18:00 (KST)</span>
         </li>
       </ul>
-      <a href="mailto:contact@jpglobal.kr" class="btn btn-primary btn-lg">Send a Message <span aria-hidden="true">→</span></a>
+
+      <div class="contact-cta">
+        <span class="label">+ Drop a Line</span>
+        <p>
+          프로젝트 카고, 항만 운영, 선박 대리점 어떤 문의든
+          부담 없이 연락 주십시오. 영업일 기준 1일 이내 회신드립니다.
+        </p>
+        <a href="mailto:contact@jpglobal.kr" class="btn btn-fill btn-lg">
+          Send a Message <span class="arrow">→</span>
+        </a>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ============== PARTNERS (원본 6 라벨) ============== -->
-<section class="section-partners">
+<!-- ============== 11 — PARTNERS (원본 6 라벨) ============== -->
+<section class="s-partners" data-index="11" data-theme="light">
   <div class="container">
-    <p class="partners-eyebrow">Our Partners</p>
+    <div class="partners-head">
+      <p><strong>+ 11</strong> · Our Partners</p>
+      <p>06 organizations</p>
+    </div>
+  </div>
+  <div class="container" style="padding:0 var(--gutter);">
     <ul class="partners-grid">
-      <li><span>Design &amp; Build</span></li>
-      <li><span>Interior Bureau</span></li>
-      <li><span>Building Bureau</span></li>
-      <li><span>Apartments</span></li>
-      <li><span>Building Company</span></li>
-      <li><span>Architecture Bureau</span></li>
+      <li class="partner">Design &amp; Build</li>
+      <li class="partner">Interior Bureau</li>
+      <li class="partner">Building Bureau</li>
+      <li class="partner">Apartments</li>
+      <li class="partner">Building Company</li>
+      <li class="partner">Architecture Bureau</li>
     </ul>
   </div>
 </section>
 
 <!-- ============== FOOTER ============== -->
 <footer class="site-footer">
-  <div class="container footer-grid">
-    <div class="footer-brand">
-      <span class="brand-name">JPGLOBAL <span class="brand-sub">CO.,LTD</span></span>
-      <p class="footer-tagline">Integrated logistics solution<br>Since 2014, Busan</p>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="brand-large">JPGLOBAL</span>
+        <p>Integrated logistics solution<br>Since 2014, Busan, Republic of Korea</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="about.html#mission">Mission Statement</a></li>
+          <li><a href="about.html#reference">Reference</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="#services">Port Operations</a></li>
+          <li><a href="#services">Shipping Agency</a></li>
+          <li><a href="#services">Support Services</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Project</h5>
+        <ul>
+          <li><a href="#projects">TCO</a></li>
+          <li><a href="#projects">Martin Linge</a></li>
+          <li><a href="#projects">Wind Resource</a></li>
+          <li><a href="#projects">SR Input SVC</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-contact">
+        <h5>Contact</h5>
+        <p>97, Centum jungang-ro,<br>Haeundae-gu, Busan, Korea</p>
+        <p>Tel. +82 51 442 0720</p>
+        <p>Mon — Fri 09:00 — 18:00</p>
+      </div>
     </div>
 
-    <div class="footer-col">
-      <h5>Company</h5>
+    <div class="footer-bottom">
+      <p>© 2026 JPGLOBAL CO.,LTD · All Rights Reserved.</p>
       <ul>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#about">Mission Statement</a></li>
-        <li><a href="#projects">Reference</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-col">
-      <h5>Services</h5>
-      <ul>
-        <li><a href="#services">Port Operations</a></li>
-        <li><a href="#services">Shipping Agency</a></li>
-        <li><a href="#services">Support Services</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-col">
-      <h5>Project</h5>
-      <ul>
-        <li><a href="#projects">TCO</a></li>
-        <li><a href="#projects">Martin Linge</a></li>
-        <li><a href="#projects">Wind Resource</a></li>
-        <li><a href="#projects">SR Input SVC</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-col footer-contact">
-      <h5>Contact</h5>
-      <p>97, Centum jungang-ro,<br>Haeundae-gu, Busan, Korea</p>
-      <p>Tel. +82 51 442 0720</p>
-      <p>Mon — Fri 09:00 — 18:00</p>
-    </div>
-  </div>
-
-  <div class="footer-bottom">
-    <div class="container footer-bottom-inner">
-      <p class="copy">© 2026 JPGLOBAL CO.,LTD. All rights reserved.</p>
-      <ul class="footer-meta">
         <li><a href="#">Privacy Policy</a></li>
         <li><a href="#">Terms &amp; Conditions</a></li>
       </ul>
