@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Sample D — Korean Modern SVG | 정부세종청사</title>
+<style>
+  body{margin:0;background:#0E1828;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;color:#F2F4F8;display:flex;flex-direction:column;align-items:center;padding:32px;min-height:100vh;box-sizing:border-box;}
+  h1{font-size:18px;font-weight:700;letter-spacing:.04em;color:#E0B96B;margin:0 0 4px;}
+  .sub{font-size:12px;color:#A4B0C6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px;}
+  .stage{background:radial-gradient(ellipse at 50% 35%, #F2EEDD 0%, #D8D3BD 60%, #B9B49E 100%);width:760px;height:560px;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden;}
+  .label{position:absolute;top:18px;left:22px;font-size:11px;font-weight:700;color:#2A3346;letter-spacing:.08em;text-transform:uppercase;}
+  .ko-label{position:absolute;top:34px;left:22px;font-size:14px;font-weight:700;color:#1A2536;letter-spacing:-.01em;}
+  .count{position:absolute;top:22px;right:24px;}
+  .caption{margin-top:24px;font-size:13px;color:#B8C5DC;max-width:760px;line-height:1.6;}
+  .meta{margin-top:10px;font-size:11px;color:#7F8DA6;}
+</style>
+</head>
+<body>
+<h1>SAMPLE D — Korean Modern SVG</h1>
+<div class="sub">정부세종청사 · 모던 stepped massing + 한국 곡선 처마 + 단청 디테일</div>
+
+<div class="stage">
+  <div class="label">SEJONG GOVERNMENT COMPLEX</div>
+  <div class="ko-label">정부세종청사</div>
+  <svg class="count" width="44" height="44" viewBox="-22 -22 44 44">
+    <circle r="20" fill="#0E1828" stroke="#E0B96B" stroke-width="1.5"/>
+    <text x="0" y="5" text-anchor="middle" font-size="15" font-weight="800" fill="#E0B96B" font-family="ui-monospace,monospace">5</text>
+  </svg>
+
+  <svg viewBox="-380 -240 760 480" width="760" height="480" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+    <defs>
+      <!-- 화강암 외벽 (한국 정부청사 standard) -->
+      <linearGradient id="granite-light" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F5F1E4"/>
+        <stop offset="50%" stop-color="#E8E2CC"/>
+        <stop offset="100%" stop-color="#C8C0A2"/>
+      </linearGradient>
+      <linearGradient id="granite-dark" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#9C9580"/>
+        <stop offset="100%" stop-color="#5E5840"/>
+      </linearGradient>
+      <!-- 청록 유리 panel — 단청 청 -->
+      <linearGradient id="dancheong-glass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5F8AA8"/>
+        <stop offset="40%" stop-color="#3A5F95"/>
+        <stop offset="100%" stop-color="#1F3A6A"/>
+      </linearGradient>
+      <!-- 곡선 처마 (curved roof canopy) - 단청 청기와 톤 -->
+      <linearGradient id="dancheong-roof" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#284878"/>
+        <stop offset="50%" stop-color="#1A2F58"/>
+        <stop offset="100%" stop-color="#0E1838"/>
+      </linearGradient>
+      <linearGradient id="canopy-rim" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#E0B96B"/>
+        <stop offset="50%" stop-color="#F5D78A"/>
+        <stop offset="100%" stop-color="#C49850"/>
+      </linearGradient>
+      <linearGradient id="plaza-stone" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#C9C0A8"/>
+        <stop offset="100%" stop-color="#9E957D"/>
+      </linearGradient>
+      <linearGradient id="garden" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7A9C70"/>
+        <stop offset="100%" stop-color="#4E7048"/>
+      </linearGradient>
+      <radialGradient id="halo-gold" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#E0B96B" stop-opacity="0.5"/>
+        <stop offset="60%" stop-color="#E0B96B" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#E0B96B" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+        <feOffset dx="0" dy="8"/>
+        <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+        <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- 한국적 살창 격자 패턴 -->
+      <pattern id="salchang" x="0" y="0" width="6" height="10" patternUnits="userSpaceOnUse">
+        <rect width="6" height="10" fill="url(#dancheong-glass)"/>
+        <path d="M 0,5 L 6,5 M 3,0 L 3,10" stroke="#5F8AA8" stroke-width=".4" opacity=".5"/>
+      </pattern>
+    </defs>
+
+    <!-- gold halo (S priority cluster) -->
+    <ellipse cx="0" cy="80" rx="340" ry="140" fill="url(#halo-gold)"/>
+
+    <!-- 광장 (plaza) — isometric diamond, 한국 정원 양식 -->
+    <g filter="url(#ds)">
+      <path d="M 0,180 L 330,40 L 0,-100 L -330,40 Z" fill="url(#plaza-stone)" opacity="0.92"/>
+      <!-- 솟을대문 진입로 (central path) -->
+      <path d="M 0,180 L 0,-100" stroke="#7E785F" stroke-width="3" opacity=".45"/>
+      <path d="M -25,168 L -25,-90" stroke="#7E785F" stroke-width="1.5" opacity=".35"/>
+      <path d="M  25,168 L  25,-90" stroke="#7E785F" stroke-width="1.5" opacity=".35"/>
+      <!-- 가로 보조 path -->
+      <path d="M -330,40 L 330,40" stroke="#7E785F" stroke-width="2" opacity=".35"/>
+      <!-- 정원 patches (한국 정원 4분할) -->
+      <path d="M -200,60 L -60,60 L -60,140 L -200,140 Z" fill="url(#garden)" opacity=".85"/>
+      <path d="M  200,60 L  60,60 L  60,140 L  200,140 Z" fill="url(#garden)" opacity=".85"/>
+      <path d="M -200,-20 L -60,-20 L -60,-60 L -200,-60 Z" fill="url(#garden)" opacity=".7"/>
+      <path d="M  200,-20 L  60,-20 L  60,-60 L  200,-60 Z" fill="url(#garden)" opacity=".7"/>
+    </g>
+
+    <!-- ============ 건물 1: 후좌 stepped tower ============ -->
+    <g transform="translate(-220, -40)" filter="url(#ds)">
+      <!-- base wall -->
+      <path d="M 0,0 L 60,-24 L 60,-120 L 0,-96 Z" fill="url(#granite-light)"/>
+      <path d="M 0,0 L 0,-96 L -60,-72 L -60,24 Z" fill="url(#granite-dark)"/>
+      <!-- 유리 panel band (한국 청록) -->
+      <path d="M 0,-30 L 60,-54 L 60,-72 L 0,-48 Z" fill="url(#salchang)"/>
+      <path d="M 0,-48 L 0,-30 L -60,-6 L -60,-24 Z" fill="url(#salchang)" opacity=".75"/>
+      <!-- stepped upper massing (한국 modern characteristic) -->
+      <path d="M 0,-96 L 40,-112 L 40,-150 L 0,-134 Z" fill="url(#granite-light)"/>
+      <path d="M 0,-96 L 0,-134 L -40,-118 L -40,-80 Z" fill="url(#granite-dark)"/>
+      <!-- 옥상 곡선 캐노피 (한국 처마 곡선) -->
+      <path d="M -50,-150 Q -25,-180 0,-176 Q 25,-180 50,-150 L 50,-138 Q 25,-170 0,-164 Q -25,-170 -50,-138 Z"
+            fill="url(#dancheong-roof)"/>
+      <!-- 캐노피 황금 trim (단청 황) -->
+      <path d="M -50,-138 Q -25,-170 0,-164 Q 25,-170 50,-138"
+            fill="none" stroke="url(#canopy-rim)" stroke-width="2"/>
+    </g>
+
+    <!-- ============ 건물 2: 후우 hero — 중앙동 ============ -->
+    <g transform="translate(0, 30)" filter="url(#ds)">
+      <!-- main base — wider/taller hero -->
+      <path d="M 0,0 L 95,-38 L 95,-160 L 0,-122 Z" fill="url(#granite-light)"/>
+      <path d="M 0,0 L 0,-122 L -95,-84 L -95,38 Z" fill="url(#granite-dark)"/>
+      <!-- 청록 유리 lower band -->
+      <path d="M 0,-20 L 95,-58 L 95,-90 L 0,-52 Z" fill="url(#salchang)"/>
+      <path d="M 0,-52 L 0,-20 L -95,18 L -95,-14 Z" fill="url(#salchang)" opacity=".8"/>
+      <!-- 청록 유리 upper band -->
+      <path d="M 0,-95 L 95,-133 L 95,-150 L 0,-112 Z" fill="url(#salchang)" opacity=".9"/>
+      <!-- stepped middle setback -->
+      <path d="M 0,-122 L 70,-150 L 70,-185 L 0,-160 Z" fill="url(#granite-light)" opacity=".95"/>
+      <path d="M 0,-122 L 0,-160 L -70,-132 L -70,-94 Z" fill="url(#granite-dark)" opacity=".95"/>
+      <!-- stepped top -->
+      <path d="M 0,-160 L 45,-178 L 45,-208 L 0,-188 Z" fill="url(#granite-light)"/>
+      <path d="M 0,-160 L 0,-188 L -45,-170 L -45,-142 Z" fill="url(#granite-dark)"/>
+      <!-- ★ 한국 곡선 처마 캐노피 (hero) ★ -->
+      <!-- 양쪽 sloped 처마 — Bezier curve -->
+      <path d="M -60,-208 Q -30,-244 0,-238 Q 30,-244 60,-208 L 60,-200 Q 30,-232 0,-228 Q -30,-232 -60,-200 Z"
+            fill="url(#dancheong-roof)"/>
+      <!-- 황금 단청 rim -->
+      <path d="M -60,-200 Q -30,-232 0,-228 Q 30,-232 60,-200"
+            fill="none" stroke="url(#canopy-rim)" stroke-width="2.5"/>
+      <!-- 단청 청록 inner band -->
+      <path d="M -54,-205 Q -27,-228 0,-224 Q 27,-228 54,-205"
+            fill="none" stroke="#5F8AA8" stroke-width="1" opacity=".7"/>
+      <!-- 중앙 단청 dot (상징) -->
+      <circle cx="0" cy="-232" r="3" fill="#E0B96B"/>
+      <!-- 정면 입구 (솟을대문 cue) -->
+      <path d="M -22,-12 L 22,-12 L 24,38 L -24,38 Z" fill="#3A4458" opacity=".55"/>
+      <path d="M -22,-12 L -22,-2 L 22,-2 L 22,-12" stroke="url(#canopy-rim)" stroke-width="1.2"/>
+    </g>
+
+    <!-- ============ 건물 3: 후우 (back right) ============ -->
+    <g transform="translate(180, -30)" filter="url(#ds)">
+      <path d="M 0,0 L 65,-26 L 65,-130 L 0,-104 Z" fill="url(#granite-light)"/>
+      <path d="M 0,0 L 0,-104 L -65,-78 L -65,26 Z" fill="url(#granite-dark)"/>
+      <!-- 청록 유리 -->
+      <path d="M 0,-30 L 65,-56 L 65,-78 L 0,-52 Z" fill="url(#salchang)"/>
+      <path d="M 0,-52 L 0,-30 L -65,-4 L -65,-26 Z" fill="url(#salchang)" opacity=".75"/>
+      <!-- stepped top -->
+      <path d="M 0,-104 L 40,-120 L 40,-152 L 0,-136 Z" fill="url(#granite-light)"/>
+      <path d="M 0,-104 L 0,-136 L -40,-120 L -40,-88 Z" fill="url(#granite-dark)"/>
+      <!-- 곡선 캐노피 -->
+      <path d="M -50,-152 Q -25,-180 0,-176 Q 25,-180 50,-152 L 50,-140 Q 25,-170 0,-164 Q -25,-170 -50,-140 Z"
+            fill="url(#dancheong-roof)"/>
+      <path d="M -50,-140 Q -25,-170 0,-164 Q 25,-170 50,-140"
+            fill="none" stroke="url(#canopy-rim)" stroke-width="2"/>
+    </g>
+
+    <!-- ============ 건물 4: 전좌 ============ -->
+    <g transform="translate(-200, 110)" filter="url(#ds)">
+      <path d="M 0,0 L 50,-20 L 50,-86 L 0,-66 Z" fill="url(#granite-light)"/>
+      <path d="M 0,0 L 0,-66 L -50,-46 L -50,20 Z" fill="url(#granite-dark)"/>
+      <path d="M 0,-20 L 50,-40 L 50,-58 L 0,-38 Z" fill="url(#salchang)"/>
+      <path d="M 0,-38 L 0,-20 L -50,0 L -50,-16 Z" fill="url(#salchang)" opacity=".75"/>
+      <!-- 곡선 캐노피 (smaller) -->
+      <path d="M -40,-86 Q -20,-108 0,-104 Q 20,-108 40,-86 L 40,-78 Q 20,-100 0,-96 Q -20,-100 -40,-78 Z"
+            fill="url(#dancheong-roof)"/>
+    </g>
+
+    <!-- ============ 건물 5: 전우 ============ -->
+    <g transform="translate(180, 130)" filter="url(#ds)">
+      <path d="M 0,0 L 50,-20 L 50,-86 L 0,-66 Z" fill="url(#granite-light)"/>
+      <path d="M 0,0 L 0,-66 L -50,-46 L -50,20 Z" fill="url(#granite-dark)"/>
+      <path d="M 0,-20 L 50,-40 L 50,-58 L 0,-38 Z" fill="url(#salchang)"/>
+      <path d="M 0,-38 L 0,-20 L -50,0 L -50,-16 Z" fill="url(#salchang)" opacity=".75"/>
+      <path d="M -40,-86 Q -20,-108 0,-104 Q 20,-108 40,-86 L 40,-78 Q 20,-100 0,-96 Q -20,-100 -40,-78 Z"
+            fill="url(#dancheong-roof)"/>
+    </g>
+
+    <!-- 정원 트리 (소나무 silhouette) -->
+    <g opacity=".9">
+      <g transform="translate(-275, 30)"><circle cx="0" cy="0" r="5" fill="#3A5328"/><circle cx="3" cy="-3" r="6" fill="#4E7048"/><rect x="-1" y="2" width="2" height="6" fill="#5E4A28"/></g>
+      <g transform="translate(275, 30)"><circle cx="0" cy="0" r="5" fill="#3A5328"/><circle cx="3" cy="-3" r="6" fill="#4E7048"/><rect x="-1" y="2" width="2" height="6" fill="#5E4A28"/></g>
+      <g transform="translate(-120, 165)"><circle cx="0" cy="0" r="4" fill="#3A5328"/><circle cx="2" cy="-2" r="5" fill="#4E7048"/></g>
+      <g transform="translate(120, 165)"><circle cx="0" cy="0" r="4" fill="#3A5328"/><circle cx="2" cy="-2" r="5" fill="#4E7048"/></g>
+    </g>
+
+    <!-- 최상부 단청 marker (S priority golden orb) -->
+    <g transform="translate(0, -232)">
+      <circle r="9" fill="none" stroke="#E0B96B" stroke-width="0.8" opacity=".5"/>
+      <circle r="14" fill="none" stroke="#E0B96B" stroke-width="0.4" opacity=".3"/>
+    </g>
+  </svg>
+</div>
+
+<div class="caption">
+  <strong>한국 정체성 보강:</strong>
+  ① 4각뿔 cone 폐기 → <strong>곡선 처마 Bezier curve</strong> (한국 전통 처마).
+  ② generic 박스 → <strong>stepped massing</strong> (정부세종청사 실제 비대칭 매스).
+  ③ 모노톤 panel → <strong>단청 청록 살창 + 황금 trim + 화강암 외벽</strong> 다층 색감.
+  ④ 빈 광장 → <strong>한국 정원 4분할 + 솟을대문 진입로 + 소나무</strong>.
+</div>
+<div class="meta">정적 SVG · 캡처용 / 동일 디자인 langauge를 13 청사 entity에 일괄 적용 가능</div>
+</body>
+</html>

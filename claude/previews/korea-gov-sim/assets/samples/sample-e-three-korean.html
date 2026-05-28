@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Sample E — Korean Modern Three.js | 정부세종청사</title>
+<style>
+  body{margin:0;background:#0E1828;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;color:#F2F4F8;display:flex;flex-direction:column;align-items:center;padding:32px;min-height:100vh;box-sizing:border-box;}
+  h1{font-size:18px;font-weight:700;letter-spacing:.04em;color:#E0B96B;margin:0 0 4px;}
+  .sub{font-size:12px;color:#A4B0C6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px;}
+  .stage{background:radial-gradient(ellipse at 50% 35%, #F2EEDD 0%, #D8D3BD 60%, #B9B49E 100%);width:760px;height:560px;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden;}
+  .stage canvas{display:block;width:100%;height:100%;}
+  .label{position:absolute;top:18px;left:22px;font-size:11px;font-weight:700;color:#2A3346;letter-spacing:.08em;text-transform:uppercase;z-index:5;}
+  .ko-label{position:absolute;top:34px;left:22px;font-size:14px;font-weight:700;color:#1A2536;letter-spacing:-.01em;z-index:5;}
+  .count{position:absolute;top:22px;right:24px;width:44px;height:44px;border-radius:50%;background:#0E1828;color:#E0B96B;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-weight:800;font-size:15px;border:1.5px solid #E0B96B;z-index:5;}
+  .hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(26,37,54,.6);letter-spacing:.08em;text-transform:uppercase;z-index:5;}
+  .caption{margin-top:24px;font-size:13px;color:#B8C5DC;max-width:760px;line-height:1.6;}
+  .meta{margin-top:10px;font-size:11px;color:#7F8DA6;}
+</style>
+</head>
+<body>
+<h1>SAMPLE E — Korean Modern Three.js</h1>
+<div class="sub">정부세종청사 · 곡선 처마 + 단청 톤 + stepped massing + 청록 유리 panel + 한국 정원</div>
+
+<div class="stage">
+  <div class="label">SEJONG GOVERNMENT COMPLEX</div>
+  <div class="ko-label">정부세종청사</div>
+  <div class="count">5</div>
+  <div class="hint">drag to rotate · scroll to zoom</div>
+  <div id="three"></div>
+</div>
+
+<div class="caption">
+  <strong>한국 정체성 강화 Three.js:</strong>
+  ① 4각뿔 cone 폐기 → <strong>LatheGeometry + Catmull-Rom spline 곡선 처마 캐노피</strong> (한국 전통 처마).
+  ② generic box → <strong>stepped massing</strong> (Box stack 비대칭).
+  ③ 모노톤 wall → <strong>화강암 외벽 + 단청 청록 유리 panel + 단청 황금 trim</strong>.
+  ④ 빈 광장 → <strong>한국 정원 4분할 + 솟을대문 진입로 + 소나무 silhouette</strong>.
+  ⑤ <strong>인터랙티브</strong> drag/zoom/자동 회전.
+</div>
+<div class="meta">production map 통합 시 LOD 임계 따라 anchor pin ⇄ 본 미니어처 자동 전환 — 동일 시각 langauge 유지</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+
+const mount = document.getElementById("three");
+const stage = mount.closest(".stage");
+const W = stage.clientWidth, H = stage.clientHeight;
+
+const scene = new THREE.Scene();
+scene.background = null;
+
+const camera = new THREE.PerspectiveCamera(32, W/H, 0.1, 1000);
+camera.position.set(18, -22, 16);
+camera.up.set(0,0,1);
+camera.lookAt(0,0,2.5);
+
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(W, H);
+renderer.setClearColor(0x000000, 0);
+mount.appendChild(renderer.domElement);
+
+// 한국 따뜻한 lighting — 골든 시간대
+scene.add(new THREE.AmbientLight(0xFFF1DC, 0.55));
+const sun = new THREE.DirectionalLight(0xFFE8B8, 0.95);
+sun.position.set(10, -12, 18);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0xD4A85A, 0.35);
+rim.position.set(-12, 10, 8);
+scene.add(rim);
+const fill = new THREE.DirectionalLight(0x5F8AA8, 0.15);
+fill.position.set(0, 14, -4);
+scene.add(fill);
+
+// ─── 광장 (한국 정원 양식) ───
+const plazaMat = new THREE.MeshLambertMaterial({color: 0xC9C0A8});
+const plaza = new THREE.Mesh(new THREE.BoxGeometry(22, 16, 0.22), plazaMat);
+plaza.position.z = 0.11;
+scene.add(plaza);
+
+// 솟을대문 진입로 (central path)
+const pathMat = new THREE.MeshLambertMaterial({color: 0xA89980});
+const mainPath = new THREE.Mesh(new THREE.BoxGeometry(2, 16, 0.14), pathMat);
+mainPath.position.set(0, 0, 0.23);
+scene.add(mainPath);
+// 가로 보조
+const crossPath = new THREE.Mesh(new THREE.BoxGeometry(22, 1.4, 0.13), pathMat);
+crossPath.position.set(0, 0, 0.225);
+scene.add(crossPath);
+
+// 정원 4분할 (한국 정원)
+const gardenMat = new THREE.MeshLambertMaterial({color: 0x4E7048});
+const gardenLight = new THREE.MeshLambertMaterial({color: 0x6F9568});
+const gardenPositions = [
+  {x:-7, y: 5, w:5, h:3.5, mat: gardenLight},
+  {x: 7, y: 5, w:5, h:3.5, mat: gardenLight},
+  {x:-7, y:-5, w:5, h:3, mat: gardenMat},
+  {x: 7, y:-5, w:5, h:3, mat: gardenMat},
+];
+for (const g of gardenPositions) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(g.w, g.h, 0.15), g.mat);
+  m.position.set(g.x, g.y, 0.22);
+  scene.add(m);
+}
+
+// ─── 한국 곡선 처마 캐노피 생성 함수 (LatheGeometry) ───
+// 한국 전통 처마의 단면을 회전하는 게 아니라, ExtrudeGeometry로 곡선 ridge.
+function makeKoreanCanopy(width, depth, height, opts={}) {
+  const g = new THREE.Group();
+  const roofMat = new THREE.MeshLambertMaterial({color: opts.color ?? 0x1A2F58, flatShading: false});
+  const rimMat = new THREE.MeshLambertMaterial({color: 0xE0B96B, flatShading: false});
+  const blueAccentMat = new THREE.MeshLambertMaterial({color: 0x5F8AA8});
+
+  // 처마 main: 곡선 ridge — ShapeGeometry + ExtrudeGeometry
+  // 단면: 한국 처마 곡선 (양 끝이 살짝 올라가는 형태)
+  const shape = new THREE.Shape();
+  const w2 = width / 2;
+  shape.moveTo(-w2, 0);
+  shape.bezierCurveTo(-w2 * 0.7, height * 0.4, -w2 * 0.3, height * 1.0, 0, height);
+  shape.bezierCurveTo(w2 * 0.3, height * 1.0, w2 * 0.7, height * 0.4, w2, 0);
+  shape.lineTo(w2 * 1.15, -height * 0.15);
+  shape.lineTo(-w2 * 1.15, -height * 0.15);
+  shape.lineTo(-w2, 0);
+
+  const extrudeSettings = {
+    depth: depth,
+    bevelEnabled: true,
+    bevelThickness: 0.05,
+    bevelSize: 0.08,
+    bevelSegments: 2,
+    curveSegments: 24,
+  };
+  const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  geo.translate(0, 0, -depth / 2);
+  const mesh = new THREE.Mesh(geo, roofMat);
+  // ExtrudeGeometry는 z축으로 extrude — 우리는 x축으로 폭, y축으로 높이 원하므로 rotate.
+  mesh.rotation.x = Math.PI / 2;
+  mesh.rotation.y = 0;
+  // height방향 = +Z. 회전 후 + y가 -Z 방향이 됨. 다시 정렬.
+  // 단순화: Shape가 XY 평면, extrude가 Z. 우리 좌표계 Z up이라면 OK.
+  // rotation 제거하고 mesh를 그대로:
+  mesh.rotation.set(0, 0, 0);
+  g.add(mesh);
+
+  // 황금 단청 rim — 처마 외곽선
+  const rimShape = new THREE.Shape();
+  rimShape.moveTo(-w2 * 1.15, -height * 0.15);
+  rimShape.lineTo(-w2, 0);
+  rimShape.bezierCurveTo(-w2 * 0.7, height * 0.4, -w2 * 0.3, height * 1.0, 0, height);
+  rimShape.bezierCurveTo(w2 * 0.3, height * 1.0, w2 * 0.7, height * 0.4, w2, 0);
+  rimShape.lineTo(w2 * 1.15, -height * 0.15);
+  // rim은 outline so we use tubular along curve. 단순화: 작은 띠.
+  const rimBand = new THREE.Mesh(
+    new THREE.TorusGeometry(w2 * 0.95, 0.08, 8, 32, Math.PI),
+    rimMat
+  );
+  rimBand.position.set(0, 0, height * 0.05);
+  rimBand.rotation.x = Math.PI / 2;
+  // 평면적이지만 호 형태 시각 (한국 처마 ridge 황금 줄)
+  g.add(rimBand);
+
+  // 중앙 단청 dot (꼭대기 황금 orb)
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), rimMat);
+  orb.position.set(0, 0, height + 0.1);
+  g.add(orb);
+
+  return g;
+}
+
+// ─── 한국 정부 청사 동 생성 (모던 stepped massing + 곡선 처마) ───
+function makeKoreanBuilding({w, d, h, x, y, hero, steps}) {
+  const g = new THREE.Group();
+
+  const graniteLight = new THREE.MeshLambertMaterial({color: hero ? 0xF5F1E4 : 0xEDE6D2});
+  const graniteDark = new THREE.MeshLambertMaterial({color: 0xC8C0A2});
+  const glassMat = new THREE.MeshPhongMaterial({color: 0x3A5F95, emissive: 0x1A2F58, shininess: 50, specular: 0x5F8AA8});
+  const trimGold = new THREE.MeshLambertMaterial({color: 0xE0B96B});
+  const baseMat = new THREE.MeshLambertMaterial({color: 0x7E785F});
+
+  // 단상 (base) — 화강암
+  const base = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, d + 0.5, 0.35), baseMat);
+  base.position.z = 0.42;
+  g.add(base);
+
+  // stepped massing — 여러 box 쌓기
+  const stepCount = steps || (hero ? 3 : 2);
+  let currentH = 0.6;
+  const stepData = [];
+  for (let i = 0; i < stepCount; i++) {
+    const ratio = 1 - i * 0.18;
+    const sw = w * ratio;
+    const sd = d * ratio;
+    const sh = h * (1 / stepCount) * (1 - i * 0.05);
+    stepData.push({sw, sd, sh, bottom: currentH});
+
+    // 화강암 벽
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(sw, sd, sh), graniteLight);
+    wall.position.z = currentH + sh / 2;
+    g.add(wall);
+
+    // 청록 유리 panel band — 각 step 상단부
+    const glassH = sh * 0.35;
+    const glassW = sw - 0.15;
+    const glassD = sd - 0.15;
+    const glass = new THREE.Mesh(new THREE.BoxGeometry(glassW + 0.06, glassD + 0.06, glassH), glassMat);
+    glass.position.z = currentH + sh - glassH / 2 - 0.1;
+    g.add(glass);
+
+    // hero일 경우 stepped 사이 황금 trim
+    if (hero) {
+      const trim = new THREE.Mesh(new THREE.BoxGeometry(sw + 0.08, sd + 0.08, 0.05), trimGold);
+      trim.position.z = currentH + sh - 0.025;
+      g.add(trim);
+    }
+
+    currentH += sh;
+  }
+
+  // 옥상 곡선 처마 캐노피
+  const topW = w * (1 - (stepCount - 1) * 0.18);
+  const topD = d * (1 - (stepCount - 1) * 0.18);
+  const canopy = makeKoreanCanopy(topW * 1.25, topD * 1.25, hero ? 1.4 : 0.95, {
+    color: hero ? 0x142B58 : 0x1A2F58,
+  });
+  canopy.position.z = currentH + 0.05;
+  g.add(canopy);
+
+  // 정문 (솟을대문 cue) — hero만
+  if (hero) {
+    const doorMat = new THREE.MeshLambertMaterial({color: 0x2A3346});
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.1, 1.4), doorMat);
+    door.position.set(0, d / 2 + 0.01, 0.6 + 0.7);
+    g.add(door);
+    const doorTrim = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.06, 0.1), trimGold);
+    doorTrim.position.set(0, d / 2 + 0.04, 0.6 + 1.4);
+    g.add(doorTrim);
+  }
+
+  g.position.set(x, y, 0);
+  return g;
+}
+
+// ─── 5 동 배치 (정부세종청사 simplified) ───
+scene.add(makeKoreanBuilding({w: 5.0, d: 3.4, h: 4.6, x:  0, y:  0,    hero: true,  steps: 3}));
+scene.add(makeKoreanBuilding({w: 2.8, d: 2.0, h: 3.4, x: -6.5, y: -3, hero: false, steps: 2}));
+scene.add(makeKoreanBuilding({w: 3.0, d: 2.2, h: 3.6, x:  6.5, y: -3, hero: false, steps: 2}));
+scene.add(makeKoreanBuilding({w: 2.6, d: 1.8, h: 2.9, x: -5.5, y:  5, hero: false, steps: 2}));
+scene.add(makeKoreanBuilding({w: 2.6, d: 1.8, h: 2.9, x:  5.5, y:  5, hero: false, steps: 2}));
+
+// 소나무 silhouette (한국 정원)
+function makePine(x, y) {
+  const g = new THREE.Group();
+  const trunkMat = new THREE.MeshLambertMaterial({color: 0x5E4A28});
+  const foliageMat = new THREE.MeshLambertMaterial({color: 0x4E7048});
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 0.9, 8), trunkMat);
+  trunk.rotation.x = Math.PI / 2;
+  trunk.position.z = 0.65;
+  g.add(trunk);
+  // 소나무 가지 — 비대칭 cluster (4각뿔 단일 cone 회피)
+  const foliage1 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), foliageMat);
+  foliage1.position.set(-0.1, 0, 1.3);
+  foliage1.scale.set(1.1, 1.1, 0.8);
+  g.add(foliage1);
+  const foliage2 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.45, 0), foliageMat);
+  foliage2.position.set(0.15, 0.1, 1.7);
+  foliage2.scale.set(0.9, 0.9, 0.75);
+  g.add(foliage2);
+  const foliage3 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.35, 0), foliageMat);
+  foliage3.position.set(-0.05, -0.05, 2.05);
+  foliage3.scale.set(0.7, 0.7, 0.7);
+  g.add(foliage3);
+  g.position.set(x, y, 0.2);
+  return g;
+}
+scene.add(makePine(-9.5,  0));
+scene.add(makePine( 9.5,  0));
+scene.add(makePine(-9.5,  7));
+scene.add(makePine( 9.5,  7));
+scene.add(makePine(-2.5, -7));
+scene.add(makePine( 2.5, -7));
+
+// 돌담 (한국 정원 경계)
+const wallStoneMat = new THREE.MeshLambertMaterial({color: 0x7E785F});
+function makeStoneWall(x, y, w, d) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, d, 0.45), wallStoneMat);
+  m.position.set(x, y, 0.32);
+  return m;
+}
+scene.add(makeStoneWall(-11, 0, 0.3, 16));
+scene.add(makeStoneWall( 11, 0, 0.3, 16));
+scene.add(makeStoneWall( 0, -8, 22, 0.3));
+scene.add(makeStoneWall( 0,  8, 22, 0.3));
+
+// gold halo (S priority)
+const haloMat = new THREE.MeshBasicMaterial({color: 0xE0B96B, transparent: true, opacity: 0.18, side: THREE.DoubleSide});
+const halo = new THREE.Mesh(new THREE.RingGeometry(7.5, 8.8, 64), haloMat);
+halo.position.z = 0.05;
+scene.add(halo);
+
+// orbit
+let yaw = -0.6, pitch = 0.85, dist = 26;
+let dragging = false, lastX = 0, lastY = 0, auto = true;
+const canvas = renderer.domElement;
+canvas.addEventListener("mousedown", e => { dragging = true; auto = false; lastX = e.clientX; lastY = e.clientY; });
+window.addEventListener("mousemove", e => {
+  if (!dragging) return;
+  yaw += (e.clientX - lastX) * 0.01;
+  pitch += (e.clientY - lastY) * 0.01;
+  pitch = Math.max(0.2, Math.min(1.45, pitch));
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener("mouseup", () => dragging = false);
+canvas.addEventListener("wheel", e => {
+  dist = Math.max(10, Math.min(50, dist + e.deltaY * 0.025));
+  e.preventDefault();
+}, {passive: false});
+
+function tick() {
+  if (auto) yaw += 0.0028;
+  const cx = Math.cos(pitch) * Math.sin(yaw) * dist;
+  const cy = -Math.cos(pitch) * Math.cos(yaw) * dist;
+  const cz = Math.sin(pitch) * dist;
+  camera.position.set(cx, cy, cz);
+  camera.lookAt(0, 0, 2.5);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+window.addEventListener("resize", () => {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

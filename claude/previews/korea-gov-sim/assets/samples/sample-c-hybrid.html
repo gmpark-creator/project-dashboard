@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Sample C — Hybrid | 정부세종청사</title>
+<style>
+  body{margin:0;background:#1A2536;font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif;color:#F2F4F8;display:flex;flex-direction:column;align-items:center;padding:32px;min-height:100vh;box-sizing:border-box;}
+  h1{font-size:18px;font-weight:600;letter-spacing:.04em;color:#D4A85A;margin:0 0 4px;}
+  .sub{font-size:12px;color:#7F8DA6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px;}
+  .row{display:flex;gap:16px;align-items:flex-start;}
+  .stage{background:linear-gradient(180deg,#D8DCC4 0%,#C9CFB4 100%);width:352px;height:520px;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .stage canvas{display:block;width:100%;height:100%;}
+  .label{position:absolute;top:14px;left:16px;font-size:10px;font-weight:700;color:#1A2536;letter-spacing:.06em;text-transform:uppercase;z-index:5;}
+  .lod{position:absolute;top:14px;right:16px;font-size:10px;font-weight:700;color:#D4A85A;letter-spacing:.08em;background:#1A2536;padding:3px 8px;border-radius:4px;z-index:5;}
+  .caption{margin-top:24px;font-size:13px;color:#B8C5DC;max-width:720px;line-height:1.6;}
+  .meta{margin-top:10px;font-size:11px;color:#7F8DA6;}
+  .arrow{align-self:center;font-size:22px;color:#D4A85A;}
+</style>
+</head>
+<body>
+<h1>SAMPLE C — Hybrid (LOD)</h1>
+<div class="sub">정부세종청사 · descentT 따라 SVG anchor ⇄ Three.js miniature</div>
+
+<div class="row">
+  <div class="stage">
+    <div class="label">FAR (descentT &lt; 0.55)</div>
+    <div class="lod">SVG ANCHOR</div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+      <!-- SVG anchor — 작은 청사 silhouette pin -->
+      <svg width="80" height="100" viewBox="-40 -50 80 100">
+        <defs>
+          <radialGradient id="anchor-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#D4A85A" stop-opacity="0.65"/>
+            <stop offset="100%" stop-color="#D4A85A" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="0" cy="20" rx="32" ry="14" fill="url(#anchor-halo)"/>
+        <!-- pin body — 청사 silhouette miniature -->
+        <g transform="translate(0,-2)">
+          <!-- base plate -->
+          <ellipse cx="0" cy="20" rx="22" ry="6" fill="#1A2536" opacity=".35"/>
+          <!-- building cluster (very simplified) -->
+          <path d="M -16,18 L -16,2 L -8,-2 L -8,18 Z" fill="#7E785F"/>
+          <path d="M -8,18 L -8,-6 L 0,-10 L 0,18 Z" fill="#D4CFB8"/>
+          <path d="M 0,18 L 0,-10 L 8,-6 L 8,18 Z" fill="#7E785F"/>
+          <path d="M 8,18 L 8,-2 L 16,2 L 16,18 Z" fill="#D4CFB8"/>
+          <!-- hero roof (청기와 prism) -->
+          <path d="M -8,-6 L 0,-18 L 8,-6 L 0,-10 Z" fill="#3A5F95"/>
+          <path d="M 0,-18 L 0,-22" stroke="#D4A85A" stroke-width="1.5"/>
+          <circle cx="0" cy="-22" r="2" fill="#D4A85A"/>
+        </g>
+        <!-- entity count badge -->
+        <g transform="translate(20,-26)">
+          <circle cx="0" cy="0" r="9" fill="#1A2536" stroke="#D4A85A" stroke-width="1"/>
+          <text x="0" y="3" text-anchor="middle" font-size="9" font-weight="800" fill="#D4A85A" font-family="ui-monospace,monospace">5</text>
+        </g>
+      </svg>
+    </div>
+    <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(26,37,54,.6);">national zoom: anchor only</div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <div class="stage">
+    <div class="label">NEAR (descentT &ge; 0.55)</div>
+    <div class="lod">3D MINIATURE</div>
+    <div id="three"></div>
+    <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(26,37,54,.6);">deep zoom: building cluster</div>
+  </div>
+</div>
+
+<div class="caption">
+  Hybrid LOD. <strong>먼 zoom = SVG anchor pin</strong> (가벼움, 통일 langauge),
+  <strong>가까운 zoom = Three.js 미니어처</strong> (입체, 인터랙티브). descentT 0.55 임계로 자연 전환.
+  44 entity 모두 anchor만 그리면 GPU 부담 없고, 사용자가 zoom in 한 cluster만 3D로 부풀어 오름.
+</div>
+<div class="meta">
+  pros: GPU 부담 ↓ (먼 zoom = SVG sprite) · 줌 인 시 입체감 ↑ · "이미지 파일" + 인터랙티브 둘 다 만족 · LOD 정합<br>
+  cons: 2 시각 시스템 유지 (anchor SVG + Three building) · 디자인 일관성 신경 써야 · 전환 transition 작업 필요
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+
+const mount = document.getElementById("three");
+const stage = mount.closest(".stage");
+const W = stage.clientWidth, H = stage.clientHeight;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xD8DCC4);
+
+const camera = new THREE.PerspectiveCamera(35, W/H, 0.1, 1000);
+camera.position.set(15, -18, 14);
+camera.up.set(0,0,1);
+camera.lookAt(0,0,2);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(W, H);
+mount.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xFFF0DC, 0.6));
+const dir = new THREE.DirectionalLight(0xFFFFFF, 0.9);
+dir.position.set(8, -10, 14);
+scene.add(dir);
+
+const plaza = new THREE.Mesh(new THREE.BoxGeometry(20, 14, 0.2), new THREE.MeshLambertMaterial({color: 0x6F9568}));
+plaza.position.z = 0.1;
+scene.add(plaza);
+
+function building({w, d, h, roofH, x, y, hero}) {
+  const g = new THREE.Group();
+  const wallMat = new THREE.MeshLambertMaterial({color: hero ? 0xF4F1E6 : 0xE6DFCA});
+  const roofMat = new THREE.MeshLambertMaterial({color: 0x3A5F95});
+  const base = new THREE.Mesh(new THREE.BoxGeometry(w+0.6, d+0.6, 0.3), new THREE.MeshLambertMaterial({color: 0x9C8265}));
+  base.position.z = 0.35;
+  g.add(base);
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(w, d, h), wallMat);
+  wall.position.z = 0.5 + h/2;
+  g.add(wall);
+  if (hero) {
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(w+0.05, d+0.05, 0.08), new THREE.MeshLambertMaterial({color: 0xD4A85A}));
+    trim.position.z = 0.5 + h - 0.04;
+    g.add(trim);
+  }
+  const rb = new THREE.Mesh(new THREE.BoxGeometry(w+0.4, d+0.4, 0.15), roofMat);
+  rb.position.z = 0.5 + h + 0.075;
+  g.add(rb);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.65, roofH, 4), roofMat);
+  roof.rotation.z = Math.PI/4;
+  roof.position.z = 0.5 + h + 0.15 + roofH/2;
+  g.add(roof);
+  g.position.set(x, y, 0);
+  return g;
+}
+
+scene.add(building({w:3.8, d:2.6, h:3.6, roofH:1.6, x:0,  y:0,    hero:true}));
+scene.add(building({w:2.6, d:1.8, h:2.8, roofH:1.1, x:-6, y:-2.5}));
+scene.add(building({w:2.8, d:2.0, h:3.0, roofH:1.2, x: 6, y:-2.5}));
+scene.add(building({w:2.4, d:1.6, h:2.4, roofH:0.9, x:-5, y: 3.5}));
+scene.add(building({w:2.4, d:1.6, h:2.4, roofH:0.9, x: 5, y: 3.5}));
+scene.add(building({w:2.0, d:1.4, h:2.0, roofH:0.8, x: 0, y: 5.5}));
+
+let yaw = -0.6, pitch = 0.8;
+function tick() {
+  yaw += 0.0035;
+  const dist = 22;
+  camera.position.set(Math.cos(pitch)*Math.sin(yaw)*dist, -Math.cos(pitch)*Math.cos(yaw)*dist, Math.sin(pitch)*dist);
+  camera.lookAt(0,0,2);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
