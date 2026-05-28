@@ -167,7 +167,10 @@ const PROJECTS = [
     start: '2026-05-22',
     latest: '2026-05-26',
     progress: 100,
-    link: 'https://gmpark-creator.github.io/project-dashboard/inst-app/',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/inst-extractor/',
+    preview: { type:'embed', height:560, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/inst-extractor/', label:'INST Extractor — 믹싱 콘솔 UI (드래그앤드롭 데모 모드)' }
+    ]},
     summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트. '
            + '믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다. '
            + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고, 실제 GPU 추출은 백엔드가 필요해 '
@@ -327,7 +330,10 @@ const PROJECTS = [
     start: '2026-05-28',
     latest: '2026-05-28',
     progress: 30,
-    link: 'https://github.com/gmpark-creator/us-to-kr-premarket-impact-dashboard',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
+    preview: { type:'embed', height:600, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, vite assets path 상대경로 변환)' }
+    ]},
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을 분석·시각화하는 연구용 대시보드. '
            + 'Codex가 단독 트랙으로 설계+Phase 1 mock UI 완성 후, official 매크로 데이터 refresh 파이프라인까지 추가 — '
            + 'GitHub repo 생성·push 완료 (gmpark-creator/us-to-kr-premarket-impact-dashboard). '

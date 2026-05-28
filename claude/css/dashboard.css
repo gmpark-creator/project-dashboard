@@ -419,6 +419,36 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
   border-radius: 50%; border: 1px solid currentColor;
   animation: pulse 1.6s var(--ease-out) infinite;
 }
+
+/* View Live — status pill 옆 같은 톤 outline 버튼 */
+.proj-live {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  background: rgba(255,79,0,0.06);
+  transition: background .2s, color .2s, gap .2s var(--ease-out), transform .15s var(--ease-out);
+}
+.proj-live:hover {
+  background: var(--orange);
+  color: #fff;
+  gap: 12px;
+  transform: translateY(-1px);
+}
+.proj-live .dot-anim {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+  position: relative;
+}
+.proj-live .dot-anim::after {
+  content: ""; position: absolute; inset: -2px;
+  border-radius: 50%; border: 1px solid currentColor;
+  animation: pulse 1.6s var(--ease-out) infinite;
+}
+.proj-live .arr { font-family: var(--font-mono); font-weight: 500; }
 @keyframes pulse {
   0%   { transform: scale(0.8); opacity: 1; }
   100% { transform: scale(2.4); opacity: 0; }

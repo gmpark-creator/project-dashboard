@@ -509,6 +509,17 @@
                 <span class="pulse" aria-hidden="true"></span>
                 ${statusLabel(p.status)}
               </span>
+              ${(function () {
+                const pv = p.preview && p.preview.type === 'embed' && p.preview.items && p.preview.items[0] ? p.preview.items[0].url : '';
+                const lk = p.link || '';
+                const target = pv || lk;
+                const isExternal = target && /^https?:\/\//i.test(target) && !/127\.0\.0\.1|localhost/.test(target);
+                if (!isExternal) return '';
+                return `<a class="proj-live" href="${escapeHtml(target)}" target="_blank" rel="noopener" title="새 탭에서 작업결과물 열기">
+                  <span class="dot-anim" aria-hidden="true"></span>
+                  View Live <span class="arr" aria-hidden="true">↗</span>
+                </a>`;
+              })()}
             </div>
           </div>
 

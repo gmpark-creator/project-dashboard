@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>INST EXTRACTOR · 고음질 반주 추출 스튜디오</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide 아이콘 -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { background:
+    radial-gradient(900px 480px at 50% -8%, #15212e 0%, transparent 70%),
+    radial-gradient(700px 420px at 88% 108%, #1c1530 0%, transparent 70%),
+    #08090c; }
+  /* 진행바 광택 흐름 */
+  @keyframes shimmer { 0% { background-position:-180% 0; } 100% { background-position:180% 0; } }
+  .shimmer {
+    background-image: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%);
+    background-size: 220% 100%; animation: shimmer 1.15s linear infinite;
+  }
+  /* 등장 애니메이션 */
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .rise { animation: rise .4s ease both; }
+  @keyframes pop { 0%{opacity:0;transform:scale(.9)} 60%{transform:scale(1.02)} 100%{opacity:1;transform:scale(1)} }
+  .pop { animation: pop .32s cubic-bezier(.2,.8,.2,1) both; }
+  /* 콘솔 VU 미터 막대 */
+  @keyframes vu { 0%,100%{transform:scaleY(.35)} 50%{transform:scaleY(1)} }
+</style>
+</head>
+
+<body class="min-h-screen text-zinc-300 antialiased selection:bg-cyan-500/30">
+
+<div class="max-w-2xl mx-auto px-5 py-8">
+
+  <!-- ══════ 상단 바: 브랜드 + 사무실 데모 모드 토글 ══════ -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-400
+                  shadow-lg shadow-cyan-900/40">
+        <i data-lucide="audio-waveform" class="w-5 h-5 text-zinc-950"></i>
+      </div>
+      <div>
+        <h1 class="text-[15px] font-extrabold tracking-tight text-zinc-100 leading-none">INST EXTRACTOR</h1>
+        <p class="text-[11px] text-zinc-500 mt-1">고음질 반주(Inst) 추출 스튜디오</p>
+      </div>
+    </div>
+
+    <!-- ★ 사무실 데모 모드 토글 -->
+    <label class="flex items-center gap-2.5 cursor-pointer select-none" title="백엔드 서버 없이 UI 흐름을 검증합니다">
+      <span id="demoLabel" class="text-[11px] font-semibold text-zinc-500">사무실 데모 모드</span>
+      <span class="relative inline-block">
+        <input type="checkbox" id="demoToggle" class="sr-only peer" />
+        <span class="block w-11 h-6 rounded-full bg-zinc-700 peer-checked:bg-amber-500 transition-colors"></span>
+        <span class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow
+                     transition-transform peer-checked:translate-x-5"></span>
+      </span>
+    </label>
+  </div>
+
+  <!-- ══════ 메인 콘솔 카드 ══════ -->
+  <main class="rounded-2xl border border-zinc-800 bg-zinc-900/70 backdrop-blur shadow-2xl shadow-black/50
+               overflow-hidden">
+
+    <!-- 콘솔 헤더: 장식용 VU 미터 -->
+    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-zinc-800/80">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 shadow shadow-emerald-400/50"></span>
+        <span class="text-[11px] font-medium text-zinc-400">MIXING CONSOLE</span>
+      </div>
+      <div id="vuMeter" class="flex items-end gap-[3px] h-5"></div>
+    </div>
+
+    <div class="p-6 space-y-5">
+
+      <!-- ── 1. 음원 업로드 (드래그 앤 드롭) ── -->
+      <section>
+        <p class="text-[11px] font-semibold text-zinc-500 mb-2">음원 업로드</p>
+        <div id="dropZone"
+             class="group relative rounded-xl border-2 border-dashed border-zinc-700 bg-zinc-950/50
+                    px-6 py-9 text-center cursor-pointer transition-colors
+                    hover:border-cyan-500/70 hover:bg-cyan-500/[.04]">
+          <input type="file" id="fileInput" accept="audio/*" class="hidden" />
+          <div id="dropEmpty">
+            <i data-lucide="upload-cloud" class="w-9 h-9 mx-auto text-zinc-600 group-hover:text-cyan-400 transition-colors"></i>
+            <p class="text-[13px] text-zinc-300 mt-2.5 font-medium">음원을 끌어다 놓으세요</p>
+            <p class="text-[11px] text-zinc-600 mt-1">또는 클릭해서 선택 · WAV / MP3 / FLAC / M4A</p>
+          </div>
+          <div id="dropFilled" class="hidden flex items-center justify-center gap-3">
+            <i data-lucide="file-audio" class="w-8 h-8 text-cyan-400 shrink-0"></i>
+            <div class="min-w-0 text-left">
+              <p id="fileName" class="text-[13px] font-semibold text-zinc-100 truncate"></p>
+              <p id="fileMeta" class="text-[11px] text-zinc-500"></p>
+            </div>
+            <button id="clearFile" class="ml-1 text-zinc-600 hover:text-rose-400 transition-colors shrink-0">
+              <i data-lucide="x-circle" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 2. 모델 선택 ── -->
+      <section>
+        <p class="text-[11px] font-semibold text-zinc-500 mb-2">분리 모델</p>
+        <div class="relative">
+          <select id="modelSelect"
+                  class="w-full appearance-none rounded-xl border border-zinc-700 bg-zinc-950/60
+                         px-4 py-3 pr-10 text-[13px] text-zinc-200 cursor-pointer
+                         focus:outline-none focus:border-cyan-500/70 transition-colors">
+            <option value="htdemucs">htdemucs — 기본 · 4-stem · 속도/품질 균형</option>
+            <option value="htdemucs_ft">htdemucs_ft — 파인튜닝 · 고음질 (느림)</option>
+            <option value="htdemucs_6s">htdemucs_6s — 6-stem · 기타·피아노 분리</option>
+            <option value="mdx_extra">mdx_extra — MDX · 보컬 제거 특화</option>
+          </select>
+          <i data-lucide="chevron-down"
+             class="w-4 h-4 text-zinc-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+      </section>
+
+      <!-- ── 3. 추출 시작 버튼 ── -->
+      <button id="extractBtn" disabled
+              class="w-full rounded-xl py-3.5 text-[14px] font-bold tracking-tight
+                     bg-gradient-to-r from-cyan-500 to-emerald-400 text-zinc-950
+                     shadow-lg shadow-cyan-900/40 transition-all
+                     hover:brightness-110 active:scale-[.99]
+                     disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
+                     flex items-center justify-center gap-2">
+        <i data-lucide="sparkles" class="w-[18px] h-[18px]"></i>
+        <span>INST 추출 시작</span>
+      </button>
+
+      <!-- ── 4. 진행 상태 (처리 중에만 표시) ── -->
+      <section id="progressBox" class="hidden rise">
+        <div class="flex items-center justify-between mb-2">
+          <p id="progressStage" class="text-[12px] font-medium text-cyan-300">음원 디코딩 중…</p>
+          <p id="progressPct" class="text-[12px] font-mono font-semibold text-zinc-400">0%</p>
+        </div>
+        <div class="h-2.5 rounded-full bg-zinc-800 overflow-hidden">
+          <div id="progressBar" class="shimmer h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400
+                      transition-[width] duration-150 ease-linear" style="width:0%"></div>
+        </div>
+      </section>
+
+      <!-- ── 5. 결과물 (완료 시 표시) ── -->
+      <section id="resultBox" class="hidden rise rounded-xl border border-emerald-500/30 bg-emerald-500/[.06] p-4">
+        <div class="flex items-center gap-3">
+          <i data-lucide="check-circle-2" class="w-7 h-7 text-emerald-400 shrink-0"></i>
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-semibold text-emerald-300">반주 추출 완료</p>
+            <p id="resultMeta" class="text-[11px] text-zinc-500 truncate"></p>
+          </div>
+          <button id="downloadBtn"
+                  class="shrink-0 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950
+                         px-3.5 py-2 text-[12px] font-bold flex items-center gap-1.5 transition-colors">
+            <i data-lucide="download" class="w-4 h-4"></i>다운로드
+          </button>
+        </div>
+      </section>
+
+      <!-- ── 오류 메시지 ── -->
+      <section id="errorBox" class="hidden rise rounded-xl border border-rose-500/30 bg-rose-500/[.07] p-4">
+        <div class="flex items-start gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
+          <p id="errorMsg" class="text-[12px] text-rose-200 leading-relaxed"></p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <p class="text-center text-[11px] text-zinc-600 mt-5 leading-relaxed">
+    사무실에서는 <span class="text-amber-500/90 font-medium">[사무실 데모 모드]</span>로 UI를 검증하세요.
+    실제 추출은 홈 PC(RTX 4060 Ti)의 백엔드 서버에서 동작합니다.
+  </p>
+</div>
+
+<!-- ══════ 완료 팝업 (데모/실제 공용) ══════ -->
+<div id="modal" class="hidden fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm px-5">
+  <div class="pop w-full max-w-sm rounded-2xl border border-zinc-700 bg-zinc-900 p-6 text-center shadow-2xl">
+    <div class="grid place-items-center w-14 h-14 mx-auto rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/40">
+      <i data-lucide="check" class="w-7 h-7 text-emerald-400"></i>
+    </div>
+    <h3 class="text-[16px] font-extrabold text-zinc-100 mt-3.5">추출 완료!</h3>
+    <p id="modalText" class="text-[12px] text-zinc-400 mt-1.5 leading-relaxed"></p>
+    <div class="flex gap-2.5 mt-5">
+      <button id="modalClose"
+              class="flex-1 rounded-lg border border-zinc-700 py-2.5 text-[12px] font-semibold
+                     text-zinc-300 hover:bg-zinc-800 transition-colors">닫기</button>
+      <button id="modalDownload"
+              class="flex-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-2.5
+                     text-[12px] font-bold flex items-center justify-center gap-1.5 transition-colors">
+        <i data-lucide="download" class="w-4 h-4"></i>다운로드
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   INST EXTRACTOR — 프론트엔드 로직
+   ────────────────────────────────────────────────────────────────
+   · 사무실 데모 모드 ON  → 백엔드 없이 브라우저 내부에서 5초 가상 처리
+   · 사무실 데모 모드 OFF → 실제 백엔드(/extract)로 POST
+   ChatGPT 참고: 실제 추출 로직은 백엔드(main.py)에서 처리한다.
+   이 파일은 UI/UX 만 담당하므로 백엔드 작업 시 건드릴 필요가 없다.
+   ════════════════════════════════════════════════════════════════ */
+
+const $ = (id) => document.getElementById(id);
+
+// 백엔드 주소: FastAPI가 서빙하면 동일 출처, file://로 열면 localhost:8000
+const API_BASE = location.protocol === 'file:' ? 'http://localhost:8000' : '';
+
+let selectedFile = null;   // 선택된 음원 파일
+let resultBlob   = null;   // 다운로드할 결과물(Blob)
+let resultName   = 'inst.wav';
+
+/* ── 장식용 VU 미터 생성 ─────────────────────────────────────── */
+(function buildVU() {
+  const vu = $('vuMeter');
+  for (let i = 0; i < 18; i++) {
+    const bar = document.createElement('span');
+    bar.className = 'w-[3px] rounded-sm bg-gradient-to-t from-cyan-600 to-emerald-400';
+    bar.style.height = '100%';
+    bar.style.transformOrigin = 'bottom';
+    bar.style.animation = `vu ${0.7 + Math.random() * 0.9}s ease-in-out ${Math.random()}s infinite`;
+    vu.appendChild(bar);
+  }
+})();
+
+/* ── 파일 선택 / 드래그 앤 드롭 ───────────────────────────────── */
+const dropZone = $('dropZone'), fileInput = $('fileInput');
+
+dropZone.addEventListener('click', (e) => {
+  if (e.target.closest('#clearFile')) return;
+  fileInput.click();
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+['dragover', 'dragenter'].forEach(ev =>
+  dropZone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-cyan-500', 'bg-cyan-500/[.06]');
+  }));
+['dragleave', 'drop'].forEach(ev =>
+  dropZone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-cyan-500', 'bg-cyan-500/[.06]');
+  }));
+dropZone.addEventListener('drop', (e) => {
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('audio/')) setFile(f);
+  else if (f) showError('오디오 파일만 업로드할 수 있습니다.');
+});
+
+function setFile(file) {
+  selectedFile = file;
+  $('fileName').textContent = file.name;
+  $('fileMeta').textContent =
+    (file.size / 1048576).toFixed(2) + ' MB · ' + (file.type || '오디오');
+  $('dropEmpty').classList.add('hidden');
+  $('dropFilled').classList.remove('hidden');
+  $('dropFilled').classList.add('flex');
+  $('extractBtn').disabled = false;
+  hide('errorBox'); hide('resultBox');
+}
+
+$('clearFile').addEventListener('click', () => {
+  selectedFile = null; fileInput.value = '';
+  $('dropEmpty').classList.remove('hidden');
+  $('dropFilled').classList.add('hidden');
+  $('extractBtn').disabled = true;
+});
+
+/* ── 추출 시작 ───────────────────────────────────────────────── */
+$('extractBtn').addEventListener('click', () => {
+  if (!selectedFile) return;
+  hide('errorBox'); hide('resultBox');
+  if ($('demoToggle').checked) runDemo();
+  else runReal();
+});
+
+/* ── ★ 사무실 데모 모드: 백엔드 없이 5초 가상 처리 ───────────── */
+function runDemo() {
+  setBusy(true);
+  show('progressBox');
+  $('progressBar').style.width = '0%';
+
+  const stages = [
+    [  0, '음원 디코딩 중…'],
+    [ 20, '주파수 스펙트럼 분석 중…'],
+    [ 45, 'AI 스템 분리 중 — 보컬 / 반주…'],
+    [ 72, '반주 트랙 합성 중…'],
+    [ 92, '결과물 렌더링 중…'],
+  ];
+  const DURATION = 5000;          // 총 5초
+  const t0 = performance.now();
+
+  (function tick(now) {
+    const pct = Math.min(100, ((now - t0) / DURATION) * 100);
+    $('progressBar').style.width = pct + '%';
+    $('progressPct').textContent = Math.floor(pct) + '%';
+    const stage = stages.filter(s => pct >= s[0]).pop();
+    if (stage) $('progressStage').textContent = stage[1];
+
+    if (pct < 100) { requestAnimationFrame(tick); }
+    else {
+      // 가상 결과물 생성 — UI 검증용 무음 WAV (실제 처리는 백엔드 담당)
+      resultBlob = buildSilentWav(2);
+      resultName = baseName(selectedFile.name) + '_inst_(DEMO).wav';
+      finishExtraction('이것은 사무실 데모 모드의 가상 결과입니다. 실제 반주 분리는 홈 PC 백엔드에서 수행됩니다.');
+    }
+  })(t0);
+}
+
+/* ── 실제 모드: 백엔드 /extract 호출 ─────────────────────────── */
+async function runReal() {
+  setBusy(true);
+  show('progressBox');
+  $('progressBar').style.width = '15%';
+  $('progressPct').textContent = '··';
+  $('progressStage').textContent = '백엔드 서버에서 처리 중…';
+
+  try {
+    const form = new FormData();
+    form.append('file', selectedFile);
+    form.append('model', $('modelSelect').value);
+
+    const res = await fetch(API_BASE + '/extract', { method: 'POST', body: form });
+
+    if (!res.ok) {
+      // 핵심 분리 함수가 아직 스텁이면 501을 반환한다.
+      let detail = 'HTTP ' + res.status;
+      try { detail = (await res.json()).detail || detail; } catch (_) {}
+      throw new Error(detail);
+    }
+
+    resultBlob = await res.blob();
+    resultName = baseName(selectedFile.name) + '_inst.wav';
+    $('progressBar').style.width = '100%';
+    $('progressPct').textContent = '100%';
+    finishExtraction('홈 PC 백엔드에서 반주를 추출했습니다.');
+
+  } catch (err) {
+    setBusy(false);
+    hide('progressBox');
+    showError(
+      '백엔드 추출에 실패했습니다 — ' + err.message +
+      '\n\n사무실에서는 상단 [사무실 데모 모드]를 켜고 UI를 검증하세요. ' +
+      '실제 추출은 홈 PC(RTX 4060 Ti) 서버 + ChatGPT 구현 단계 이후 동작합니다.'
+    );
+  }
+}
+
+/* ── 추출 완료 공통 처리: 결과 패널 + 완료 팝업 ──────────────── */
+function finishExtraction(modalMessage) {
+  setBusy(false);
+  hide('progressBox');
+
+  $('resultMeta').textContent =
+    resultName + ' · 모델 ' + $('modelSelect').value;
+  show('resultBox');
+
+  $('modalText').textContent = modalMessage;
+  show('modal');
+  refreshIcons();
+}
+
+/* ── 다운로드 (결과 패널 / 팝업 공용) ────────────────────────── */
+function downloadResult() {
+  if (!resultBlob) return;
+  const url = URL.createObjectURL(resultBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = resultName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('downloadBtn').addEventListener('click', downloadResult);
+$('modalDownload').addEventListener('click', downloadResult);
+$('modalClose').addEventListener('click', () => hide('modal'));
+
+/* ── 데모 모드 토글 시각 피드백 ──────────────────────────────── */
+$('demoToggle').addEventListener('change', (e) => {
+  const on = e.target.checked;
+  $('demoLabel').classList.toggle('text-amber-400', on);
+  $('demoLabel').classList.toggle('text-zinc-500', !on);
+});
+
+/* ── 유틸 ────────────────────────────────────────────────────── */
+function show(id) { $(id).classList.remove('hidden'); }
+function hide(id) { $(id).classList.add('hidden'); }
+function refreshIcons() { if (window.lucide) lucide.createIcons(); }
+
+function setBusy(busy) {
+  $('extractBtn').disabled = busy || !selectedFile;
+  $('extractBtn').classList.toggle('opacity-60', busy);
+}
+
+function showError(msg) {
+  $('errorMsg').textContent = msg;
+  show('errorBox');
+}
+
+function baseName(name) { return name.replace(/\.[^.]+$/, ''); }
+
+/* 가상 결과물용 무음 WAV 생성 — 데모 모드 UI 검증 전용.
+   (실제 반주 오디오는 백엔드 separate_instrumental() 가 생성한다) */
+function buildSilentWav(seconds = 2, sampleRate = 44100, channels = 2) {
+  const frames = seconds * sampleRate;
+  const dataSize = frames * channels * 2;          // 16-bit PCM
+  const buf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buf);
+  const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);                    // fmt 청크 크기
+  view.setUint16(20, 1, true);                     // PCM
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * 2, true);
+  view.setUint16(32, channels * 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, dataSize, true);
+  // 데이터부는 0으로 초기화되어 있어 무음 상태다.
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+/* 초기 아이콘 렌더 */
+refreshIcons();
+</script>
+</body>
+</html>
