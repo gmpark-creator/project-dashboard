@@ -36,6 +36,75 @@
   function pad2(n) { return String(n).padStart(2, '0'); }
   function pad3(n) { return String(n).padStart(3, '0'); }
 
+  /* ---------- ICONS — 프로젝트별 앰블럼 (인라인 SVG, 직접 그림) ----------
+     박사 발화 "각 프로젝트별 앰블럼 다시 복구. 뜀 = 트로피, Solar = 태양"
+     viewBox 24x24, stroke 1.8px, currentColor (테마 색 자동 따름). */
+  const ICONS = {
+    // 화물선: hull + 깃대/돛
+    'ship':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M2 18.5l1.5 2.5h17L22 18.5"/>' +
+        '<path d="M4 16.5l8-8.5 8 8.5"/>' +
+        '<path d="M12 4v13"/>' +
+        '<path d="M8 11h8"/>' +
+      '</svg>',
+    // 트로피: 컵 + 양 옆 손잡이 + 받침
+    'trophy':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M7 4h10v6a5 5 0 0 1-10 0z"/>' +
+        '<path d="M7 7H4a2 2 0 0 0 0 4h3"/>' +
+        '<path d="M17 7h3a2 2 0 0 1 0 4h-3"/>' +
+        '<path d="M12 15v3"/>' +
+        '<path d="M8 21h8"/>' +
+      '</svg>',
+    // 태양·궤도: 중심 sun-disk + orbit ring + planet dot
+    'orbit':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<circle cx="12" cy="12" r="3" fill="currentColor"/>' +
+        '<ellipse cx="12" cy="12" rx="9" ry="4.5"/>' +
+        '<circle cx="21" cy="12" r="1.4" fill="currentColor"/>' +
+      '</svg>',
+    // 음표 (음원 추출기)
+    'music':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M9 18V6l11-2v12"/>' +
+        '<circle cx="6" cy="18" r="3"/>' +
+        '<circle cx="17" cy="16" r="3"/>' +
+      '</svg>',
+    // 정부 건물 (Capitol)
+    'landmark':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M3 21h18"/>' +
+        '<path d="M3 10h18"/>' +
+        '<path d="M5 10v11"/>' +
+        '<path d="M9 10v11"/>' +
+        '<path d="M15 10v11"/>' +
+        '<path d="M19 10v11"/>' +
+        '<path d="M12 3l9 7H3z"/>' +
+      '</svg>',
+    // 닻 (anchor)
+    'anchor':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<circle cx="12" cy="5" r="2.5"/>' +
+        '<path d="M12 7.5V21"/>' +
+        '<path d="M5 21a7 7 0 0 0 7-7"/>' +
+        '<path d="M19 21a7 7 0 0 1-7-7"/>' +
+        '<path d="M8 12h8"/>' +
+      '</svg>',
+    // 증권 상향 차트
+    'trending-up':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M3 17l6-6 4 4 8-8"/>' +
+        '<path d="M14 7h7v7"/>' +
+      '</svg>',
+    // fallback
+    'box':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="4" y="4" width="16" height="16" rx="1"/>' +
+      '</svg>'
+  };
+  function emblem(name) { return ICONS[name] || ICONS.box; }
+
   /* ---------- 1) KST clock ---------- */
   function startClock() {
     const el = $('#clock-now');
@@ -183,6 +252,7 @@
     list.innerHTML = projects.map((p, i) => `
       <a class="sidebar-link" data-id="${escapeHtml(p.id)}" href="#/p/${escapeHtml(p.id)}">
         <span class="num">${pad2(i+1)}</span>
+        <span class="emblem">${emblem(p.icon)}</span>
         <span class="name">${escapeHtml(p.name)}</span>
         <span class="dot" data-st="${escapeHtml(p.status)}" title="${statusLabel(p.status)}"></span>
       </a>
@@ -346,7 +416,10 @@
             </div>
           </div>
 
-          <h2 class="proj-name reveal-line">${escapeHtml(p.name)}</h2>
+          <div class="proj-hero-row">
+            <span class="proj-emblem-big" aria-hidden="true">${emblem(p.icon)}</span>
+            <h2 class="proj-name reveal-line">${escapeHtml(p.name)}</h2>
+          </div>
           <p class="proj-subtitle reveal-up">${escapeHtml(p.subtitle || '')}</p>
 
           ${meta}
@@ -384,6 +457,7 @@
 
     const cards = projects.map((p, i) => `
       <a class="home-card" href="#/p/${escapeHtml(p.id)}">
+        <span class="card-emblem">${emblem(p.icon)}</span>
         <div class="card-row">
           <span class="card-num">+ ${pad2(i+1)} · ${escapeHtml(p.id.toUpperCase())}</span>
           <span class="card-status" data-st="${escapeHtml(p.status)}">${statusLabel(p.status)}</span>
