@@ -4,17 +4,17 @@
    ============================================================ */
 
 :root {
-  /* 2026-05-28 default (= data-color="navy" canonical) */
-  --ink: #202738;
+  /* 2026-05-28 default (= data-color="violet" · Midnight Violet, 박사 픽 FINAL) */
+  --ink: #130f26;
   --paper: #fafafa;
-  --orange: #ff4f00;
-  --orange-dim: #c83e00;
-  --orange-soft: #ffe5dc;
+  --orange: #a78bfa;
+  --orange-dim: #8b6ef0;
+  --orange-soft: #ede9ff;
   --gray-9: #ececec;
   --gray-7: #b5b5b5;
   --gray-5: #888888;
   --gray-3: #404040;
-  --gray-1: #2a2f3e;
+  --gray-1: #1d1934;
 }
 
 /* ============================================================

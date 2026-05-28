@@ -14,13 +14,14 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="css/dashboard.css">
 
-  <!-- FOUC 방지: localStorage에서 컬러 모드 즉시 복원 (CSS 로드 전) -->
+  <!-- FOUC 방지: localStorage에서 컬러 모드 즉시 복원 (CSS 로드 전).
+       default = violet (Midnight Violet, 박사 픽 FINAL 2026-05-28) -->
   <script>
     try {
-      var c = localStorage.getItem('dash-color') || 'navy';
+      var c = localStorage.getItem('dash-color') || 'violet';
       document.documentElement.dataset.color = c;
     } catch (e) {
-      document.documentElement.dataset.color = 'navy';
+      document.documentElement.dataset.color = 'violet';
     }
   </script>
 </head>

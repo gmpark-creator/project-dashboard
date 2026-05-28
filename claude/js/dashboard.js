@@ -121,17 +121,17 @@
   }
 
   /* ---------- 1b) COLOR SWITCHER ---------- */
-  // 9 themes: 3 existing (black/navy/light) + 6 Gemini Nano Banana (박사 의뢰)
+  // 9 themes — 박사 픽 default = violet (Midnight Violet) FINAL 2026-05-28
   const THEMES = [
-    { id: 'navy',         name: 'Slate Navy',          hex: '#202738', accent: '#ff4f00', badge: 'Canonical', mode: 'dark'  },
-    { id: 'black',        name: 'Original Black',      hex: '#0a0a0a', accent: '#ff4f00', badge: 'v3 Initial', mode: 'dark' },
-    { id: 'light',        name: 'Light Indigo',        hex: '#ffffff', accent: '#6366f1', badge: 'Light',      mode: 'light' },
-    { id: 'obsidian',     name: 'Obsidian Charcoal',   hex: '#121212', accent: '#ff6b6b', badge: 'A · Gemini', mode: 'dark' },
-    { id: 'cyber',        name: 'Cyber Punk Neon',     hex: '#0b0f19', accent: '#3b82f6', badge: 'B · Gemini', mode: 'dark' },
-    { id: 'claude-warm',  name: 'Claude Warm Minimal', hex: '#fbf9f6', accent: '#d97706', badge: 'C · Gemini', mode: 'light' },
-    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini', mode: 'light' },
-    { id: 'emerald',      name: 'Emerald Forest',      hex: '#0f1715', accent: '#34d399', badge: 'E · Gemini', mode: 'dark' },
-    { id: 'violet',       name: 'Midnight Violet',     hex: '#130f26', accent: '#a78bfa', badge: 'F · Gemini', mode: 'dark' }
+    { id: 'violet',       name: 'Midnight Violet',     hex: '#130f26', accent: '#a78bfa', badge: 'Default ★',   mode: 'dark' },
+    { id: 'navy',         name: 'Slate Navy',          hex: '#202738', accent: '#ff4f00', badge: 'Prev Canonical', mode: 'dark' },
+    { id: 'black',        name: 'Original Black',      hex: '#0a0a0a', accent: '#ff4f00', badge: 'v3 Initial',  mode: 'dark' },
+    { id: 'obsidian',     name: 'Obsidian Charcoal',   hex: '#121212', accent: '#ff6b6b', badge: 'A · Gemini',  mode: 'dark' },
+    { id: 'cyber',        name: 'Cyber Punk Neon',     hex: '#0b0f19', accent: '#3b82f6', badge: 'B · Gemini',  mode: 'dark' },
+    { id: 'emerald',      name: 'Emerald Forest',      hex: '#0f1715', accent: '#34d399', badge: 'E · Gemini',  mode: 'dark' },
+    { id: 'light',        name: 'Light Indigo',        hex: '#ffffff', accent: '#6366f1', badge: 'Light',       mode: 'light' },
+    { id: 'claude-warm',  name: 'Claude Warm Minimal', hex: '#fbf9f6', accent: '#d97706', badge: 'C · Gemini',  mode: 'light' },
+    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini',  mode: 'light' }
   ];
 
   function setupColorSwitcher() {
@@ -145,7 +145,7 @@
     const STORAGE_KEY = 'dash-color';
 
     function currentColor() {
-      return document.documentElement.dataset.color || 'navy';
+      return document.documentElement.dataset.color || 'violet';
     }
 
     function renderList() {
@@ -164,7 +164,7 @@
     }
 
     function applyColor(id) {
-      if (!THEMES.find(t => t.id === id)) id = 'navy';
+      if (!THEMES.find(t => t.id === id)) id = 'violet';
       document.documentElement.dataset.color = id;
       try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
       renderList();
