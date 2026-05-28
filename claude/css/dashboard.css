@@ -4,7 +4,10 @@
    ============================================================ */
 
 :root {
-  --ink: #0a0a0a;
+  /* 2026-05-28 색감 lift: pure black → 살짝 푸르스름한 짙은 슬레이트
+     박사 발화 "어둡지 않은 정도로 조정" — 미세 조정만 (분위기 유지).
+     #0a0a0a → #14171c · #1a1a1a → #1c1f26 */
+  --ink: #14171c;
   --paper: #fafafa;
   --orange: #ff4f00;
   --orange-dim: #c83e00;
@@ -13,7 +16,7 @@
   --gray-7: #b5b5b5;
   --gray-5: #888888;
   --gray-3: #404040;
-  --gray-1: #1a1a1a;
+  --gray-1: #1c1f26;
 
   /* status tone — vanilla 토큰 (Tailwind 폐기 후 대체) */
   --st-done:    #22c55e;  /* emerald */

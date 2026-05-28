@@ -416,8 +416,8 @@
 
           <div class="page-lead">
             <p class="lead reveal-up">
-              진행 중·완료된 <strong>6개 프로젝트</strong>의 통합 보고서.
-              좌측 사이드바에서 프로젝트를 선택하거나, 아래 카드를 클릭하면 상세 페이지로 이동합니다.
+              A consolidated report covering all <strong>6 projects</strong>, active and completed.
+              Select a project from the left sidebar, or click a card below to navigate to its detail page.
             </p>
             <div class="marker reveal-up">
               <strong>+ G.M.PARK</strong>
