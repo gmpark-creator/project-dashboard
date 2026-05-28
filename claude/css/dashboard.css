@@ -1221,13 +1221,17 @@ body.is-color-open .color-panel-scrim {
   transition: transform .25s var(--ease-out);
 }
 
-/* world clock — collapsed by default */
+/* world clock — collapsed by default (class 토글 — HTML [hidden] 속성은
+   .world-clock 의 display:flex 에 의해 가려져서 박사가 본 "안 닫히는" 버그
+   재발 방지를 위해 명시적 class 패턴 사용) */
 .world-clock {
-  display: flex; flex-direction: column; gap: 3px;
+  display: none;
+  flex-direction: column; gap: 3px;
   padding: 4px 0 2px;
   max-height: 38vh;
   overflow-y: auto;
 }
+.world-clock.is-open { display: flex; }
 .world-clock li {
   display: grid;
   grid-template-columns: 1fr auto auto;

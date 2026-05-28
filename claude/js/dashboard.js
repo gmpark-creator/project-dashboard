@@ -124,6 +124,7 @@
      박사 발화: "기본은 KST만, 시차 버튼 클릭 시 더 보이게.
      날짜·UTC offset도 표기. 노트북 화면에서 스크롤바 생기지 않게." */
   const CITIES = [
+    { city: 'UTC (REFERENCE)', tz: 'Etc/UTC' },   // 박사 발화: "UTC 0 기준 박아라"
     { city: 'TOKYO',          tz: 'Asia/Tokyo' },
     { city: 'BEIJING',        tz: 'Asia/Shanghai' },
     { city: 'SINGAPORE',      tz: 'Asia/Singapore' },
@@ -204,9 +205,10 @@
     const list = $('#world-clock');
     if (!btn || !list) return;
     const KEY = 'tz-open';
+    function isOpen() { return list.classList.contains('is-open'); }
     function setOpen(open) {
+      list.classList.toggle('is-open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      list.hidden = !open;
       btn.querySelector('.tz-toggle-label').textContent = open ? '− HIDE ZONES' : '+ TIME ZONES';
       btn.querySelector('.tz-toggle-arrow').textContent = open ? '↑' : '↓';
       try { localStorage.setItem(KEY, open ? '1' : '0'); } catch (e) {}
@@ -214,7 +216,7 @@
     let restored = '0';
     try { restored = localStorage.getItem(KEY) || '0'; } catch (e) {}
     setOpen(restored === '1');
-    btn.addEventListener('click', () => setOpen(list.hidden));
+    btn.addEventListener('click', () => setOpen(!isOpen()));
   }
 
   function startClock() {
@@ -686,7 +688,7 @@
 
           <h1 class="page-h1">
             <span class="reveal-line">PROJECT</span>
-            <span class="reveal-line"><em>REPORTS.</em></span>
+            <span class="reveal-line"><em>REPORTS</em></span>
           </h1>
 
           <div class="page-lead">
@@ -696,8 +698,8 @@
             </p>
             <div class="marker reveal-up">
               <strong>+ G.M.PARK</strong>
-              Solo Director&nbsp;&middot;&nbsp;Creator&nbsp;&middot;&nbsp;Operator<br>
-              / Multi-Track Build
+              Director&nbsp;&middot;&nbsp;Creator&nbsp;&middot;&nbsp;Operator<br>
+              Multi-Track Build
             </div>
           </div>
 
