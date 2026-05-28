@@ -98,9 +98,9 @@ const PROJECTS = [
     start: '2026-05-21',
     latest: '2026-05-24',
     progress: 99,
-    link: 'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/?v=restore',
+    link: 'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/?v=final',
     preview: { type:'embed', height:520, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/?v=restore', label:'태양계 시뮬레이터' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/?v=final', label:'태양계 시뮬레이터' }
     ]},
     summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
            + '초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나, '
