@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
-  <link rel="stylesheet" href="css/dashboard.css?v=20260528-kgs">
+  <link rel="stylesheet" href="css/dashboard.css?v=20260528-ui2">
 
   <!-- FOUC 방지: localStorage에서 컬러 모드 즉시 복원 (CSS 로드 전).
        default = violet (Midnight Violet, 박사 픽 FINAL 2026-05-28) -->
@@ -82,7 +82,7 @@
 
     <div class="sidebar-head">
       <a href="#/" class="brand" data-route="home">G.M.PARK</a>
-      <span class="sub">Project Dashboard</span>
+      <span class="sub">PROJECT DASHBOARD</span>
     </div>
 
     <a href="#/" class="sidebar-home" data-route="home" id="sidebar-home-link">All Projects</a>
@@ -97,11 +97,21 @@
     </nav>
 
     <div class="sidebar-foot">
-      <div class="world-clock-head">
-        <span>+ World Clock</span>
-        <span class="head-tz" id="world-clock-tick">--:--:--</span>
+      <div class="kst-block">
+        <div class="kst-row-main">
+          <span class="kst-time" id="kst-time">--:--:--</span>
+          <span class="kst-offset" id="kst-offset">UTC+9</span>
+        </div>
+        <div class="kst-row-sub">
+          <span class="kst-date" id="kst-date">YYYY-MM-DD</span>
+          <span class="kst-loc">KST · SEOUL</span>
+        </div>
       </div>
-      <ul class="world-clock" id="world-clock"><!-- JS fills 7 cities --></ul>
+      <button type="button" class="tz-toggle" id="tz-toggle" aria-expanded="false" aria-controls="world-clock">
+        <span class="tz-toggle-label">+ TIME ZONES</span>
+        <span class="tz-toggle-arrow">↓</span>
+      </button>
+      <ul class="world-clock" id="world-clock" hidden><!-- JS fills 11 cities --></ul>
       <span class="director">G.M.PARK · DIRECTOR</span>
     </div>
   </aside>
@@ -121,7 +131,7 @@
         <div class="footer-grid">
           <div class="footer-brand">
             <span class="brand-large">G.M.PARK</span>
-            <p>Project Reports Dashboard<br>Solo director / multi-track build · 2025 — Present</p>
+            <p>PROJECT REPORTS DASHBOARD<br>Solo Director · Creator · Operator / Multi-Track Build · 2025 — Present</p>
           </div>
           <div class="footer-col">
             <h5>Quick Nav</h5>
@@ -153,7 +163,7 @@
 
 </div>
 
-<script src="js/projects-data.js?v=20260528-kgs" defer></script>
-<script src="js/dashboard.js?v=20260528-kgs" defer></script>
+<script src="js/projects-data.js?v=20260528-ui2" defer></script>
+<script src="js/dashboard.js?v=20260528-ui2" defer></script>
 </body>
 </html>

@@ -120,15 +120,19 @@
   };
   function emblem(name) { return ICONS[name] || ICONS.box; }
 
-  /* ---------- 1) World clock — 7 cities (sidebar 좌하) ---------- */
-  // 박사 발화: 미국 동부/서부, 도쿄, 중국, 블라디보스토크, 모스크바 시차 반영.
-  // Intl.DateTimeFormat의 timeZone으로 DST 자동 처리.
+  /* ---------- 1) KST primary clock + collapsible 11-city zones ----------
+     박사 발화: "기본은 KST만, 시차 버튼 클릭 시 더 보이게.
+     날짜·UTC offset도 표기. 노트북 화면에서 스크롤바 생기지 않게." */
   const CITIES = [
-    { city: 'SEOUL · BUSAN',  tz: 'Asia/Seoul',         primary: true },
     { city: 'TOKYO',          tz: 'Asia/Tokyo' },
     { city: 'BEIJING',        tz: 'Asia/Shanghai' },
+    { city: 'SINGAPORE',      tz: 'Asia/Singapore' },
     { city: 'VLADIVOSTOK',    tz: 'Asia/Vladivostok' },
+    { city: 'SYDNEY',         tz: 'Australia/Sydney' },
     { city: 'MOSCOW',         tz: 'Europe/Moscow' },
+    { city: 'DUBAI',          tz: 'Asia/Dubai' },
+    { city: 'LONDON',         tz: 'Europe/London' },
+    { city: 'PARIS',          tz: 'Europe/Paris' },
     { city: 'NEW YORK',       tz: 'America/New_York' },
     { city: 'LOS ANGELES',    tz: 'America/Los_Angeles' }
   ];
@@ -138,48 +142,90 @@
       return new Intl.DateTimeFormat('en-GB', {
         timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false
       }).format(new Date());
-    } catch (e) {
-      return '--:--';
-    }
+    } catch (e) { return '--:--'; }
+  }
+  function secIn(tz) {
+    try {
+      return new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      }).format(new Date());
+    } catch (e) { return '--:--:--'; }
+  }
+  function utcOffset(tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, timeZoneName: 'shortOffset'
+      }).formatToParts(new Date());
+      const off = parts.find(p => p.type === 'timeZoneName');
+      return off ? off.value.replace('GMT', 'UTC') : 'UTC';
+    } catch (e) { return 'UTC'; }
+  }
+  function dateInKST() {
+    try {
+      const d = new Date();
+      const p = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(d);
+      const y  = p.find(x => x.type === 'year').value;
+      const m  = p.find(x => x.type === 'month').value;
+      const dd = p.find(x => x.type === 'day').value;
+      const wk = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' }).format(d);
+      return y + '-' + m + '-' + dd + ' (' + wk + ')';
+    } catch (e) { return '----'; }
   }
 
   function renderWorldClock() {
     const wrap = $('#world-clock');
     if (!wrap) return;
     wrap.innerHTML = CITIES.map(c => `
-      <li class="${c.primary ? 'primary' : ''}" data-tz="${escapeHtml(c.tz)}">
+      <li data-tz="${escapeHtml(c.tz)}">
         <span class="city">${escapeHtml(c.city)}</span>
         <span class="time">${timeIn(c.tz)}</span>
+        <span class="off">${utcOffset(c.tz)}</span>
       </li>
     `).join('');
   }
 
-  function tickWorldClock() {
+  function tickClock() {
+    // KST primary
+    const t = $('#kst-time');     if (t) t.textContent = secIn('Asia/Seoul');
+    const d = $('#kst-date');     if (d) d.textContent = dateInKST();
+    const o = $('#kst-offset');   if (o) o.textContent = utcOffset('Asia/Seoul');
+    // world clock (always tick — cheap, even when hidden)
     document.querySelectorAll('#world-clock li').forEach(li => {
       const tz = li.dataset.tz;
-      const t = li.querySelector('.time');
-      if (t) t.textContent = timeIn(tz);
+      const tm = li.querySelector('.time');
+      if (tm) tm.textContent = timeIn(tz);
     });
-    const head = $('#world-clock-tick');
-    if (head) {
-      // primary (KST) detailed seconds
-      try {
-        head.textContent = new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-        }).format(new Date()) + ' KST';
-      } catch (e) {}
+  }
+
+  function setupTzToggle() {
+    const btn = $('#tz-toggle');
+    const list = $('#world-clock');
+    if (!btn || !list) return;
+    const KEY = 'tz-open';
+    function setOpen(open) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      list.hidden = !open;
+      btn.querySelector('.tz-toggle-label').textContent = open ? '− HIDE ZONES' : '+ TIME ZONES';
+      btn.querySelector('.tz-toggle-arrow').textContent = open ? '↑' : '↓';
+      try { localStorage.setItem(KEY, open ? '1' : '0'); } catch (e) {}
     }
+    let restored = '0';
+    try { restored = localStorage.getItem(KEY) || '0'; } catch (e) {}
+    setOpen(restored === '1');
+    btn.addEventListener('click', () => setOpen(list.hidden));
   }
 
   function startClock() {
     renderWorldClock();
-    tickWorldClock();
-    // align tick to next second boundary
+    setupTzToggle();
+    tickClock();
     const now = new Date();
     const delay = 1000 - now.getMilliseconds();
     setTimeout(() => {
-      tickWorldClock();
-      setInterval(tickWorldClock, 1000);
+      tickClock();
+      setInterval(tickClock, 1000);
     }, delay);
   }
 
@@ -639,8 +685,8 @@
           </div>
 
           <h1 class="page-h1">
-            <span class="reveal-line">Project</span>
-            <span class="reveal-line"><em>Reports.</em></span>
+            <span class="reveal-line">PROJECT</span>
+            <span class="reveal-line"><em>REPORTS.</em></span>
           </h1>
 
           <div class="page-lead">

@@ -272,8 +272,8 @@ const PROJECTS = [
   },
   {
     id: 'jpglobal-web',
-    name: 'JP GLOBAL Website Rebuild',
-    subtitle: '회사 홈페이지 자체 리빌드 · WordPress 외주 운영비 절감 목적',
+    name: 'Frontend & Tone Atelier',
+    subtitle: '프론트엔드 웹디자인 + 색감 톤 시범 워크숍 · 부산 거점 글로벌 해운 기업 JP GLOBAL 사이트로 테스트',
     icon: 'building',
     platform: '정적 웹사이트 · HTML/CSS/Vanilla JS',
     status: 'in-progress',
@@ -285,11 +285,11 @@ const PROJECTS = [
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/',            label:'Home — 화사한 톤 + 풀스크린 SVG 히어로(부산항) + 11섹션 (Brand Promises / About / Services / What We Do / Projects / Capabilities / Testimonials / Join / Contact / Partners / Footer)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/about.html',  label:'About Us — page hero + Company Profile + Mission Statement + History timeline 5건 + Values 4 + Reference 4' }
     ]},
-    summary: '박사가 다니는 부산 물류 회사 JP GLOBAL CO.,LTD의 기존 홈페이지(jpglobal.kr)를 '
-           + '자체 정적 사이트로 리빌드. 기존 사이트는 WordPress + The7 건설 테마 기반인데 '
-           + '운영비를 과하게 청구당하고 있어 박사가 직접 갈아엎기로 결정. '
-           + '레퍼런스 톤: coens.com (풀스크린 배너+섹터 그리드) + hmm21.com (딥네이비 코퍼레이트). '
-           + '첫페이지(index.html) v1 빌드 완료 — 박사 브라우저 확인 대기.',
+    summary: 'G.M.PARK이 프론트엔드 웹사이트 디자인 + 색감 톤 구현 워크플로우를 점검하는 시범 프로젝트. '
+           + '시범 대상으로 부산에 위치한 글로벌 해운 기업 JP GLOBAL CO.,LTD의 웹사이트(jpglobal.kr)를 채택 — '
+           + 'G.M.PARK 본인이 소속된 회사가 아니라 외부 디자이너 입장에서 실사이트를 test subject로 사용. '
+           + '같은 도메인의 동일 콘텐츠를 두고 코퍼레이트 톤(HMM21·COENS) → 라이트 클린 톤 → '
+           + 'Plus X 미니멀 다크 톤까지 다중 시안을 영속화하며 디자인 언어를 단계별로 실험.',
     method: '(1) jpglobal.kr 콘텐츠 전량 추출 → 진짜 회사 정보(사명·슬로건·사업 3종·프로젝트 4종·부산 연락처)와 '
           + '버려진 워드프레스 건설 테마 데모 잔재(Construction Management / Mining Infrastructure / '
           + 'Lorem ipsum 증언글 / © Seven Construction 2016 푸터) 분리. '

@@ -476,10 +476,12 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 .proj-name {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(40px, 8vw, 160px);
-  line-height: 0.92; letter-spacing: -0.045em;
+  /* 박사 발화: "이름 2-3줄 나오던 거 1줄로" — 폰트 사이즈 축소 */
+  font-size: clamp(28px, 5.2vw, 92px);
+  line-height: 1.0; letter-spacing: -0.035em;
   margin: 0;
   flex: 1; min-width: 0;
+  word-break: keep-all;
 }
 .proj-name em { font-style: italic; font-weight: 200; color: var(--orange); }
 .proj-subtitle {
@@ -1160,53 +1162,104 @@ body.is-color-open .color-panel-scrim {
 }
 
 .sidebar-foot {
-  padding: 16px 22px 18px;
+  padding: 14px 22px 16px;
   border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
   font-family: var(--font-mono);
   color: var(--gray-7);
 }
-.world-clock-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--orange); font-weight: 600;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+/* KST primary clock — always visible */
+.kst-block {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 2px 0 8px;
 }
-.world-clock-head .head-tz {
+.kst-row-main {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.kst-time {
   color: var(--paper); font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
-  font-size: 11px;
+  font-size: 16px;
 }
+.kst-offset {
+  color: var(--orange); font-weight: 700;
+  font-size: 10px; letter-spacing: 0.1em;
+}
+.kst-row-sub {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 10px; letter-spacing: 0.04em;
+}
+.kst-date { color: var(--gray-7); }
+.kst-loc  { color: var(--gray-5); letter-spacing: 0.14em; }
+
+/* TIME ZONES toggle — small button */
+.tz-toggle {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 4px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gray-7);
+  background: transparent;
+  transition: color .2s, border-color .2s, background .2s;
+  width: 100%;
+}
+.tz-toggle:hover {
+  color: var(--orange);
+  border-color: rgba(255,79,0,0.5);
+  background: rgba(255,79,0,0.04);
+}
+.tz-toggle[aria-expanded="true"] {
+  color: var(--orange);
+  border-color: rgba(255,79,0,0.5);
+}
+.tz-toggle .tz-toggle-arrow {
+  font-family: var(--font-mono); font-weight: 700;
+  transition: transform .25s var(--ease-out);
+}
+
+/* world clock — collapsed by default */
 .world-clock {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 2px 0;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 4px 0 2px;
+  max-height: 38vh;
+  overflow-y: auto;
 }
 .world-clock li {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
   align-items: baseline;
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: 0.04em;
+  padding: 2px 0;
 }
 .world-clock li .city {
   color: var(--gray-7);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .world-clock li .time {
-  color: var(--gray-5);
+  color: var(--paper);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  font-weight: 600;
 }
-.world-clock li.primary .city { color: var(--paper); font-weight: 700; }
-.world-clock li.primary .time { color: var(--orange); font-weight: 700; }
+.world-clock li .off {
+  color: var(--gray-5);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  min-width: 52px;
+  text-align: right;
+}
+
 .sidebar-foot .director {
-  font-size: 10px; color: var(--gray-5);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  margin-top: 4px;
-  padding-top: 10px;
+  font-size: 9px; color: var(--gray-5);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-top: 2px;
+  padding-top: 8px;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
 
