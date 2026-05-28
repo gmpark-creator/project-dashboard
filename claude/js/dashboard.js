@@ -40,13 +40,16 @@
      박사 발화 "각 프로젝트별 앰블럼 다시 복구. 뜀 = 트로피, Solar = 태양"
      viewBox 24x24, stroke 1.8px, currentColor (테마 색 자동 따름). */
   const ICONS = {
-    // 화물선: hull + 깃대/돛
+    // 컨테이너선 측면 — 박사 지적 "선박 모양으로 명확히"
+    // hull(사다리꼴) + 컨테이너 3 stack + 후미 bridge + 물결
     'ship':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        '<path d="M2 18.5l1.5 2.5h17L22 18.5"/>' +
-        '<path d="M4 16.5l8-8.5 8 8.5"/>' +
-        '<path d="M12 4v13"/>' +
-        '<path d="M8 11h8"/>' +
+        '<path d="M2 16h20l-2 3.5H4z"/>' +
+        '<rect x="5" y="11" width="3.5" height="5"/>' +
+        '<rect x="9" y="11" width="3.5" height="5"/>' +
+        '<rect x="13" y="11" width="3.5" height="5"/>' +
+        '<rect x="17" y="8" width="3" height="8"/>' +
+        '<path d="M2 21.5q1.5 1 3 0t3 0 t3 0t3 0t3 0t3 0"/>' +
       '</svg>',
     // 트로피: 컵 + 양 옆 손잡이 + 받침
     'trophy':
@@ -57,22 +60,15 @@
         '<path d="M12 15v3"/>' +
         '<path d="M8 21h8"/>' +
       '</svg>',
-    // 항성 + 작은 ring 행성 — 박사 지적 "사람 눈처럼 보임" 수정
-    // 좌측 태양(filled disk + 6 ray) + 우상 토성형 ring 행성으로 우주감 분명히
+    // 우주 — 박사 재지시 "제대로 우주 모양". 토성형 ring 행성 클로즈업 + 별 2개
+    // 큰 행성 disk + 기울어진 ring + 좌상/우상 작은 별. 눈 인식 차단.
     'orbit':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        // 태양 disk
-        '<circle cx="9" cy="14" r="3.2" fill="currentColor"/>' +
-        // 6 ray (좌측·상하·좌상·좌하 — 우측은 행성 영역이라 비움)
-        '<path d="M9 6v2"/>' +
-        '<path d="M9 20v2"/>' +
-        '<path d="M2 14h2"/>' +
-        '<path d="M4 9l1.4 1.4"/>' +
-        '<path d="M4 19l1.4-1.4"/>' +
-        '<path d="M14 14h.5"/>' +
-        // 우상 ring 행성 (토성형 — 디스크 + 기울어진 ring)
-        '<circle cx="17.5" cy="7" r="2"/>' +
-        '<ellipse cx="17.5" cy="7" rx="3.4" ry="0.8" transform="rotate(-22 17.5 7)"/>' +
+        '<circle cx="12" cy="13" r="5" fill="currentColor"/>' +
+        '<ellipse cx="12" cy="13" rx="9.5" ry="2.4" transform="rotate(-22 12 13)" fill="none"/>' +
+        '<circle cx="20" cy="4" r="0.9" fill="currentColor"/>' +
+        '<path d="M3.5 6.5l.4-.4M3.5 5.7l.4.4"/>' +
+        '<circle cx="4.2" cy="6.1" r="0.5" fill="currentColor"/>' +
       '</svg>',
     // 음표 (음원 추출기)
     'music':
@@ -92,7 +88,16 @@
         '<path d="M19 10v11"/>' +
         '<path d="M12 3l9 7H3z"/>' +
       '</svg>',
-    // 닻 (anchor)
+    // 회사 본사 빌딩 — 박사 지적 "JP Global = 회사 모양"
+    // 사각 office tower + 입구 + 창문 6 + 바닥선
+    'building':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="5" y="3" width="14" height="18"/>' +
+        '<rect x="10" y="15" width="4" height="6"/>' +
+        '<path d="M8 7h2M14 7h2M8 11h2M14 11h2"/>' +
+        '<path d="M3 21h18"/>' +
+      '</svg>',
+    // 닻 — anchor 기존 보존 (다른 용도용)
     'anchor':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<circle cx="12" cy="5" r="2.5"/>' +

@@ -273,7 +273,7 @@ const PROJECTS = [
     id: 'jpglobal-web',
     name: 'JPGLOBAL Website Rebuild',
     subtitle: '회사 홈페이지 자체 리빌드 · WordPress 외주 운영비 절감 목적',
-    icon: 'anchor',
+    icon: 'building',
     platform: '정적 웹사이트 · HTML/CSS/Vanilla JS',
     status: 'in-progress',
     start: '2026-05-27',
