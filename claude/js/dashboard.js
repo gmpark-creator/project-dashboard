@@ -57,12 +57,22 @@
         '<path d="M12 15v3"/>' +
         '<path d="M8 21h8"/>' +
       '</svg>',
-    // 태양·궤도: 중심 sun-disk + orbit ring + planet dot
+    // 항성 + 작은 ring 행성 — 박사 지적 "사람 눈처럼 보임" 수정
+    // 좌측 태양(filled disk + 6 ray) + 우상 토성형 ring 행성으로 우주감 분명히
     'orbit':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        '<circle cx="12" cy="12" r="3" fill="currentColor"/>' +
-        '<ellipse cx="12" cy="12" rx="9" ry="4.5"/>' +
-        '<circle cx="21" cy="12" r="1.4" fill="currentColor"/>' +
+        // 태양 disk
+        '<circle cx="9" cy="14" r="3.2" fill="currentColor"/>' +
+        // 6 ray (좌측·상하·좌상·좌하 — 우측은 행성 영역이라 비움)
+        '<path d="M9 6v2"/>' +
+        '<path d="M9 20v2"/>' +
+        '<path d="M2 14h2"/>' +
+        '<path d="M4 9l1.4 1.4"/>' +
+        '<path d="M4 19l1.4-1.4"/>' +
+        '<path d="M14 14h.5"/>' +
+        // 우상 ring 행성 (토성형 — 디스크 + 기울어진 ring)
+        '<circle cx="17.5" cy="7" r="2"/>' +
+        '<ellipse cx="17.5" cy="7" rx="3.4" ry="0.8" transform="rotate(-22 17.5 7)"/>' +
       '</svg>',
     // 음표 (음원 추출기)
     'music':
