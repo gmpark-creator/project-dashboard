@@ -208,9 +208,9 @@ const PROJECTS = [
     start: '2026-05-26',
     latest: '2026-05-27',
     progress: 1,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?variant=nano&lang=ko',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?variant=nano&lang=ko&v=kgs2',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?variant=nano&lang=ko', label:'2026 PRESIDENT KOREA — Three.js 2.5D 미니어처 한국 (Nano Banana variant, 한국어 라벨)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?variant=nano&lang=ko&v=kgs2', label:'2026 PRESIDENT KOREA — Three.js 2.5D 미니어처 한국 (Nano Banana variant, 한국어 라벨)' }
     ]},
     summary: '대한민국 대통령으로 5년 단임을 사는 정치 시뮬레이션 게임의 5번째 프로젝트. '
            + '메뉴가 아니라 살아있는 지도가 통치판 — 어두운 세계 위에 따뜻한 한지색 한국이 떠오르고, '
