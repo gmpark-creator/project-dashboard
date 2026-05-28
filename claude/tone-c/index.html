@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="G.M.PARK — Project Reports. 진행 중·완료된 6개 프로젝트의 통합 보고서.">
+  <title>Project Reports — G.M.PARK</title>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<!-- ============== SCROLL PROGRESS ============== -->
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<!-- ============== CORNER UI (우측만 유지) ============== -->
+<div class="corner-ui corner-tr">
+  <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-label="Toggle sidebar">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="label">MENU</span>
+  </button>
+</div>
+<div class="corner-ui corner-br">
+  <div class="section-index">
+    <span class="current" id="section-index-current">00</span>
+    <span class="sep">/</span>
+    <span class="total" id="section-index-total">06</span>
+  </div>
+</div>
+
+<!-- ============== CURSOR ============== -->
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+<!-- ============== APP SHELL ============== -->
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" aria-label="Project navigation">
+    <button type="button" class="sidebar-close" id="sidebar-close" aria-label="Close sidebar">×</button>
+
+    <div class="sidebar-head">
+      <a href="#/" class="brand" data-route="home">G.M.PARK</a>
+      <span class="sub">Project Dashboard</span>
+    </div>
+
+    <a href="#/" class="sidebar-home" data-route="home" id="sidebar-home-link">All Projects</a>
+
+    <div class="sidebar-label">
+      <span>+ Projects</span>
+      <span class="count" id="sidebar-count">--</span>
+    </div>
+
+    <nav class="sidebar-list" id="sidebar-list" aria-label="Project list">
+      <!-- JS fills with .sidebar-link items -->
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="clock">
+        <span class="now" id="clock-now">--:--:--</span>
+        <span class="meta">KST · BUSAN</span>
+      </div>
+      <span class="director">G.M.PARK · DIRECTOR</span>
+    </div>
+  </aside>
+
+  <!-- SCRIM (mobile sidebar dim) -->
+  <div class="sidebar-scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <main id="main-content" aria-live="polite">
+      <!-- JS renders either Home view or Project Detail view here -->
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <span class="brand-large">G.M.PARK</span>
+            <p>Project Reports Dashboard<br>Solo director / multi-track build · 2025 — Present</p>
+          </div>
+          <div class="footer-col">
+            <h5>Quick Nav</h5>
+            <ul>
+              <li><a href="#/">All Projects</a></li>
+              <li><a href="#/p/ais">AIS Ship Tracker</a></li>
+              <li><a href="#/p/sports">DDUIM</a></li>
+              <li><a href="#/p/solar">Solar System</a></li>
+              <li><a href="#/p/inst">INST Extractor</a></li>
+              <li><a href="#/p/korea-gov-sim">2026 PRESIDENT KOREA</a></li>
+              <li><a href="#/p/jpglobal-web">JPGLOBAL Website</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h5>Links</h5>
+            <ul>
+              <li><a href="https://github.com/gmpark-creator" target="_blank" rel="noopener">GitHub ↗</a></li>
+              <li><a href="mailto:matt.4lab@gmail.com">matt.4lab@gmail.com</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2026 G.M.PARK · All Rights Reserved.</p>
+          <p>Dashboard v3.1 · sidebar+routing · Updated 2026-05-28 KST</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+</div>
+
+<script src="js/projects-data.js" defer></script>
+<script src="js/dashboard.js" defer></script>
+</body>
+</html>
