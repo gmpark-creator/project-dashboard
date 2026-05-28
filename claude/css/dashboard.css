@@ -4,11 +4,10 @@
    ============================================================ */
 
 :root {
-  /* 2026-05-28 색감 lift v2: 미세 lift(#14171c)가 박사 눈엔 여전히 거의 검정.
-     박사 재지시 "어두움 유지하되 색감 있는 더 밝은 어두움". slate-900급으로
-     한 단계 더 — 푸르스름함 분명히 잡힘, 다크 톤은 충분히 유지.
-     #14171c → #1d2233 · #1c1f26 → #262b38 */
-  --ink: #1d2233;
+  /* 2026-05-28 색감 final: tone-compare 4 시안 중 박사 픽 = C · Slight Lift.
+     v3.1 canonical 톤 확정. 분기 변천:
+     #0a0a0a (v3 초기) → #14171c (lift v1) → #1d2233 (lift v2, tone-b) → #202738 (tone-c, FINAL) */
+  --ink: #202738;
   --paper: #fafafa;
   --orange: #ff4f00;
   --orange-dim: #c83e00;
@@ -17,7 +16,7 @@
   --gray-7: #b5b5b5;
   --gray-5: #888888;
   --gray-3: #404040;
-  --gray-1: #262b38;
+  --gray-1: #2a2f3e;
 
   /* status tone — vanilla 토큰 (Tailwind 폐기 후 대체) */
   --st-done:    #22c55e;  /* emerald */
