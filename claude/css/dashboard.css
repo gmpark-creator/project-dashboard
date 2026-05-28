@@ -764,7 +764,7 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 32px;
   padding-bottom: 50px;
   border-bottom: 1px solid rgba(255,255,255,0.12);
@@ -1234,12 +1234,12 @@ body.is-color-open .color-panel-scrim {
 .world-clock.is-open { display: flex; }
 .world-clock li {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 8px;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 6px;
   align-items: baseline;
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.04em;
-  padding: 2px 0;
+  padding: 3px 0;
 }
 .world-clock li .city {
   color: var(--gray-7);
@@ -1251,13 +1251,27 @@ body.is-color-open .color-panel-scrim {
   letter-spacing: 0.06em;
   font-weight: 600;
 }
+.world-clock li .date {
+  color: var(--gray-7);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
 .world-clock li .off {
   color: var(--gray-5);
   font-size: 9px;
-  letter-spacing: 0.06em;
-  min-width: 52px;
+  letter-spacing: 0.04em;
+  min-width: 48px;
   text-align: right;
 }
+/* 첫 row (UTC 기준점) 강조 */
+.world-clock li:first-child {
+  padding-bottom: 5px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed rgba(255,255,255,0.12);
+}
+.world-clock li:first-child .city { color: var(--orange); font-weight: 700; font-size: 9px; }
+.world-clock li:first-child .time { color: var(--orange); }
 
 .sidebar-foot .director {
   font-size: 9px; color: var(--gray-5);

@@ -123,19 +123,27 @@
   /* ---------- 1) KST primary clock + collapsible 11-city zones ----------
      박사 발화: "기본은 KST만, 시차 버튼 클릭 시 더 보이게.
      날짜·UTC offset도 표기. 노트북 화면에서 스크롤바 생기지 않게." */
+  // 박사 발화: "기준선 맨 위, +0 → +1 → +2 → +3 순서, 없는 시간대 채워라,
+  //            각 시차 row에 날짜도 표시." 정렬 키 = 도시 표준시(STD) UTC offset.
+  // DST는 실시간 표시 offset에 자동 반영(shortOffset). 정렬은 STD 기준 고정.
   const CITIES = [
-    { city: 'UTC (REFERENCE)', tz: 'Etc/UTC' },   // 박사 발화: "UTC 0 기준 박아라"
-    { city: 'TOKYO',          tz: 'Asia/Tokyo' },
-    { city: 'BEIJING',        tz: 'Asia/Shanghai' },
-    { city: 'SINGAPORE',      tz: 'Asia/Singapore' },
-    { city: 'VLADIVOSTOK',    tz: 'Asia/Vladivostok' },
-    { city: 'SYDNEY',         tz: 'Australia/Sydney' },
-    { city: 'MOSCOW',         tz: 'Europe/Moscow' },
-    { city: 'DUBAI',          tz: 'Asia/Dubai' },
-    { city: 'LONDON',         tz: 'Europe/London' },
-    { city: 'PARIS',          tz: 'Europe/Paris' },
-    { city: 'NEW YORK',       tz: 'America/New_York' },
-    { city: 'LOS ANGELES',    tz: 'America/Los_Angeles' }
+    { city: 'UTC · 기준점 — 그리니치 천문대', tz: 'Etc/UTC',           std: 0    },
+    { city: 'LAGOS',                          tz: 'Africa/Lagos',      std: 1    },
+    { city: 'CAIRO',                          tz: 'Africa/Cairo',      std: 2    },
+    { city: 'MOSCOW',                         tz: 'Europe/Moscow',     std: 3    },
+    { city: 'DUBAI',                          tz: 'Asia/Dubai',        std: 4    },
+    { city: 'KARACHI',                        tz: 'Asia/Karachi',      std: 5    },
+    { city: 'NEW DELHI',                      tz: 'Asia/Kolkata',      std: 5.5  },
+    { city: 'DHAKA',                          tz: 'Asia/Dhaka',        std: 6    },
+    { city: 'BANGKOK',                        tz: 'Asia/Bangkok',      std: 7    },
+    { city: 'BEIJING',                        tz: 'Asia/Shanghai',     std: 8    },
+    { city: 'TOKYO',                          tz: 'Asia/Tokyo',        std: 9    },
+    { city: 'VLADIVOSTOK',                    tz: 'Asia/Vladivostok',  std: 10   },
+    { city: 'NOUMEA',                         tz: 'Pacific/Noumea',    std: 11   },
+    { city: 'AUCKLAND',                       tz: 'Pacific/Auckland',  std: 12   },
+    { city: 'BUENOS AIRES',                   tz: 'America/Argentina/Buenos_Aires', std: -3 },
+    { city: 'NEW YORK',                       tz: 'America/New_York',  std: -5   },
+    { city: 'LOS ANGELES',                    tz: 'America/Los_Angeles', std: -8 }
   ];
 
   function timeIn(tz) {
@@ -161,27 +169,40 @@
       return off ? off.value.replace('GMT', 'UTC') : 'UTC';
     } catch (e) { return 'UTC'; }
   }
-  function dateInKST() {
+  function dateIn(tz) {
     try {
       const d = new Date();
       const p = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
       }).formatToParts(d);
       const y  = p.find(x => x.type === 'year').value;
       const m  = p.find(x => x.type === 'month').value;
       const dd = p.find(x => x.type === 'day').value;
-      const wk = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' }).format(d);
-      return y + '-' + m + '-' + dd + ' (' + wk + ')';
+      return { y, m, d: dd, full: y + '-' + m + '-' + dd, short: m + '-' + dd };
+    } catch (e) { return { y:'', m:'', d:'', full:'----', short:'--' }; }
+  }
+  function dateInKST() {
+    try {
+      const obj = dateIn('Asia/Seoul');
+      const wk = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' }).format(new Date());
+      return obj.full + ' (' + wk + ')';
     } catch (e) { return '----'; }
   }
 
   function renderWorldClock() {
     const wrap = $('#world-clock');
     if (!wrap) return;
-    wrap.innerHTML = CITIES.map(c => `
+    // 박사 정렬 기준: STD UTC offset 오름차순 (음수는 양수 다음 — +0 first, then +1..+12, then -3..-8)
+    const sorted = CITIES.slice().sort((a, b) => {
+      const aPos = a.std >= 0, bPos = b.std >= 0;
+      if (aPos !== bPos) return aPos ? -1 : 1;       // 양수 먼저
+      return aPos ? a.std - b.std : Math.abs(a.std) - Math.abs(b.std);
+    });
+    wrap.innerHTML = sorted.map(c => `
       <li data-tz="${escapeHtml(c.tz)}">
         <span class="city">${escapeHtml(c.city)}</span>
         <span class="time">${timeIn(c.tz)}</span>
+        <span class="date">${dateIn(c.tz).short}</span>
         <span class="off">${utcOffset(c.tz)}</span>
       </li>
     `).join('');
@@ -192,11 +213,13 @@
     const t = $('#kst-time');     if (t) t.textContent = secIn('Asia/Seoul');
     const d = $('#kst-date');     if (d) d.textContent = dateInKST();
     const o = $('#kst-offset');   if (o) o.textContent = utcOffset('Asia/Seoul');
-    // world clock (always tick — cheap, even when hidden)
+    // world clock (always tick — time + date for each)
     document.querySelectorAll('#world-clock li').forEach(li => {
       const tz = li.dataset.tz;
       const tm = li.querySelector('.time');
+      const dt = li.querySelector('.date');
       if (tm) tm.textContent = timeIn(tz);
+      if (dt) dt.textContent = dateIn(tz).short;
     });
   }
 
