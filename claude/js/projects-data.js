@@ -274,7 +274,7 @@ const PROJECTS = [
   },
   {
     id: 'jpglobal-web',
-    name: 'JPGLOBAL Website Rebuild',
+    name: 'JP GLOBAL Website Rebuild',
     subtitle: '회사 홈페이지 자체 리빌드 · WordPress 외주 운영비 절감 목적',
     icon: 'building',
     platform: '정적 웹사이트 · HTML/CSS/Vanilla JS',
@@ -287,7 +287,7 @@ const PROJECTS = [
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/',            label:'Home — 화사한 톤 + 풀스크린 SVG 히어로(부산항) + 11섹션 (Brand Promises / About / Services / What We Do / Projects / Capabilities / Testimonials / Join / Contact / Partners / Footer)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/about.html',  label:'About Us — page hero + Company Profile + Mission Statement + History timeline 5건 + Values 4 + Reference 4' }
     ]},
-    summary: '박사가 다니는 부산 물류 회사 JPGLOBAL CO.,LTD의 기존 홈페이지(jpglobal.kr)를 '
+    summary: '박사가 다니는 부산 물류 회사 JP GLOBAL CO.,LTD의 기존 홈페이지(jpglobal.kr)를 '
            + '자체 정적 사이트로 리빌드. 기존 사이트는 WordPress + The7 건설 테마 기반인데 '
            + '운영비를 과하게 청구당하고 있어 박사가 직접 갈아엎기로 결정. '
            + '레퍼런스 톤: coens.com (풀스크린 배너+섹터 그리드) + hmm21.com (딥네이비 코퍼레이트). '
@@ -314,7 +314,7 @@ const PROJECTS = [
       { type:'완료', title:'v3 commit ceb22b8 push + dashboard previews 동기화 (2026-05-27)', desc:'jpglobal-web/master 푸시 완료. dashboard previews/jpglobal-web/ 폴더의 v2 파일 → v3로 교체. CSS 36KB / index 24KB / about 15KB. GitHub Pages 1-2분 후 라이브 데모 갱신.' }
     ],
     milestones: [
-      { isCore:true, date:'2026-05-27', title:'프로젝트 신설 — JPGLOBAL 홈페이지 자체 리빌드 결정', desc:'박사 발화: 기존 jpglobal.kr이 워드프레스 외주로 운영비를 과하게 청구당하고 있어 자체 리빌드. coens.com + hmm21.com 톤 레퍼런스 지정. ../jpglobal-web 폴더 신설, git init.' },
+      { isCore:true, date:'2026-05-27', title:'프로젝트 신설 — JP GLOBAL 홈페이지 자체 리빌드 결정', desc:'박사 발화: 기존 jpglobal.kr이 워드프레스 외주로 운영비를 과하게 청구당하고 있어 자체 리빌드. coens.com + hmm21.com 톤 레퍼런스 지정. ../jpglobal-web 폴더 신설, git init.' },
       { isCore:true, date:'2026-05-27', title:'v1 첫페이지 빌드 완료 — deep navy 베이스', desc:'딥네이비+브론즈 디자인 토큰 + 풀스크린 SVG 히어로(부산항 컨테이너선) + 6섹션 + 반응형 + 모바일 nav. 로컬 5050 서빙 시작.' },
       { isCore:true, date:'2026-05-27', title:'v2 톤 라이트닝 + 원본 문구 풀 복원 + About 페이지 신설', desc:'박사 피드백 "조금 더 밝고 화사하게" 즉시 반영 → 화이트/스카이/크림 + golden honey + soft coral 팔레트 전면 교체. 원본 jpglobal.kr 5섹션(Promises/WhatWeDo/Testimonials/Join/Partners) 풀 복원. 워드프레스 데모 잔재 정리 후보는 _curate-list.md로 영속. About Us 페이지(about.html) 신설 — page hero + Mission + History 5 + Values 4 + Reference 4. index 32KB + about 18KB.' },
       { isCore:true, date:'2026-05-27', title:'GitHub repo 생성 + 푸시 — gmpark-creator/jpglobal-web (private)', desc:'박사 지시 "커밋 푸쉬 레포저장도 프로젝트 6번에 따로 빼서 진행". gh repo create로 private 리포 생성 + v1/v2 commit 2건 push. 박사 다른 프로젝트 패턴과 동일.' }

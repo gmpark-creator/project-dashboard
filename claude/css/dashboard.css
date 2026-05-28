@@ -1160,26 +1160,54 @@ body.is-color-open .color-panel-scrim {
 }
 
 .sidebar-foot {
-  padding: 20px 24px 24px;
+  padding: 16px 22px 18px;
   border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex; flex-direction: column; gap: 6px;
-  font-family: var(--font-mono); font-size: 11px;
+  display: flex; flex-direction: column; gap: 10px;
+  font-family: var(--font-mono);
   color: var(--gray-7);
-  letter-spacing: 0.04em;
 }
-.sidebar-foot .clock {
-  display: flex; gap: 10px; align-items: baseline;
+.world-clock-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--orange); font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.sidebar-foot .clock .now {
+.world-clock-head .head-tz {
   color: var(--paper); font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
+  font-size: 11px;
 }
-.sidebar-foot .clock .meta { color: var(--gray-5); }
+.world-clock {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 2px 0;
+}
+.world-clock li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+.world-clock li .city {
+  color: var(--gray-7);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.world-clock li .time {
+  color: var(--gray-5);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+.world-clock li.primary .city { color: var(--paper); font-weight: 700; }
+.world-clock li.primary .time { color: var(--orange); font-weight: 700; }
 .sidebar-foot .director {
   font-size: 10px; color: var(--gray-5);
-  letter-spacing: 0.06em; text-transform: uppercase;
+  letter-spacing: 0.08em; text-transform: uppercase;
   margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 /* mobile sidebar toggle behavior */

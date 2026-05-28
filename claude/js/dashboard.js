@@ -120,19 +120,67 @@
   };
   function emblem(name) { return ICONS[name] || ICONS.box; }
 
-  /* ---------- 1) KST clock ---------- */
-  function startClock() {
-    const el = $('#clock-now');
-    if (!el) return;
-    const fmt = (n) => String(n).padStart(2, '0');
-    function tick() {
-      const now = new Date();
-      const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-      const kst = new Date(utcMs + 9 * 3600 * 1000);
-      el.textContent = fmt(kst.getHours()) + ':' + fmt(kst.getMinutes()) + ':' + fmt(kst.getSeconds());
+  /* ---------- 1) World clock — 7 cities (sidebar 좌하) ---------- */
+  // 박사 발화: 미국 동부/서부, 도쿄, 중국, 블라디보스토크, 모스크바 시차 반영.
+  // Intl.DateTimeFormat의 timeZone으로 DST 자동 처리.
+  const CITIES = [
+    { city: 'SEOUL · BUSAN',  tz: 'Asia/Seoul',         primary: true },
+    { city: 'TOKYO',          tz: 'Asia/Tokyo' },
+    { city: 'BEIJING',        tz: 'Asia/Shanghai' },
+    { city: 'VLADIVOSTOK',    tz: 'Asia/Vladivostok' },
+    { city: 'MOSCOW',         tz: 'Europe/Moscow' },
+    { city: 'NEW YORK',       tz: 'America/New_York' },
+    { city: 'LOS ANGELES',    tz: 'America/Los_Angeles' }
+  ];
+
+  function timeIn(tz) {
+    try {
+      return new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(new Date());
+    } catch (e) {
+      return '--:--';
     }
-    tick();
-    setInterval(tick, 1000);
+  }
+
+  function renderWorldClock() {
+    const wrap = $('#world-clock');
+    if (!wrap) return;
+    wrap.innerHTML = CITIES.map(c => `
+      <li class="${c.primary ? 'primary' : ''}" data-tz="${escapeHtml(c.tz)}">
+        <span class="city">${escapeHtml(c.city)}</span>
+        <span class="time">${timeIn(c.tz)}</span>
+      </li>
+    `).join('');
+  }
+
+  function tickWorldClock() {
+    document.querySelectorAll('#world-clock li').forEach(li => {
+      const tz = li.dataset.tz;
+      const t = li.querySelector('.time');
+      if (t) t.textContent = timeIn(tz);
+    });
+    const head = $('#world-clock-tick');
+    if (head) {
+      // primary (KST) detailed seconds
+      try {
+        head.textContent = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(new Date()) + ' KST';
+      } catch (e) {}
+    }
+  }
+
+  function startClock() {
+    renderWorldClock();
+    tickWorldClock();
+    // align tick to next second boundary
+    const now = new Date();
+    const delay = 1000 - now.getMilliseconds();
+    setTimeout(() => {
+      tickWorldClock();
+      setInterval(tickWorldClock, 1000);
+    }, delay);
   }
 
   /* ---------- 1b) COLOR SWITCHER ---------- */
@@ -597,12 +645,13 @@
 
           <div class="page-lead">
             <p class="lead reveal-up">
-              A consolidated report covering all <strong>6 projects</strong>, active and completed.
+              A consolidated report covering all <strong>${projects.length} projects</strong>, active and completed.
               Select a project from the left sidebar, or click a card below to navigate to its detail page.
             </p>
             <div class="marker reveal-up">
               <strong>+ G.M.PARK</strong>
-              Solo Director / Multi-Track Build
+              Solo Director&nbsp;&middot;&nbsp;Creator&nbsp;&middot;&nbsp;Operator<br>
+              / Multi-Track Build
             </div>
           </div>
 
