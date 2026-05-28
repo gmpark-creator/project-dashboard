@@ -120,6 +120,87 @@
     setInterval(tick, 1000);
   }
 
+  /* ---------- 1b) COLOR SWITCHER ---------- */
+  // 9 themes: 3 existing (black/navy/light) + 6 Gemini Nano Banana (박사 의뢰)
+  const THEMES = [
+    { id: 'navy',         name: 'Slate Navy',          hex: '#202738', accent: '#ff4f00', badge: 'Canonical', mode: 'dark'  },
+    { id: 'black',        name: 'Original Black',      hex: '#0a0a0a', accent: '#ff4f00', badge: 'v3 Initial', mode: 'dark' },
+    { id: 'light',        name: 'Light Indigo',        hex: '#ffffff', accent: '#6366f1', badge: 'Light',      mode: 'light' },
+    { id: 'obsidian',     name: 'Obsidian Charcoal',   hex: '#121212', accent: '#ff6b6b', badge: 'A · Gemini', mode: 'dark' },
+    { id: 'cyber',        name: 'Cyber Punk Neon',     hex: '#0b0f19', accent: '#3b82f6', badge: 'B · Gemini', mode: 'dark' },
+    { id: 'claude-warm',  name: 'Claude Warm Minimal', hex: '#fbf9f6', accent: '#d97706', badge: 'C · Gemini', mode: 'light' },
+    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini', mode: 'light' },
+    { id: 'emerald',      name: 'Emerald Forest',      hex: '#0f1715', accent: '#34d399', badge: 'E · Gemini', mode: 'dark' },
+    { id: 'violet',       name: 'Midnight Violet',     hex: '#130f26', accent: '#a78bfa', badge: 'F · Gemini', mode: 'dark' }
+  ];
+
+  function setupColorSwitcher() {
+    const list   = $('#color-list');
+    const toggle = $('#color-toggle');
+    const close  = $('#color-close');
+    const scrim  = $('#color-panel-scrim');
+    const panel  = $('#color-panel');
+    if (!list || !toggle) return;
+
+    const STORAGE_KEY = 'dash-color';
+
+    function currentColor() {
+      return document.documentElement.dataset.color || 'navy';
+    }
+
+    function renderList() {
+      const cur = currentColor();
+      list.innerHTML = THEMES.map(t => `
+        <button type="button" class="color-item ${t.id === cur ? 'is-active' : ''}" data-color="${t.id}"
+                style="--swatch-accent:${t.accent}">
+          <span class="swatch" style="background:${t.hex}"></span>
+          <span class="meta">
+            <span class="name">${t.name}</span>
+            <span class="hex">${t.hex} · ${t.accent}</span>
+          </span>
+          <span class="badge ${t.mode === 'light' ? 'dim' : ''}">${t.badge}</span>
+        </button>
+      `).join('');
+    }
+
+    function applyColor(id) {
+      if (!THEMES.find(t => t.id === id)) id = 'navy';
+      document.documentElement.dataset.color = id;
+      try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
+      renderList();
+    }
+
+    function openPanel() {
+      body.classList.add('is-color-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      if (panel) panel.setAttribute('aria-hidden', 'false');
+    }
+    function closePanel() {
+      body.classList.remove('is-color-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      if (panel) panel.setAttribute('aria-hidden', 'true');
+    }
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      body.classList.contains('is-color-open') ? closePanel() : openPanel();
+    });
+    if (close) close.addEventListener('click', closePanel);
+    if (scrim) scrim.addEventListener('click', closePanel);
+
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.color-item');
+      if (!btn) return;
+      applyColor(btn.dataset.color);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && body.classList.contains('is-color-open')) closePanel();
+    });
+
+    renderList();
+  }
+
   /* ---------- 2) sidebar toggle (mobile) ---------- */
   function setupSidebar() {
     const toggle = $('#menu-toggle');
@@ -575,6 +656,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     startClock();
     setupSidebar();
+    setupColorSwitcher();
     setupCursor();
 
     const projects = window.PROJECTS || [];

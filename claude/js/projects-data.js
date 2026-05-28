@@ -326,12 +326,13 @@ const PROJECTS = [
     status: 'in-progress',
     start: '2026-05-28',
     latest: '2026-05-28',
-    progress: 1,
-    link: '../us-to-kr-premarket-impact-dashboard',
+    progress: 30,
+    link: 'https://github.com/gmpark-creator/us-to-kr-premarket-impact-dashboard',
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을 분석·시각화하는 연구용 대시보드. '
-           + 'Codex가 단독 트랙으로 설계+Phase 1 mock UI를 완성했고, 박사 발화로 dashboard #7에 정식 등록. '
-           + 'safety 가드레일 명시 — "For research only. Not investment advice." 자동 주문·브로커리지 연동·라이브 데이터 모두 금지. '
-           + 'GitHub remote 아직 미설정(로컬 only), 박사 결정 대기.',
+           + 'Codex가 단독 트랙으로 설계+Phase 1 mock UI 완성 후, official 매크로 데이터 refresh 파이프라인까지 추가 — '
+           + 'GitHub repo 생성·push 완료 (gmpark-creator/us-to-kr-premarket-impact-dashboard). '
+           + 'safety 가드레일 유지 — "For research only. Not investment advice." 자동 주문·브로커리지·라이브 단일종목 데이터 금지. '
+           + 'progress 30% (박사 발화 픽스).',
     method: 'Codex가 master 단일 트랙. Phase 1은 static fixture data 기반 mock UI만 — live provider, backend, DB migration, order routing 일체 미포함. '
           + 'Vite + React 18 + TypeScript + lucide-react. Dark report-dashboard 시각 언어 — "G.M.PARK dashboard reference" 명시 참조(near-black bg + paper text + orange accent + fixed corner UI + left nav + KST clock + report footer). '
           + 'UI 섹션: OverviewHero / OvernightMacroPanel / US Theme Heatmap / Theme Detail Drawer / KRX Pre-Market Signal Table / KRX Ticker Detail Panel / Data Quality·Run Audit Panel. '
@@ -341,14 +342,18 @@ const PROJECTS = [
       { type:'완료', title:'Initial design — US-KR premarket signal 컨셉 정의 (Codex, 2026-05-28)', desc:'commit c613660. docs/DESIGN.md 영속화. 라이브 데이터 미사용·자동 주문 금지·연구 전용 safety rule 합의.' },
       { type:'완료', title:'Phase 1 — static mock dashboard UI 구현 (Codex, 2026-05-28)', desc:'commit da2284a. Vite+React+TS 셋업. src/ App·data·types·styles. lucide-react 아이콘. 7개 UI 섹션 mock data로 wiring. npm install / typecheck / build / audit 모두 PASS.' },
       { type:'핵심', title:'Phase 1 — Korean UI + help guide (Codex, 2026-05-28)', desc:'commit d62170c. 한국어 라벨 + 도움말 가이드 추가. docs/PHASE1_RECEIPT.md 영속 — 박사 dashboard 톤("G.M.PARK reference") 명시 참조로 dark + orange + corner UI 시각 언어 정렬.' },
-      { type:'이슈', title:'GitHub remote 미설정 (로컬 only)', desc:'아직 push 안 됨. 박사 결정 대기 — private repo 생성 권장(다른 박사 프로젝트 패턴과 동일).' },
-      { type:'이슈', title:'박사 dashboard 신규 #7 등록 (2026-05-28)', desc:'Claude가 ../us-to-kr-premarket-impact-dashboard 폴더 발견하고 박사 보고 → 박사 발화 "대시보드 7번으로 추가"로 정식 등록. progress 1% (박사 standing — 박사 직접 발화로만 갱신).' }
+      { type:'완료', title:'GitHub repo 생성 + push 완료 (Codex, 2026-05-28)', desc:'gmpark-creator/us-to-kr-premarket-impact-dashboard remote 등록 + master push. 박사 standing(다른 프로젝트와 동일 패턴) 충족.' },
+      { type:'핵심', title:'Official 매크로 데이터 refresh 파이프라인 (Codex, commit f218f32)', desc:'scripts/refresh-data.mjs (+388줄) 신설. FRED + Bank of Korea ECOS 등 traceable 공식 소스 우선. data.generated.ts(+162줄) 자동 생성. docs/DATA_SOURCES.md 영속화 — USD/KRW · S&P500 · Nasdaq · Dow · VIX · US 10Y 매핑. 박사 standing "fake/guessed 데이터 금지" 준수 — 소스 미확보 시 missing/delayed로 표시.' },
+      { type:'이슈', title:'박사 dashboard 등록 + 30% 픽스 (2026-05-28)', desc:'Claude가 폴더 발견 → 박사 "대시보드 7번으로 추가, 구현율은 30%로 고정" 발화로 정식 등록 + progress 1% → 30% 갱신. 향후 progress 변경은 박사 직접 발화 대기(standing).' }
     ],
     milestones: [
       { date:'2026-05-28', title:'Initial design — US-KR Premarket 컨셉 (Codex)', desc:'commit c613660. docs/DESIGN.md 영속. safety: 연구 전용 · 자동주문·브로커리지·라이브데이터 금지 명시.' },
       { date:'2026-05-28', title:'Phase 1 — static mock dashboard UI (Codex)', desc:'commit da2284a. Vite + React + TS 골격. mock fixture 데이터. typecheck/build/audit PASS.' },
       { isCore:true, date:'2026-05-28', title:'Phase 1 — Korean UI + help guide (Codex)', desc:'commit d62170c. 한국어 라벨 + 도움말 가이드. docs/PHASE1_RECEIPT.md 영속. G.M.PARK dashboard 톤 정렬.' },
-      { isCore:true, date:'2026-05-28', title:'박사 dashboard #7 정식 등록', desc:'Claude가 폴더 발견 → 박사 발화 "대시보드 7번으로 추가" → projects-data.js에 등록. Codex 트랙 standing 유지. GitHub repo·향후 Phase 2 진입은 박사 결정.' }
+      { isCore:true, date:'2026-05-28', title:'박사 dashboard #7 정식 등록', desc:'Claude가 폴더 발견 → 박사 발화 "대시보드 7번으로 추가" → projects-data.js에 등록. Codex 트랙 standing 유지.' },
+      { isCore:true, date:'2026-05-28', title:'GitHub repo 생성 + push (Codex)', desc:'gmpark-creator/us-to-kr-premarket-impact-dashboard remote 등록 + master push. 박사 다른 프로젝트와 동일 패턴.' },
+      { isCore:true, date:'2026-05-28', title:'Official 매크로 데이터 refresh (Codex, commit f218f32)', desc:'FRED + BoK ECOS 공식 소스 우선 + scripts/refresh-data.mjs + data.generated.ts + docs/DATA_SOURCES.md. 박사 "fake 데이터 금지" standing 준수 — missing/delayed 명시.' },
+      { isCore:true, date:'2026-05-28', title:'박사 progress 30% 픽스', desc:'박사 발화 "구현율은 30퍼센트로 고정". 향후 갱신은 박사 직접 발화 대기.' }
     ]
   }
 ];
