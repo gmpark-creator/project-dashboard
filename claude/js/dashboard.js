@@ -123,27 +123,37 @@
   /* ---------- 1) KST primary clock + collapsible 11-city zones ----------
      박사 발화: "기본은 KST만, 시차 버튼 클릭 시 더 보이게.
      날짜·UTC offset도 표기. 노트북 화면에서 스크롤바 생기지 않게." */
-  // 박사 발화: "기준선 맨 위, +0 → +1 → +2 → +3 순서, 없는 시간대 채워라,
-  //            각 시차 row에 날짜도 표시." 정렬 키 = 도시 표준시(STD) UTC offset.
-  // DST는 실시간 표시 offset에 자동 반영(shortOffset). 정렬은 STD 기준 고정.
+  // 박사 발화: "0 → -큰값 → -1 → +1 → +큰값 순서, 런던 추가(GMT/BST 분기 표기),
+  //            도시 옆 국가명, 오른쪽으로 더 튀어나와도 되게." 정렬 키 = STD UTC offset.
+  // DST는 실시간 표시 offset에 자동 반영(shortOffset).
+  // note: 계절성 DST 분기가 있는 도시는 메타로 표기.
   const CITIES = [
-    { city: 'UTC · 기준점 — 그리니치 천문대', tz: 'Etc/UTC',           std: 0    },
-    { city: 'LAGOS',                          tz: 'Africa/Lagos',      std: 1    },
-    { city: 'CAIRO',                          tz: 'Africa/Cairo',      std: 2    },
-    { city: 'MOSCOW',                         tz: 'Europe/Moscow',     std: 3    },
-    { city: 'DUBAI',                          tz: 'Asia/Dubai',        std: 4    },
-    { city: 'KARACHI',                        tz: 'Asia/Karachi',      std: 5    },
-    { city: 'NEW DELHI',                      tz: 'Asia/Kolkata',      std: 5.5  },
-    { city: 'DHAKA',                          tz: 'Asia/Dhaka',        std: 6    },
-    { city: 'BANGKOK',                        tz: 'Asia/Bangkok',      std: 7    },
-    { city: 'BEIJING',                        tz: 'Asia/Shanghai',     std: 8    },
-    { city: 'TOKYO',                          tz: 'Asia/Tokyo',        std: 9    },
-    { city: 'VLADIVOSTOK',                    tz: 'Asia/Vladivostok',  std: 10   },
-    { city: 'NOUMEA',                         tz: 'Pacific/Noumea',    std: 11   },
-    { city: 'AUCKLAND',                       tz: 'Pacific/Auckland',  std: 12   },
-    { city: 'BUENOS AIRES',                   tz: 'America/Argentina/Buenos_Aires', std: -3 },
-    { city: 'NEW YORK',                       tz: 'America/New_York',  std: -5   },
-    { city: 'LOS ANGELES',                    tz: 'America/Los_Angeles', std: -8 }
+    { city: 'UTC',           country: '기준점 — 그리니치 천문대', note: 'GREENWICH OBSERVATORY', tz: 'Etc/UTC',                        std: 0, ref: true },
+    { city: 'LONDON',        country: 'UK',           note: 'GMT/BST · 겨울 +0 / 여름 +1', tz: 'Europe/London',     std: 0    },
+    { city: 'PAGO PAGO',     country: 'AMERICAN SAMOA',                          tz: 'Pacific/Pago_Pago', std: -11  },
+    { city: 'HONOLULU',      country: 'USA · HAWAII',                            tz: 'Pacific/Honolulu',  std: -10  },
+    { city: 'ANCHORAGE',     country: 'USA · ALASKA',  note: 'AKST/AKDT',        tz: 'America/Anchorage', std: -9   },
+    { city: 'LOS ANGELES',   country: 'USA',           note: 'PST/PDT',          tz: 'America/Los_Angeles', std: -8 },
+    { city: 'DENVER',        country: 'USA',           note: 'MST/MDT',          tz: 'America/Denver',    std: -7   },
+    { city: 'MEXICO CITY',   country: 'MEXICO',                                  tz: 'America/Mexico_City', std: -6 },
+    { city: 'NEW YORK',      country: 'USA',           note: 'EST/EDT',          tz: 'America/New_York',  std: -5   },
+    { city: 'SANTIAGO',      country: 'CHILE',         note: 'DST 분기',          tz: 'America/Santiago',  std: -4   },
+    { city: 'BUENOS AIRES',  country: 'ARGENTINA',                               tz: 'America/Argentina/Buenos_Aires', std: -3 },
+    { city: 'AZORES',        country: 'PORTUGAL',      note: '여름 +0',           tz: 'Atlantic/Azores',   std: -1   },
+    { city: 'LAGOS',         country: 'NIGERIA',                                 tz: 'Africa/Lagos',      std: 1    },
+    { city: 'CAIRO',         country: 'EGYPT',                                   tz: 'Africa/Cairo',      std: 2    },
+    { city: 'MOSCOW',        country: 'RUSSIA',                                  tz: 'Europe/Moscow',     std: 3    },
+    { city: 'DUBAI',         country: 'UAE',                                     tz: 'Asia/Dubai',        std: 4    },
+    { city: 'KARACHI',       country: 'PAKISTAN',                                tz: 'Asia/Karachi',      std: 5    },
+    { city: 'NEW DELHI',     country: 'INDIA',                                   tz: 'Asia/Kolkata',      std: 5.5  },
+    { city: 'DHAKA',         country: 'BANGLADESH',                              tz: 'Asia/Dhaka',        std: 6    },
+    { city: 'BANGKOK',       country: 'THAILAND',                                tz: 'Asia/Bangkok',      std: 7    },
+    { city: 'BEIJING',       country: 'CHINA',                                   tz: 'Asia/Shanghai',     std: 8    },
+    { city: 'TOKYO',         country: 'JAPAN',                                   tz: 'Asia/Tokyo',        std: 9    },
+    { city: 'VLADIVOSTOK',   country: 'RUSSIA',                                  tz: 'Asia/Vladivostok',  std: 10   },
+    { city: 'SYDNEY',        country: 'AUSTRALIA',     note: 'AEST/AEDT',        tz: 'Australia/Sydney',  std: 10   },
+    { city: 'NOUMEA',        country: 'NEW CALEDONIA',                           tz: 'Pacific/Noumea',    std: 11   },
+    { city: 'AUCKLAND',      country: 'NEW ZEALAND',   note: 'NZST/NZDT',        tz: 'Pacific/Auckland',  std: 12   }
   ];
 
   function timeIn(tz) {
@@ -192,15 +202,22 @@
   function renderWorldClock() {
     const wrap = $('#world-clock');
     if (!wrap) return;
-    // 박사 정렬 기준: STD UTC offset 오름차순 (음수는 양수 다음 — +0 first, then +1..+12, then -3..-8)
-    const sorted = CITIES.slice().sort((a, b) => {
-      const aPos = a.std >= 0, bPos = b.std >= 0;
-      if (aPos !== bPos) return aPos ? -1 : 1;       // 양수 먼저
-      return aPos ? a.std - b.std : Math.abs(a.std) - Math.abs(b.std);
-    });
+    // 박사 정렬: 0 기준점 → -11, -10, ..., -1 (절대값 큰 음수부터 0 수렴) →
+    //          +1, +2, ..., +12 (양수 오름차순). 런던(std 0)은 기준점 바로 다음.
+    const ref     = CITIES.filter(c => c.ref);
+    const zeroOth = CITIES.filter(c => !c.ref && c.std === 0);   // LONDON 등
+    const neg     = CITIES.filter(c => c.std < 0 && !c.ref)
+                          .sort((a, b) => a.std - b.std);         // -11 → -1
+    const pos     = CITIES.filter(c => c.std > 0 && !c.ref)
+                          .sort((a, b) => a.std - b.std);         // +1 → +12
+    const sorted  = [...ref, ...zeroOth, ...neg, ...pos];
+
     wrap.innerHTML = sorted.map(c => `
-      <li data-tz="${escapeHtml(c.tz)}">
-        <span class="city">${escapeHtml(c.city)}</span>
+      <li data-tz="${escapeHtml(c.tz)}"${c.ref ? ' class="ref-row"' : ''}>
+        <div class="loc">
+          <span class="city">${escapeHtml(c.city)}</span>
+          <span class="country">${escapeHtml(c.country || '')}${c.note ? ' <em>· ' + escapeHtml(c.note) + '</em>' : ''}</span>
+        </div>
         <span class="time">${timeIn(c.tz)}</span>
         <span class="date">${dateIn(c.tz).short}</span>
         <span class="off">${utcOffset(c.tz)}</span>
@@ -231,6 +248,7 @@
     function isOpen() { return list.classList.contains('is-open'); }
     function setOpen(open) {
       list.classList.toggle('is-open', open);
+      body.classList.toggle('is-tz-open', open);   // 박사 발화: sidebar 확장 + 프로젝트 list hide
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       btn.querySelector('.tz-toggle-label').textContent = open ? '− HIDE ZONES' : '+ TIME ZONES';
       btn.querySelector('.tz-toggle-arrow').textContent = open ? '↑' : '↓';

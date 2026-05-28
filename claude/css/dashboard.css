@@ -1015,9 +1015,39 @@ body.is-color-open .color-panel-scrim {
   background: var(--ink);
   min-height: 100vh;
   padding-left: var(--sidebar-w);
+  transition: padding-left .35s var(--ease-out);
 }
 @media (max-width: 880px) {
   .main-area { padding-left: 0; }
+}
+
+/* 박사 발화: TIME ZONES 클릭 시 sidebar 확장 + 프로젝트 list hide */
+:root { --sidebar-w-tz: 480px; }
+body.is-tz-open .sidebar {
+  width: var(--sidebar-w-tz);
+  transition: width .35s var(--ease-out);
+}
+body.is-tz-open .main-area {
+  padding-left: var(--sidebar-w-tz);
+}
+body.is-tz-open .sidebar-home,
+body.is-tz-open .sidebar-label,
+body.is-tz-open .sidebar-list,
+body.is-tz-open .sidebar-foot .director {
+  display: none;
+}
+body.is-tz-open .sidebar-foot {
+  flex: 1;
+  border-top: 0;
+  padding-top: 8px;
+}
+body.is-tz-open .kst-block {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+@media (max-width: 880px) {
+  body.is-tz-open .sidebar { width: 92vw; max-width: 92vw; }
+  body.is-tz-open .main-area { padding-left: 0; }
 }
 
 /* ============================================================
@@ -1221,57 +1251,87 @@ body.is-color-open .color-panel-scrim {
   transition: transform .25s var(--ease-out);
 }
 
-/* world clock — collapsed by default (class 토글 — HTML [hidden] 속성은
-   .world-clock 의 display:flex 에 의해 가려져서 박사가 본 "안 닫히는" 버그
-   재발 방지를 위해 명시적 class 패턴 사용) */
+/* world clock — collapsed by default. .is-open 토글로만 노출. */
 .world-clock {
   display: none;
-  flex-direction: column; gap: 3px;
-  padding: 4px 0 2px;
+  flex-direction: column; gap: 2px;
+  padding: 6px 0 2px;
   max-height: 38vh;
   overflow-y: auto;
 }
 .world-clock.is-open { display: flex; }
+/* sidebar 확장 모드: 프로젝트 list hide + world-clock full height */
+body.is-tz-open .world-clock {
+  max-height: calc(100vh - 220px);
+}
 .world-clock li {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: 6px;
-  align-items: baseline;
-  font-size: 9.5px;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 10.5px;
   letter-spacing: 0.04em;
-  padding: 3px 0;
+  padding: 6px 4px;
+  border-radius: 3px;
+  transition: background .15s var(--ease-out);
+}
+.world-clock li:hover { background: rgba(255,255,255,0.03); }
+
+.world-clock li .loc {
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0;
 }
 .world-clock li .city {
-  color: var(--gray-7);
+  color: var(--paper); font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.world-clock li .country {
+  color: var(--gray-5);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.world-clock li .country em {
+  font-style: normal; color: var(--orange); opacity: 0.8;
 }
 .world-clock li .time {
   color: var(--paper);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 12px;
 }
 .world-clock li .date {
   color: var(--gray-7);
-  font-size: 9px;
+  font-size: 9.5px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+  min-width: 38px;
+  text-align: right;
 }
 .world-clock li .off {
   color: var(--gray-5);
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0.04em;
-  min-width: 48px;
+  min-width: 58px;
   text-align: right;
+  font-weight: 600;
 }
-/* 첫 row (UTC 기준점) 강조 */
-.world-clock li:first-child {
-  padding-bottom: 5px;
+
+/* UTC 기준점 row 강조 */
+.world-clock li.ref-row {
+  padding: 10px 4px;
+  background: rgba(255,79,0,0.06);
+  border-radius: 4px;
   margin-bottom: 4px;
-  border-bottom: 1px dashed rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,79,0,0.18);
 }
-.world-clock li:first-child .city { color: var(--orange); font-weight: 700; font-size: 9px; }
-.world-clock li:first-child .time { color: var(--orange); }
+.world-clock li.ref-row .city { color: var(--orange); font-size: 12px; letter-spacing: 0.08em; }
+.world-clock li.ref-row .country { color: var(--orange); opacity: 0.85; }
+.world-clock li.ref-row .time { color: var(--orange); font-size: 13px; }
+.world-clock li.ref-row .off { color: var(--orange); font-weight: 700; }
 
 .sidebar-foot .director {
   font-size: 9px; color: var(--gray-5);
