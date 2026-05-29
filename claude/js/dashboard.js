@@ -112,6 +112,13 @@
         '<path d="M3 17l6-6 4 4 8-8"/>' +
         '<path d="M14 7h7v7"/>' +
       '</svg>',
+    // 펼친 책 — 정보·지식 모음 (지식 영역 분류)
+    'book':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 6c-1.8-1.2-4-1.8-6.5-1.8C4 4.2 3 4.6 3 5.2v12.4c0 .5.6.8 1.2.7C6.2 18 8 18.4 12 20"/>' +
+        '<path d="M12 6c1.8-1.2 4-1.8 6.5-1.8 1.5 0 2.5.4 2.5 1v12.4c0 .5-.6.8-1.2.7C17.8 18 16 18.4 12 20"/>' +
+        '<path d="M12 6v14"/>' +
+      '</svg>',
     // fallback
     'box':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -722,7 +729,7 @@
         <div class="container">
           <div class="page-meta reveal-up">
             <div class="page-meta-item"><span class="label">Director</span><span class="value">G.M.PARK</span></div>
-            <div class="page-meta-item"><span class="label">Scope</span><span class="value">06 Projects · Multi-Track</span></div>
+            <div class="page-meta-item"><span class="label">Scope</span><span class="value">${pad2(total)} Projects · Multi-Track</span></div>
             <div class="page-meta-item"><span class="label">Period</span><span class="value">2025 — Present</span></div>
             <div class="page-meta-item"><span class="label">Latest</span><span class="value"><strong>${todayStr}</strong> · KST</span></div>
           </div>

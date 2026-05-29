@@ -359,6 +359,36 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-28', title:'Official 매크로 데이터 refresh (Codex, commit f218f32)', desc:'FRED + BoK ECOS 공식 소스 우선 + scripts/refresh-data.mjs + data.generated.ts + docs/DATA_SOURCES.md. 박사 "fake 데이터 금지" standing 준수 — missing/delayed 명시.' },
       { isCore:true, date:'2026-05-28', title:'박사 progress 30% 픽스', desc:'박사 발화 "구현율은 30퍼센트로 고정". 향후 갱신은 박사 직접 발화 대기.' }
     ]
+  },
+  {
+    id: 'knowledge',
+    name: '정보·지식 모음',
+    subtitle: '다양한 지식을 3D·인터랙티브로 시각화하는 상위 프로젝트 · 현재 「반도체」 영역부터 시작',
+    icon: 'book',
+    platform: '웹 · 지식 시각화 모음 (영역별 분류)',
+    status: 'in-progress',
+    start: '2026-05-29',
+    latest: '2026-05-29',
+    progress: 1,
+    link: 'https://github.com/gmpark-creator/semiconductor-universe',
+    summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. '
+           + '지금은 「반도체」 영역 하나뿐이지만, 앞으로 다른 지식 분야들을 같은 틀 안에서 영역별로 분류해 계속 추가해 나갈 예정이다. '
+           + '첫 영역 「반도체 유니버스」는 반도체 산업을 지구 궤도 위 3D로 보여주는 웹앱 — 칩 분류(카테고리 별자리)와 공급망(기업 앰블럼 그래프) 두 모드.',
+    method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「정보·지식 모음」이 그것들을 한데 묶는 상위 분류 틀이 된다. '
+          + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
+          + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
+          + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
+    stack: ['Vite', 'React', 'TypeScript', 'Three.js (R3F)', 'Tailwind', 'simple-icons'],
+    issues: [
+      { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱. 지구 배경(자전·대기광) 위에 ① 칩 분류 12종 별자리 ② 공급망 17개사 앰블럼 그래프(흐르는 화살표). 노드 크기 ∝ √시가총액. 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main), 로컬 npm run dev 로 실행.' },
+      { type:'완료', title:'반도체 영역 — 지구 배경 + 기업 앰블럼 + 한글화 라운드 완료', desc:'우주 배경 → NASA 지구(낮/구름/노멀/야간조명) + 프레넬 대기광. 동그라미 노드 → 실제 기업 앰블럼(공식 로고 8개사 + 워드마크 8개사). 데이터·UI 전체 한국어. tsc + vite build 통과, dev 정상.' },
+      { type:'이슈', title:'반도체 영역 — 알려진 수정 9건 (집에서 이어서)', desc:'자동 다각도 검수 확정 9건 — 자동회전 상쇄·Designer 클러스터 지구앞 겹침·Bloom 과다·Google Fonts 외부로딩·README 갱신·aria-label 한글화 등. repo 루트 HANDOFF.md에 우선순위 체크리스트 정리. 코드는 깨끗한 베이스라인 유지.' },
+      { type:'이슈', title:'앞으로 — 다른 지식 영역 확장 예정', desc:'이 프로젝트는 상위 틀. 반도체 외 다양한 지식 분야를 같은 틀 안에서 새 영역으로 분류해 추가해 나갈 예정 (영역 2, 3, … 누적).' }
+    ],
+    milestones: [
+      { isCore:true, date:'2026-05-29', title:'프로젝트 #8 신설 — 정보·지식 모음 (상위 틀)', desc:'다양한 지식을 한 틀 아래 영역별로 모으는 상위 프로젝트로 신설. 첫 영역 = 반도체. 박사 발화 "정보·지식 모음 같은 이름으로 #8에 추가, 반도체는 그 안의 한 영역으로 분류".' },
+      { isCore:true, date:'2026-05-29', title:'영역 1 — 반도체 유니버스 등록', desc:'지구 배경 + 기업 앰블럼 + 한글화 완료한 3D 반도체 시각화 앱을 첫 영역으로 분류·등록. GitHub gmpark-creator/semiconductor-universe push 완료, HANDOFF.md 수정 체크리스트 동봉.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
