@@ -24,6 +24,14 @@ const PROJECTS = [
           + '선박 선택 시 MMSI·속도(SOG)·침로(COG)·항행 상태를 사이드바에 표시하며, '
           + 'Vercel에 두 노선 버전(ops-main / kyowa-line-ops)으로 배포했다.',
     stack: ['Next.js', 'React', 'TypeScript', 'Leaflet', 'Vercel'],
+    stackDetail: [
+      { area: '전체 UI 구성·화면 구조', tech: 'Next.js, React', how: 'Next.js와 React로 선박 추적 웹 앱의 UI를 구성한다. 지도와 사이드바를 포함한 화면 전체를 React 컴포넌트 기반으로 만든다.' },
+      { area: '지도·선박 마커 렌더링', tech: 'Leaflet', how: 'Leaflet 지도 위에 관리 대상 선단의 선박들을 마커로 렌더링해 실시간 위치를 표시한다.' },
+      { area: '선박 상세 정보 사이드바', tech: 'React, Leaflet', how: '선박 마커 선택 시 MMSI, 속도(SOG), 침로(COG), 항행 상태를 사이드바 패널에 표시한다.' },
+      { area: '실시간 위치 자동 갱신', tech: 'React', how: '선박별 정보 패널과 함께 주기적으로 위치를 갱신해 지도상 선박을 실시간으로 추적한다.' },
+      { area: '타입 안정성', tech: 'TypeScript', how: '선언 스택에 포함된 TypeScript로 선박 데이터 구조와 UI 컴포넌트를 타입 기반으로 작성한다.' },
+      { area: '두 노선 버전 배포·운영', tech: 'Vercel, Next.js', how: 'ops-main(PEL·MAGE·OCEAN ACE 선단)과 kyowa-line-ops(KYOWA LINE) 두 노선 버전을 Vercel에 배포해 웹에서 운영한다.' },
+    ],
     versions: [
       { name: 'ops-main', desc: 'PEL · MAGE · OCEAN ACE 선단 추적 — ais.vercel.co.kr/ops-main' },
       { name: 'kyowa-line-ops', desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' }
@@ -61,6 +69,13 @@ const PROJECTS = [
           + '파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 '
           + '뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
     stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS', 'EPTS 트래킹 데이터'],
+    stackDetail: [
+      { area: '2D 경기장 렌더링', tech: 'HTML5 Canvas', how: '선수 22명과 공의 시간대별 X·Y 좌표를 HTML5 Canvas 경기장 위에 점으로 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 뿌리는 것과 동일한 메커니즘으로 위치 데이터를 시각화한다.' },
+      { area: '트래킹 데이터 파싱·재생 로직', tech: 'JavaScript', how: 'EPTS·GPS 웨어러블 센서의 시계열 위치 데이터를 JavaScript로 파싱하고, 경기 장면을 시간 순으로 재생하는 재생 엔진과 타임라인 제어 로직을 구현한다.' },
+      { area: '선수별 분석·인터랙션 UI', tech: 'JavaScript, HTML5 Canvas', how: '재생·타임라인·득점 마커 표시와 선수 클릭 시 개별 분석을 제공하는 인터랙션 UI를 Canvas 위 좌표 데이터와 JavaScript 이벤트 처리로 구성한다.' },
+      { area: '화면 레이아웃·스타일링', tech: 'Tailwind CSS', how: '2D 매치 트래커 웹 애플리케이션의 화면 레이아웃과 UI 컴포넌트 스타일을 Tailwind CSS 유틸리티 클래스로 구성한다.' },
+      { area: '실측 트래킹 데이터 연동', tech: 'EPTS 트래킹 데이터', how: 'Metrica Sports가 공개한 25Hz 광학 트래킹 실측 경기 데이터를 EPTS 형식으로 연동해, 재구성이 아닌 실제 선수·공 위치 데이터로 시뮬레이터를 구동한다.' },
+    ],
     directorNote: {
       author: 'G.M.PARK',
       date: '2026-05-22',
@@ -113,6 +128,16 @@ const PROJECTS = [
           + 'Codex는 정밀 코드 진단(예: 3단 TDZ 에러를 GPT가 정확히 짚어 Claude가 즉시 fix)으로 '
           + '문제 발생 시 보조 라인에서 빠른 해결 — AI 협업의 강점 분리·역할 분담 모델.',
     stack: ['HTML5', 'JavaScript', 'Three.js', 'WebGL', 'GitHub Pages'],
+    stackDetail: [
+      { area: '3D 우주 렌더링·카메라 조작', tech: 'Three.js, WebGL, JavaScript', how: 'WebGLRenderer(antialias·logarithmicDepthBuffer)로 씬을 그리고 PerspectiveCamera와 OrbitControls(드래그 회전·휠 줌·damping)로 시점을 조작한다. PointLight 태양빛 + PCFSoftShadowMap 그림자, AmbientLight를 함께 쓴다.' },
+      { area: '날짜 기반 천체력 엔진(8행성·달)', tech: 'JavaScript', how: '케플러 궤도요소(2000.0 기준값과 1일당 변화율)로 임의 날짜의 각 천체 위치를 수학적으로 역산하고, 달은 섭동항 12개를 더해 정밀 계산한다. 공전주기를 실제값 대비 오차 최대 0.22퍼센트로 재현한다.' },
+      { area: '행성·위성 표면 텍스처', tech: 'Three.js, JavaScript', how: '7행성에 NASA 출처 디퓨즈·범프 텍스처(jsDelivr threex.planets)를 TextureLoader로 적용하고 토성 고리도 실제 색 텍스처를 쓴다. 텍스처가 없는 가스행성·암석행성은 Canvas 2D로 띠·크레이터 패턴을 절차적으로 생성한다.' },
+      { area: '지구·태양·위성 GLSL 셰이더', tech: 'Three.js, WebGL, GLSL', how: '태양은 ShaderMaterial로 fbm 노이즈 granulation·흑점·limb darkening을 실시간 렌더하고, 가스행성은 Fresnel 기반 atmospheric halo, 11개 위성은 CRATERED·VOLCANIC·ICY·HAZY 4종 절차적 ShaderMaterial로 고유 표면을 그린다. 지구는 normalMap·구름·야경 emissiveMap 레이어를 쓴다.' },
+      { area: '인터스텔라·블랙홀 셰이더 시스템', tech: 'Three.js, WebGL, GLSL', how: '가르강튀아 강착원반은 커스텀 GLSL ShaderMaterial로 케플러 회전·fBm 플라즈마·도플러 빔잉·view-dependent UV warp을 표현하고, EHT(M87) 블랙홀과 웜홀도 각각 별도 ShaderMaterial로 photon ring·중력렌즈·별 분광형 분포를 렌더한다.' },
+      { area: '조석·실시간 달 위젯 UI', tech: 'JavaScript, HTML5', how: '부산 기준 이론 평형조석을 천체 인력으로 계산해 물때·조석곡선을 Canvas 2D로 그리고, 달 위젯은 NASA moon 텍스처를 Canvas 2D globalCompositeOperation multiply로 합성해 위상별 그림자만 정확히 변화시킨다. 한국어 8단계 위상명과 조명률을 표시한다.' },
+      { area: '인터랙션·라벨·탐사선 마커', tech: 'Three.js, JavaScript, HTML5', how: '천체를 클릭하면 raycaster로 선택해 사이드바에 정보를 띄우고 카메라를 트윈 추적한다. 이름표는 Sprite 빌보드, 탐사선(보이저·뉴호라이즌스·파커·JWST)은 Mesh 그룹과 LineDashedMaterial 항적으로 표시한다.' },
+      { area: '배포·로딩', tech: 'GitHub Pages, HTML5', how: '단일 index.html을 GitHub Pages로 배포하고, importmap으로 jsDelivr CDN의 three.module.js와 OrbitControls를 ES module로 로드한다. CDN 텍스처를 받는 동안 로딩 스피너 화면을 표시한다.' },
+    ],
     issues: [
       { type:'완료', title:'날짜 기반 천체력 엔진', desc:'8행성 공전주기를 실제값 대비 오차 최대 0.22%로 재현.' },
       { type:'완료', title:'지구–달 정밀 동기화 + 조석 계산', desc:'달 섭동항 12개 반영, 그 위에 조석(물때) 계산을 구축.' },
@@ -179,6 +204,16 @@ const PROJECTS = [
           + 'AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행 — Claude 1차 UI·API 골격 → Codex 2차 demucs 핵심 엔진 → '
           + 'Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 → 디렉터 실음원 분리 확인으로 완주.',
     stack: ['Python 3.12', 'FastAPI', 'Demucs', 'PyTorch CUDA', 'HTML5 · Tailwind'],
+    stackDetail: [
+      { area: '백엔드 API 서버·라우팅', tech: 'Python 3.12, FastAPI', how: 'main.py에서 FastAPI 앱을 만들어 루트(/)로 index.html 서빙, /health 상태 점검, /extract 추출 엔드포인트를 라우팅한다. CORS 미들웨어와 UploadFile 업로드·Form 모델 파라미터를 처리한다.' },
+      { area: '보컬 제거·반주 분리 엔진', tech: 'Demucs, PyTorch CUDA', how: 'separate_instrumental() 함수에서 demucs의 get_model로 모델을 로드하고 apply_model(split True, overlap 0.25, shifts 1)로 스템을 분리한다. vocals 스템을 제외한 나머지를 합산해 반주를 만든다.' },
+      { area: 'GPU 자동 디바이스 분기·모델 캐시', tech: 'PyTorch CUDA', how: 'torch.cuda.is_available()로 CUDA 가능 시 cuda, 아니면 cpu로 디바이스를 자동 분기한다. (model_name, device) 키로 _MODEL_CACHE에 로드한 모델을 캐시해 재호출 비용을 줄인다.' },
+      { area: '결과 오디오 WAV 출력', tech: 'Demucs, PyTorch CUDA', how: '분리·합산한 반주 텐서를 clamp(-1,1) 후 numpy로 변환하고 soundfile로 PCM_16 WAV 파일로 OUTPUT_DIR에 저장한다.' },
+      { area: '믹싱 콘솔 프론트엔드 UI', tech: 'HTML5 · Tailwind', how: 'index.html에서 Tailwind CDN으로 다크 믹싱 콘솔 카드를 구성한다. 드래그앤드롭 드롭존, 모델 선택, 진행바(shimmer), VU 미터, 완료 팝업, Lucide 아이콘으로 화면을 만든다.' },
+      { area: '데모 모드·실제 추출 분기 로직', tech: 'HTML5 · Tailwind', how: '사무실 데모 모드 토글이 켜지면 백엔드 없이 브라우저에서 5초 가상 처리 후 무음 WAV를 만들고, 꺼지면 FormData로 /extract에 POST해 실제 백엔드 분리를 호출한다.' },
+      { area: '업로드 검증·모델 화이트리스트', tech: 'Python 3.12, FastAPI', how: 'ALLOWED_SUFFIXES 확장자 검증과 SUPPORTED_MODELS 화이트리스트로 모델명을 제한하고, 청크 단위 저장 중 MAX_UPLOAD_BYTES 초과 시 413 에러를 반환한다.' },
+      { area: '비ASCII 파일명 헤더 처리', tech: 'Python 3.12, FastAPI', how: '응답 시 원본 파일명을 X-Original-Filename-Encoded 헤더에 urllib.parse.quote로 percent-encoding해 일본어 등 비ASCII 파일명의 Latin-1 헤더 인코딩 500 에러를 회피한다.' },
+    ],
     issues: [
       { type:'완료', title:'Claude 1차 빌드 — UI + FastAPI 골격', desc:'믹싱 콘솔 다크 UI(드래그앤드롭·진행바·VU 미터·데모 모드 토글·완료 팝업) + FastAPI /extract·/health 라우팅 + 업로드 검증 + 모델 화이트리스트. 프론트엔드 전체는 Claude 영역으로 완성·고정.' },
       { type:'완료', title:'Claude — 홈 PC 자동 세팅 일체', desc:'집 데스크탑(RTX 4060 Ti)용 입문자 가이드(SETUP_HOME_PC.md) + 더블클릭 자동 세팅(setup_home.bat / scripts/setup_windows_desktop.ps1) + 서버 실행(start_server.bat / scripts/run_server.ps1) + AI 릴레이 로그 시스템 설계.' },
@@ -224,6 +259,15 @@ const PROJECTS = [
           + '디자인 언어 「슬레이트 위의 한지」 — 한지·먹·단청 13색 자체 팔레트 + 인장형 POI 아이콘 + 명조 디스플레이/sans 본문/mono 수치 3계층 타이포. '
           + 'Paradox · Geopolitical Simulator · Google Earth 등 기존 게임/지도 서비스 모방 0건 검증.',
     stack: ['Vite', 'React 18', 'TypeScript 5', 'Zustand', 'd3-geo', 'SVG', 'Natural Earth', 'southkorea-maps'],
+    stackDetail: [
+      { area: '프로젝트 빌드·개발 환경', tech: 'Vite, TypeScript 5', how: 'Vite로 단일 프로젝트를 부트하고 번들링하며 M0 vertical slice에서 vite build 858ms·gzip JS 62KB를 측정했다. TypeScript 5로 7종 데이터 스키마(Region·POI·Policy·Crisis·MapState·GameState)를 타입화하고 tsc 0 에러를 검증 기준으로 사용한다.' },
+      { area: '게임 화면·UI 컴포넌트', tech: 'React 18', how: 'Header·MapViewport·RegionalGovernancePanel·POIDialog·LayerToggleSidebar 등 화면 컴포넌트를 React 18로 구성한다. 이후 풀스크린 게임 인터페이스(top status bar·left rail·center map·right inspector·bottom timeline)도 React 컴포넌트로 재구축했다.' },
+      { area: '전역 상태·단일 Ground Truth 스토어', tech: 'Zustand', how: '민심·예산·위기·외교·카메라 상태를 담는 단일 Ground Truth 스토어를 Zustand로 구축한다. 카메라 reset 동기화를 위해 cameraResetNonce 카운터를 두고, 매 wheel/drag tick 대신 idle·zoomLevel 변경 시점에만 commit하도록 갱신 시점을 제어한다.' },
+      { area: '지도 투영·좌표 변환', tech: 'd3-geo', how: 'd3-geo Mercator projection을 중심 좌표(127.8E, 36.2N)로 도입해 GeoJSON을 화면 좌표로 투영한다. POI 10개를 픽셀 좌표에서 실 위경도(용산 대통령실 37.5326,126.9774 등)로 전환하는 데 사용한다.' },
+      { area: '1차 지도 렌더링 레이어', tech: 'SVG', how: '초기 지도판을 SVG로 렌더링하며 한국 외곽 골드 halo glow를 SVG filter로, selected region drop-shadow glow를 SVG로 표현했다. 이후 g transform transition 누적에 의한 렉 진단으로 Three.js 전환되며 옛 SVG 컴포넌트는 폐기됐다.' },
+      { area: '세계지도 형상 데이터', tech: 'Natural Earth', how: '손코딩 mock 폴리곤을 Natural Earth 1:110m countries(Public Domain, 177개국) 실 GeoJSON으로 교체해 진짜 대륙·국가 형상을 렌더한다. mapshaper 4% 단순화로 7.2MB를 452KB로 축소했다.' },
+      { area: '대한민국 행정구역 데이터', tech: 'southkorea-maps', how: 'southkorea-maps kostat 2018(CC-BY) 행정안전부 광역시도 GeoJSON으로 17개 광역시도 진짜 경계를 렌더한다. 행안부 코드와 ISO 3166-2:KR 매핑 테이블을 두어 region 식별에 연결한다.' },
+    ],
     issues: [
       { type:'완료', title:'설계 문서 v0.1 작성 + 박사 승인', desc:'A~T 20개 섹션 + 9개 Claude Code subagent 명세 + 17 광역시도 줌 7단계 + 인장형 아이콘 시스템 + 한지+슬레이트+단청 팔레트 + 데이터 스키마 5종(Region/POI/Policy/Crisis/MapState/GameState) + originality 14항 체크리스트.' },
       { type:'완료', title:'구현 계획 v0.1 (M1~M11) 박사 승인', desc:'리포 구조 · 정적 지도 · 줌 시스템 · 행정구역 · POI · 스키마 · mock store · 호버/클릭 패널 · 레이어 토글 · 정책 타게팅 · 테스트 — 11 마일스톤 의존성 그래프 + 추정 12주 + 소유권 행렬.' },
@@ -299,6 +343,15 @@ const PROJECTS = [
           + '(4) 반응형 + 스티키 헤더 + 모바일 nav 클론 + IntersectionObserver 리빌. '
           + '(5) ../jpglobal-web 신규 폴더, git init, 로컬 http.server 5050 띄움.',
     stack: ['HTML5', 'CSS3 (custom vars + Grid)', 'Vanilla JS', 'Pretendard', 'SVG'],
+    stackDetail: [
+      { area: '전체 정적 사이트 구조·페이지', tech: 'HTML5', how: 'index.html(11섹션)과 about.html을 직접 작성하고, GNB의 About Us 링크를 about.html로 연결해 is-current 표기까지 마크업으로 구성했다.' },
+      { area: '색감 톤·디자인 토큰 시스템', tech: 'CSS3 (custom vars)', how: 'deep navy·bronze 토큰을 시작으로 화이트·스카이·크림 라이트 톤, 이후 검정·화이트·orange의 Plus X 톤까지 커스텀 변수 기반으로 단계별 시안을 교체했다.' },
+      { area: '섹션·카드 레이아웃', tech: 'CSS3 (Grid)', how: 'Services 3카드, Projects 4카드, What We Do 6카드, Values·Reference 4카드 등 다중 카드 영역과 5컬럼 푸터를 그리드 레이아웃으로 배치했다.' },
+      { area: '풀스크린 히어로 일러스트', tech: 'SVG', how: '부산항 컨테이너선·크레인 실루엣을 SVG 히어로로 그리고, v2에서 화이트·스카이·크림 그라데이션과 컬러풀 컨테이너 야드로 톤을 재조정했다.' },
+      { area: '반응형·인터랙션 동작', tech: 'Vanilla JS', how: '스티키 헤더, 모바일 nav 클론, IntersectionObserver 기반 리빌을 바닐라 JS로 구현했다.' },
+      { area: 'v3 Plus X 톤 인터랙션', tech: 'Vanilla JS, CSS3 (custom vars)', how: 'corner fixed UI 4종, mix-blend-mode difference 자동 invert, 풀스크린 오버레이 nav, IntersectionObserver 단어 단위 텍스트 마스크 reveal, RAF lerp 커서 follow dot, 좌하 KST 실시간 시계를 직접 작성했다.' },
+      { area: '한글 타이포그래피', tech: 'Pretendard', how: '한국어·영문 병기 콘텐츠 전반에 Pretendard 한글 폰트를 적용해 본문·타이틀 텍스트를 표시한다.' },
+    ],
     issues: [
       { type:'핵심', title:'기존 사이트의 워드프레스 건설 테마 데모 잔재 발견 (2026-05-27)', desc:'jpglobal.kr 분석 중 진짜 회사 콘텐츠 외에 The7 워드프레스 건설 테마 데모가 그대로 남아있는 흔적 다수 발견 — Construction Management / Facility Maintenance / Mining Infrastructure / Pavement Preservation / Residential Construction / Site Location 6개 placeholder 카드, Lorem ipsum 증언글(Gregor Blackwod 등) 3건, "© Seven Construction 2016" 푸터, hello@dream-theme.com 이메일, 011-987-65-43 전화 등. 로지스틱스 회사인데 건설 테마 데모가 라이브 상태로 노출 중. 새 사이트엔 전부 제거. 박사가 "다 살려" 지시 시 복구 가능.' },
       { type:'완료', title:'v1 첫페이지 빌드 — 6섹션 풀 코딩 (2026-05-27)', desc:'index.html(530줄) + css/style.css(약 750줄) + js/main.js. 히어로(2014 부산 설립 강조 + 4 stat) / About(EST.2014 배지 + 3 pillar) / Services(Port Operations·Shipping Agency·Support Services) / Projects(TCO·Martin Linge·Wind Resource·SR Input SVC) / Capabilities 밴드 / Contact + 5컬럼 푸터. 한국어/영문 병기.' },
@@ -342,6 +395,14 @@ const PROJECTS = [
           + 'UI 섹션: OverviewHero / OvernightMacroPanel / US Theme Heatmap / Theme Detail Drawer / KRX Pre-Market Signal Table / KRX Ticker Detail Panel / Data Quality·Run Audit Panel. '
           + 'docs/DESIGN.md + docs/PHASE1_RECEIPT.md 영속화 — Codex 특유의 receipt 패턴.',
     stack: ['Vite', 'React 18', 'TypeScript 6', 'lucide-react'],
+    stackDetail: [
+      { area: '프로젝트 골격·빌드', tech: 'Vite, TypeScript 6', how: 'Vite + React 18 + TypeScript 골격으로 Phase 1 정적 mock 대시보드를 셋업하고, npm install · typecheck · build · audit를 모두 PASS시켰다. Codex 빌드 산출물 dist를 vite assets path 상대경로로 변환해 미리보기 배포했다.' },
+      { area: '대시보드 UI 섹션 구성', tech: 'React 18, TypeScript 6', how: 'src 아래 App · data · types · styles 구조로 OverviewHero, OvernightMacroPanel, US Theme Heatmap, Theme Detail Drawer, KRX Pre-Market Signal Table, KRX Ticker Detail Panel, Data Quality·Run Audit Panel 등 7개 UI 섹션을 mock data로 wiring했다.' },
+      { area: '아이콘·시각 요소', tech: 'lucide-react', how: 'lucide-react 아이콘으로 다크 report-dashboard 시각 언어(near-black 배경 + paper text + orange accent + fixed corner UI + left nav + KST clock + report footer)를 구성했다.' },
+      { area: '한국어 UI·도움말', tech: 'React 18, TypeScript 6', how: '한국어 라벨과 도움말 가이드를 추가하고 G.M.PARK dashboard 톤(dark + orange + corner UI) 시각 언어로 정렬했다. docs PHASE1_RECEIPT.md에 영속화했다.' },
+      { area: '공식 매크로 데이터 refresh 파이프라인', tech: 'TypeScript 6, Node ESM 스크립트', how: 'scripts refresh-data.mjs를 신설해 FRED와 Bank of Korea ECOS 등 traceable 공식 소스를 우선 수집하고, data.generated.ts를 자동 생성해 USD/KRW · S&P500 · Nasdaq · Dow · VIX · US 10Y를 매핑했다. 소스 미확보 시 missing/delayed로 표시한다.' },
+      { area: '정적 데이터·타입 정의', tech: 'TypeScript 6', how: 'Phase 1은 static fixture data 기반 mock UI만으로, live provider · backend · DB · order routing 없이 types로 데이터 형태를 정의하고 mock fixture로 각 섹션을 채웠다.' },
+    ],
     issues: [
       { type:'완료', title:'Initial design — US-KR premarket signal 컨셉 정의 (Codex, 2026-05-28)', desc:'commit c613660. docs/DESIGN.md 영속화. 라이브 데이터 미사용·자동 주문 금지·연구 전용 safety rule 합의.' },
       { type:'완료', title:'Phase 1 — static mock dashboard UI 구현 (Codex, 2026-05-28)', desc:'commit da2284a. Vite+React+TS 셋업. src/ App·data·types·styles. lucide-react 아이콘. 7개 UI 섹션 mock data로 wiring. npm install / typecheck / build / audit 모두 PASS.' },
@@ -382,6 +443,15 @@ const PROJECTS = [
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
           + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
     stack: ['Vite', 'React', 'TypeScript', 'Three.js (R3F)', 'Tailwind', 'simple-icons'],
+    stackDetail: [
+      { area: '지구 배경 렌더링 (자전·구름·대기광)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'Earth.tsx에서 sphereGeometry에 NASA 지구 텍스처(낮·노멀·구름·야간조명)를 useTexture로 입혀 meshStandardMaterial로 그리고, 별도 셰이더 메쉬(shaderMaterial)에 GLSL 프레넬 림 라이트로 대기광을 가산 블렌딩한다. useFrame으로 지구·구름을 매 프레임 회전시킨다.' },
+      { area: '칩 분류 별자리 노드 (taxonomy 모드)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'CategoryNode.tsx가 boxGeometry·tubeGeometry·torusGeometry 등으로 분류별 프로시저럴 아이콘을 만들어 emissive 자가발광시키고, drei의 Float로 떠다니게 하며 Html로 한글 라벨을 띄운다. 패밀리별 클러스터 위치를 계산해 별자리처럼 배치한다.' },
+      { area: '공급망 기업 앰블럼 (supply 모드)', tech: 'simple-icons, Three.js, @react-three/drei', how: 'CompanyEmblem.tsx가 simple-icons의 공식 로고 path(siNvidia·siApple·siIntel 등)와 워드마크 텍스트를 Canvas에 그려 CanvasTexture로 만들고, drei의 Billboard 평면 배지로 보여준다. 배지 크기는 루트(시가총액)에 비례한다.' },
+      { area: '공급망 연결선 (흐르는 화살표)', tech: 'Three.js, @react-three/fiber', how: 'SupplyArrow.tsx가 QuadraticBezierCurve3 곡선을 TubeGeometry 튜브로 그리고, 입자들을 useFrame으로 곡선 위에 흐르게 하며 coneGeometry 화살촉을 곡선 접선 방향으로 회전시킨다.' },
+      { area: '카메라·후처리·배치', tech: '@react-three/fiber, @react-three/drei, @react-three/postprocessing, Three.js', how: 'Scene.tsx에서 drei의 OrbitControls로 자동회전·댐핑·줌 한계를 두고 선택 시 useFrame lerp로 카메라를 포커스 이동하며, postprocessing의 EffectComposer와 Bloom으로 발광 노드만 은은히 빛나게 한다. companyLayout.ts가 그룹별 노드 위치를 계산한다.' },
+      { area: 'UI 패널·범례·모드 토글', tech: 'React, TypeScript, Tailwind, framer-motion', how: 'InfoPanel.tsx가 framer-motion의 AnimatePresence와 motion.aside 스프링 트랜지션으로 상세 패널을 슬라이드 인하고, Tailwind 유틸 클래스로 글래스 스타일을 입힌다. App.tsx가 React useState로 모드·선택 상태를 관리하며 ViewToggle·Legend를 배치한다.' },
+      { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
+    ],
     issues: [
       { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱. 지구 배경(자전·대기광) 위에 ① 칩 분류 12종 별자리 ② 공급망 17개사 앰블럼 그래프(흐르는 화살표). 노드 크기 ∝ √시가총액. 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main), 로컬 npm run dev 로 실행.' },
       { type:'완료', title:'반도체 영역 — 지구 배경 + 기업 앰블럼 + 한글화 라운드 완료', desc:'우주 배경 → NASA 지구(낮/구름/노멀/야간조명) + 프레넬 대기광. 동그라미 노드 → 실제 기업 앰블럼(공식 로고 8개사 + 워드마크 8개사). 데이터·UI 전체 한국어. tsc + vite build 통과, dev 정상.' },

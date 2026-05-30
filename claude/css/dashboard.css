@@ -615,6 +615,47 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 }
 .proj-stack li::before { content: "+ "; color: var(--orange); opacity: 1; }
 
+/* tech stack — 영역별 상세 (영역 → 스택 → 사용방식). issues/timeline과 동일 시각 언어 */
+.proj-stackdetail { margin: 0 0 80px; }
+.stackdetail-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 32px; padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  flex-wrap: wrap; gap: 16px;
+}
+.proj-page[data-theme="dark"] .stackdetail-head { border-bottom-color: rgba(255,255,255,0.16); }
+.stackdetail-head strong { color: var(--orange); font-weight: 700; font-size: 13px; }
+.stackdetail-head .count { opacity: 0.55; }
+
+.stackdetail-list { display: flex; flex-direction: column; }
+.stack-row {
+  display: grid; grid-template-columns: 200px 1fr; gap: 28px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  align-items: start;
+}
+.stack-row:last-child { border-bottom: 1px solid rgba(0,0,0,0.08); }
+.proj-page[data-theme="dark"] .stack-row { border-top-color: rgba(255,255,255,0.1); }
+.proj-page[data-theme="dark"] .stack-row:last-child { border-bottom-color: rgba(255,255,255,0.1); }
+.stack-area {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 16px; letter-spacing: -0.01em; line-height: 1.35;
+  color: var(--orange);
+}
+.stack-body { display: flex; flex-direction: column; gap: 12px; }
+.stack-tech { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.stack-chip {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid currentColor; border-radius: 999px;
+  opacity: 0.78;
+}
+.stack-chip::before { content: "+ "; color: var(--orange); opacity: 1; }
+.stack-how { font-size: 14px; line-height: 1.7; color: inherit; opacity: 0.78; margin: 0; }
+@media (max-width: 768px) { .stack-row { grid-template-columns: 1fr; gap: 10px; } }
+
 /* preview block */
 .proj-preview { margin: 0 0 80px; }
 .preview-head {

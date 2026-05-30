@@ -581,6 +581,27 @@
       ? `<ul class="proj-stack">${p.stack.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`
       : '';
 
+    const sdArr = (p.stackDetail || []);
+    const stackDetail = sdArr.length ? `
+      <div class="proj-stackdetail">
+        <div class="stackdetail-head">
+          <strong>+ TECH STACK · 영역별 상세</strong>
+          <span class="count">${pad2(sdArr.length)} AREAS</span>
+        </div>
+        <div class="stackdetail-list">
+          ${sdArr.map(s => `
+            <div class="stack-row">
+              <div class="stack-area">${escapeHtml(s.area || '')}</div>
+              <div class="stack-body">
+                <div class="stack-tech">${(s.tech || '').split(',').map(t => t.trim()).filter(Boolean).map(t => `<span class="stack-chip">${escapeHtml(t)}</span>`).join('')}</div>
+                <p class="stack-how">${escapeHtml(s.how || '')}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
     const issuesArr = (p.issues || []);
     const issues = issuesArr.length ? `
       <div class="proj-issues">
@@ -670,6 +691,8 @@
           ${p.method  ? `<p class="proj-method">${escapeHtml(p.method)}</p>`  : ''}
 
           ${stack}
+
+          ${stackDetail}
 
           ${renderPreview(p)}
 
