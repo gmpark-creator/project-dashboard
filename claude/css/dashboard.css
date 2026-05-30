@@ -35,7 +35,8 @@ html[data-color="violet"]   { --ink: #130f26; --gray-1: #1d1934; --orange: #a78b
 /* ---- LIGHT themes (3): bg/paper 인버전 번들 + 액센트 ---- */
 html[data-color="light"],
 html[data-color="claude-warm"],
-html[data-color="nordic"] {
+html[data-color="nordic"],
+html[data-color="sunburst"] {
   --ink:     #ffffff;
   --paper:   #1f2937;
   --gray-9:  #1f2937;
@@ -47,17 +48,21 @@ html[data-color="nordic"] {
 html[data-color="light"]        { --orange: #6366f1; }
 html[data-color="claude-warm"]  { --ink: #fbf9f6; --gray-1: #f3efe7; --orange: #d97706; }
 html[data-color="nordic"]       { --ink: #fafafa; --gray-1: #f0f0f0; --orange: #0ea5e9; }
+/* 신규 — solar 전용 「밝고 빨간」 라이트 테마 (박사 지시 2026-05-30) */
+html[data-color="sunburst"]     { --ink: #fff7f4; --gray-1: #ffe6dd; --orange: #ef4444; --orange-dim: #dc2626; --orange-soft: #ffe4e0; }
 
 /* light 모드에서 light section의 darker island 톤 보정 */
 html[data-color="light"] .proj-page[data-theme="light"],
 html[data-color="claude-warm"] .proj-page[data-theme="light"],
-html[data-color="nordic"] .proj-page[data-theme="light"] {
+html[data-color="nordic"] .proj-page[data-theme="light"],
+html[data-color="sunburst"] .proj-page[data-theme="light"] {
   background: var(--gray-1);
   color: var(--paper);
 }
 html[data-color="light"] .s-home-grid,
 html[data-color="claude-warm"] .s-home-grid,
-html[data-color="nordic"] .s-home-grid {
+html[data-color="nordic"] .s-home-grid,
+html[data-color="sunburst"] .s-home-grid {
   background: var(--gray-1);
 }
 

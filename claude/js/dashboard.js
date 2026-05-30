@@ -290,7 +290,8 @@
     { id: 'emerald',      name: 'Emerald Forest',      hex: '#0f1715', accent: '#34d399', badge: 'E · Gemini',  mode: 'dark' },
     { id: 'light',        name: 'Light Indigo',        hex: '#ffffff', accent: '#6366f1', badge: 'Light',       mode: 'light' },
     { id: 'claude-warm',  name: 'Claude Warm Minimal', hex: '#fbf9f6', accent: '#d97706', badge: 'C · Gemini',  mode: 'light' },
-    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini',  mode: 'light' }
+    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini',  mode: 'light' },
+    { id: 'sunburst',     name: 'Solar Sunburst',      hex: '#fff7f4', accent: '#ef4444', badge: 'Solar',       mode: 'light' }
   ];
 
   function setupColorSwitcher() {
@@ -301,12 +302,11 @@
     const panel  = $('#color-panel');
     if (!list || !toggle) return;
 
-    const STORAGE_KEY = 'dash-color';
-
     function currentColor() {
       return document.documentElement.dataset.color || 'violet';
     }
 
+    // 정리(박사 지시 2026-05-30): 스와치 + 이름만. hex 코드·dev 배지 등 쓸데없는 문구 제거.
     function renderList() {
       const cur = currentColor();
       list.innerHTML = THEMES.map(t => `
@@ -315,17 +315,18 @@
           <span class="swatch" style="background:${t.hex}"></span>
           <span class="meta">
             <span class="name">${t.name}</span>
-            <span class="hex">${t.hex} · ${t.accent}</span>
           </span>
-          <span class="badge ${t.mode === 'light' ? 'dim' : ''}">${t.badge}</span>
         </button>
       `).join('');
     }
+    // 라우트 변경(프로젝트 자동 컬러) 시 활성 스와치 갱신용으로 외부 노출
+    window.__refreshColorList = renderList;
 
+    // 수동 선택은 현재 화면 즉시 미리보기용(라이브 오버라이드). 영속 저장 안 함 —
+    // 프로젝트 이동 시 각 프로젝트 고유 컬러가 다시 적용되는 게 기본 동작.
     function applyColor(id) {
       if (!THEMES.find(t => t.id === id)) id = 'violet';
       document.documentElement.dataset.color = id;
-      try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
       renderList();
     }
 
@@ -785,6 +786,17 @@
     return { type: 'home' };  // fallback
   }
 
+  /* ---------- 프로젝트별 자동 컬러 (박사 지시 2026-05-30) ----------
+     홈/전체 = 기본 violet. 프로젝트 상세 진입 시 해당 프로젝트 고유 컬러로 자동 전환.
+     매핑은 index.html FOUC 스크립트와 공유(window.__PROJECT_COLOR) — 단일 소스. */
+  function applyRouteColor(route) {
+    const map = window.__PROJECT_COLOR || {};
+    let color = window.__DEFAULT_COLOR || 'violet';
+    if (route && route.type === 'detail' && map[route.id]) color = map[route.id];
+    document.documentElement.dataset.color = color;
+    if (typeof window.__refreshColorList === 'function') window.__refreshColorList();
+  }
+
   function renderRoute() {
     const projects = window.PROJECTS || [];
     const root = $('#main-content');
@@ -792,6 +804,7 @@
 
     const route = parseRoute();
     setSidebarActive(route);
+    applyRouteColor(route);   // 프로젝트별 자동 컬러 (홈=violet, 각 프로젝트=고유 컬러)
 
     if (route.type === 'detail') {
       const idx = projects.findIndex(p => p.id === route.id);
