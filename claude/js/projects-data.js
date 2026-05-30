@@ -370,11 +370,14 @@ const PROJECTS = [
     start: '2026-05-29',
     latest: '2026-05-29',
     progress: 1,
-    link: 'https://github.com/gmpark-creator/semiconductor-universe',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
+    preview: { type:'embed', height:620, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'반도체 유니버스 — 지구 궤도 위 칩 분류·공급망 3D (React + Three.js/R3F)' }
+    ]},
     summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. '
            + '지금은 「반도체」 영역 하나뿐이지만, 앞으로 다른 지식 분야들을 같은 틀 안에서 영역별로 분류해 계속 추가해 나갈 예정이다. '
            + '첫 영역 「반도체 유니버스」는 반도체 산업을 지구 궤도 위 3D로 보여주는 웹앱 — 칩 분류(카테고리 별자리)와 공급망(기업 앰블럼 그래프) 두 모드.',
-    method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「정보·지식 모음」이 그것들을 한데 묶는 상위 분류 틀이 된다. '
+    method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「Knowledge Atlas」가 그것들을 한데 묶는 상위 분류 틀이 된다. '
           + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
           + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
