@@ -368,8 +368,8 @@ const PROJECTS = [
     platform: '웹 · 지식 시각화 모음 (영역별 분류)',
     status: 'in-progress',
     start: '2026-05-29',
-    latest: '2026-05-29',
-    progress: 1,
+    latest: '2026-05-30',
+    progress: 35,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
     preview: { type:'embed', height:620, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'반도체 유니버스 — 지구 궤도 위 칩 분류·공급망 3D (React + Three.js/R3F)' }
@@ -385,12 +385,13 @@ const PROJECTS = [
     issues: [
       { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱. 지구 배경(자전·대기광) 위에 ① 칩 분류 12종 별자리 ② 공급망 17개사 앰블럼 그래프(흐르는 화살표). 노드 크기 ∝ √시가총액. 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main), 로컬 npm run dev 로 실행.' },
       { type:'완료', title:'반도체 영역 — 지구 배경 + 기업 앰블럼 + 한글화 라운드 완료', desc:'우주 배경 → NASA 지구(낮/구름/노멀/야간조명) + 프레넬 대기광. 동그라미 노드 → 실제 기업 앰블럼(공식 로고 8개사 + 워드마크 8개사). 데이터·UI 전체 한국어. tsc + vite build 통과, dev 정상.' },
-      { type:'이슈', title:'반도체 영역 — 알려진 수정 9건 (집에서 이어서)', desc:'자동 다각도 검수 확정 9건 — 자동회전 상쇄·Designer 클러스터 지구앞 겹침·Bloom 과다·Google Fonts 외부로딩·README 갱신·aria-label 한글화 등. repo 루트 HANDOFF.md에 우선순위 체크리스트 정리. 코드는 깨끗한 베이스라인 유지.' },
+      { type:'완료', title:'반도체 영역 — 검수 체크리스트 수정 완료 + ESLint 0', desc:'HANDOFF 체크리스트(#1~#8)를 9개 에이전트 적대적 검증 후 마감 — 자동회전 버그·Designer 클러스터 지구앞 겹침·Bloom 과다·aria-label 한글화·Google Fonts 제거(@fontsource self-host)·README 현행화 모두 수정. ESLint 14건→0(컴포넌트 모듈 호이스팅·레이아웃 모듈 분리·텍스처 colorSpace onLoad). 워드마크 8개사 진짜 로고는 P3로 보류. tsc+vite build 통과, push 완료(b8d6be7).' },
       { type:'이슈', title:'앞으로 — 다른 지식 영역 확장 예정', desc:'이 프로젝트는 상위 틀. 반도체 외 다양한 지식 분야를 같은 틀 안에서 새 영역으로 분류해 추가해 나갈 예정 (영역 2, 3, … 누적).' }
     ],
     milestones: [
       { isCore:true, date:'2026-05-29', title:'프로젝트 #8 신설 — 정보·지식 모음 (상위 틀)', desc:'다양한 지식을 한 틀 아래 영역별로 모으는 상위 프로젝트로 신설. 첫 영역 = 반도체. 박사 발화 "정보·지식 모음 같은 이름으로 #8에 추가, 반도체는 그 안의 한 영역으로 분류".' },
-      { isCore:true, date:'2026-05-29', title:'영역 1 — 반도체 유니버스 등록', desc:'지구 배경 + 기업 앰블럼 + 한글화 완료한 3D 반도체 시각화 앱을 첫 영역으로 분류·등록. GitHub gmpark-creator/semiconductor-universe push 완료, HANDOFF.md 수정 체크리스트 동봉.' }
+      { isCore:true, date:'2026-05-29', title:'영역 1 — 반도체 유니버스 등록', desc:'지구 배경 + 기업 앰블럼 + 한글화 완료한 3D 반도체 시각화 앱을 첫 영역으로 분류·등록. GitHub gmpark-creator/semiconductor-universe push 완료, HANDOFF.md 수정 체크리스트 동봉.' },
+      { isCore:true, date:'2026-05-30', title:'영역 1 — 검수 체크리스트 수정·ESLint 0·재배포', desc:'집 데스크탑에서 HANDOFF 체크리스트 #1~#7 수정 마감(#8 로고 P3 보류), ESLint 14→0, tsc+vite build 통과. semiconductor-universe push(b8d6be7) + 대시보드 VIEW LIVE 미리보기를 새 빌드로 갱신(폰트 self-host 반영, 런타임 외부호출 0).' }
     ]
   }
 ];
