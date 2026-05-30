@@ -362,8 +362,8 @@ const PROJECTS = [
   },
   {
     id: 'knowledge',
-    name: '정보·지식 모음',
-    subtitle: '다양한 지식을 3D·인터랙티브로 시각화하는 상위 프로젝트 · 현재 「반도체」 영역부터 시작',
+    name: 'Knowledge Atlas',
+    subtitle: '여러 분야의 지식을 3D·인터랙티브로 묶어 시각화하는 상위 아카이브 — 현재 「반도체 유니버스」 영역부터 · A Curated Atlas of Interactive Knowledge',
     icon: 'book',
     platform: '웹 · 지식 시각화 모음 (영역별 분류)',
     status: 'in-progress',

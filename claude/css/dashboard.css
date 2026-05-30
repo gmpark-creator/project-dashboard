@@ -32,10 +32,11 @@ html[data-color="violet"] { --ink-dark:#130f26; --gray1-dark:#1d1934; --accent-d
 html[data-color="blue"]   { --ink-dark:#0a101f; --gray1-dark:#141d33; --accent-dark:#4d97ff; --accent-light:#2563eb; }  /* 1 · AIS — 블루(해양) */
 html[data-color="green"]  { --ink-dark:#08160f; --gray1-dark:#12241a; --accent-dark:#2fd396; --accent-light:#04885b; }  /* 2 · DDUIM — 그린(피치) */
 html[data-color="red"]    { --ink-dark:#1a0b0a; --gray1-dark:#2b1411; --accent-dark:#fb6a4a; --accent-light:#db3a1e; }  /* 3 Solar = 4 INST — 레드(태양) */
-html[data-color="navy"]   { --ink-dark:#0a1024; --gray1-dark:#121b3b; --accent-dark:#5f7bd4; --accent-light:#2f4699; }  /* 5 · Korea — 네이비 */
-html[data-color="neon"]   { --ink-dark:#160820; --gray1-dark:#25103a; --accent-dark:#ff3df0; --accent-light:#c81fa6; }  /* 6 · Atelier — 형광 마젠타 */
-html[data-color="gold"]   { --ink-dark:#181206; --gray1-dark:#281e0b; --accent-dark:#fbbf24; --accent-light:#a9710a; }  /* 7 · Premarket — 골드 */
-html[data-color="gray"]   { --ink-dark:#101216; --gray1-dark:#1c1f25; --accent-dark:#9fb0c7; --accent-light:#586273; }  /* 8 · Knowledge — 그레이 */
+html[data-color="navy"]   { --ink-dark:#070b1e; --gray1-dark:#11173c; --accent-dark:#3f50dd; --accent-light:#26308c; }  /* 8 · Knowledge — 진한 로열 네이비 (블루와 확실히 구분 · 인디고 계열) */
+html[data-color="lime"]   { --ink-dark:#0c1505; --gray1-dark:#16240a; --accent-dark:#a6f72b; --accent-light:#5a8500; }  /* 5 · Korea — 녹색 형광 라임 (2번 그린과 확실히 구분) */
+html[data-color="neon"]   { --ink-dark:#160820; --gray1-dark:#25103a; --accent-dark:#ff3df0; --accent-light:#c81fa6; }  /* 4 · INST — 형광 마젠타 */
+html[data-color="gold"]   { --ink-dark:#181206; --gray1-dark:#281e0b; --accent-dark:#fbbf24; --accent-light:#a9710a; }  /* 6 · Atelier — 골드 */
+html[data-color="gray"]   { --ink-dark:#101216; --gray1-dark:#1c1f25; --accent-dark:#9fb0c7; --accent-light:#586273; }  /* 7 · Premarket — 그레이 */
 
 /* ---- DARK 모드 (기본) ---- */
 html[data-mode="dark"] {
