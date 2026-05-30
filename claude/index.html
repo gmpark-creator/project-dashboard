@@ -12,25 +12,30 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
-  <link rel="stylesheet" href="css/dashboard.css?v=20260530-autocolor">
+  <link rel="stylesheet" href="css/dashboard.css?v=20260530-mode2">
 
-  <!-- 프로젝트별 자동 컬러 + FOUC 방지 (CSS 로드 전 즉시 적용).
-       박사 지시 2026-05-30: 홈/전체 = violet(기본 유지). 프로젝트 진입 시 해당
-       프로젝트 고유 컬러로 자동 전환 — ais=파랑 / DDUIM(뜀)=초록 / solar=밝은 빨강 등.
+  <!-- 컬러 시스템 + FOUC 방지 (CSS 로드 전 즉시 적용) · 박사 지시 2026-05-30 개편.
+       · data-mode  = 어두운(dark) / 밝은(light) 계열 — 우상단 스위처 선택, localStorage 영속(기본 dark)
+       · data-color = 프로젝트 고유 hue — 라우트(해시) 자동. 홈/전체 = violet, 각 프로젝트 = 고유색.
        매핑은 dashboard.js와 공유(window.__PROJECT_COLOR) — 단일 소스. -->
   <script>
     window.__DEFAULT_COLOR = 'violet';
     window.__PROJECT_COLOR = {
-      'ais':             'cyber',       /* 파랑 — 해양·선박 */
-      'sports':          'emerald',     /* 초록 — DDUIM(뜀) 잔디 피치 */
-      'solar':           'sunburst',    /* 밝은 빨강 — 태양 (신규 라이트 테마) */
-      'inst':            'navy',        /* 믹싱 콘솔 다크 + 오렌지 */
-      'korea-gov-sim':   'obsidian',    /* 대선 — 진중한 다크 레드 */
-      'jpglobal-web':    'claude-warm', /* 디자인 아틀리에 — 웜 라이트 */
-      'us-kr-premarket': 'nordic',      /* 핀테크 — 클린 화이트 + 스카이 */
-      'knowledge':       'light'        /* 지식 — 클린 라이트 인디고 */
+      'ais':             'blue',   /* 1 · 블루(해양) */
+      'sports':          'green',  /* 2 · DDUIM(뜀) 그린(피치) */
+      'solar':           'red',    /* 3 · 레드(태양) */
+      'inst':            'red',    /* 4 · solar와 동일 레드 (박사 지시) */
+      'korea-gov-sim':   'navy',   /* 5 · 네이비 */
+      'jpglobal-web':    'neon',   /* 6 · 형광 마젠타 */
+      'us-kr-premarket': 'gold',   /* 7 · 골드/옐로 */
+      'knowledge':       'gray'    /* 8 · 그레이 */
     };
     (function () {
+      // 화면 모드 — localStorage 영속, 기본 dark
+      var mode = 'dark';
+      try { var sm = localStorage.getItem('dash-mode'); if (sm === 'light' || sm === 'dark') mode = sm; } catch (e) {}
+      document.documentElement.dataset.mode = mode;
+      // 프로젝트 액센트 — 라우트(해시) 기반, 기본 violet
       var color = window.__DEFAULT_COLOR;
       try {
         var m = (location.hash || '').match(/^#\/p\/([\w-]+)$/);
@@ -69,12 +74,12 @@
 
 <div class="color-panel-scrim" id="color-panel-scrim" aria-hidden="true"></div>
 
-<aside class="color-panel" id="color-panel" aria-label="Color theme switcher" aria-hidden="true">
+<aside class="color-panel" id="color-panel" aria-label="Display mode switcher" aria-hidden="true">
   <div class="color-panel-head">
-    <span class="title"><em>+</em>Color Theme</span>
+    <span class="title"><em>+</em>화면 모드</span>
     <button type="button" class="close" id="color-close" aria-label="Close">×</button>
   </div>
-  <div class="color-list" id="color-list"><!-- JS fills theme buttons --></div>
+  <div class="color-list" id="color-list"><!-- JS fills 2 mode buttons (어두운/밝은 계열) --></div>
 </aside>
 
 <!-- ============== CURSOR ============== -->
@@ -164,7 +169,7 @@
 
 </div>
 
-<script src="js/projects-data.js?v=20260530-autocolor" defer></script>
-<script src="js/dashboard.js?v=20260530-autocolor" defer></script>
+<script src="js/projects-data.js?v=20260530-mode2" defer></script>
+<script src="js/dashboard.js?v=20260530-mode2" defer></script>
 </body>
 </html>

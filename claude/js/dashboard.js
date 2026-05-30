@@ -279,19 +279,11 @@
     }, delay);
   }
 
-  /* ---------- 1b) COLOR SWITCHER ---------- */
-  // 9 themes — 박사 픽 default = violet (Midnight Violet) FINAL 2026-05-28
-  const THEMES = [
-    { id: 'violet',       name: 'Midnight Violet',     hex: '#130f26', accent: '#a78bfa', badge: 'Default ★',   mode: 'dark' },
-    { id: 'navy',         name: 'Slate Navy',          hex: '#202738', accent: '#ff4f00', badge: 'Prev Canonical', mode: 'dark' },
-    { id: 'black',        name: 'Original Black',      hex: '#0a0a0a', accent: '#ff4f00', badge: 'v3 Initial',  mode: 'dark' },
-    { id: 'obsidian',     name: 'Obsidian Charcoal',   hex: '#121212', accent: '#ff6b6b', badge: 'A · Gemini',  mode: 'dark' },
-    { id: 'cyber',        name: 'Cyber Punk Neon',     hex: '#0b0f19', accent: '#3b82f6', badge: 'B · Gemini',  mode: 'dark' },
-    { id: 'emerald',      name: 'Emerald Forest',      hex: '#0f1715', accent: '#34d399', badge: 'E · Gemini',  mode: 'dark' },
-    { id: 'light',        name: 'Light Indigo',        hex: '#ffffff', accent: '#6366f1', badge: 'Light',       mode: 'light' },
-    { id: 'claude-warm',  name: 'Claude Warm Minimal', hex: '#fbf9f6', accent: '#d97706', badge: 'C · Gemini',  mode: 'light' },
-    { id: 'nordic',       name: 'Nordic Clean White',  hex: '#fafafa', accent: '#0ea5e9', badge: 'D · Gemini',  mode: 'light' },
-    { id: 'sunburst',     name: 'Solar Sunburst',      hex: '#fff7f4', accent: '#ef4444', badge: 'Solar',       mode: 'light' }
+  /* ---------- 1b) DISPLAY MODE SWITCHER (박사 지시 2026-05-30 개편) ----------
+     우상단 스위처 = 「어두운 계열 / 밝은 계열」 2종만. 프로젝트별 액센트는 라우트(data-color)가 담당. */
+  const MODES = [
+    { id: 'dark',  ko: '어두운 계열', en: 'Dark',  swatch: '#15111f', accent: '#a78bfa' },
+    { id: 'light', ko: '밝은 계열',   en: 'Light', swatch: '#f4efe2', accent: '#c98a2e' }
   ];
 
   function setupColorSwitcher() {
@@ -302,31 +294,29 @@
     const panel  = $('#color-panel');
     if (!list || !toggle) return;
 
-    function currentColor() {
-      return document.documentElement.dataset.color || 'violet';
+    function currentMode() {
+      return document.documentElement.dataset.mode || 'dark';
     }
 
-    // 정리(박사 지시 2026-05-30): 스와치 + 이름만. hex 코드·dev 배지 등 쓸데없는 문구 제거.
+    // 스위처 리스트 = 어두운 계열 / 밝은 계열 (스와치 + 이름)
     function renderList() {
-      const cur = currentColor();
-      list.innerHTML = THEMES.map(t => `
-        <button type="button" class="color-item ${t.id === cur ? 'is-active' : ''}" data-color="${t.id}"
-                style="--swatch-accent:${t.accent}">
-          <span class="swatch" style="background:${t.hex}"></span>
+      const cur = currentMode();
+      list.innerHTML = MODES.map(m => `
+        <button type="button" class="color-item ${m.id === cur ? 'is-active' : ''}" data-mode="${m.id}"
+                style="--swatch-accent:${m.accent}">
+          <span class="swatch" style="background:${m.swatch}"></span>
           <span class="meta">
-            <span class="name">${t.name}</span>
+            <span class="name">${m.ko} · ${m.en}</span>
           </span>
         </button>
       `).join('');
     }
-    // 라우트 변경(프로젝트 자동 컬러) 시 활성 스와치 갱신용으로 외부 노출
-    window.__refreshColorList = renderList;
 
-    // 수동 선택은 현재 화면 즉시 미리보기용(라이브 오버라이드). 영속 저장 안 함 —
-    // 프로젝트 이동 시 각 프로젝트 고유 컬러가 다시 적용되는 게 기본 동작.
-    function applyColor(id) {
-      if (!THEMES.find(t => t.id === id)) id = 'violet';
-      document.documentElement.dataset.color = id;
+    // 모드 선택은 localStorage에 영속(박사 지시: 「고정」). 프로젝트별 액센트(data-color)는 라우트가 담당.
+    function applyMode(id) {
+      if (id !== 'dark' && id !== 'light') id = 'dark';
+      document.documentElement.dataset.mode = id;
+      try { localStorage.setItem('dash-mode', id); } catch (e) {}
       renderList();
     }
 
@@ -351,7 +341,7 @@
     list.addEventListener('click', (e) => {
       const btn = e.target.closest('.color-item');
       if (!btn) return;
-      applyColor(btn.dataset.color);
+      applyMode(btn.dataset.mode);
     });
 
     document.addEventListener('keydown', (e) => {
@@ -793,8 +783,7 @@
     const map = window.__PROJECT_COLOR || {};
     let color = window.__DEFAULT_COLOR || 'violet';
     if (route && route.type === 'detail' && map[route.id]) color = map[route.id];
-    document.documentElement.dataset.color = color;
-    if (typeof window.__refreshColorList === 'function') window.__refreshColorList();
+    document.documentElement.dataset.color = color;   // 프로젝트 hue (배경 모드는 data-mode가 별도 관리)
   }
 
   function renderRoute() {
