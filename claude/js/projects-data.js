@@ -444,8 +444,8 @@ const PROJECTS = [
           + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
     stack: ['Vite', 'React', 'TypeScript', 'Three.js (R3F)', 'Tailwind', 'simple-icons'],
     stackDetail: [
-      { area: '지구 지도 (공급망 모드 전용)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'Earth.tsx가 sphereGeometry에 NASA 지구 텍스처(낮·노멀·구름·야간조명)를 useTexture로 입혀 meshStandardMaterial로 그리고, shaderMaterial GLSL 프레넬 림으로 대기광을 가산한다. 회사 본사 핀이 대륙과 정확히 정합되도록 자전·축기울기 없이 정적으로 둔다. 칩 분류 모드에서는 숨기고 공급망 모드에서만 표시.' },
-      { area: '칩 분류 — 카툰 배경 + 그리드 정렬', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'TaxonomyBackdrop.tsx가 자체 생성한 반도체 회로 카툰 이미지(public/textures/chip-bg.svg)를 큰 안쪽 구면에 입혀 3D 카툰 배경을 만들고, CategoryNode.tsx가 box·tube·torus 등 프로시저럴 아이콘을 emissive로 그려 패밀리별 행 그리드로 가지런히 정렬한다(부유·회전 없음). Html로 한글 라벨 표시.' },
+      { area: '지구 지도 (공급망 모드 전용)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'Earth.tsx가 sphereGeometry에 8K day/night 텍스처(solarsystemscope CC-BY) + 노멀맵을 useTexture로 입혀 meshStandardMaterial로 그리고(anisotropy 16 → 확대 시 선명), shaderMaterial GLSL 프레넬 림으로 대기광을 가산한다. 본사 핀이 대륙과 정합되도록 자전·축기울기 없이 정적. 칩 분류 모드에서는 숨기고 공급망 모드에서만 표시.' },
+      { area: '칩 분류 — 카툰 배경 + 실사풍 3D 아이콘 그리드', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'TaxonomyBackdrop.tsx가 깔끔한 그라데이션/보케 카툰 배경(chip-bg.svg)을 안쪽 구면에 입히고, CategoryNode.tsx가 카테고리별 실사풍 3D 모델(IC 패키지·DIMM·SOIC·TO-247 전력·카메라 렌즈·RF 실드·FPGA 셀격자·실리콘 웨이퍼)을 PBR 재질 + 3/4 시점으로 그려 패밀리별 행 그리드로 가지런히 정렬한다. drei Environment(Lightformer) IBL로 금속이 반사돼 입체로 보인다. 휠 줌 지원, Html 라벨은 pointer-events:none.' },
       { area: '공급망 앰블럼 — 클릭 시 본사 핀·확대', tech: 'simple-icons, Three.js, @react-three/drei', how: 'CompanyEmblem.tsx가 simple-icons 로고/워드마크를 CanvasTexture 배지로 만들어 drei Billboard로 띄운다. 평소엔 떠 있다가 회사를 클릭하면 본사 위경도 좌표로 지구 위에 핀되며 확대되고, 선택과 무관한 회사는 페이드아웃한다. 배지 크기는 루트(시가총액)에 비례.' },
       { area: '공급망 관계 — 지구 위 호(arc)', tech: 'Three.js, @react-three/fiber', how: 'SupplyArrow.tsx가 QuadraticBezierCurve3를 TubeGeometry로 그리되 중점을 지구 중심에서 바깥으로 들어올려 지표 위 아치를 만든다. 회사를 클릭하면 그 회사에 연계된 엣지만 본사 좌표 사이를 잇고, 입자가 흐르며 coneGeometry 화살촉이 방향을 가리킨다.' },
       { area: '카메라·인터랙션·배치', tech: '@react-three/fiber, @react-three/drei, Three.js', how: 'Scene.tsx의 OrbitControls는 자동회전 없이 댐핑·줌만 두고, 휠/드래그 시 fly-to를 즉시 중단해 휠 줌이 항상 작동한다(고정 방지). 공급망에서 회사 선택 시 본사 상공으로, 칩 분류에서 노드 정면으로 카메라가 비행한다. 반짝임 방지를 위해 Bloom 후처리는 제거. companyLayout.ts의 COMPANY_HQ가 본사 위경도를 좌표로 변환한다.' },
@@ -453,17 +453,19 @@ const PROJECTS = [
       { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
     ],
     issues: [
-      { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱 — 두 모드: ① 칩 분류(자체 생성 카툰 회로 배경 위 카테고리 아이콘 그리드) ② 공급망(회사 아이콘 → 클릭하면 지구 위 본사 위치로 핀·확대되고 연계사·화살표 연동). 노드 크기 ∝ √시가총액, 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main).' },
+      { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱 — 두 모드: ① 칩 분류(깔끔한 카툰 배경 위 실사풍 3D 칩 모델 그리드, 휠 줌) ② 공급망(회사 아이콘 → 클릭하면 8K 지구 위 본사 위치로 핀·확대되고 연계사·화살표 연동). 노드 크기 ∝ √시가총액, 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main).' },
       { type:'완료', title:'반도체 영역 — 지구 배경 + 기업 앰블럼 + 한글화 라운드 완료', desc:'우주 배경 → NASA 지구(낮/구름/노멀/야간조명) + 프레넬 대기광. 동그라미 노드 → 실제 기업 앰블럼(공식 로고 8개사 + 워드마크 8개사). 데이터·UI 전체 한국어. tsc + vite build 통과, dev 정상.' },
       { type:'완료', title:'반도체 영역 — 검수 체크리스트 수정 완료 + ESLint 0', desc:'HANDOFF 체크리스트(#1~#8)를 9개 에이전트 적대적 검증 후 마감 — 자동회전 버그·Designer 클러스터 지구앞 겹침·Bloom 과다·aria-label 한글화·Google Fonts 제거(@fontsource self-host)·README 현행화 모두 수정. ESLint 14건→0(컴포넌트 모듈 호이스팅·레이아웃 모듈 분리·텍스처 colorSpace onLoad). 워드마크 8개사 진짜 로고는 P3로 보류. tsc+vite build 통과, push 완료(b8d6be7).' },
       { type:'완료', title:'반도체 영역 — 시각화 전면 재설계 (2026-05-30)', desc:'디렉터 지시 반영 — 반짝임/깨짐 제거(Bloom·가산 글로우·halo 펄스 제거), 자동회전·부유 제거, 클릭 후 휠 줌 고정 해제. 칩 분류는 자체 생성 카툰 회로 배경 위 가지런한 그리드로, 공급망은 회사 클릭 시 지구 위 본사 위치(28사 위경도)로 핀·확대 + 연계사·화살표(지구 위 호) 연동으로 재구성. build·eslint 통과, push e38ce50.' },
+      { type:'완료', title:'반도체 영역 — 수정 라운드 (UI/아이콘/지도 고도화, 2026-05-30)', desc:'디렉터 피드백 5건 반영 — ① 칩 분류 휠 줌 활성 + 배경을 깔끔한 그라데이션 카툰으로 교체, ② 칩 아이콘을 실사풍 3D 모델(IC 패키지·DIMM·전력 모듈·렌즈·실리콘 웨이퍼 등)로 고도화 + IBL 조명, ③ 공급망 클러스터 겹침 해소(같은 도시 회사 링 정렬·핀 축소), ④ 지구 2K→8K(solarsystemscope CC-BY)로 확대 디테일 향상, ⑤ 전체 조명·재질 폴리시. Playwright 헤드리스 검증 통과(에러 0). push 7519aa0.' },
       { type:'이슈', title:'앞으로 — 다른 지식 영역 확장 예정', desc:'이 프로젝트는 상위 틀. 반도체 외 다양한 지식 분야를 같은 틀 안에서 새 영역으로 분류해 추가해 나갈 예정 (영역 2, 3, … 누적).' }
     ],
     milestones: [
       { isCore:true, date:'2026-05-29', title:'프로젝트 #8 신설 — 정보·지식 모음 (상위 틀)', desc:'다양한 지식을 한 틀 아래 영역별로 모으는 상위 프로젝트로 신설. 첫 영역 = 반도체. 박사 발화 "정보·지식 모음 같은 이름으로 #8에 추가, 반도체는 그 안의 한 영역으로 분류".' },
       { isCore:true, date:'2026-05-29', title:'영역 1 — 반도체 유니버스 등록', desc:'지구 배경 + 기업 앰블럼 + 한글화 완료한 3D 반도체 시각화 앱을 첫 영역으로 분류·등록. GitHub gmpark-creator/semiconductor-universe push 완료, HANDOFF.md 수정 체크리스트 동봉.' },
       { isCore:true, date:'2026-05-30', title:'영역 1 — 검수 체크리스트 수정·ESLint 0·재배포', desc:'집 데스크탑에서 HANDOFF 체크리스트 #1~#7 수정 마감(#8 로고 P3 보류), ESLint 14→0, tsc+vite build 통과. semiconductor-universe push(b8d6be7) + 대시보드 VIEW LIVE 미리보기를 새 빌드로 갱신(폰트 self-host 반영, 런타임 외부호출 0).' },
-      { isCore:true, date:'2026-05-30', title:'영역 1 — 시각화 전면 재설계', desc:'디렉터 지시로 전면 재설계 — 반짝임/깨짐·자동회전·휠 고정 제거. 칩 분류는 자체 생성 카툰 회로 배경(chip-bg.svg) 위 패밀리별 그리드 정렬, 공급망은 회사 클릭 시 지구 위 본사 위치(COMPANY_HQ 28사 위경도)로 핀·확대 + 연계사·화살표(지구 위 호) 연동. Earth 정적화로 핀 정합. push e38ce50 + 미리보기 재배포.' }
+      { isCore:true, date:'2026-05-30', title:'영역 1 — 시각화 전면 재설계', desc:'디렉터 지시로 전면 재설계 — 반짝임/깨짐·자동회전·휠 고정 제거. 칩 분류는 자체 생성 카툰 회로 배경(chip-bg.svg) 위 패밀리별 그리드 정렬, 공급망은 회사 클릭 시 지구 위 본사 위치(COMPANY_HQ 28사 위경도)로 핀·확대 + 연계사·화살표(지구 위 호) 연동. Earth 정적화로 핀 정합. push e38ce50 + 미리보기 재배포.' },
+      { isCore:true, date:'2026-05-30', title:'영역 1 — 수정 라운드 (UI/아이콘/지도)', desc:'디렉터 피드백 5건 — 칩분류 휠줌+깔끔 배경, 실사풍 3D 칩 아이콘(PBR+IBL), 공급망 클러스터 링 정렬·핀 축소, 지구 8K day/night(solarsystemscope CC-BY) 확대 디테일, 전체 조명·재질 폴리시. Playwright 헤드리스 검증(에러 0)·재배포. push 7519aa0.' }
     ]
   }
 ];
