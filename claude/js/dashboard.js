@@ -705,6 +705,118 @@
   }
 
   /* ============================================================
+     RENDER — 기술 스택 총집합 (메인 홈 하단)
+     · 사용 스택: PROJECTS의 stack[] + stackDetail[].tech에서 라이브 집계
+       (어느 프로젝트 · 어느 영역에 쓰였는지). 정규화/분류는 STACK_ATLAS.techs.
+     · 미사용 스택 + 분야별 추천: STACK_ATLAS.unused.
+     STACK_ATLAS는 projects-data.js에서 주입(워크플로 stack-atlas 산출).
+     ============================================================ */
+  function buildStackUsage(projects, atlas) {
+    // alias(소문자) -> { canonical, category, note }
+    const lookup = {};
+    (atlas.techs || []).forEach(t => {
+      const reg = s => { if (s) lookup[String(s).trim().toLowerCase()] = { canonical: t.canonical, category: t.category, note: t.note || '' }; };
+      reg(t.canonical);
+      (t.aliases || []).forEach(reg);
+    });
+    function resolve(token) {
+      const key = token.trim().toLowerCase();
+      return lookup[key] || { canonical: token.trim(), category: 'etc', note: '' };
+    }
+    const techMap = {}; // canonical -> { canonical, category, note, usages:{ pid:{name, areas[]} } }
+    function addUsage(token, p, area) {
+      if (!token || !token.trim()) return;
+      const r = resolve(token);
+      const t = techMap[r.canonical] || (techMap[r.canonical] = { canonical: r.canonical, category: r.category, note: r.note, usages: {} });
+      if (!t.note && r.note) t.note = r.note;
+      const u = t.usages[p.id] || (t.usages[p.id] = { name: p.name, areas: [] });
+      if (area && u.areas.indexOf(area) === -1) u.areas.push(area);
+    }
+    projects.forEach(p => {
+      (p.stackDetail || []).forEach(sd => {
+        String(sd.tech || '').split(/[,·]/).forEach(tok => addUsage(tok, p, sd.area));
+      });
+      (p.stack || []).forEach(raw => String(raw).split(/[,·]/).forEach(tok => addUsage(tok, p, null)));
+    });
+    return techMap;
+  }
+
+  function renderStackAtlas(projects) {
+    const atlas = window.STACK_ATLAS;
+    if (!atlas || !Array.isArray(atlas.techs) || !atlas.techs.length) return '';
+
+    const techMap = buildStackUsage(projects, atlas);
+    const catLabel = {};
+    (atlas.categories || []).forEach(c => { catLabel[c.key] = c.label; });
+    catLabel.etc = catLabel.etc || '기타';
+    const catOrder = (atlas.categories || []).map(c => c.key);
+
+    const byCat = {};
+    Object.keys(techMap).forEach(k => { const t = techMap[k]; (byCat[t.category] = byCat[t.category] || []).push(t); });
+    Object.keys(byCat).forEach(c => byCat[c].sort((a, b) =>
+      (Object.keys(b.usages).length - Object.keys(a.usages).length) || a.canonical.localeCompare(b.canonical)));
+    const cats = catOrder.filter(k => byCat[k]).concat(Object.keys(byCat).filter(k => catOrder.indexOf(k) === -1));
+    const totalTech = Object.keys(techMap).length;
+
+    const usedHtml = cats.map(catKey => {
+      const techs = byCat[catKey];
+      const rows = techs.map(t => {
+        const used = Object.keys(t.usages).map(pid => t.usages[pid]);
+        const where = used.map(u => `
+          <div class="atlas-use">
+            <span class="atlas-use-proj">${escapeHtml(u.name)}</span>
+            ${u.areas.length ? `<span class="atlas-use-area">${u.areas.map(escapeHtml).join(' · ')}</span>` : ''}
+          </div>`).join('');
+        return `
+          <div class="atlas-tech">
+            <div class="atlas-tech-top">
+              <span class="atlas-tech-name">${escapeHtml(t.canonical)}</span>
+              <span class="atlas-tech-count">×${used.length}</span>
+            </div>
+            ${t.note ? `<p class="atlas-tech-note">${escapeHtml(t.note)}</p>` : ''}
+            <div class="atlas-use-list">${where}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div class="atlas-cat">
+          <div class="atlas-cat-head"><h4>${escapeHtml(catLabel[catKey] || catKey)}</h4><span class="atlas-cat-count">${pad2(techs.length)}</span></div>
+          <div class="atlas-tech-list">${rows}</div>
+        </div>`;
+    }).join('');
+
+    const unusedGroups = atlas.unused || [];
+    const unusedCount = unusedGroups.reduce((s, g) => s + ((g.items || []).length), 0);
+    const unusedHtml = unusedGroups.map(g => `
+      <div class="atlas-unused-group">
+        <div class="atlas-cat-head"><h4>${escapeHtml(g.label)}</h4><span class="atlas-cat-count">${pad2((g.items || []).length)}</span></div>
+        <div class="atlas-unused-list">
+          ${(g.items || []).map(it => `
+            <div class="atlas-unused-item">
+              <span class="atlas-unused-name">${escapeHtml(it.name)}</span>
+              <p class="atlas-unused-rec">${escapeHtml(it.recommendation)}</p>
+              ${(it.fitProjects && it.fitProjects.length) ? `<div class="atlas-fit">${it.fitProjects.map(f => `<span class="atlas-fit-chip">${escapeHtml(f)}</span>`).join('')}</div>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+
+    return `
+      <section class="stack-atlas" data-index="02" data-theme="dark" id="stack-atlas">
+        <div class="container">
+          <div class="atlas-head reveal-up">
+            <h3>기술 스택 총집합</h3>
+            <p class="note">전 프로젝트가 쓴 스택 · 어디에 쓰였나 · 아직 안 쓴 기술 &amp; 추천</p>
+          </div>
+
+          <div class="atlas-section-head"><strong>+ IN USE · 사용 중</strong><span class="count">${pad2(totalTech)} STACKS · ${pad2(projects.length)} PROJECTS</span></div>
+          <div class="atlas-cats">${usedHtml}</div>
+
+          <div class="atlas-section-head atlas-gap"><strong>+ NOT YET USED · 미사용 &amp; 추천</strong><span class="count">${pad2(unusedCount)} CANDIDATES</span></div>
+          <div class="atlas-unused-grid">${unusedHtml}</div>
+        </div>
+      </section>`;
+  }
+
+  /* ============================================================
      RENDER — home view (page hero + status summary + 6 card grid)
      ============================================================ */
   function renderHome(projects) {
@@ -785,6 +897,8 @@
           </div>
         </div>
       </section>
+
+      ${renderStackAtlas(projects)}
     `;
   }
 
