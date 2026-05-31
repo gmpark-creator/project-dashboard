@@ -450,7 +450,7 @@ const PROJECTS = [
           + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
           + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
-    stack: ['Vite', 'React', 'TypeScript', 'Three.js (R3F)', 'Tailwind', 'simple-icons'],
+    stack: ['Vite', 'React', 'TypeScript', 'Three.js (R3F)', 'react-spring', 'earcut', 'southkorea-maps', 'Tailwind', 'simple-icons'],
     stackDetail: [
       { area: '지구 지도 (공급망 모드 전용)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'Earth.tsx가 sphereGeometry에 8K day/night 텍스처(solarsystemscope CC-BY) + 노멀맵을 useTexture로 입혀 meshStandardMaterial로 그리고(anisotropy 16 → 확대 시 선명), shaderMaterial GLSL 프레넬 림으로 대기광을 가산한다. 본사 핀이 대륙과 정합되도록 자전·축기울기 없이 정적. 칩 분류 모드에서는 숨기고 공급망 모드에서만 표시.' },
       { area: '칩 분류 — 카툰 배경 + 실사풍 3D 아이콘 그리드', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: 'TaxonomyBackdrop.tsx가 깔끔한 그라데이션/보케 카툰 배경(chip-bg.svg)을 안쪽 구면에 입히고, CategoryNode.tsx가 카테고리별 실사풍 3D 모델(IC 패키지·DIMM·SOIC·TO-247 전력·카메라 렌즈·RF 실드·FPGA 셀격자·실리콘 웨이퍼)을 PBR 재질 + 3/4 시점으로 그려 패밀리별 행 그리드로 가지런히 정렬한다. drei Environment(Lightformer) IBL로 금속이 반사돼 입체로 보인다. 휠 줌 지원, Html 라벨은 pointer-events:none.' },
@@ -461,6 +461,8 @@ const PROJECTS = [
       { area: 'UI 패널·범례·모드 토글', tech: 'React, TypeScript, Tailwind, framer-motion', how: 'InfoPanel.tsx가 framer-motion의 AnimatePresence와 motion.aside 스프링 트랜지션으로 상세 패널을 슬라이드 인하고, Tailwind 유틸 클래스로 글래스 스타일을 입힌다. App.tsx가 React useState로 모드·선택 상태를 관리하며 ViewToggle·Legend를 배치한다.' },
       { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
       { area: '멀티영역 아키텍처 (Knowledge Atlas)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력 2영역.' },
+      { area: '전력 유니버스 — 카툰 대한민국 지도 (세계지도 없음)', tech: 'react-spring, southkorea-maps, earcut, Three.js', how: '전력 영역 공급망은 지구본 대신 KoreaCartoonMap이 한반도만 그린다. southkorea-maps GeoJSON으로 17개 광역시도를 earcut 삼각분할해 파스텔 카툰색으로 채우고 다크 외곽선을 입힌다. 핵심은 react-spring(@react-three/three) — 각 시도가 자기 중심에서 아래→위로 통통 튀어 오르며(config.wobbly·스태거 delay) 지도가 조립되듯 등장하고, animated 머티리얼 opacity로 페이드인한다. 좌표는 본사 핀과 같은 좌표계라 기업이 시도 위 실제 위치에 박힌다.' },
+      { area: '구글어스식 도시 딥줌 — 행정구·행정동 LOD', tech: 'Three.js, @react-three/fiber, southkorea-maps', how: '기업을 클릭하면 카메라가 본사 도시까지 깊게 날아들어가(구글어스식 줌인), 카메라 거리(LOD)에 따라 시군구(행정구, 251개)→읍면동(행정동, 3482개) 경계가 단계적으로 페이드인한다. 경계는 피처 전체를 단일 라인 지오메트리로 병합해 한 번에 그리고(읍면동은 줌인 시 지연 로드), 시군구 영문 라벨은 화면 중앙 좁은 콘 안의 것만 거리 비례(화면 고정 크기)로 표시해 과밀을 막는다. 멀리서는 시도만 보이는 깔끔한 개요, 줌인하면 어느 구·동에 있는지 드러난다.' },
     ],
     issues: [
       { type:'핵심', title:'영역 2 — 전력 (전력 유니버스, 2026-05-31)', desc:'대한민국 전력 부문을 반도체 유니버스와 동일 스타일로 구현. 발전원·계통 14분류(원자력 1위 ≈32%·석탄 3위·LNG·태양광·육상/해상풍력·수력·양수·ESS·바이오·연료전지·송전·배전·전력시장) 3D 아이콘 그리드 + 전력 공급망(발전5사·한수원·KEPCO·KPX·KOGAS·두산에너빌리티·효성/HD현대 변압기·한화큐셀·씨에스윈드·산업부 등 23 기업/기관). 회사 클릭 시 본사 실좌표로 한반도 딥줌·핀 + 연료/발전/송배전/기자재/규제 관계 호. 데이터는 워크플로 5에이전트 수집·적대적 사실검증(2024 발전믹스 원자력 1위·석탄 3위·설비·본사좌표 교정). 앱을 데이터 주도 멀티영역 구조로 일반화 + 좌상단 영역 선택기 추가. semiconductor-universe push(08db798).' },
@@ -622,7 +624,6 @@ const STACK_ATLAS = {
     ]},
     { key: 'animation', label: '애니메이션·모션', items: [
       { name: 'GSAP', recommendation: '고성능 타임라인 애니메이션. 6번 JP Global 스크롤 연출(ScrollTrigger)과 5번 취임 시네마틱의 정교한 카메라/UI 시퀀스를 프레임 단위로. framer-motion이 못 잡는 복잡 타임라인을 보완.', fitProjects: ['Frontend & Tone Atelier (JP Global)', '2026 PRESIDENT KOREA'] },
-      { name: 'react-spring (R3F 3D 모션)', recommendation: 'R3F 3D 스프링 모션. 8번 반도체·5번 PRESIDENT 3D 씬의 카메라 전환·노드 등장을 스프링 기반으로 부드럽게. (@react-three/drei는 이미 사용 중이므로 신규는 react-spring 모션 부분)', fitProjects: ['Knowledge Atlas (반도체 유니버스)', '2026 PRESIDENT KOREA'] },
       { name: 'Lottie', recommendation: 'AE 기반 벡터 애니메이션 재생. 6번 JP Global·이 대시보드의 마이크로 인터랙션/로딩/아이콘 모션을 디자이너 제작 그대로 가볍게. 3번 Solar 로딩 스피너 고급화에도.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] },
       { name: 'Motion One / Web Animations API', recommendation: '경량 네이티브 애니메이션. 6번 JP Global의 Vanilla JS 인터랙션을 의존성 거의 없이 부드럽게. framer-motion을 안 쓰는 바닐라 프로젝트의 표준 모션 도구.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
