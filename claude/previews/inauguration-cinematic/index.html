@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2026 대한민국 대통령 취임 — 3D 카툰 시네마틱</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a1024;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;}
+  #c{display:block;width:100vw;height:100vh;}
+  /* 시네마틱 레터박스 */
+  .bar{position:fixed;left:0;width:100%;height:7vh;background:#05060c;z-index:5;pointer-events:none;}
+  .bar.top{top:0} .bar.bot{bottom:0}
+  .vig{position:fixed;inset:0;z-index:4;pointer-events:none;box-shadow:inset 0 0 22vh rgba(0,0,0,.55);}
+  #title{position:fixed;left:0;right:0;top:13%;text-align:center;z-index:6;pointer-events:none;}
+  #title .kr{font-size:clamp(28px,5.6vw,72px);font-weight:900;letter-spacing:-.02em;color:#fff;
+    text-shadow:0 4px 28px rgba(0,0,0,.6),0 0 40px rgba(212,175,55,.35);opacity:0;transform:translateY(18px);transition:opacity 1.1s ease,transform 1.1s ease;}
+  #title .sub{margin-top:14px;font-size:clamp(13px,1.8vw,22px);font-weight:600;color:#ffe7b0;letter-spacing:.06em;
+    opacity:0;transform:translateY(14px);transition:opacity 1s ease .2s,transform 1s ease .2s;}
+  #title .em{color:#ffd45e;}
+  body.t1 #title .kr{opacity:1;transform:none;} body.t2 #title .sub{opacity:1;transform:none;}
+  #replay{position:fixed;right:18px;bottom:calc(7vh + 16px);z-index:7;background:rgba(212,175,55,.14);
+    border:1px solid rgba(212,175,55,.6);color:#ffe7b0;font:600 13px/1 system-ui;padding:9px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
+  #replay:hover{background:rgba(212,175,55,.28);}
+  #hint{position:fixed;left:18px;bottom:calc(7vh + 16px);z-index:7;color:#9fb0d0;font-size:12px;opacity:.8;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="vig"></div><div class="bar top"></div><div class="bar bot"></div>
+<div id="title"><div class="kr">2026 · 대한민국 대통령 <span class="em">취임</span></div><div class="sub">제21대 대통령 취임 선서 — "나는 헌법을 준수하고…"</div></div>
+<button id="replay">▶ 다시 보기</button>
+<div id="hint">3D 카툰 시네마틱 · 실시간 렌더 (Three.js)</div>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<script type="module">
+import * as THREE from "three";
+
+const canvas = document.getElementById("c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x1a2a4a, 22, 60);
+
+// 하늘 그라데이션 배경
+(function(){
+  const cv=document.createElement("canvas");cv.width=8;cv.height=256;const g=cv.getContext("2d").createLinearGradient(0,0,0,256);
+  g.addColorStop(0,"#2a4a86");g.addColorStop(.5,"#6f8fd0");g.addColorStop(.8,"#f3c98e");g.addColorStop(1,"#ffe3b0");
+  const ctx=cv.getContext("2d");ctx.fillStyle=g;ctx.fillRect(0,0,8,256);
+  const t=new THREE.CanvasTexture(cv);scene.background=t;
+})();
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 200);
+
+// 카툰 toon 그라데이션 램프
+const ramp=(()=>{const cv=document.createElement("canvas");cv.width=4;cv.height=1;const x=cv.getContext("2d");
+  ["#5b5b6e","#9a9ab0","#d8d8e6","#ffffff"].forEach((c,i)=>{x.fillStyle=c;x.fillRect(i,0,1,1);});
+  const t=new THREE.CanvasTexture(cv);t.minFilter=t.magFilter=THREE.NearestFilter;return t;})();
+const toon=(color)=>new THREE.MeshToonMaterial({color,gradientMap:ramp});
+
+// 조명
+scene.add(new THREE.HemisphereLight(0xdfeaff,0x6b5a3a,0.95));
+const key=new THREE.DirectionalLight(0xfff2d4,1.7);key.position.set(6,12,8);key.castShadow=true;
+key.shadow.mapSize.set(1024,1024);key.shadow.camera.near=1;key.shadow.camera.far=40;
+key.shadow.camera.left=-14;key.shadow.camera.right=14;key.shadow.camera.top=14;key.shadow.camera.bottom=-14;scene.add(key);
+const goldL=new THREE.SpotLight(0xffd98a,2.2,40,0.7,0.5);goldL.position.set(-5,11,4);scene.add(goldL);
+const rim=new THREE.DirectionalLight(0xbfd4ff,1.1);rim.position.set(-3,7,-7);scene.add(rim); // 인물 분리용 림 라이트
+
+const world=new THREE.Group();scene.add(world);
+
+// 무대 (둥근 단)
+const stage=new THREE.Mesh(new THREE.CylinderGeometry(9,9.4,1.2,48),toon(0xece0c8));
+stage.position.y=-0.6;stage.receiveShadow=true;world.add(stage);
+const carpet=new THREE.Mesh(new THREE.CylinderGeometry(3.4,3.4,0.08,40),toon(0x9a2740));
+carpet.position.y=0.04;carpet.receiveShadow=true;world.add(carpet);
+
+// 연단
+const podium=new THREE.Group();world.add(podium);
+const pBody=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.95,1.7,24),toon(0x1c2742));
+pBody.position.y=0.85;pBody.castShadow=true;podium.add(pBody);
+const pTop=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.22,1.0),toon(0x2a3a5c));pTop.position.y=1.78;pTop.castShadow=true;podium.add(pTop);
+const emblem=new THREE.Mesh(new THREE.CircleGeometry(0.34,32),toon(0xd4af37));emblem.position.set(0,0.95,0.72);podium.add(emblem);
+const mic=new THREE.Mesh(new THREE.SphereGeometry(0.08,12,12),toon(0x222));mic.position.set(0,2.2,0.2);podium.add(mic);
+const micStem=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,8),toon(0x444));micStem.position.set(0,1.95,0.2);podium.add(micStem);
+
+// 대통령 캐릭터 (카툰, 추상 — 실존인물 아님)
+const pres=new THREE.Group();pres.position.set(0,0.3,-0.2);world.add(pres);
+const suit=toon(0x33486f), skin=toon(0xf0c6a0), hair=toon(0x2a2118);
+const legL=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.9,16),suit);legL.position.set(-0.18,0.45,0);legL.castShadow=true;pres.add(legL);
+const legR=legL.clone();legR.position.x=0.18;pres.add(legR);
+const torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.42,0.7,8,16),suit);torso.position.y=1.35;torso.castShadow=true;pres.add(torso);
+const shirt=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.5,0.18),toon(0xf5f5f5));shirt.position.set(0,1.45,0.34);pres.add(shirt);
+const tie=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.42,0.04),toon(0xc0303f));tie.position.set(0,1.4,0.43);pres.add(tie);
+const head=new THREE.Mesh(new THREE.SphereGeometry(0.42,24,24),skin);head.position.y=2.15;head.castShadow=true;pres.add(head);
+const hairM=new THREE.Mesh(new THREE.SphereGeometry(0.44,24,24,0,Math.PI*2,0,Math.PI*0.55),hair);hairM.position.y=2.2;pres.add(hairM);
+[-0.15,0.15].forEach(x=>{const e=new THREE.Mesh(new THREE.SphereGeometry(0.045,10,10),toon(0x20242e));e.position.set(x,2.18,0.38);pres.add(e);});
+// 왼팔(고정) + 오른팔(선서로 들림)
+const armL=new THREE.Mesh(new THREE.CapsuleGeometry(0.12,0.6,6,12),suit);armL.position.set(-0.5,1.45,0);armL.rotation.z=0.25;pres.add(armL);
+const armRpivot=new THREE.Group();armRpivot.position.set(0.45,1.7,0.05);pres.add(armRpivot);
+const armR=new THREE.Mesh(new THREE.CapsuleGeometry(0.12,0.6,6,12),suit);armR.position.set(0.05,-0.3,0);armRpivot.add(armR);
+const handR=new THREE.Mesh(new THREE.SphereGeometry(0.14,14,14),skin);handR.position.set(0.1,-0.62,0);armRpivot.add(handR);
+
+// 태극기 (캔버스 텍스처)
+function taegeukTexture(){
+  const s=512,cv=document.createElement("canvas");cv.width=cv.height=s;const x=cv.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,s,s);const cx=s/2,cy=s/2,r=s*0.21;
+  // 태극 (적/청 음양)
+  x.save();x.translate(cx,cy);x.rotate(-Math.PI/4);
+  x.beginPath();x.arc(0,0,r,-Math.PI/2,Math.PI/2,false);x.arc(0,r/2,r/2,Math.PI/2,-Math.PI/2,true);x.arc(0,-r/2,r/2,Math.PI/2,Math.PI*1.5,false);x.closePath();x.fillStyle="#cd2e3a";x.fill();
+  x.beginPath();x.arc(0,0,r,Math.PI/2,-Math.PI/2,false);x.arc(0,-r/2,r/2,-Math.PI/2,Math.PI/2,true);x.arc(0,r/2,r/2,-Math.PI/2,Math.PI/2,false);x.closePath();x.fillStyle="#0047a0";x.fill();
+  x.beginPath();x.arc(cx*0-r/2,0,1,0,0);x.restore();
+  // 4괘
+  x.fillStyle="#111";x.save();x.translate(cx,cy);
+  const bar=(ang,bars)=>{x.save();x.rotate(ang);x.translate(0,-r*2.0);for(let i=0;i<3;i++){const y=i*22-22;
+    bars[i].forEach(seg=>x.fillRect(seg[0],y,seg[1],12));}x.restore();};
+  const S=[[-46,92]], B=[[-46,38],[8,38]]; // 양/음 효
+  bar(Math.PI*0.25,[S,S,S]);   // 건 ☰ (좌상)
+  bar(-Math.PI*0.25,[S,B,S]);  // 리 ☲ (우상)
+  bar(Math.PI*0.75,[B,S,B]);   // 감 ☵ (좌하)
+  bar(-Math.PI*0.75,[B,B,B]);  // 곤 ☷ (우하)
+  x.restore();
+  return new THREE.CanvasTexture(cv);
+}
+const flagGeo=new THREE.PlaneGeometry(4.2,2.8,40,28);
+const flag=new THREE.Mesh(flagGeo,new THREE.MeshToonMaterial({map:taegeukTexture(),gradientMap:ramp,side:THREE.DoubleSide}));
+flag.position.set(-4.6,3.6,-3.2);world.add(flag);
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,7,12),toon(0xb8a36a));pole.position.set(-6.75,2.2,-3.2);world.add(pole);
+
+// 관중 실루엣
+const crowd=new THREE.Group();world.add(crowd);
+const ccolors=[0x2a3550,0x3a2e4a,0x244038,0x402a2a,0x2e3a4a];
+for(let i=0;i<26;i++){const a=(i/26)*Math.PI*1.3 - Math.PI*1.15;const rad=7.2+Math.random()*1.4;
+  const p=new THREE.Mesh(new THREE.CapsuleGeometry(0.28,0.7,4,8),toon(ccolors[i%5]));
+  p.position.set(Math.cos(a)*rad, 0.7, Math.sin(a)*rad - 1.5);p.castShadow=true;p.userData.ph=Math.random()*6;crowd.add(p);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.26,12,12),toon(0xf0c6a0));h.position.set(0,0.75,0);p.add(h);
+}
+
+// 꽃가루 / 색종이
+const N=260;const conf=new THREE.InstancedMesh(new THREE.PlaneGeometry(0.16,0.24),
+  new THREE.MeshToonMaterial({gradientMap:ramp,side:THREE.DoubleSide,vertexColors:false}),N);
+conf.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*3),3);
+const cpal=[[1,.35,.46],[1,.82,.4],[.3,.8,.78],[.42,.55,1],[.75,.52,.95],[1,1,1]];
+const cdat=[];const dum=new THREE.Object3D();
+for(let i=0;i<N;i++){const c=cpal[i%cpal.length];conf.setColorAt(i,new THREE.Color(c[0],c[1],c[2]));
+  cdat.push({x:(Math.random()-.5)*16,y:8+Math.random()*10,z:(Math.random()-.5)*12-1,
+    s:0.6+Math.random()*0.9,vr:(Math.random()-.5)*4,rx:Math.random()*6,rz:Math.random()*6,sw:Math.random()*3});}
+world.add(conf);
+
+// ── 타임라인 / 애니메이션 ──
+let start=performance.now()/1000;
+const body=document.body;
+function reset(){start=performance.now()/1000;body.classList.remove("t1","t2");}
+document.getElementById("replay").onclick=reset;
+
+function frame(){
+  const now=performance.now()/1000; let t=now-start; const T=14; if(t>T){reset();t=0;}
+  // 카메라: 와이드 → 연단으로 돌리 인 + 약한 오비트
+  const e=Math.min(1,t/6), ee=e*e*(3-2*e); // smoothstep
+  const ang=-0.62 + ee*0.92;
+  const dist=19 - ee*7.5, hgt=6.6 - ee*2.2;
+  camera.position.set(Math.sin(ang)*dist, hgt, Math.cos(ang)*dist);
+  camera.lookAt(0, 2.2, 0);
+  // 선서: 오른팔 들기 (t 2.2~3.4)
+  const oath=Math.max(0,Math.min(1,(t-2.2)/1.2));
+  armRpivot.rotation.z = -0.2 - oath*2.0;
+  pres.position.y = 0.3 + Math.sin(t*1.4)*0.015;
+  // 태극기 휘날림
+  const pos=flagGeo.attributes.position;
+  for(let i=0;i<pos.count;i++){const xx=pos.getX(i);pos.setZ(i,Math.sin(xx*1.4 + t*3)*0.18*(xx+2.1)/4.2);}
+  pos.needsUpdate=true;
+  // 관중 환호 (위아래)
+  crowd.children.forEach(p=>{p.position.y=0.7+Math.abs(Math.sin(t*3+p.userData.ph))*0.16;});
+  // 꽃가루
+  for(let i=0;i<N;i++){const d=cdat[i];d.y-=d.s*0.04; if(d.y<-1){d.y=9+Math.random()*4;}
+    dum.position.set(d.x+Math.sin(t*1.5+d.sw)*0.5, d.y, d.z);
+    dum.rotation.set(d.rx+t*d.vr, t*d.vr, d.rz+t*d.vr);dum.scale.setScalar(1);dum.updateMatrix();conf.setMatrixAt(i,dum.matrix);}
+  conf.instanceMatrix.needsUpdate=true;
+  // 타이틀 페이드
+  if(t>2.6)body.classList.add("t1"); if(t>4.0)body.classList.add("t2");
+  renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener("resize",resize);resize();reset();frame();
+</script>
+</body>
+</html>
