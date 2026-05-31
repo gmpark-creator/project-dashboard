@@ -242,7 +242,7 @@ const PROJECTS = [
     status: 'in-progress',
     start: '2026-05-26',
     latest: '2026-05-31',
-    progress: 35,
+    progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?lang=ko&v=kgs3',
     preview: { type:'embed', height:640, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?lang=ko&v=kgs3', label:'2026 PRESIDENT KOREA — 플레이 가능한 vertical slice (Three.js 지도 + 국정현안·위기·국회·예산 엔진, Codex 진행)' },
@@ -432,20 +432,20 @@ const PROJECTS = [
   {
     id: 'knowledge',
     name: 'Knowledge Atlas',
-    subtitle: '여러 분야의 지식을 3D·인터랙티브로 묶어 시각화하는 상위 아카이브 — 현재 「반도체 유니버스」 영역부터 · A Curated Atlas of Interactive Knowledge',
+    subtitle: '여러 분야의 지식을 3D·인터랙티브로 묶어 시각화하는 상위 아카이브 — 영역 선택기로 「반도체 유니버스」·「전력 유니버스」 전환(영역 누적 확장) · A Curated Atlas of Interactive Knowledge',
     icon: 'book',
     platform: '웹 · 지식 시각화 모음 (영역별 분류)',
     status: 'in-progress',
     start: '2026-05-29',
-    latest: '2026-05-30',
-    progress: 42,
+    latest: '2026-05-31',
+    progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
     preview: { type:'embed', height:620, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'반도체 유니버스 — 지구 궤도 위 칩 분류·공급망 3D (React + Three.js/R3F)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledge Atlas — 좌상단 영역 선택기로 반도체·전력 유니버스 전환 (분류/공급망 3D, React + Three.js/R3F)' }
     ]},
-    summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. '
-           + '지금은 「반도체」 영역 하나뿐이지만, 앞으로 다른 지식 분야들을 같은 틀 안에서 영역별로 분류해 계속 추가해 나갈 예정이다. '
-           + '첫 영역 「반도체 유니버스」는 반도체 산업을 지구 궤도 위 3D로 보여주는 웹앱 — 칩 분류(카테고리 별자리)와 공급망(기업 앰블럼 그래프) 두 모드.',
+    summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. 좌상단 「영역 선택기」로 지식 영역을 전환하며, 같은 3D 엔진(분류·공급망 두 모드)을 데이터만 바꿔 무한 확장한다(영역을 수십·수백 개까지 누적 예정). '
+           + '영역 1 「반도체 유니버스」 — 칩 분류(실사풍 3D 칩 모델)와 글로벌 공급망(기업 앰블럼 + 본사 지구 핀·관계 호). '
+           + '영역 2 「전력 유니버스」(2026-05-31 추가) — 대한민국 전력 부문: 발전원 14분류(원자력·석탄·LNG·태양광·풍력·수력·양수·ESS·연료전지·송배전·전력시장 등 전력 3D 아이콘)와 전력 공급망(KEPCO·한수원·발전5사·KPX·KOGAS·두산에너빌리티 등 23개 기업/기관을 본사 좌표로 한반도 지도에 핀하고 연료·발전·송배전·기자재 관계를 호로 연결).',
     method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「Knowledge Atlas」가 그것들을 한데 묶는 상위 분류 틀이 된다. '
           + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
@@ -460,8 +460,10 @@ const PROJECTS = [
       { area: '카메라·인터랙션·배치', tech: '@react-three/fiber, @react-three/drei, Three.js', how: 'Scene.tsx의 OrbitControls는 자동회전 없이 댐핑·줌만 두고, 휠/드래그 시 fly-to를 즉시 중단해 휠 줌이 항상 작동한다(고정 방지). 공급망에서 회사 선택 시 본사 상공으로, 칩 분류에서 노드 정면으로 카메라가 비행한다. 반짝임 방지를 위해 Bloom 후처리는 제거. companyLayout.ts의 COMPANY_HQ가 본사 위경도를 좌표로 변환한다.' },
       { area: 'UI 패널·범례·모드 토글', tech: 'React, TypeScript, Tailwind, framer-motion', how: 'InfoPanel.tsx가 framer-motion의 AnimatePresence와 motion.aside 스프링 트랜지션으로 상세 패널을 슬라이드 인하고, Tailwind 유틸 클래스로 글래스 스타일을 입힌다. App.tsx가 React useState로 모드·선택 상태를 관리하며 ViewToggle·Legend를 배치한다.' },
       { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
+      { area: '멀티영역 아키텍처 (Knowledge Atlas)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력 2영역.' },
     ],
     issues: [
+      { type:'핵심', title:'영역 2 — 전력 (전력 유니버스, 2026-05-31)', desc:'대한민국 전력 부문을 반도체 유니버스와 동일 스타일로 구현. 발전원·계통 14분류(원자력 1위 ≈32%·석탄 3위·LNG·태양광·육상/해상풍력·수력·양수·ESS·바이오·연료전지·송전·배전·전력시장) 3D 아이콘 그리드 + 전력 공급망(발전5사·한수원·KEPCO·KPX·KOGAS·두산에너빌리티·효성/HD현대 변압기·한화큐셀·씨에스윈드·산업부 등 23 기업/기관). 회사 클릭 시 본사 실좌표로 한반도 딥줌·핀 + 연료/발전/송배전/기자재/규제 관계 호. 데이터는 워크플로 5에이전트 수집·적대적 사실검증(2024 발전믹스 원자력 1위·석탄 3위·설비·본사좌표 교정). 앱을 데이터 주도 멀티영역 구조로 일반화 + 좌상단 영역 선택기 추가. semiconductor-universe push(08db798).' },
       { type:'핵심', title:'영역 1 — 반도체 (반도체 유니버스)', desc:'반도체 산업 3D 시각화 웹앱 — 두 모드: ① 칩 분류(깔끔한 카툰 배경 위 실사풍 3D 칩 모델 그리드, 휠 줌) ② 공급망(회사 아이콘 → 클릭하면 8K 지구 위 본사 위치로 핀·확대되고 연계사·화살표 연동). 노드 크기 ∝ √시가총액, 전체 한글화. GitHub gmpark-creator/semiconductor-universe (main).' },
       { type:'완료', title:'반도체 영역 — 지구 배경 + 기업 앰블럼 + 한글화 라운드 완료', desc:'우주 배경 → NASA 지구(낮/구름/노멀/야간조명) + 프레넬 대기광. 동그라미 노드 → 실제 기업 앰블럼(공식 로고 8개사 + 워드마크 8개사). 데이터·UI 전체 한국어. tsc + vite build 통과, dev 정상.' },
       { type:'완료', title:'반도체 영역 — 검수 체크리스트 수정 완료 + ESLint 0', desc:'HANDOFF 체크리스트(#1~#8)를 9개 에이전트 적대적 검증 후 마감 — 자동회전 버그·Designer 클러스터 지구앞 겹침·Bloom 과다·aria-label 한글화·Google Fonts 제거(@fontsource self-host)·README 현행화 모두 수정. ESLint 14건→0(컴포넌트 모듈 호이스팅·레이아웃 모듈 분리·텍스처 colorSpace onLoad). 워드마크 8개사 진짜 로고는 P3로 보류. tsc+vite build 통과, push 완료(b8d6be7).' },
@@ -486,7 +488,8 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-31', title:'영역 1 — 공급망 지도 벡터화(무한 확대)', desc:'래스터→벡터(단색 카툰 폴리곤) 지도로 전면 교체 — 무한 확대해도 선명. 회사 클릭 시 정확한 본사 주소까지 도시/마을 레벨 딥 줌, 핀은 화면상 일정 크기 마커. push 566c4ff.' },
       { isCore:true, date:'2026-05-31', title:'영역 1 — 지도 지명 라벨 + 화살표 정리', desc:'지도에 국가/주/도시 라벨(LOD: 멀리=국가, 가까이=주·도시) 추가, 공급망 화살표 입자 제거→정적 깔끔. push 8090bf8.' },
       { isCore:true, date:'2026-05-31', title:'영역 1 — 라벨 폰트/크기 + 화살표 great-circle', desc:'국가 라벨 Inter 폰트·축소, 화살표를 지표 밀착 대권 곡선+화살촉으로 재설계(방향 또렷). push 43a0c1e.' },
-      { isCore:true, date:'2026-05-31', title:'영역 1 — 화살표 연계 기업명 라벨', desc:'공급망 화살표마다 연계 기업명 라벨(색 매칭) 표시 → 어느 기업과의 관계인지 식별. push 5171afd.' }
+      { isCore:true, date:'2026-05-31', title:'영역 1 — 화살표 연계 기업명 라벨', desc:'공급망 화살표마다 연계 기업명 라벨(색 매칭) 표시 → 어느 기업과의 관계인지 식별. push 5171afd.' },
+      { isCore:true, date:'2026-05-31', title:'영역 2 — 전력 유니버스 신설 + 멀티영역 구조·영역 선택기', desc:'반도체 전용 앱을 데이터 주도 멀티영역 Knowledge Atlas로 일반화(AtlasArea + AreaSelector 드롭다운). 두 번째 영역 「전력 유니버스」(대한민국 전력) 추가 — 발전원 14분류 + 전력 3D 아이콘 9종(원자로·냉각탑·태양광·풍력·댐·수소탱크·배터리·송전탑·계통허브) + 전력 기업/기관 23 + 공급망 33관계, 본사 한반도 핀. 데이터는 워크플로 5에이전트 수집·적대적 사실검증. tsc+vite·ESLint 0·Playwright 2영역×2모드 검증(콘솔 에러 0). semiconductor-universe push 08db798, 미리보기 재배포.' }
     ]
   }
 ];
