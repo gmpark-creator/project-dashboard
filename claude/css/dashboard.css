@@ -950,6 +950,15 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 }
 .color-toggle:hover { gap: 10px; padding: 6px 14px; }
 
+/* 밝은(상아) 모드 — 토글의 difference 블렌드는 .color-ui(fixed·z-index) stacking context에
+   갇혀 무효화돼 항상 near-white로 렌더되고, 그 결과 상아 배경에서 보이지 않는다.
+   라이트 모드에서만 명시적 다크 색으로 고정해 눈에 띄게 한다. (박사 지시: 다크 모드는 현행 유지) */
+html[data-mode="light"] .color-toggle {
+  mix-blend-mode: normal;
+  color: var(--paper);                 /* 라이트 모드 --paper = 따뜻한 다크(#2a2620) */
+  border-color: rgba(42, 38, 32, 0.5);
+}
+
 .color-panel {
   position: fixed;
   top: 0; right: 0; bottom: 0;
