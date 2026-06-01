@@ -408,6 +408,27 @@
     $$('.reveal-line, .reveal-up', root || document).forEach(el => _io.observe(el));
   }
 
+  /* ---------- 3b) summary: 작성자 지정 줄바꿈 그대로 + 넘치면 글자 축소 ----------
+     박사 지시: "내가 적어준 띄어쓰기·줄 나눔 그대로. 길어서 다음 줄로 넘어갈 것 같으면
+     글자 크기를 줄여서라도 똑같이." → 각 줄(.psum-line)은 nowrap으로 고정하고,
+     가장 긴 줄이 칸을 넘치면 전체 폰트를 한 번에 줄여 줄 수를 그대로 유지한다(균일 크기). */
+  function fitSummaryLines(root) {
+    $$('.proj-summary--fit', root || document).forEach(box => {
+      const lines = $$('.psum-line', box);
+      if (!lines.length) return;
+      box.style.fontSize = '';                          // CSS 기본(clamp)으로 리셋 후 재계산(리사이즈 대응)
+      const avail = box.clientWidth;
+      if (!avail) return;
+      const base = parseFloat(getComputedStyle(box).fontSize) || 24;
+      let maxW = 0;
+      lines.forEach(l => { if (l.scrollWidth > maxW) maxW = l.scrollWidth; });
+      if (maxW > avail) {
+        const size = Math.max(10, base * (avail / maxW) * 0.99);   // 가장 긴 줄이 딱 들어가게 축소(최소 10px)
+        box.style.fontSize = size.toFixed(2) + 'px';
+      }
+    });
+  }
+
   /* ---------- 4) section index in corner + scroll progress ---------- */
   function setupSectionIndex() {
     const sections = $$('section[data-index]');
@@ -687,7 +708,9 @@
 
           ${meta}
 
-          ${p.summary ? `<p class="proj-summary">${escapeHtml(p.summary)}</p>` : ''}
+          ${p.summary ? (p.summary.indexOf('\n') >= 0
+            ? `<div class="proj-summary proj-summary--fit">${p.summary.split('\n').map(l => l.replace(/\s+$/, '')).filter(l => l !== '').map(l => `<span class="psum-line">${escapeHtml(l)}</span>`).join('')}</div>`
+            : `<p class="proj-summary">${escapeHtml(p.summary)}</p>`) : ''}
           ${p.method  ? `<p class="proj-method">${escapeHtml(p.method)}</p>`  : ''}
 
           ${stack}
@@ -954,6 +977,7 @@
     splitRevealLines(root);
     setupReveal(root);
     setupSectionIndex();
+    fitSummaryLines(root);   // 작성자 지정 줄바꿈 유지 + 넘치면 폰트 축소
     if (typeof window.__attachCursorHover === 'function') window.__attachCursorHover();
 
     // close mobile sidebar on route change
@@ -974,6 +998,14 @@
 
     // initial route
     renderRoute();
+
+    // 폰트 로드 완료 후 + 창 크기 변경 시 요약 줄맞춤(폰트 축소) 재계산
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitSummaryLines(document));
+    let _fitRaf = null;
+    window.addEventListener('resize', () => {
+      if (_fitRaf) cancelAnimationFrame(_fitRaf);
+      _fitRaf = requestAnimationFrame(() => fitSummaryLines(document));
+    });
 
     // route change
     window.addEventListener('hashchange', renderRoute);

@@ -593,6 +593,12 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 }
 .proj-summary em { color: var(--orange); font-style: normal; font-weight: 800; }
 
+/* 작성자 지정 줄바꿈 요약 — 각 줄을 그대로(줄바꿈 없이) 표시. 넘치면 JS(fitSummaryLines)가 폰트 축소.
+   line-height는 줄 사이 간격용으로만 쓰이고, 자동 줄바꿈은 막는다(nowrap). */
+.proj-summary--fit { white-space: normal; line-height: 1.5; }
+.proj-summary--fit .psum-line { display: block; white-space: nowrap; }
+.proj-summary--fit .psum-line + .psum-line { margin-top: 0.28em; }
+
 .proj-method {
   font-size: 15px; line-height: 1.85;
   color: inherit; opacity: 0.75;
