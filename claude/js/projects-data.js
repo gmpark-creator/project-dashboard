@@ -441,7 +441,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
     preview: { type:'embed', height:620, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledge Atlas — 좌상단 영역 선택기로 반도체·전력 유니버스 전환 (분류/공급망 3D, React + Three.js/R3F)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledge Atlas — 상단 대분류로 [산업](반도체·전력 3D) ⇄ [기초이론](초등 과학 28단원+도해) 전환. 기초이론은 과학→학교급→학년→단원 읽기형 학습자료 (2026-06-01 갱신)' }
     ]},
     summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. 좌상단 「영역 선택기」로 지식 영역을 전환하며, 같은 3D 엔진(분류·공급망 두 모드)을 데이터만 바꿔 무한 확장한다(영역을 수십·수백 개까지 누적 예정). '
            + '영역 1 「반도체 유니버스」 — 칩 분류(실사풍 3D 칩 모델)와 글로벌 공급망(기업 앰블럼 + 본사 지구 핀·관계 호). '
