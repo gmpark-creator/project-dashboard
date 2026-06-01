@@ -18,7 +18,7 @@ const PROJECTS = [
       { url:'https://ais.vercel.co.kr/ops-main',       label:'ops-main — PEL · MAGE · OCEAN ACE' },
       { url:'https://ais.vercel.co.kr/kyowa-line-ops', label:'kyowa-line-ops — KYOWA LINE' }
     ]},
-    summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱. '
+    summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱.\n'
            + '운영 노선에 따라 두 가지 버전으로 배포돼 있다.',
     method: 'Next.js·React로 UI를 구성하고 Leaflet 지도 위에 선박을 마커로 렌더링한다. '
           + '선박 선택 시 MMSI·속도(SOG)·침로(COG)·항행 상태를 사이드바에 표시하며, '
@@ -63,8 +63,9 @@ const PROJECTS = [
     preview: { type:'embed', height:600, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/match-tracker/', label:'2D 매치 트래커' }
     ]},
-    summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를 2D 경기장 위에 재생하는 '
-           + '매치 시뮬레이터. 이를 토대로 하이라이트 장면을 자동 추출하는 것이 최종 목표.',
+    summary: '경기 종료 후 확보되는 선수·공의 시계열 위치 데이터를\n'
+           + '2D 경기장 위에 재생하는 매치 시뮬레이터.\n'
+           + '이를 토대로 하이라이트 장면을 자동 추출하는 것이 최종 목표.',
     method: '웨어러블 센서(EPTS/GPS) 트래킹 데이터 — 선수 22명과 공의 시간대별 X·Y 좌표 — 를 '
           + '파싱해 HTML5 Canvas 경기장에 렌더링한다. AIS Ship Tracker가 선박 좌표를 지도에 '
           + '뿌린 것과 동일한 메커니즘이며, 재생·타임라인·선수별 분석 UI를 갖췄다.',
@@ -117,10 +118,11 @@ const PROJECTS = [
     preview: { type:'embed', height:520, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/solar-project-claude/?v=final', label:'태양계 시뮬레이터' }
     ]},
-    summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터. '
-           + '초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나, '
-           + 'WebGL/GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고 디렉터가 판단해 '
-           + 'Claude 단일 설계·구현 체제로 일원화. Codex는 런타임 오류·TDZ 진단 등 디버깅 서포트 역할로 전환. '
+    summary: '실제 시각을 기준으로 태양·8행성·달이 케플러 궤도력대로 움직이는 3D 시뮬레이터.\n'
+           + '초기엔 Claude·Codex 듀얼 트랙으로 동일 설계를 독립 구현해 비교 공개했으나,\n'
+           + 'WebGL/GLSL 셰이더·프론트엔드 비주얼 분야에서 Claude 결과물이 더 우수하다고\n'
+           + '디렉터가 판단해 Claude 단일 설계·구현 체제로 일원화.\n'
+           + 'Codex는 런타임 오류·TDZ 진단 등 디버깅 서포트 역할로 전환.\n'
            + '외태양계 영역(카이퍼·오르트)·외계 항성계·인터스텔라 영화 시스템·부산 실시간 달 위젯까지 확장.',
     method: 'Three.js + 커스텀 GLSL ShaderMaterial로 3D 우주를 렌더링하고, 케플러 궤도요소로 임의의 날짜로부터 '
           + '각 천체 위치를 수학적으로 역산한다. Step 1~4에 걸쳐 천체력 엔진 → 8행성 → 조석 계산 → 인터랙션·비주얼 순으로 '
@@ -196,10 +198,12 @@ const PROJECTS = [
     preview: { type:'embed', height:560, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/inst-extractor/', label:'INST Extractor — 믹싱 콘솔 UI (드래그앤드롭 데모 모드)' }
     ]},
-    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트. '
-           + '믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다. '
-           + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고, 실제 GPU 추출은 백엔드가 필요해 '
-           + '구조상 외부인 실사용은 불가 — 디렉터 본인 데스크탑 전용 도구로 운영하기로 합의하고 디렉터 실음원 분리 확인까지 통과해 100% 마무리됐다.',
+    summary: '음원에서 보컬을 제거하고 고음질 반주(Inst) 트랙을 추출하는 4번째 프로젝트.\n'
+           + '믹싱 콘솔 콘셉트 UI(Claude) + demucs AI 분리 엔진(Codex/GPT 주도)으로 구성된다.\n'
+           + '디렉터 지시로 공개 웹 보고서(/inst-app/)에 드래그앤드롭 UI를 배포했고,\n'
+           + '실제 GPU 추출은 백엔드가 필요해 구조상 외부인 실사용은 불가 —\n'
+           + '디렉터 본인 데스크탑 전용 도구로 운영하기로 합의하고\n'
+           + '디렉터 실음원 분리 확인까지 통과해 100% 마무리됐다.',
     method: '프론트엔드(Claude 영역)는 믹싱 콘솔 다크 UI + 데모 모드 토글, 백엔드(Codex 영역)는 FastAPI + Demucs. '
           + 'AI 릴레이(HANDOFF.md 로그)로 인수인계하며 진행 — Claude 1차 UI·API 골격 → Codex 2차 demucs 핵심 엔진 → '
           + 'Claude 홈 PC 세팅·GPU 검증 → Codex 일본어 파일명 500 에러 협업 수정 → Claude 공개 보고서 UI 페이지 배포 → 디렉터 실음원 분리 확인으로 완주.',
@@ -248,12 +252,18 @@ const PROJECTS = [
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/?lang=ko&v=kgs3', label:'2026 PRESIDENT KOREA — 플레이 가능한 vertical slice (Three.js 지도 + 국정현안·위기·국회·예산 엔진, Codex 진행)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/inauguration-cinematic/', label:'대통령 취임 시네마틱 — 3D 카툰 실시간 컷신 (Three.js, Claude 제작 · 이벤트 트리거 영상 PoC)' }
     ]},
-    summary: '대한민국 대통령으로 5년 단임을 사는 정치 시뮬레이션 게임의 5번째 프로젝트. '
-           + '메뉴가 아니라 살아있는 지도가 통치판 — 어두운 세계 위에 따뜻한 한지색 한국이 떠오르고, '
-           + '플레이어는 지도 위에 정책을 찍고 민심·예산·위기·외교를 굴린다. '
-           + '월 단위 결정론 엔진(60개월)을 LLM이 자연어 이벤트로 감싸는 구조로 설계되어 있으며, '
-           + 'KGS-MAP-15까지 진행 — 다국어 라벨(6 locale) · 북한·MDL · 44 entity dataset · '
-           + '정부·공공기관 건물 oid 게임 오브젝트화 완료. 이후 Codex가 메인 개발을 인수(2026-05-29)해 게임플레이 엔진을 본격 구축 — 월간 위기 생성·한국형 위기 템플릿, 세이브/로드, 월간 이벤트 덱, 국회 의석 협상, 부처·참모 능력치, 탄핵 리스크, 예산 회계연도까지 연결되고 엔진 테스트 35/35 통과. 지금은 지도+국정현안+위기/이벤트/국회/예산이 도는 플레이 가능한 vertical slice.',
+    summary: '대한민국 대통령으로 5년 단임을 사는 정치 시뮬레이션 게임의 5번째 프로젝트.\n'
+           + '메뉴가 아니라 살아있는 지도가 통치판 —\n'
+           + '어두운 세계 위에 따뜻한 한지색 한국이 떠오르고,\n'
+           + '플레이어는 지도 위에 정책을 찍고 민심·예산·위기·외교를 굴린다.\n'
+           + '월 단위 결정론 엔진(60개월)을 LLM이 자연어 이벤트로 감싸는 구조로 설계되어 있으며,\n'
+           + 'KGS-MAP-15까지 진행 — 다국어 라벨(6 locale) · 북한·MDL · 44 entity dataset ·\n'
+           + '정부·공공기관 건물 oid 게임 오브젝트화 완료.\n'
+           + '이후 Codex가 메인 개발을 인수(2026-05-29)해 게임플레이 엔진을 본격 구축 —\n'
+           + '월간 위기 생성·한국형 위기 템플릿, 세이브/로드, 월간 이벤트 덱,\n'
+           + '국회 의석 협상, 부처·참모 능력치, 탄핵 리스크, 예산 회계연도까지 연결되고\n'
+           + '엔진 테스트 35/35 통과.\n'
+           + '지금은 지도+국정현안+위기/이벤트/국회/예산이 도는 플레이 가능한 vertical slice.',
     method: '설계 v0.1(20+ 섹션) + 구현 계획 v0.1(M1~M11) 박사 승인 후 M0 vertical slice 완성. '
           + 'Vite + React + Zustand로 단일 Ground Truth 스토어 구축, '
           + 'd3-geo Mercator projection으로 Natural Earth 1:110m(세계) + southkorea-maps(한국 17 광역시도) 실 GeoJSON 렌더링. '
@@ -337,10 +347,10 @@ const PROJECTS = [
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/',            label:'Home — 화사한 톤 + 풀스크린 SVG 히어로(부산항) + 11섹션 (Brand Promises / About / Services / What We Do / Projects / Capabilities / Testimonials / Join / Contact / Partners / Footer)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/jpglobal-web/about.html',  label:'About Us — page hero + Company Profile + Mission Statement + History timeline 5건 + Values 4 + Reference 4' }
     ]},
-    summary: 'G.M.PARK이 프론트엔드 웹사이트 디자인 + 색감 톤 구현 워크플로우를 점검하는 시범 프로젝트. '
-           + '시범 대상으로 부산에 위치한 글로벌 해운 기업 JP GLOBAL CO.,LTD의 웹사이트(jpglobal.kr)를 채택 — '
-           + 'G.M.PARK 본인이 소속된 회사가 아니라 외부 디자이너 입장에서 실사이트를 test subject로 사용. '
-           + '같은 도메인의 동일 콘텐츠를 두고 코퍼레이트 톤(HMM21·COENS) → 라이트 클린 톤 → '
+    summary: 'G.M.PARK이 프론트엔드 웹사이트 디자인 + 색감 톤 구현 워크플로우를 점검하는 시범 프로젝트.\n'
+           + '시범 대상으로 부산에 위치한 글로벌 해운 기업 JP GLOBAL CO.,LTD의 웹사이트(jpglobal.kr)를 채택 —\n'
+           + 'G.M.PARK 본인이 소속된 회사가 아니라 외부 디자이너 입장에서 실사이트를 test subject로 사용.\n'
+           + '같은 도메인의 동일 콘텐츠를 두고 코퍼레이트 톤(HMM21·COENS) → 라이트 클린 톤 →\n'
            + 'Plus X 미니멀 다크 톤까지 다중 시안을 영속화하며 디자인 언어를 단계별로 실험.',
     method: '(1) jpglobal.kr 콘텐츠 전량 추출 → 진짜 회사 정보(사명·슬로건·사업 3종·프로젝트 4종·부산 연락처)와 '
           + '버려진 워드프레스 건설 테마 데모 잔재(Construction Management / Mining Infrastructure / '
@@ -393,10 +403,12 @@ const PROJECTS = [
     preview: { type:'embed', height:600, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, vite assets path 상대경로 변환)' }
     ]},
-    summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을 분석·시각화하는 연구용 대시보드. '
-           + 'Codex가 단독 트랙으로 설계+Phase 1 mock UI 완성 후, official 매크로 데이터 refresh 파이프라인까지 추가 — '
-           + 'GitHub repo 생성·push 완료 (gmpark-creator/us-to-kr-premarket-impact-dashboard). '
-           + 'safety 가드레일 유지 — "For research only. Not investment advice." 자동 주문·브로커리지·라이브 단일종목 데이터 금지. '
+    summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을\n'
+           + '분석·시각화하는 연구용 대시보드.\n'
+           + 'Codex가 단독 트랙으로 설계+Phase 1 mock UI 완성 후, official 매크로 데이터 refresh 파이프라인까지 추가 —\n'
+           + 'GitHub repo 생성·push 완료 (gmpark-creator/us-to-kr-premarket-impact-dashboard).\n'
+           + 'safety 가드레일 유지 — "For research only. Not investment advice."\n'
+           + '자동 주문·브로커리지·라이브 단일종목 데이터 금지.\n'
            + 'progress 30% (박사 발화 픽스).',
     method: 'Codex가 master 단일 트랙. Phase 1은 static fixture data 기반 mock UI만 — live provider, backend, DB migration, order routing 일체 미포함. '
           + 'Vite + React 18 + TypeScript + lucide-react. Dark report-dashboard 시각 언어 — "G.M.PARK dashboard reference" 명시 참조(near-black bg + paper text + orange accent + fixed corner UI + left nav + KST clock + report footer). '
