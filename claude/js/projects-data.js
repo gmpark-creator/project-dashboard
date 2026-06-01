@@ -431,8 +431,8 @@ const PROJECTS = [
   },
   {
     id: 'knowledge',
-    name: '놀리지 코스모스',
-    subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력 3D / ② 기초이론: 학교 과학) · A Curated Cosmos of Interactive Knowledge',
+    name: 'Knowledgeverse',
+    subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력 3D / ② 기초이론: 학교 과학) · A Curated Universe of Interactive Knowledge',
     icon: 'book',
     platform: '웹 · 지식 아카이브 (대분류: 산업 3D / 기초이론 학습자료)',
     status: 'in-progress',
@@ -441,12 +441,12 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
     preview: { type:'embed', height:620, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'놀리지 코스모스 — 상단 대분류로 [산업](반도체: 분류·공급망·공정 과정[8대 공정 3D 파이프라인] 3모드 / 전력 3D) ⇄ [기초이론](과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) 전환. 기초이론은 과학→학교급(초/중/고/SF)→학년·과목→단원 읽기형 학습자료. 고등은 선택군 네비게이션(공통·일반선택·진로선택·융합선택) 11과목, 신설 「SF 과학 판별」엔 소설 삼체의 과학을 상상력↔현실↔판정으로 분해한 4단원 (2026-06-01 삼체 + 전체 QA 통합)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledgeverse — 상단 대분류로 [산업](반도체: 분류·공급망·공정 과정[8대 공정 3D 파이프라인] 3모드 / 전력 3D) ⇄ [기초이론](과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) 전환. 기초이론은 과학→학교급(초/중/고/SF)→학년·과목→단원 읽기형 학습자료. 고등은 선택군 네비게이션(공통·일반선택·진로선택·융합선택) 11과목, 신설 「SF 과학 판별」엔 소설 삼체의 과학을 상상력↔현실↔판정으로 분해한 4단원 (2026-06-01 삼체 + 전체 QA 통합)' }
     ]},
     summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트. 좌상단 「영역 선택기」로 지식 영역을 전환하며, 같은 3D 엔진(분류·공급망 두 모드)을 데이터만 바꿔 무한 확장한다(영역을 수십·수백 개까지 누적 예정). '
            + '영역 1 「반도체 유니버스」 — 칩 분류(실사풍 3D 칩 모델)와 글로벌 공급망(기업 앰블럼 + 본사 지구 핀·관계 호). '
            + '영역 2 「전력 유니버스」(2026-05-31 추가) — 대한민국 전력 부문: 발전원 14분류(원자력·석탄·LNG·태양광·풍력·수력·양수·ESS·연료전지·송배전·전력시장 등 전력 3D 아이콘)와 전력 공급망(KEPCO·한수원·발전5사·KPX·KOGAS·두산에너빌리티 등 23개 기업/기관을 본사 좌표로 한반도 지도에 핀하고 연료·발전·송배전·기자재 관계를 호로 연결).',
-    method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「놀리지 코스모스」가 그것들을 한데 묶는 상위 분류 틀이 된다. '
+    method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「Knowledgeverse」가 그것들을 한데 묶는 상위 분류 틀이 된다. '
           + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
           + 'GitHub: gmpark-creator/semiconductor-universe (main). 로컬에서 npm install && npm run dev 로 실행.',
@@ -460,13 +460,13 @@ const PROJECTS = [
       { area: '카메라·인터랙션·배치', tech: '@react-three/fiber, @react-three/drei, Three.js', how: 'Scene.tsx의 OrbitControls는 자동회전 없이 댐핑·줌만 두고, 휠/드래그 시 fly-to를 즉시 중단해 휠 줌이 항상 작동한다(고정 방지). 공급망에서 회사 선택 시 본사 상공으로, 칩 분류에서 노드 정면으로 카메라가 비행한다. 반짝임 방지를 위해 Bloom 후처리는 제거. companyLayout.ts의 COMPANY_HQ가 본사 위경도를 좌표로 변환한다.' },
       { area: 'UI 패널·범례·모드 토글', tech: 'React, TypeScript, Tailwind, framer-motion', how: 'InfoPanel.tsx가 framer-motion의 AnimatePresence와 motion.aside 스프링 트랜지션으로 상세 패널을 슬라이드 인하고, Tailwind 유틸 클래스로 글래스 스타일을 입힌다. App.tsx가 React useState로 모드·선택 상태를 관리하며 ViewToggle·Legend를 배치한다.' },
       { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
-      { area: '멀티영역 아키텍처 (놀리지 코스모스)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력 2영역.' },
+      { area: '멀티영역 아키텍처 (Knowledgeverse)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력 2영역.' },
       { area: '전력 유니버스 — 카툰 대한민국 지도 (세계지도 없음)', tech: 'react-spring, southkorea-maps, earcut, Three.js', how: '전력 영역 공급망은 지구본 대신 KoreaCartoonMap이 한반도만 그린다. southkorea-maps GeoJSON으로 17개 광역시도를 earcut 삼각분할해 파스텔 카툰색으로 채우고 다크 외곽선을 입힌다. 핵심은 react-spring(@react-three/three) — 각 시도가 자기 중심에서 아래→위로 통통 튀어 오르며(config.wobbly·스태거 delay) 지도가 조립되듯 등장하고, animated 머티리얼 opacity로 페이드인한다. 좌표는 본사 핀과 같은 좌표계라 기업이 시도 위 실제 위치에 박힌다.' },
       { area: '구글어스식 도시 딥줌 — 행정구(시군구) LOD', tech: 'Three.js, @react-three/fiber, southkorea-maps', how: '기업을 클릭하면 카메라가 본사 도시까지 깊게 날아들어가(구글어스식 줌인), 카메라 거리(LOD)에 따라 시군구(행정구, 251개) 경계가 페이드인한다(동 단위는 과밀해 생략, 구 단위까지). 경계는 피처 전체를 단일 라인 지오메트리로 병합해 한 번에 그리고, 시군구 영문 라벨은 화면 중앙 좁은 콘 안의 것만 거리 비례(화면 고정 크기)로 표시해 과밀을 막는다. near plane·minDistance를 낮춰 더 깊이 확대 가능. 멀리서는 시도만 보이는 깔끔한 개요, 줌인하면 어느 구에 있는지 드러난다.' },
       { area: '반도체 8대 공정 — 3D 웨이퍼 파이프라인 (공정 과정 모드)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: '「반도체 8대 공정」 인포그래픽을 프로젝트의 3D 스타일로 재구현한 세 번째 모드. ProcessFlow.tsx가 8단계(웨이퍼 제조·산화·포토·식각·증착·금속배선·테스트·패키징)를 뱀형(serpentine) 흐름으로 배치하고 단계 사이를 방향 화살표(TubeGeometry+cone)로 잇는다. 단계마다 고유한 절차적 3D 비주얼 — 실리콘 웨이퍼 다이격자, 투명 산화막+산소 분위기, 포토마스크 레티클+노광 콘, 식각 트렌치+플라즈마 글로우, 박막 적층 디스크 스택, 금속배선 격자+비아, 프로브 니들 검사, 완성 IC 패키지(기판+히트스프레더+골드핀). 단계를 클릭하면 카메라가 줌인하고 우측 패널에 「왜 중요한가·특징·국내 기업·해외 기업」이 열린다. AtlasArea.process 데이터(선택 필드)로 구동돼 다른 영역에는 영향 없음.' },
     ],
     issues: [
-      { type:'완료', title:'브랜드 「놀리지 코스모스」로 개명 + 공정 모드 대상 반도체 안내 (2026-06-01)', desc:'프로젝트 브랜드를 「놀리지 코스모스(Knowledge Cosmos)」로 변경 — 「아틀라스」(가족 출판물명과 중복)를 빼고, 각 영역=유니버스·전체=코스모스 위계와 정합시킴. brand.ts 단일 소스로 상단 워드마크·기초이론 브레드크럼·페이지 타이틀·학습 콘텐츠 문구를 일괄 교체(사용자 노출 옛 명칭 잔존 0 검증). 산업>반도체 「공정 과정」 모드에는 이 8대 공정이 특정 제품 하나가 아니라 모든 실리콘 기반 반도체(메모리 DRAM·낸드 / 시스템반도체 CPU·AP·이미지센서)의 공통 제조 과정임을 알리는 안내 배너(ProcessGuide, 단계 선택 전 개요 상태에만 노출·우측 패널과 비충돌) + 8대 공정 목록 부제를 추가. 적대적 사실검증 반영으로 5공정을 「증착·이온주입」, 7공정을 「EDS(웨이퍼 테스트)」 정식 명칭으로 정렬하고 이미지센서 제품별 추가공정 주석을 보강. tsc+vite build PASS. push abc88a2, 미리보기 재배포.' },
+      { type:'완료', title:'브랜드 「Knowledgeverse」로 개명 + 공정 모드 대상 반도체 안내 (2026-06-01)', desc:'프로젝트 브랜드를 「Knowledgeverse(놀리지버스)」로 확정(영문 표기) — 「아틀라스」(가족 출판물명과 중복)를 빼고, 지식(Knowledge)+유니버스(-verse)로 각 영역=하나의 우주, 전체=Knowledgeverse 위계와 정합시킴. brand.ts 단일 소스로 상단 워드마크·기초이론 브레드크럼·페이지 타이틀·학습 콘텐츠 문구를 일괄 교체(사용자 노출 옛 명칭 잔존 0 검증). 산업>반도체 「공정 과정」 모드에는 이 8대 공정이 특정 제품 하나가 아니라 모든 실리콘 기반 반도체(메모리 DRAM·낸드 / 시스템반도체 CPU·AP·이미지센서)의 공통 제조 과정임을 알리는 안내 배너(ProcessGuide, 단계 선택 전 개요 상태에만 노출·우측 패널과 비충돌) + 8대 공정 목록 부제를 추가. 적대적 사실검증 반영으로 5공정을 「증착·이온주입」, 7공정을 「EDS(웨이퍼 테스트)」 정식 명칭으로 정렬하고 이미지센서 제품별 추가공정 주석을 보강. tsc+vite build PASS. push abc88a2, 미리보기 재배포. 더불어 대시보드 전 프로젝트(1~8) 설명란의 한글 줄바꿈을 어절(word) 단위로 교정(word-break:keep-all + 줄간격·자간 정리)해 「제대로 쓴 한글 글」처럼 보이도록 가독성을 일괄 정비.' },
       { type:'핵심', title:'반도체 영역 — 8대 공정 모드 추가 (2026-06-01)', desc:'「반도체 8대 공정」 인포그래픽을 프로젝트의 3D 스타일로 재구현해 산업>반도체에 세 번째 모드 「공정 과정」을 추가. 8단계(웨이퍼 제조·산화·포토·식각·증착·금속배선·테스트·패키징)를 뱀형 흐름 + 방향 화살표의 3D 웨이퍼 파이프라인으로 그리고, 단계마다 고유 비주얼(웨이퍼·산화막·포토마스크·식각 트렌치·박막 스택·금속 격자·프로브 니들·완성 IC 패키지)을 입혔다. 단계 클릭 시 줌인 + 「왜 중요한가·특징·국내/해외 기업」 패널. 데이터 주도(AtlasArea.process 선택 필드)라 전력·타 영역엔 무영향. tsc+vite build·ESLint 0·Playwright 헤드리스 검증(콘솔 에러 0). push db120a3, 미리보기 재배포.' },
       { type:'핵심', title:'「SF 과학 판별」 신설 — 소설 삼체 과학 4단원 + 전체 QA 통합 (2026-06-01)', desc:'기초이론 과학에 5번째 학교급(레벨) 「SF 과학 판별」 신설. Codex가 류츠신 소설 『삼체』의 과학 설정을 ① 세 태양과 혼돈 궤도(삼체 문제·다중성계·외계행성) ② 양자 통신과 소폰(양자 얽힘·no-communication) ③ 성간 항행과 우주 공학(핵추진·솔라세일·토퍼) ④ 우주 문명과 위험 상상(SETI·행성방어) 4단원으로 작성 — 각 단원을 "소설 상상력 / 현실 과학 / 판정" 3층으로 분해, NASA·Caltech 출처 명시, 저작권 산문 인용 0. Claude 내용 검수: 과학적으로 모범적(특히 양자 얽힘 초광속 통신 불가를 명확히 함). domain "SF 과학", 도해 4종(threebody-*). 동시에 본 통합 사이클에서 ▸Claude 과학 내용 최종 QA 20건(5e37fc1) ▸Codex 구현 최종 QA(스크롤바·부제·track 검증, 34f4571)도 함께 main 통합. newton+codex 머지 충돌 0(ort), build/lint PASS, figureId 133 refs/131 unique/누락0/고아0, SVG 131 깨짐0. main push a06e3dd, 프리뷰·대시보드 갱신. 기초이론 과학 누적 133단원·도해 131종.' },
       { type:'완료', title:'진로선택 Codex 교차검수 3건 반영 + 선택군 네비게이션 main 통합 (2026-06-01)', desc:'격리 worktree 체계 가동 후 첫 통합 사이클. ① Codex가 Claude 진로선택 물리·화학을 교차검수 — 3건 타당, newton 브랜치서 수정(총 반동: 총알+화약 가스 닫힌 계 운동량 보존으로 보정 / 충돌 운동량 보존: 외부 충격량 무시되는 닫힌 계 조건 추가 / 절대온도: "운동이 멈춘다"→0 K=열운동E 최소·양자역학적 잔여 운동 명시). Codex가 origin/newton PASS 확인. ② 박사 디렉팅으로 newton(검수 반영)→codex(7b7584c 심화파트 선택군 네비게이션: types.track 필드 + TheoryView 공통/일반선택/진로선택/융합선택 구분) 순서로 main 통합 — 충돌 0(ort auto-merge). build/lint PASS, figureId 129 누락0. main push 0830cf3. 검수노트 internal/notes 영속화(claude·codex 양측). → 격리 후 첫 양방향 검수+통합 성공.' },
@@ -496,13 +496,13 @@ const PROJECTS = [
       { type:'이슈', title:'앞으로 — 다른 지식 영역 확장 예정', desc:'이 프로젝트는 상위 틀. 반도체 외 다양한 지식 분야를 같은 틀 안에서 새 영역으로 분류해 추가해 나갈 예정 (영역 2, 3, … 누적).' }
     ],
     milestones: [
-      { isCore:true, date:'2026-06-01', title:'브랜드 「놀리지 코스모스」로 개명 + 공정 모드 대상 반도체 안내', desc:'프로젝트명을 「놀리지 코스모스(Knowledge Cosmos)」로 변경 — 「아틀라스」(가족 출판물명과 중복)를 빼고 각 영역=유니버스·전체=코스모스 위계와 정합. brand.ts 단일 소스로 중앙화(워드마크·브레드크럼·타이틀·학습문구 일괄 교체, 옛 명칭 잔존 0). 산업>반도체 「공정 과정」에 8대 공정이 모든 실리콘 기반 반도체의 공통 제조 과정임을 알리는 안내 배너+목록 부제 추가, 5공정 「증착·이온주입」·7공정 「EDS」 정식 명칭 정렬. tsc+vite build PASS. push abc88a2, 미리보기 재배포.' },
+      { isCore:true, date:'2026-06-01', title:'브랜드 「Knowledgeverse」로 개명 + 공정 모드 대상 반도체 안내', desc:'프로젝트명을 「Knowledgeverse(놀리지버스)」로 확정(영문 표기) — 「아틀라스」(가족 출판물명과 중복)를 빼고 지식+유니버스(-verse)로 각 영역=하나의 우주, 전체=Knowledgeverse 위계와 정합. brand.ts 단일 소스로 중앙화(워드마크·브레드크럼·타이틀·학습문구 일괄 교체, 옛 명칭 잔존 0). 산업>반도체 「공정 과정」에 8대 공정이 모든 실리콘 기반 반도체의 공통 제조 과정임을 알리는 안내 배너+목록 부제 추가, 5공정 「증착·이온주입」·7공정 「EDS」 정식 명칭 정렬. tsc+vite build PASS. push abc88a2, 미리보기 재배포.' },
       { isCore:true, date:'2026-06-01', title:'영역 1 — 반도체 8대 공정 모드 추가', desc:'「반도체 8대 공정」 인포그래픽을 3D로 재구현 — 산업>반도체에 세 번째 모드 「공정 과정」. 8단계(웨이퍼~패키징)를 뱀형 흐름+방향 화살표의 웨이퍼 파이프라인으로, 단계별 고유 3D 비주얼(웨이퍼·산화막·포토마스크·식각·박막 스택·금속배선·프로브·IC 패키지) + 단계 클릭 시 「왜 중요한가·특징·국내/해외 기업」 패널. tsc+vite·ESLint 0·Playwright 검증(콘솔 에러 0). push db120a3, 미리보기 재배포.' },
       { isCore:true, date:'2026-06-01', title:'「SF 과학 판별」 신설(소설 삼체 4단원) + 과학 파트 전체 QA 통합', desc:'기초이론 과학 5번째 레벨 「SF 과학 판별」 추가 — 소설 삼체의 과학을 상상력/현실/판정 3층으로 분해한 4단원(천체역학·양자정보·우주공학·문명윤리, 출처 명시). 같은 통합에서 Claude 과학 내용 최종 QA 20건 + Codex 구현 최종 QA를 main 통합(충돌 0). 기초이론 과학 누적 133단원·도해 131종. gate PASS, main push a06e3dd, 라이브 프리뷰·대시보드 동시 갱신.' },
       { isCore:true, date:'2026-06-01', title:'기초이론 고등 진로 선택 과학 신설 (물리·화학 4과목 + 도해 24종)', desc:'2022 개정 「진로 선택」 과학 진입. Claude=역학과 에너지·전자기와 양자·물질과 에너지·화학 반응의 세계 4과목 24단원+도해 24종(strand "진로 선택 · 물리/화학"), Codex=생물·지구·우주·융합 7과목(병렬 트랙, 네임스페이스 분리·충돌 0). 안전 준수(산·염기 맛/촉감 배제, 전자=오비탈/확률). 기초이론 과학 누적 129단원(초28+중23+고78), 도해 127종. gate PASS, push fe3aed7, 라이브 프리뷰 동시 갱신.' },
       { isCore:true, date:'2026-06-01', title:'기초이론 고등학교 과학 신설 (물리학 + 통합과학 + 지구과학)', desc:'고등 레벨 활성 — 과목 단위(label) 칩 구조 도입. Claude=고2 물리학 10단원+도해 10종(2022 개정), Codex=고1 통합과학·고2 지구과학(병렬 트랙). 기초이론 과학 누적 71단원(초28+중23+고20). gate PASS, 라이브 프리뷰 동시 갱신.' },
       { isCore:true, date:'2026-06-01', title:'기초이론 중학교 과학 신설 (23단원 + 도해 23종)', desc:'Codex 준비노트(23단원 명세)를 Claude가 검토·구현해 중등 과학 완성 — 중1·2·3 총 23단원 본문/핵심용어 + "과학과 사회" 도메인 추가 + 중학교 SVG 23종. 중등 탭 활성화. 기초이론 과학 누적 51단원(초28+중23). semiconductor-universe push e299b00, gate(typecheck/build/eslint) PASS, 대시보드 라이브 프리뷰 동시 갱신.' },
-      { isCore:true, date:'2026-06-01', title:'대분류 2층 구조 + 기초이론(초등 과학) 신설', desc:'놀리지 코스모스를 「산업 / 기초이론」 2개 대분류로 재편. 기초이론에 학교 과학을 신설하고 초등 3~6학년 전 단원 28개를 본문·핵심용어·흥미사실로 집필 + 단원별 SVG 도해 22종 제작(전부 로컬). 산업/기초이론 최상단 전환, 중·고등은 준비 중. semiconductor-universe push 7ee3fbf, typecheck+build PASS.' },
+      { isCore:true, date:'2026-06-01', title:'대분류 2층 구조 + 기초이론(초등 과학) 신설', desc:'Knowledgeverse를 「산업 / 기초이론」 2개 대분류로 재편. 기초이론에 학교 과학을 신설하고 초등 3~6학년 전 단원 28개를 본문·핵심용어·흥미사실로 집필 + 단원별 SVG 도해 22종 제작(전부 로컬). 산업/기초이론 최상단 전환, 중·고등은 준비 중. semiconductor-universe push 7ee3fbf, typecheck+build PASS.' },
       { isCore:true, date:'2026-05-29', title:'프로젝트 #8 신설 — 정보·지식 모음 (상위 틀)', desc:'다양한 지식을 한 틀 아래 영역별로 모으는 상위 프로젝트로 신설. 첫 영역 = 반도체. 박사 발화 "정보·지식 모음 같은 이름으로 #8에 추가, 반도체는 그 안의 한 영역으로 분류".' },
       { isCore:true, date:'2026-05-29', title:'영역 1 — 반도체 유니버스 등록', desc:'지구 배경 + 기업 앰블럼 + 한글화 완료한 3D 반도체 시각화 앱을 첫 영역으로 분류·등록. GitHub gmpark-creator/semiconductor-universe push 완료, HANDOFF.md 수정 체크리스트 동봉.' },
       { isCore:true, date:'2026-05-30', title:'영역 1 — 검수 체크리스트 수정·ESLint 0·재배포', desc:'집 데스크탑에서 HANDOFF 체크리스트 #1~#7 수정 마감(#8 로고 P3 보류), ESLint 14→0, tsc+vite build 통과. semiconductor-universe push(b8d6be7) + 대시보드 VIEW LIVE 미리보기를 새 빌드로 갱신(폰트 self-host 반영, 런타임 외부호출 0).' },
@@ -514,7 +514,7 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-31', title:'영역 1 — 지도 지명 라벨 + 화살표 정리', desc:'지도에 국가/주/도시 라벨(LOD: 멀리=국가, 가까이=주·도시) 추가, 공급망 화살표 입자 제거→정적 깔끔. push 8090bf8.' },
       { isCore:true, date:'2026-05-31', title:'영역 1 — 라벨 폰트/크기 + 화살표 great-circle', desc:'국가 라벨 Inter 폰트·축소, 화살표를 지표 밀착 대권 곡선+화살촉으로 재설계(방향 또렷). push 43a0c1e.' },
       { isCore:true, date:'2026-05-31', title:'영역 1 — 화살표 연계 기업명 라벨', desc:'공급망 화살표마다 연계 기업명 라벨(색 매칭) 표시 → 어느 기업과의 관계인지 식별. push 5171afd.' },
-      { isCore:true, date:'2026-05-31', title:'영역 2 — 전력 유니버스 신설 + 멀티영역 구조·영역 선택기', desc:'반도체 전용 앱을 데이터 주도 멀티영역 놀리지 코스모스로 일반화(AtlasArea + AreaSelector 드롭다운). 두 번째 영역 「전력 유니버스」(대한민국 전력) 추가 — 발전원 14분류 + 전력 3D 아이콘 9종(원자로·냉각탑·태양광·풍력·댐·수소탱크·배터리·송전탑·계통허브) + 전력 기업/기관 23 + 공급망 33관계, 본사 한반도 핀. 데이터는 워크플로 5에이전트 수집·적대적 사실검증. tsc+vite·ESLint 0·Playwright 2영역×2모드 검증(콘솔 에러 0). semiconductor-universe push 08db798, 미리보기 재배포.' }
+      { isCore:true, date:'2026-05-31', title:'영역 2 — 전력 유니버스 신설 + 멀티영역 구조·영역 선택기', desc:'반도체 전용 앱을 데이터 주도 멀티영역 Knowledgeverse로 일반화(AtlasArea + AreaSelector 드롭다운). 두 번째 영역 「전력 유니버스」(대한민국 전력) 추가 — 발전원 14분류 + 전력 3D 아이콘 9종(원자로·냉각탑·태양광·풍력·댐·수소탱크·배터리·송전탑·계통허브) + 전력 기업/기관 23 + 공급망 33관계, 본사 한반도 핀. 데이터는 워크플로 5에이전트 수집·적대적 사실검증. tsc+vite·ESLint 0·Playwright 2영역×2모드 검증(콘솔 에러 0). semiconductor-universe push 08db798, 미리보기 재배포.' }
     ]
   }
 ];
@@ -598,10 +598,10 @@ const STACK_ATLAS = {
   // NOT YET USED — 미사용 기술 + 디렉터 분야별 추천 (적대적 검증 반영)
   unused: [
     { key: 'lang', label: '언어 (Programming Languages)', items: [
-      { name: 'Rust', recommendation: '고성능 네이티브/WASM 계산. 3번 Solar의 케플러·N체 섭동 계산이나 8번 반도체의 대규모 노드 레이아웃·force-directed 연산을 Rust→wasm-bindgen으로 빼면 메인스레드 프레임드랍을 없앤다. 4번 INST의 오디오 DSP 전처리도 후보.', fitProjects: ['Solar System Simulator', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'Rust', recommendation: '고성능 네이티브/WASM 계산. 3번 Solar의 케플러·N체 섭동 계산이나 8번 반도체의 대규모 노드 레이아웃·force-directed 연산을 Rust→wasm-bindgen으로 빼면 메인스레드 프레임드랍을 없앤다. 4번 INST의 오디오 DSP 전처리도 후보.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Go', recommendation: '동시성·실시간 데이터 수집 백엔드. 1번 AIS 실시간 위치 폴링/스트리밍 게이트웨이, 7번 Premarket의 FRED·ECOS·시세 멀티소스 수집기를 단일 바이너리로 상주. 현재 7번은 빌드타임 스크립트뿐이라 상시 수집 데몬으로 격상하기 좋다.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
       { name: 'SQL', recommendation: '구조화 데이터 영속화·집계. 1번 AIS 항적 이력, 7번 Premarket 시계열 시세, 2번 DDUIM 트래킹 프레임을 테이블로 적재하고 시간 윈도우 집계. 현재 전 프로젝트가 mock/static이라 DB 도입 시 1순위.', fitProjects: ['US-KR Premarket Signal', 'AIS Ship Tracker', 'DDUIM'] },
-      { name: 'WGSL (WebGPU Shading Language)', recommendation: '차세대 GPU 셰이더. 3번 Solar의 GLSL 셰이더 자산을 WebGPU/WGSL로 포팅하면 compute shader로 입자(카이퍼·트로이 2400×2) 시뮬을 GPU에서 직접. 8번 대량 노드 인스턴싱에도 유리.', fitProjects: ['Solar System Simulator', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'WGSL (WebGPU Shading Language)', recommendation: '차세대 GPU 셰이더. 3번 Solar의 GLSL 셰이더 자산을 WebGPU/WGSL로 포팅하면 compute shader로 입자(카이퍼·트로이 2400×2) 시뮬을 GPU에서 직접. 8번 대량 노드 인스턴싱에도 유리.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Pandas / NumPy (데이터 분석)', recommendation: '데이터 분석 스택. 7번 Premarket의 매크로·테마 상관 분석, 2번 DDUIM 트래킹 통계(스프린트·점유율)를 Pandas/NumPy로. 4번 INST가 이미 Python 3.12라 분석 노트북 라인을 같은 생태계로 통일 가능. (GLSL·Python 자체는 이미 사용 중)', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] },
       { name: 'Swift / Kotlin', recommendation: '네이티브 모바일 앱. 1번 AIS를 현장 운영자용 iOS/Android 네이티브(백그라운드 위치·푸시)로, 3번 Solar를 ARKit/ARCore 천체 AR로. 웹 우선이면 React Native/Flutter가 더 현실적이라 보조 옵션.', fitProjects: ['AIS Ship Tracker'] },
       { name: 'C++', recommendation: '초고성능 물리/렌더/DSP 코어. 단 3번 Solar는 importmap 단일 HTML 교육용이고 케플러를 이미 JS로 오차 0.22% 달성(WASM 불필요). 쓴다면 4번 INST의 DSP 병목(리샘플·STFT) 한정 PoC로 좁히되, PyTorch가 이미 C++ 커널을 쓰므로 torch.compile/ONNX 최적화가 먼저. (우선순위 최하)', fitProjects: ['INST Extractor'] },
@@ -610,25 +610,25 @@ const STACK_ATLAS = {
     { key: 'frontend', label: '프론트엔드 프레임워크·UI', items: [
       { name: 'Svelte / SvelteKit', recommendation: '가벼운 정적·콘텐츠 사이트. 6번 JP Global(현재 Vanilla JS)을 SvelteKit으로 재구축하면 번들이 작고 트랜지션 내장이라 디자인 톤 실험에 적합. 보일러플레이트가 적어 1인 워크플로에 효율적.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] },
       { name: 'Astro', recommendation: '콘텐츠 중심 정적 + Islands. 6번 JP Global과 이 대시보드 자체(보고서/포트폴리오)를 Astro로 만들면 기본 0-JS로 빠르고 필요한 위젯만 React island로. 8개 프로젝트 쇼케이스 허브에 이상적.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] },
-      { name: 'shadcn/ui + Radix UI', recommendation: '접근성 갖춘 헤드리스 컴포넌트. 5·7·8번의 패널·다이얼로그·드로어·툴팁을 Radix 기반 shadcn으로 표준화하면 직접 만든 인터랙션 UI의 접근성·키보드 내비를 한 번에 확보. Tailwind를 이미 써 궁합 최상.', fitProjects: ['2026 PRESIDENT KOREA', '놀리지 코스모스 (반도체 유니버스)', 'US-KR Premarket Signal'] },
+      { name: 'shadcn/ui + Radix UI', recommendation: '접근성 갖춘 헤드리스 컴포넌트. 5·7·8번의 패널·다이얼로그·드로어·툴팁을 Radix 기반 shadcn으로 표준화하면 직접 만든 인터랙션 UI의 접근성·키보드 내비를 한 번에 확보. Tailwind를 이미 써 궁합 최상.', fitProjects: ['2026 PRESIDENT KOREA', 'Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
       { name: 'Vue 3 / Nuxt', recommendation: '대안 SPA/SSR. 신규 대시보드형 프로젝트에서 React 비교 실험용. 7번 Premarket을 Nuxt SSR로 만들면 SEO·초기 로딩 개선. (React 자산이 많아 신규 라인 한정)', fitProjects: ['US-KR Premarket Signal'] },
       { name: 'Next.js App Router (RSC/SSR 본격)', recommendation: '1번 AIS는 이미 Next.js지만 단순 CSR 수준. App Router의 Server Components·Route Handler·streaming으로 선박 데이터 서버 패칭·SEO·엣지 캐싱까지 한 프레임워크로. 7번을 Next로 옮기면 수집 스크립트를 Route Handler로 흡수.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] }
     ]},
     { key: 'graphics3d', label: '3D·그래픽·WebGL/WebGPU', items: [
-      { name: 'WebGPU (WebGPURenderer)', recommendation: 'Three.js 차세대 렌더 백엔드. 3번 Solar의 입자계(카이퍼·오르트·트로이)와 8번 반도체의 대량 노드/엣지를 compute shader로 가속. Three.js를 이미 써 WebGPURenderer 전환만으로 미래 대비.', fitProjects: ['Solar System Simulator', '놀리지 코스모스 (반도체 유니버스)'] },
-      { name: 'Three.js 후처리 (postprocessing / EffectComposer)', recommendation: '후처리 파이프라인. 3·5·8번 3D 씬에 SMAA/FXAA 안티앨리어싱 + 톤매핑 + 절제된 약한 Bloom(임계값 가드)을 적용. 단 8번에서 Bloom 과다로 제거한 이력이 있으니 과다 글로우 금지 — 3번 Solar 태양/블랙홀 글로우를 통제된 후처리로 대체하는 수준.', fitProjects: ['Solar System Simulator', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'WebGPU (WebGPURenderer)', recommendation: 'Three.js 차세대 렌더 백엔드. 3번 Solar의 입자계(카이퍼·오르트·트로이)와 8번 반도체의 대량 노드/엣지를 compute shader로 가속. Three.js를 이미 써 WebGPURenderer 전환만으로 미래 대비.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'Three.js 후처리 (postprocessing / EffectComposer)', recommendation: '후처리 파이프라인. 3·5·8번 3D 씬에 SMAA/FXAA 안티앨리어싱 + 톤매핑 + 절제된 약한 Bloom(임계값 가드)을 적용. 단 8번에서 Bloom 과다로 제거한 이력이 있으니 과다 글로우 금지 — 3번 Solar 태양/블랙홀 글로우를 통제된 후처리로 대체하는 수준.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Babylon.js', recommendation: '기능 풍부한 대안 3D 엔진. 5번 PRESIDENT의 3D 시네마틱이나 신규 인터랙티브 시뮬을 Babylon으로 시도하면 내장 GUI·물리·노드 머티리얼 에디터 활용. (Three.js 자산이 많아 신규 실험 한정)', fitProjects: ['2026 PRESIDENT KOREA'] },
       { name: 'PixiJS', recommendation: '고성능 2D WebGL 렌더러. 2번 DDUIM의 2D 매치 트래커(현재 Canvas 2D)를 PixiJS로 옮기면 선수22+공+잔상 다수를 WebGL 가속으로 25Hz 부드럽게·줌·히트맵. 1번 AIS 다중 마커에도.', fitProjects: ['DDUIM', 'AIS Ship Tracker'] },
-      { name: 'Cesium / CesiumJS', recommendation: '사실적 3D 지구본 GIS. 1번 AIS를 진짜 3D 글로브(지형·해양·시간축)로, 8번 반도체 글로벌 공급망 지구를 실측 지구본으로. 위경도를 이미 다뤄 데이터 호환성 높음.', fitProjects: ['AIS Ship Tracker', '놀리지 코스모스 (반도체 유니버스)'] },
-      { name: 'deck.gl', recommendation: '대규모 지오데이터 GPU 시각화. 1번 AIS 수백~수천 척을 ScatterplotLayer/TripsLayer로, 8번 공급망 흐름을 ArcLayer로 그리면 수동 구현보다 성능·인터랙션 우수. MapLibre/Mapbox 위에 얹는 구조.', fitProjects: ['AIS Ship Tracker', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'Cesium / CesiumJS', recommendation: '사실적 3D 지구본 GIS. 1번 AIS를 진짜 3D 글로브(지형·해양·시간축)로, 8번 반도체 글로벌 공급망 지구를 실측 지구본으로. 위경도를 이미 다뤄 데이터 호환성 높음.', fitProjects: ['AIS Ship Tracker', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'deck.gl', recommendation: '대규모 지오데이터 GPU 시각화. 1번 AIS 수백~수천 척을 ScatterplotLayer/TripsLayer로, 8번 공급망 흐름을 ArcLayer로 그리면 수동 구현보다 성능·인터랙션 우수. MapLibre/Mapbox 위에 얹는 구조.', fitProjects: ['AIS Ship Tracker', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Blender', recommendation: '3D 에셋 제작 파이프라인. 3번 Solar의 탐사선 모델을 코드 프리미티브 대신 Blender→glTF로 만들면 디테일 비약. 5번 PRESIDENT 3D 카툰 시네마틱의 캐릭터·소품 제작에도 직결.', fitProjects: ['Solar System Simulator', '2026 PRESIDENT KOREA'] },
       { name: 'Spline', recommendation: '노코드 3D 디자인 툴. 6번 JP Global 히어로 3D 오브제나 이 대시보드 랜딩의 인터랙티브 3D 데코를 코드 없이 빠르게 임베드. 디자인 톤 실험 성격과 맞음.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
     { key: 'dataviz', label: '데이터 시각화·차트', items: [
-      { name: 'D3.js (full: scale·shape·force)', recommendation: '현재 d3-geo만 사용. 7번 Premarket 시세 라인·캔들·히트맵을 d3-scale/shape로, 8번 지식 그래프 평면 뷰를 d3-force로 그리면 풀 D3 역량 확보. 2번 DDUIM 궤적·점유율 차트에도.', fitProjects: ['US-KR Premarket Signal', '놀리지 코스모스 (반도체 유니버스)', 'DDUIM'] },
+      { name: 'D3.js (full: scale·shape·force)', recommendation: '현재 d3-geo만 사용. 7번 Premarket 시세 라인·캔들·히트맵을 d3-scale/shape로, 8번 지식 그래프 평면 뷰를 d3-force로 그리면 풀 D3 역량 확보. 2번 DDUIM 궤적·점유율 차트에도.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)', 'DDUIM'] },
       { name: 'ECharts', recommendation: '고밀도 인터랙티브 차트. 7번 Premarket의 매크로/테마 히트맵·캔들·줌·브러시를 즉시 풍부하게. 2번 DDUIM 선수별 통계 대시보드에도. mock UI를 실제 분석 대시보드로 끌어올리는 핵심.', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] },
       { name: 'Recharts', recommendation: 'React 친화 선언형 차트. 7번 Premarket(React 18) 패널에 가장 빠르게 차트를 꽂는 옵션 — OvernightMacro·Theme Heatmap을 실데이터화. shadcn 차트 프리셋과 호환.', fitProjects: ['US-KR Premarket Signal'] },
-      { name: 'visx (airbnb)', recommendation: 'D3 + React 저수준 빌딩블록. 7번·8번에서 완전 커스텀 차트/그래프가 필요할 때 D3 수학과 React 렌더를 깔끔히 결합. Recharts로 부족한 맞춤 시각화에 단계적 도입.', fitProjects: ['US-KR Premarket Signal', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'visx (airbnb)', recommendation: 'D3 + React 저수준 빌딩블록. 7번·8번에서 완전 커스텀 차트/그래프가 필요할 때 D3 수학과 React 렌더를 깔끔히 결합. Recharts로 부족한 맞춤 시각화에 단계적 도입.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Observable Plot', recommendation: '탐색적 분석용 간결 그래머. 7번 데이터 파이프라인 단계의 빠른 EDA·리포트 차트에 적합. 2번 DDUIM 트래킹 데이터 탐색에도 한 줄 차트로 유용.', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] }
     ]},
     { key: 'maps', label: '지도·지리 GIS', items: [
@@ -636,13 +636,13 @@ const STACK_ATLAS = {
       { name: 'Turf.js', recommendation: '지오공간 연산. 1번 AIS에서 선박 간 거리·근접 경보(geofence)·항로 버퍼·교차 판정을 클라이언트에서. 위경도를 이미 다뤄 실시간 충돌/접근 알림 추가에 즉효.', fitProjects: ['AIS Ship Tracker'] },
       { name: 'deck.gl + 지도 베이스', recommendation: '지도 위 대규모 데이터 레이어. 1번 AIS 선단 전체 항적(TripsLayer 애니메이션)과 밀집 마커를 MapLibre 베이스 위에 GPU로.', fitProjects: ['AIS Ship Tracker'] },
       { name: 'OpenLayers', recommendation: '기능 방대한 오픈소스 지도 엔진. 1번 AIS에서 해상 차트(WMS/WMTS)·좌표계 변환·복잡 벡터 편집이 필요할 때 Leaflet 대안. 해도 오버레이가 중요하면 강점.', fitProjects: ['AIS Ship Tracker'] },
-      { name: 'Cesium 3D Tiles (글로브)', recommendation: '3D 지구본 GIS. 1번 AIS를 시간축 3D 글로브 항적 재생으로, 8번 공급망을 3D 지구 호(arc) 흐름으로, 5번 한반도 지도를 실측 지형 3D로.', fitProjects: ['AIS Ship Tracker', '놀리지 코스모스 (반도체 유니버스)'] }
+      { name: 'Cesium 3D Tiles (글로브)', recommendation: '3D 지구본 GIS. 1번 AIS를 시간축 3D 글로브 항적 재생으로, 8번 공급망을 3D 지구 호(arc) 흐름으로, 5번 한반도 지도를 실측 지형 3D로.', fitProjects: ['AIS Ship Tracker', 'Knowledgeverse (반도체 유니버스)'] }
     ]},
     { key: 'state', label: '상태관리·데이터 패칭', items: [
       { name: 'TanStack Query (React Query)', recommendation: '서버 상태 캐싱·동기화. 1번 AIS 실시간 폴링, 7번 Premarket 시세/매크로 패칭에 도입하면 캐시·재시도·폴링·stale이 자동화. mock→실API 전환 시 1순위. (Zustand=클라이언트 상태, Query=서버 상태로 역할 분리)', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
       { name: 'Redux Toolkit', recommendation: '복잡한 결정론 상태·타임트래블. 5번 PRESIDENT 선거 시뮬 턴처럼 액션 로그·되돌리기·리플레이가 중요한 게임 엔진에 적합. 디버깅·추적성이 Zustand보다 강함.', fitProjects: ['2026 PRESIDENT KOREA'] },
       { name: 'XState', recommendation: '상태 머신·시나리오 제어. 5번 게임 페이즈(유세→투표→개표→취임)와 3번 Solar의 시네마틱/투어 시퀀스를 명시적 FSM으로 모델링하면 엣지케이스가 줄고 흐름이 견고.', fitProjects: ['2026 PRESIDENT KOREA', 'Solar System Simulator'] },
-      { name: 'Jotai', recommendation: '원자 단위 상태관리. 5번이 Zustand 단일 스토어인데 지역·정책 파생 상태가 많아지면 Jotai 아톰으로 세분화해 리렌더 범위를 좁힘. 8번 선택/하이라이트 상태에도 가벼움.', fitProjects: ['2026 PRESIDENT KOREA', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'Jotai', recommendation: '원자 단위 상태관리. 5번이 Zustand 단일 스토어인데 지역·정책 파생 상태가 많아지면 Jotai 아톰으로 세분화해 리렌더 범위를 좁힘. 8번 선택/하이라이트 상태에도 가벼움.', fitProjects: ['2026 PRESIDENT KOREA', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'SWR', recommendation: '경량 데이터 패칭 훅. 7번·1번에서 TanStack Query까지 무겁다 싶을 때 stale-while-revalidate만 가볍게. Next.js(1번)와 같은 Vercel 생태계라 궁합 좋음.', fitProjects: ['US-KR Premarket Signal', 'AIS Ship Tracker'] }
     ]},
     { key: 'animation', label: '애니메이션·모션', items: [
@@ -662,7 +662,7 @@ const STACK_ATLAS = {
       { name: 'Hugging Face Transformers', recommendation: '사전학습 모델 허브. 7번 Premarket에 뉴스/공시 감성분석·요약 모델을 붙여 매크로 시그널에 텍스트 신호 추가. 4번 INST(Python)와 통합해 오디오·텍스트 모델 실험 라인으로.', fitProjects: ['US-KR Premarket Signal', 'INST Extractor'] },
       { name: 'TensorFlow.js / MediaPipe', recommendation: '브라우저 내 ML 추론. 2번 DDUIM에 MediaPipe pose/object detection으로 클라이언트 선수 추적, 5번 PRESIDENT에 간단 정책 예측 모델을 온디바이스로. 서버 없이 추론하는 경량 라인.', fitProjects: ['DDUIM', '2026 PRESIDENT KOREA'] },
       { name: 'ONNX Runtime (Web)', recommendation: '프레임워크 중립 모델 실행. 4번 INST 분리 모델이나 7번 예측 모델을 ONNX로 변환해 웹/엣지에서 일관 추론. PyTorch 모델을 배포 환경에 맞춰 최적화 실행하는 표준 런타임.', fitProjects: ['INST Extractor', 'US-KR Premarket Signal'] },
-      { name: 'LangChain / Vercel AI SDK', recommendation: 'LLM 오케스트레이션. 8번 반도체에 "자연어로 노드/관계 질문→그래프 하이라이트"하는 RAG 비서를, 7번 Premarket에 매크로 자연어 브리핑을. 디렉터의 지식 시각화 컨셉과 LLM이 직결.', fitProjects: ['놀리지 코스모스 (반도체 유니버스)', 'US-KR Premarket Signal'] },
+      { name: 'LangChain / Vercel AI SDK', recommendation: 'LLM 오케스트레이션. 8번 반도체에 "자연어로 노드/관계 질문→그래프 하이라이트"하는 RAG 비서를, 7번 Premarket에 매크로 자연어 브리핑을. 디렉터의 지식 시각화 컨셉과 LLM이 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
       { name: 'text-to-video (Runway / Sora / Veo)', recommendation: '실사풍 AI 영상 생성. 단 5번 취임 시네마틱은 의도적으로 "외부 AI 영상 대신 결정론·자산0·동적 Three.js 실시간 컷신"으로 설계(2026-05-31)됐으므로 핵심 라인 아님 — 보조 인서트 컷으로만. 더 적합한 확장은 그 PoC를 이벤트별(취임·위기·선거) Three.js 컷신 템플릿화 + (용량 이슈 시) Playwright headless로 MP4 프리렌더. 생성영상은 라이선스·결정성·동적 주입 한계.', fitProjects: ['2026 PRESIDENT KOREA'] }
     ]},
     { key: 'database', label: '데이터베이스·스토리지', items: [
@@ -686,16 +686,16 @@ const STACK_ATLAS = {
       { name: 'Flutter', recommendation: '단일 코드 고성능 크로스플랫폼. 3번 Solar 모바일 천체 앱이나 5번 PRESIDENT 모바일 게임처럼 부드러운 커스텀 UI/애니메이션이 중요할 때. 웹과 별개 네이티브 라인을 팔 경우 후보.', fitProjects: ['Solar System Simulator', '2026 PRESIDENT KOREA'] }
     ]},
     { key: 'build', label: '빌드·번들·런타임·패키지', items: [
-      { name: 'pnpm + 모노레포 workspace', recommendation: '디스크 효율·엄격한 의존성 + 워크스페이스. Vite/React 프로젝트가 다수(5·7·8)이고 공유 UI·타입이 생기면 pnpm workspace로 모노레포화해 중복 설치 제거·일괄 빌드. 멀티프로젝트 구조에 최적.', fitProjects: ['놀리지 코스모스 (반도체 유니버스)', 'US-KR Premarket Signal', '2026 PRESIDENT KOREA'] },
+      { name: 'pnpm + 모노레포 workspace', recommendation: '디스크 효율·엄격한 의존성 + 워크스페이스. Vite/React 프로젝트가 다수(5·7·8)이고 공유 UI·타입이 생기면 pnpm workspace로 모노레포화해 중복 설치 제거·일괄 빌드. 멀티프로젝트 구조에 최적.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal', '2026 PRESIDENT KOREA'] },
       { name: 'Vite (바닐라 프로젝트로 확대)', recommendation: '3번 Solar(importmap+CDN, 빌드 없음)·6번 JP Global(Vanilla, 빌드 없음)에 Vite를 도입해 CDN importmap 의존(런타임 외부호출)을 self-host 번들로 전환. 8번에서 @fontsource self-host로 런타임 외부호출 0을 만든 선례와 동일 방향.', fitProjects: ['Solar System Simulator', 'Frontend & Tone Atelier (JP Global)'] },
       { name: 'Bun', recommendation: '올인원 초고속 런타임·패키지매니저·번들러. 7번 Premarket의 Node ESM 데이터 스크립트를 Bun으로 돌리면 실행·설치가 크게 빨라지고 신규 백엔드(Hono 등) 런타임으로도. 1인 반복 속도 향상.', fitProjects: ['US-KR Premarket Signal'] },
-      { name: 'Turborepo', recommendation: '모노레포 빌드 캐시·태스크 오케스트레이션. pnpm workspace와 함께 8개 프로젝트를 한 레포에서 증분 빌드·원격 캐시. 이 대시보드가 사실상 멀티프로젝트 허브이므로 빌드 파이프라인 통합에 직결.', fitProjects: ['놀리지 코스모스 (반도체 유니버스)', 'US-KR Premarket Signal'] },
+      { name: 'Turborepo', recommendation: '모노레포 빌드 캐시·태스크 오케스트레이션. pnpm workspace와 함께 8개 프로젝트를 한 레포에서 증분 빌드·원격 캐시. 이 대시보드가 사실상 멀티프로젝트 허브이므로 빌드 파이프라인 통합에 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
       { name: 'Deno', recommendation: '보안·TS 네이티브 런타임. 7번 외부 API 수집 스크립트를 권한 명시적 Deno로 실행하면 안전성이 높고 의존성 관리가 간결. Deno Deploy 엣지 배포와도 연결.', fitProjects: ['US-KR Premarket Signal'] }
     ]},
     { key: 'testing', label: '테스트·품질', items: [
       { name: 'Vitest', recommendation: 'Vite 네이티브 단위 테스트. 5번 PRESIDENT의 Zustand 게임 엔진(민심·예산·위기 로직)과 3번 Solar 케플러 계산처럼 결정론 순수 함수에 단위 테스트를 붙이면 회귀 방지. Vite를 이미 써 설정이 거의 없음.', fitProjects: ['2026 PRESIDENT KOREA', 'Solar System Simulator'] },
-      { name: 'Testing Library (React)', recommendation: '컴포넌트 동작 테스트. 7번·8번의 React 패널/인터랙션을 사용자 관점으로 테스트. Vitest와 결합해 UI 회귀를 잡는 표준 조합.', fitProjects: ['US-KR Premarket Signal', '놀리지 코스모스 (반도체 유니버스)'] },
-      { name: 'Storybook', recommendation: '컴포넌트 카탈로그·시각 문서. 6번 JP Global의 디자인 톤 실험과 8·7번 UI 컴포넌트를 격리 환경에서 variant·톤별로 비교. 디렉터의 "톤 실험" 성격과 정확히 맞고 시각 회귀 테스트로도 확장.', fitProjects: ['Frontend & Tone Atelier (JP Global)', '놀리지 코스모스 (반도체 유니버스)'] },
+      { name: 'Testing Library (React)', recommendation: '컴포넌트 동작 테스트. 7번·8번의 React 패널/인터랙션을 사용자 관점으로 테스트. Vitest와 결합해 UI 회귀를 잡는 표준 조합.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'Storybook', recommendation: '컴포넌트 카탈로그·시각 문서. 6번 JP Global의 디자인 톤 실험과 8·7번 UI 컴포넌트를 격리 환경에서 variant·톤별로 비교. 디렉터의 "톤 실험" 성격과 정확히 맞고 시각 회귀 테스트로도 확장.', fitProjects: ['Frontend & Tone Atelier (JP Global)', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'ESLint + Prettier / Biome', recommendation: '정적 분석·포맷 표준화. 8개 프로젝트 코드 스타일 통일. 특히 Biome는 ESLint+Prettier를 단일 고속 도구로 대체해 1인 멀티프로젝트 유지보수 부담을 줄임. 6번 Vanilla JS·신규 프로젝트 품질 기준선.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
     { key: 'devops', label: '배포·인프라·CI/CD', items: [
@@ -717,8 +717,8 @@ const STACK_ATLAS = {
       { name: 'librosa (Python)', recommendation: '오디오 분석 라이브러리. 4번 INST(Python)에서 분리 전후 BPM·키·온셋·스펙트럼 분석으로 메타데이터를 풍부하게. Whisper 가사 추출과 결합하면 종합 음원 분석 백엔드가 된다.', fitProjects: ['INST Extractor'] }
     ]},
     { key: 'assets', label: '폰트·아이콘·자산', items: [
-      { name: 'Iconify (15만+ 통합 아이콘)', recommendation: '여러 아이콘 세트를 단일 API로 온디맨드 로드. 8개 프로젝트가 제각각 아이콘 라이브러리를 쓰는 것을 Iconify로 통일해 번들·관리 부담을 줄임.', fitProjects: ['US-KR Premarket Signal', '놀리지 코스모스 (반도체 유니버스)'] },
-      { name: 'glTF 압축 (DRACO / KTX2)', recommendation: '3D 에셋 최적화 파이프라인. 8·3·5번에서 Blender로 만든 glTF 모델을 DRACO(지오메트리)·KTX2(텍스처)로 압축해 로딩 가속. 3D 프로젝트 다수라 자산 최적화 표준으로.', fitProjects: ['놀리지 코스모스 (반도체 유니버스)', 'Solar System Simulator'] },
+      { name: 'Iconify (15만+ 통합 아이콘)', recommendation: '여러 아이콘 세트를 단일 API로 온디맨드 로드. 8개 프로젝트가 제각각 아이콘 라이브러리를 쓰는 것을 Iconify로 통일해 번들·관리 부담을 줄임.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'glTF 압축 (DRACO / KTX2)', recommendation: '3D 에셋 최적화 파이프라인. 8·3·5번에서 Blender로 만든 glTF 모델을 DRACO(지오메트리)·KTX2(텍스처)로 압축해 로딩 가속. 3D 프로젝트 다수라 자산 최적화 표준으로.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'Solar System Simulator'] },
       { name: 'Variable Fonts (Noto Sans KR 등)', recommendation: '가변 폰트 타이포 자산. 6번 JP Global의 한·일·영 다국어 톤 실험과 5번 UI에 굵기/폭을 동적 제어. Pretendard 외 가변폰트·서브셋팅으로 로딩과 표현력을 동시에.', fitProjects: ['Frontend & Tone Atelier (JP Global)', '2026 PRESIDENT KOREA'] }
     ]}
   ]

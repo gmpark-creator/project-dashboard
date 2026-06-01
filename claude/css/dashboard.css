@@ -519,7 +519,7 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
 .proj-name em { font-style: italic; font-weight: 200; color: var(--orange); }
 .proj-subtitle {
   font-size: clamp(15px, 1.6vw, 21px);
-  line-height: 1.5;
+  line-height: 1.6;
   max-width: 720px;
   color: inherit; opacity: 0.7;
   margin: 0 0 60px;
@@ -587,7 +587,7 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
   font-family: var(--font-display);
   font-weight: 600;
   font-size: clamp(20px, 2vw, 30px);
-  line-height: 1.45; letter-spacing: -0.02em;
+  line-height: 1.55; letter-spacing: -0.01em;
   max-width: 1100px;
   margin: 0 0 50px;
 }
@@ -598,6 +598,23 @@ body.is-menu-open .overlay-nav .nav-list > li:nth-child(6) a { transition-delay:
   color: inherit; opacity: 0.75;
   max-width: 900px;
   margin: 0 0 60px;
+}
+
+/* ── 한글 본문 가독성 (박사 지시 2026-06-01) ──
+   설명란(요약·방식·이슈·타임라인·스택설명·카드요약·기술 노트)의 한글이
+   글자 중간이 아니라 "어절(띄어쓰기) 단위"로만 줄바꿈되게 해 제대로 쓴 한글 글처럼 보이게 한다.
+   긴 URL·커밋 해시·영문 토큰은 칸을 넘칠 때만 분절(overflow-wrap). */
+.proj-subtitle,
+.proj-summary,
+.proj-method,
+.issue-body p,
+.timeline-body p,
+.stack-how,
+.card-summary,
+.atlas-tech-note,
+.atlas-unused-rec {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* stack chips */
