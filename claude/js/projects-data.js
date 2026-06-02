@@ -444,7 +444,7 @@ const PROJECTS = [
   {
     id: 'knowledge',
     name: 'Knowledgeverse',
-    subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력·2차전지·디스플레이 3D / ② 기초이론: 학교 과학) · A Curated Universe of Interactive Knowledge',
+    subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력·2차전지·디스플레이·철강·제련 3D / ② 기초이론: 학교 과학) · A Curated Universe of Interactive Knowledge',
     icon: 'book',
     platform: '웹 · 지식 아카이브 (대분류: 산업 3D / 기초이론 학습자료)',
     status: 'in-progress',
@@ -453,7 +453,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
     preview: { type:'embed', height:620, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledgeverse — 상단 대분류로 [산업](반도체 3모드[분류·공급망·8대공정] / 전력 / 2차전지 / 디스플레이 — 각 영역 분류·공급망을 한반도 지도에) ⇄ [기초이론](과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) 전환. 기초이론은 과학→학교급(초/중/고/SF)→학년·과목→단원 읽기형 학습자료. 고등은 선택군 네비게이션(공통·일반선택·진로선택·융합선택) 11과목, 신설 「SF 과학 판별」엔 소설 삼체의 과학을 상상력↔현실↔판정으로 분해한 4단원 (2026-06-01 삼체 + 전체 QA 통합)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledgeverse — 상단 대분류로 [산업](반도체 3모드[분류·공급망·8대공정] / 전력 / 2차전지 / 디스플레이 / 철강·제련 — 각 영역 분류·공급망을 한반도 지도에) ⇄ [기초이론](과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) 전환. 기초이론은 과학→학교급(초/중/고/SF)→학년·과목→단원 읽기형 학습자료. 고등은 선택군 네비게이션(공통·일반선택·진로선택·융합선택) 11과목, 신설 「SF 과학 판별」엔 소설 삼체의 과학을 상상력↔현실↔판정으로 분해한 4단원 (2026-06-01 삼체 + 전체 QA 통합)' }
     ]},
     // 박사 지정 줄바꿈/띄어쓰기 그대로 표시(\n=줄). 길면 dashboard.js fitSummaryLines가 폰트를 줄여 한 줄 유지.
     summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트.\n'
@@ -462,7 +462,8 @@ const PROJECTS = [
            + '영역 2 「전력 유니버스」(2026-05-31 추가) — 대한민국 전력 부문: 발전원 14분류 (원자력·석탄·LNG·태양광·풍력·수력·양수·ESS·연료전지·송배전·전력시장 등 전력 3D 아이콘)와\n'
            + '전력 공급망(KEPCO·한수원·발전5사·KPX·KOGAS·두산에너빌리티 등 23개 기업/기관을 본사 좌표로 한반도 지도에 핀하고 연료·발전·송배전·기자재 관계를 호로 연결).\n'
            + '영역 3 「2차전지 유니버스」(2026-06-02 추가) — 셀 화학·폼팩터·4대 소재 13분류와 K-배터리 공급망(LG엔솔·삼성SDI·SK온 셀3사 + 양극·음극·전해질·분리막·장비·재활용 21개 기업).\n'
-           + '영역 4 「디스플레이 유니버스」(2026-06-02 추가) — OLED(RGB·WOLED·QD-OLED)·폼팩터·소재 12분류와 K-디스플레이 공급망(삼성디스플레이·LGD 패널 + 발광재료·편광·UTG·장비·DDI 16개 기업).',
+           + '영역 4 「디스플레이 유니버스」(2026-06-02 추가) — OLED(RGB·WOLED·QD-OLED)·폼팩터·소재 12분류와 K-디스플레이 공급망(삼성디스플레이·LGD 패널 + 발광재료·편광·UTG·장비·DDI 16개 기업).\n'
+           + '영역 5 「철강·제련 유니버스」(2026-06-02 추가) — 제철공정·압연제품·비철제련 14분류와 K-철강/제련 공급망(포스코·현대제철 고로 + 전기로·강관·특수강 + 고려아연·LS MnM 비철제련 + 원료·수요 14개 기업).',
     method: '영역별로 독립된 인터랙티브 시각화를 만들고, 이 「Knowledgeverse」가 그것들을 한데 묶는 상위 분류 틀이 된다. '
           + '반도체 영역은 Vite + React + TypeScript + Three.js(@react-three/fiber)로 구현 — NASA 지구 텍스처 + 프레넬 대기광 위에 칩/기업 노드가 궤도를 돈다. '
           + '기업 노드는 실제 로고(simple-icons 8개사) + 브랜드 워드마크 배지(8개사), 데이터·텍스처·로고는 전부 로컬. 전체 UI 한글화. '
@@ -477,12 +478,13 @@ const PROJECTS = [
       { area: '카메라·인터랙션·배치', tech: '@react-three/fiber, @react-three/drei, Three.js', how: 'Scene.tsx의 OrbitControls는 자동회전 없이 댐핑·줌만 두고, 휠/드래그 시 fly-to를 즉시 중단해 휠 줌이 항상 작동한다(고정 방지). 공급망에서 회사 선택 시 본사 상공으로, 칩 분류에서 노드 정면으로 카메라가 비행한다. 반짝임 방지를 위해 Bloom 후처리는 제거. companyLayout.ts의 COMPANY_HQ가 본사 위경도를 좌표로 변환한다.' },
       { area: 'UI 패널·범례·모드 토글', tech: 'React, TypeScript, Tailwind, framer-motion', how: 'InfoPanel.tsx가 framer-motion의 AnimatePresence와 motion.aside 스프링 트랜지션으로 상세 패널을 슬라이드 인하고, Tailwind 유틸 클래스로 글래스 스타일을 입힌다. App.tsx가 React useState로 모드·선택 상태를 관리하며 ViewToggle·Legend를 배치한다.' },
       { area: '빌드·타입·배포 환경', tech: 'Vite, TypeScript, @fontsource', how: 'package.json에서 dev는 vite, build는 tsc -b 후 vite build로 타입체크와 번들을 함께 돌린다. 전 컴포넌트를 TypeScript 타입드 Props로 작성했고, Earth.tsx는 import.meta.env.BASE_URL로 서브패스 배포에 대응하며 폰트는 @fontsource로 self-host(Inter)한다.' },
-      { area: '멀티영역 아키텍처 (Knowledgeverse)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력·2차전지·디스플레이 4영역.' },
+      { area: '멀티영역 아키텍처 (Knowledgeverse)', tech: 'TypeScript, React', how: 'AtlasArea 인터페이스 하나로 한 지식 영역(분류·기업·공급망·라벨·색·본사좌표)을 표현하고, 3D 엔진/UI는 영역에 무관하게 area prop으로 구동된다(데이터 주도). data/areas/에 영역 모듈을 추가해 레지스트리(AREAS[])에 등록만 하면 영역이 늘어나며, 좌상단 AreaSelector 드롭다운으로 전환한다. companyLayout 좌표 계산은 영역 데이터를 인자로 받는 순수함수로 일반화했다. 현재 반도체·전력·2차전지·디스플레이·철강·제련 5영역.' },
       { area: '전력 유니버스 — 카툰 대한민국 지도 (세계지도 없음)', tech: 'react-spring, southkorea-maps, earcut, Three.js', how: '전력 영역 공급망은 지구본 대신 KoreaCartoonMap이 한반도만 그린다. southkorea-maps GeoJSON으로 17개 광역시도를 earcut 삼각분할해 파스텔 카툰색으로 채우고 다크 외곽선을 입힌다. 핵심은 react-spring(@react-three/three) — 각 시도가 자기 중심에서 아래→위로 통통 튀어 오르며(config.wobbly·스태거 delay) 지도가 조립되듯 등장하고, animated 머티리얼 opacity로 페이드인한다. 좌표는 본사 핀과 같은 좌표계라 기업이 시도 위 실제 위치에 박힌다.' },
       { area: '구글어스식 도시 딥줌 — 행정구(시군구) LOD', tech: 'Three.js, @react-three/fiber, southkorea-maps', how: '기업을 클릭하면 카메라가 본사 도시까지 깊게 날아들어가(구글어스식 줌인), 카메라 거리(LOD)에 따라 시군구(행정구, 251개) 경계가 페이드인한다(동 단위는 과밀해 생략, 구 단위까지). 경계는 피처 전체를 단일 라인 지오메트리로 병합해 한 번에 그리고, 시군구 영문 라벨은 화면 중앙 좁은 콘 안의 것만 거리 비례(화면 고정 크기)로 표시해 과밀을 막는다. near plane·minDistance를 낮춰 더 깊이 확대 가능. 멀리서는 시도만 보이는 깔끔한 개요, 줌인하면 어느 구에 있는지 드러난다.' },
       { area: '반도체 8대 공정 — 3D 웨이퍼 파이프라인 (공정 과정 모드)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: '「반도체 8대 공정」 인포그래픽을 프로젝트의 3D 스타일로 재구현한 세 번째 모드. ProcessFlow.tsx가 8단계(웨이퍼 제조·산화·포토·식각·증착·금속배선·테스트·패키징)를 뱀형(serpentine) 흐름으로 배치하고 단계 사이를 방향 화살표(TubeGeometry+cone)로 잇는다. 단계마다 고유한 절차적 3D 비주얼 — 실리콘 웨이퍼 다이격자, 투명 산화막+산소 분위기, 포토마스크 레티클+노광 콘, 식각 트렌치+플라즈마 글로우, 박막 적층 디스크 스택, 금속배선 격자+비아, 프로브 니들 검사, 완성 IC 패키지(기판+히트스프레더+골드핀). 단계를 클릭하면 카메라가 줌인하고 우측 패널에 「왜 중요한가·특징·국내 기업·해외 기업」이 열린다. AtlasArea.process 데이터(선택 필드)로 구동돼 다른 영역에는 영향 없음.' },
     ],
     issues: [
+      { type:'핵심', title:'산업 5번째 영역 — 철강·제련 추가 (2026-06-02)', desc:'박사 지시로 산업 대분류에 철강(제철)+비철금속 제련을 묶은 5번째 영역을 추가, 산업 5영역(반도체·전력·2차전지·디스플레이·철강·제련) 체제로 확장. 분류 14노드(고로-전로 BF-BOF·전기로 EAF / 열연·냉연·후판·철근·선재·특수강·STS·전기강판 / 아연·동·연귀금속 제련 / 수소환원제철 HyREX) + 공급망 14개 기업(포스코·현대제철 고로, 동국제강·세아베스틸·세아제강·KG스틸 전기로/강관/특수강, 고려아연·영풍·LS MnM·풍산 비철제련, 포스코인터내셔널 원료, 현대차·HD현대중공업 수요, 산업부 규제)을 한반도 지도에 핀. 6에이전트 웹검증 리서치 + 6차원 적대적 자가검수(런타임 CLEAN; BLOCK 3정정: HD현대중공업 매출 23→17.6조·최대주주 30%대→69%, 영풍 영업손실 정정; STS 마르텐사이트·아연 유도로 등 야금 보정; poscoint→현대제철·lsmnm→현대차 허위 edge 삭제). 고려아연-영풍 경영권 분쟁·HyREX·미국 50% 관세 등 최신이슈 반영. 신규 IconKey 0. newton→main FF 통합(충돌0) push 00364f2, 미리보기 재배포(backdrop 5종). 5영역은 영역 선택기에서 각자 독립.' },
       { type:'핵심', title:'산업 영역 2개 추가 — 2차전지·디스플레이 (2026-06-02)', desc:'박사 지시로 산업 대분류를 4영역(반도체·전력·2차전지·디스플레이) 체제로 확장. ▸2차전지: 분류 13노드(삼원계/LFP·원통46파이/각형/파우치·양극/음극/전해질/분리막·전고체·재활용) + K-배터리 공급망 21개 기업(셀3사 LG엔솔·삼성SDI·SK온 + 소재·장비·재활용·완성차·규제)을 한반도 지도에 핀. ▸디스플레이: 분류 12노드(RGB OLED/WOLED/QD-OLED·LCD·폴더블·발광재료·편광·TFE·UTG/CPI·MicroLED·투명롤러블) + K-디스플레이 공급망 16개 기업(삼성디스플레이·LGD 패널 + 소재·장비·DDI·세트·규제). 두 영역 모두 6에이전트 웹검증 리서치 + 6차원 적대적 자가검수(Codex 토큰 소진으로 Claude 대체 — 좌표·기업수치·과학·공급망 오류 다수 정정, 런타임 CLEAN). 신규 IconKey 0(기존 3D 아이콘 재사용). newton→main FF 통합(충돌0) push e8c8c35, 미리보기 재배포(백드롭 4종 포함). 4영역은 영역 선택기에서 각자 독립으로 전환 — 합쳐진 게 아님.' },
       { type:'완료', title:'브랜드 「Knowledgeverse」로 개명 + 공정 모드 대상 반도체 안내 (2026-06-01)', desc:'프로젝트 브랜드를 「Knowledgeverse(놀리지버스)」로 확정(영문 표기) — 「아틀라스」(가족 출판물명과 중복)를 빼고, 지식(Knowledge)+유니버스(-verse)로 각 영역=하나의 우주, 전체=Knowledgeverse 위계와 정합시킴. brand.ts 단일 소스로 상단 워드마크·기초이론 브레드크럼·페이지 타이틀·학습 콘텐츠 문구를 일괄 교체(사용자 노출 옛 명칭 잔존 0 검증). 산업>반도체 「공정 과정」 모드에는 이 8대 공정이 특정 제품 하나가 아니라 모든 실리콘 기반 반도체(메모리 DRAM·낸드 / 시스템반도체 CPU·AP·이미지센서)의 공통 제조 과정임을 알리는 안내 배너(ProcessGuide, 단계 선택 전 개요 상태에만 노출·우측 패널과 비충돌) + 8대 공정 목록 부제를 추가. 적대적 사실검증 반영으로 5공정을 「증착·이온주입」, 7공정을 「EDS(웨이퍼 테스트)」 정식 명칭으로 정렬하고 이미지센서 제품별 추가공정 주석을 보강. tsc+vite build PASS. push abc88a2, 미리보기 재배포. 더불어 대시보드 전 프로젝트(1~8) 설명란의 한글 줄바꿈을 어절(word) 단위로 교정(word-break:keep-all + 줄간격·자간 정리)해 「제대로 쓴 한글 글」처럼 보이도록 가독성을 일괄 정비.' },
       { type:'핵심', title:'반도체 영역 — 8대 공정 모드 추가 (2026-06-01)', desc:'「반도체 8대 공정」 인포그래픽을 프로젝트의 3D 스타일로 재구현해 산업>반도체에 세 번째 모드 「공정 과정」을 추가. 8단계(웨이퍼 제조·산화·포토·식각·증착·금속배선·테스트·패키징)를 뱀형 흐름 + 방향 화살표의 3D 웨이퍼 파이프라인으로 그리고, 단계마다 고유 비주얼(웨이퍼·산화막·포토마스크·식각 트렌치·박막 스택·금속 격자·프로브 니들·완성 IC 패키지)을 입혔다. 단계 클릭 시 줌인 + 「왜 중요한가·특징·국내/해외 기업」 패널. 데이터 주도(AtlasArea.process 선택 필드)라 전력·타 영역엔 무영향. tsc+vite build·ESLint 0·Playwright 헤드리스 검증(콘솔 에러 0). push db120a3, 미리보기 재배포.' },
