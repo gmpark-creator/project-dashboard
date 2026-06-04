@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ko" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TradeLogix Nexus · Part 1. 통관 마스터</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      colors: {
+        base: '#0F172A',
+        cost: '#10b981',   // 비용 = emerald
+        risk: '#f43f5e',   // 위험 = rose
+        tax:  '#8b5cf6',   // 세액 = violet
+      },
+      fontFamily: { sans: ['Pretendard','-apple-system','Segoe UI','Malgun Gothic','sans-serif'] }
+    }}
+  };
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
+  :root{ color-scheme: dark; }
+  html,body{ margin:0; }
+  body{ background:#0F172A; color:#e2e8f0;
+    font-family:'Pretendard',-apple-system,'Segoe UI','Malgun Gothic',sans-serif; line-height:1.5; word-break:keep-all; }
+  .fb-wrap{ max-width:1180px; margin:0 auto; padding:16px; }
+  .fb-card{ background:#1e293b; border:1px solid #334155; border-radius:14px; padding:16px; }
+  button{ cursor:pointer; font-family:inherit; color:inherit; }
+  a{ color:#38bdf8; }
+  /* 공통 유틸 */
+  .tx-fade{ transition: opacity .2s ease, transform .2s ease; }
+  .tx-chip:focus-visible, .tx-node:focus-visible, .tx-hot:focus-visible{ outline:3px solid #38bdf8; outline-offset:2px; }
+  .tx-scroll::-webkit-scrollbar{ height:9px; width:9px; }
+  .tx-scroll::-webkit-scrollbar-thumb{ background:#475569; border-radius:8px; }
+  .tx-scroll::-webkit-scrollbar-track{ background:#1e293b; }
+  /* 모달 진입 */
+  .tx-modal-card{ animation: txpop .18s ease; }
+  @keyframes txpop{ from{ opacity:0; transform:translateY(10px) scale(.98);} to{ opacity:1; transform:none;} }
+  /* 플로우 커넥터 */
+  .tx-connector{ flex:0 0 28px; display:flex; align-items:center; justify-content:center; color:#475569; }
+</style>
+</head>
+<body class="bg-[#0F172A] text-slate-200 min-h-screen antialiased">
+
+<!-- ====== HERO ====== -->
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0F172A]">
+  <div class="max-w-[1180px] mx-auto px-4 py-5">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-semibold tracking-wider text-sky-400">
+          <i class="fa-solid fa-cubes-stacked"></i><span>PROJECT #9 · 무역과 물류</span>
+        </div>
+        <h1 class="mt-1 text-2xl font-bold text-white sm:text-3xl">TradeLogix Nexus
+          <span class="text-slate-500 font-medium">/ 통관 넥서스</span></h1>
+        <p class="mt-1 text-sm text-slate-400">
+          <i class="fa-solid fa-anchor mr-1 text-slate-500"></i>
+          Part 1. <b class="text-slate-200">통관 마스터</b> (Customs Clearance Core) · 부산항 통관 인터랙티브</p>
+      </div>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div id="typeTabs" class="flex rounded-xl bg-slate-800/70 p-1 ring-1 ring-slate-700" role="tablist" aria-label="통관 유형 선택"></div>
+        <div id="portToggle" class="flex items-center gap-2"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1180px] mx-auto px-4 py-6 space-y-6">
+
+  <!-- ====== 1. 프로세스 히트맵 & 플로우차트 + 스플릿 뷰포트 ====== -->
+  <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-4 sm:p-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-route text-sky-400"></i> 통관 프로세스 히트맵 &amp; 플로우차트</h2>
+      <p id="flowMeta" class="text-xs text-slate-400"></p>
+    </div>
+    <!-- 히트맵(SVG) -->
+    <div class="mt-3 overflow-x-auto tx-scroll"><svg id="heatmap" class="block" width="100%" height="64" role="img" aria-label="통관 단계 위험 히트맵"></svg></div>
+    <!-- 플로우차트: desktop(가로 노드맵) / mobile(세로 stepper) — 이중 렌더 -->
+    <div id="flowDesktop" class="mt-2 hidden md:flex items-stretch overflow-x-auto tx-scroll pb-2" role="list" aria-label="통관 플로우차트(데스크탑)"></div>
+    <div id="flowMobile" class="mt-2 md:hidden flex flex-col gap-2" role="list" aria-label="통관 플로우차트(모바일)"></div>
+    <!-- 스플릿 뷰포트 -->
+    <div id="viewport" class="mt-4 grid gap-3 lg:grid-cols-2"></div>
+  </section>
+
+  <!-- ====== 2. Incoterms 2020 매트릭스 + 분기점 게이지 ====== -->
+  <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-4 sm:p-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-handshake-angle text-emerald-400"></i> Incoterms 2020 — 비용/위험 분기점</h2>
+      <p class="text-xs text-slate-400">규칙 클릭 → 매도인·매수인 책임 분기 시각화</p>
+    </div>
+    <div id="incotermGrid" class="mt-3 grid gap-3 lg:grid-cols-2"></div>
+    <div id="incotermDetail" class="mt-4"></div>
+  </section>
+
+  <!-- ====== 3. 수입신고필증 인스펙터 / 수출·반송 보조패널 + 세액 카드 ====== -->
+  <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-4 sm:p-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 id="docTitle" class="text-lg font-bold text-white flex items-center gap-2"></h2>
+      <p id="docHint" class="text-xs text-slate-400"></p>
+    </div>
+    <div id="docBody" class="mt-3"></div>
+  </section>
+
+</main>
+
+<footer class="max-w-[1180px] mx-auto px-4 pb-10 pt-2 text-xs text-slate-500">
+  <p>TradeLogix Nexus · Part 1 통관 마스터 — 교육용 인터랙티브. 수치·코드·업체명은 학습용 예시이며 실제 신고·세율·요건을 대체하지 않습니다.
+  관세평가·가산세·과세표준은 관세법/부가가치세법, Incoterms는 ICC 2020 기준.</p>
+</footer>
+
+<!-- 모달 루트(닫힘 시 비움) -->
+<div id="modalRoot" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   TradeLogix Nexus · Part 1 통관 마스터
+   상태머신 v2 + 데이터 주도 lazy 렌더 (R3 계약 / §9 Acceptance Gate 준수)
+   ========================================================================= */
+
+/* ---------- 보세창고(예시 노드/공식명 분리) ---------- */
+const DB = {};
+DB.warehouses = {
+  north: { label:'부산항 북항', items:[
+    { name:'세방 보세창고', note:'종합물류·일반보세창고(예시 노드)' },
+    { name:'동방 우암물류', note:'우암부두 배후 보세장치장(예시 노드)' },
+    { name:'BPA 지정보세창고', note:'부산항만공사 지정보세구역(예시 노드)' },
+  ]},
+  new: { label:'부산항 신항', items:[
+    { name:'HJNC 배후물류단지', note:'한진부산컨테이너터미널 배후단지(예시 노드)' },
+    { name:'세방부산신항물류센터', note:'신항 종합물류센터(예시 노드)' },
+    { name:'DWL글로벌', note:'신항 배후 보세물류(예시 노드)' },
+    { name:'BIDC', note:'부산신항 국제물류센터(예시 노드)' },
+  ]},
+};
+
+/* ---------- 플로우 노드 (통관유형별, 전 노드 동일 필드 밀도) ----------
+   필드: id,label,stage,heat,summary,law,busanPractice,risk,checklist[],docs[],delayTrigger
+   bonded:true 노드는 렌더 시 현재 port의 보세창고를 busanPractice에 합성        */
+DB.flow = {
+  import: [
+    { id:'arrival', label:'입항', stage:'반입', heat:'low',
+      summary:'본선이 부산항에 입항하고 적하목록(Manifest)이 세관에 전자제출된다.',
+      law:'관세법상 입항보고·적하목록 제출 의무. House/Master B/L 단위로 화물관리번호(MRN/MSN) 부여.',
+      busanPractice:'선사·포워더가 EDI로 적하목록 신고. 적하목록 정정은 반입 전후 시한·사유 제한이 있어 품명·중량 오류가 뒤 단계로 전이된다.',
+      risk:'적하목록 품명/수량 오류 → 하선신고·보세운송 단계에서 불일치로 지연.',
+      checklist:['적하목록 제출','화물관리번호 확인','위험물/냉동 등 특수화물 사전통보'],
+      docs:['적하목록(Manifest)','B/L'], delayTrigger:'적하목록 미제출·오류' },
+    { id:'discharge', label:'하선', stage:'반입', heat:'low',
+      summary:'컨테이너를 본선에서 부두(CY)로 양하하고 하선신고가 수리된다.',
+      law:'하선신고 수리 후 보세구역(부두 CY 등)으로 반입. 하선 장소 지정.',
+      busanPractice:'신항은 자동화 터미널(ATC) 양하, 북항은 일반부두 혼재. LCL은 CFS 작업이 추가된다.',
+      risk:'양하 지연·터미널 혼잡(피크) 시 반입 지연, 디머리지/체화 위험.',
+      checklist:['하선신고','CY/CFS 구분','컨테이너 상태(damage) 확인'],
+      docs:['하선신고','컨테이너 반입예정정보'], delayTrigger:'터미널 혼잡·하선신고 지연' },
+    { id:'btransport', label:'보세운송', stage:'이송', heat:'mid',
+      summary:'관세 미납 상태의 보세화물을 다른 보세구역(내륙 보세창고 등)으로 운송한다.',
+      law:'보세운송 신고/승인(관세법). 운송기한 내 도착지 보세구역 반입 의무.',
+      busanPractice:'부두 직반출(부두통관) vs 내륙 보세창고 반입 선택. 보세운송업체·차량·봉인(seal) 관리.',
+      risk:'운송기한 도과·경로 이탈·봉인 훼손 → 보세운송 위반, 관세 추징·과태료.',
+      checklist:['보세운송 신고','운송기한 확인','봉인 무결성'],
+      docs:['보세운송신고서'], delayTrigger:'보세운송 기한 도과' },
+    { id:'storage', label:'보세창고 장치', stage:'장치', heat:'high', bonded:true,
+      summary:'보세구역(보세창고)에 화물을 장치하고 반입신고한다. 통관 대기 거점.',
+      law:'특허보세구역 장치. 반입일·장치기간 관리, 장치기간 도과 시 매각 대상.',
+      busanPractice:'장치장 부호로 신고필증에 기재된다. 검사 대상 시 적출·재포장 비용이 화주 부담.',
+      risk:'장치기간(원칙 6개월±) 도과 → 장치기간경과화물 매각/과태료. 보관료 누적.',
+      checklist:['반입신고','장치장 부호 확인','장치기간 모니터'],
+      docs:['반입신고','보세구역 반입계'], delayTrigger:'장치기간 도과·검사대상 지정' },
+    { id:'decl', label:'수입신고', stage:'신고', heat:'mid',
+      summary:'세번(HS)·과세가격·세율을 확정해 수입신고(전자)한다.',
+      law:'관세법상 수입신고. 신고납부 원칙(자진신고·자진납부). 품목분류·관세평가 적용.',
+      busanPractice:'관세사 신고 일반적. P/L(서류제출 생략)·서류제출·검사 대상으로 분기된다.',
+      risk:'세번 오류(품목분류) → 세율 차이 추징. 과세가격 저가신고 → 관세평가 추징.',
+      checklist:['세번부호 확정','과세가격 산정','관세율/감면/FTA 검토'],
+      docs:['수입신고서','인보이스','패킹리스트','B/L','원산지증명(해당시)'], delayTrigger:'서류 미비·세번 다툼' },
+    { id:'inspection', label:'검사·심사', stage:'심사', heat:'high',
+      summary:'세관이 서류심사 또는 물품검사(C/S 선별)로 신고 적정성을 확인한다.',
+      law:'우범도(C/S) 기반 선별검사. 관세평가·품목분류 사전심사 제도 연계.',
+      busanPractice:'검사 지정 시 보세창고에서 개장검사, X-ray, 시료채취. 검사비·작업료 화주 부담.',
+      risk:'미신고/허위신고 적발 → 가산세·벌칙. 검사 지정만으로도 반출 지연.',
+      checklist:['C/S 결과 확인','검사입회','요건(세관장확인) 구비'],
+      docs:['요건확인서(식약처/전기 등 해당시)'], delayTrigger:'물품검사 지정·요건 미구비' },
+    { id:'payment', label:'납세(관세·부가세)', stage:'납세', heat:'high',
+      summary:'관세·부가가치세 등 제세를 산정·납부한다(신고납부).',
+      law:'관세 = 과세가격 × 관세율. 부가세 과세표준 = 과세가격 + 관세 + 내국세(개소세 등).',
+      busanPractice:'사전납부/사후납부(담보), 월별 납부 등 납부방식 선택. FTA 적용 시 협정세율.',
+      risk:'세액 과소 → ① 신고불성실(과소신고) 가산세 부족세액 10%(부정행위 40%) + ② 납부지연 가산세(미납일수 일할). 두 성격을 분리.',
+      checklist:['세액 산정','감면/FTA 적용','납부방식 선택'],
+      docs:['납부서','감면/분할납부 신청(해당시)'], delayTrigger:'담보 미설정·세액 다툼' },
+    { id:'permit', label:'신고수리', stage:'수리', heat:'mid',
+      summary:'세관이 수입신고를 수리하면 수입신고필증이 발급된다.',
+      law:'수리 시점에 내국물품화. 수리 전 반출은 원칙 금지(수리전반출 별도 승인).',
+      busanPractice:'수리와 동시에 신고필증 출력. 사후 정정(보정·수정신고·경정청구) 경로 존재.',
+      risk:'수리 후 오류 발견 시 수정신고(가산세) 또는 경정청구로만 정정 가능.',
+      checklist:['신고필증 수령','기재사항 검증','사후정정 필요성 판단'],
+      docs:['수입신고필증'], delayTrigger:'수리 보류(추가심사)' },
+    { id:'gateout', label:'반출(국내반입)', stage:'반출', heat:'low',
+      summary:'수리된 화물을 보세구역에서 반출해 국내로 반입한다.',
+      law:'반출신고. 수리 후 일정기간 내 반출(보관료·체화 방지).',
+      busanPractice:'반출 차량 배차·게이트 반출. 미반출 화물은 보관료가 계속 누적된다.',
+      risk:'수리 후 장기 미반출 → 보관료 누적, 보세구역 운영자와 분쟁.',
+      checklist:['반출신고','배차','보관료 정산'],
+      docs:['반출신고'], delayTrigger:'배차 지연·보관료 미정산' },
+  ],
+  export: [
+    { id:'edecl', label:'수출신고', stage:'신고', heat:'mid',
+      summary:'수출물품의 세번·신고가격·목적국을 전자신고한다.',
+      law:'관세법상 수출신고. 원칙 적재 전 신고. 신고가격은 FOB 기준이 일반적.',
+      busanPractice:'관세사/자가 신고. P/L 또는 검사 대상 분기. 전략물자·요건 대상 사전확인.',
+      risk:'세번/수량 오류, 전략물자 허가 누락 → 신고정정·적재 지연·벌칙.',
+      checklist:['세번부호','신고가격(FOB)','전략물자/요건 확인'],
+      docs:['수출신고서','인보이스','패킹리스트'], delayTrigger:'요건/허가 미비' },
+    { id:'epermit', label:'신고수리', stage:'수리', heat:'low',
+      summary:'수출신고가 수리되면 수출신고필증이 발급된다.',
+      law:'수리일로부터 적재의무기한(원칙 30일) 내 적재해야 한다.',
+      busanPractice:'수리 후 적재지(부두)로 이동. 적재 전 정정은 신고정정으로 처리.',
+      risk:'적재의무기한(30일) 도과 → 과태료, 신고 효력 문제.',
+      checklist:['수출신고필증 수령','적재의무기한 관리'],
+      docs:['수출신고필증'], delayTrigger:'수리 보류' },
+    { id:'eload-in', label:'적재지 반입/보세운송', stage:'이송', heat:'mid', bonded:true,
+      summary:'수출화물을 적재지(부두 CY/CFS) 또는 보세구역으로 반입·보세운송한다.',
+      law:'적재지 반입신고. 보세운송 시 운송기한·봉인 관리.',
+      busanPractice:'LCL은 CFS 혼재 작업. 부두 반입예정정보(COPINO) 연계.',
+      risk:'반입 지연·터미널 컷오프(마감) 도과 → 선적 누락(롤오버).',
+      checklist:['적재지 반입','컷오프 확인','보세운송(해당시)'],
+      docs:['반입신고','보세운송신고(해당시)'], delayTrigger:'컷오프 도과·터미널 혼잡' },
+    { id:'loading', label:'적재(선적)', stage:'적재', heat:'mid',
+      summary:'본선에 화물을 적재하고 적재신고가 이뤄진다.',
+      law:'적재신고/적재확인. 적하목록과 일치해야 한다.',
+      busanPractice:'터미널 본선 작업 스케줄에 따라 적재. 선적서류(B/L) 발행 연계.',
+      risk:'적재 누락·과적, 적하목록 불일치 → 정정·환급 차질.',
+      checklist:['적재신고','B/L 확인','적하목록 일치'],
+      docs:['선적지시서(S/R)','B/L'], delayTrigger:'본선 스케줄 변경' },
+    { id:'departure', label:'출항', stage:'반출', heat:'low',
+      summary:'본선이 출항하고 수출이행이 확정된다.',
+      law:'출항보고. 수출이행 정보가 환급/사후관리의 기준이 된다.',
+      busanPractice:'출항 후 선적완료(On Board) B/L 확정. 네고(매입) 서류 준비.',
+      risk:'출항 지연·환적 누락 → 신용장(L/C) 선적기일 도과 위험.',
+      checklist:['출항 확인','On Board B/L','선적기일(L/C) 점검'],
+      docs:['On Board B/L'], delayTrigger:'출항 지연' },
+    { id:'refund', label:'관세환급·사후정산', stage:'사후', heat:'mid',
+      summary:'수출용 원재료 수입 시 납부한 관세를 환급(관세환급특례법)받는다.',
+      law:'개별환급/간이정액환급. 소요량 산정·수출이행 증빙 기반.',
+      busanPractice:'환급은 수출이행 후 신청. 소요량·원재료 수입신고필증 매칭이 핵심.',
+      risk:'소요량 과다·증빙 부실 → 환급 부인·추징. 환급 신청기한 도과.',
+      checklist:['환급방식 선택','소요량 산정','수출이행 증빙'],
+      docs:['환급신청서','수출이행 증빙','원재료 수입신고필증'], delayTrigger:'증빙 부실·기한 도과' },
+  ],
+  return: [
+    { id:'rstorage', label:'보세구역 장치', stage:'장치', heat:'high', bonded:true,
+      summary:'수입통관 전(원수입 미통관) 보세구역에 장치된 외국물품을 반송 대상으로 둔다.',
+      law:'반송은 외국물품을 수입통관하지 않고 다시 국외로 반출하는 절차(관세법).',
+      busanPractice:'미통관 상태에서 장치. 장치기간·보관료가 계속되므로 반송 결정이 빠를수록 유리.',
+      risk:'장치기간 도과·결정 지연 → 보관료 누적, 매각 대상화.',
+      checklist:['미통관 상태 확인','반송 사유 정리','장치기간 점검'],
+      docs:['반입내역','B/L'], delayTrigger:'반송 결정 지연' },
+    { id:'rdecl', label:'반송신고', stage:'신고', heat:'mid',
+      summary:'반송 사유·거래구분과 함께 반송신고를 한다.',
+      law:'반송신고(관세법). 단순반송·위약물품 반송·중계무역 등 사유 구분.',
+      busanPractice:'사유에 따라 증빙이 다르다(계약서·하자 입증·중계 계약 등).',
+      risk:'사유·거래구분 오류 → 반송 부인 또는 수입통관 전환 요구.',
+      checklist:['반송 사유 확정','거래구분 선택','증빙 구비'],
+      docs:['반송신고서','계약/하자 증빙'], delayTrigger:'사유 증빙 미비' },
+    { id:'rreview', label:'심사', stage:'심사', heat:'high',
+      summary:'세관이 반송 요건·사유의 적정성을 심사한다.',
+      law:'반송 요건 심사. 필요 시 물품검사. 수출입 요건(전략물자 등) 연계.',
+      busanPractice:'위약물품 반송은 하자 입증, 중계무역은 계약 정합성 확인이 관건.',
+      risk:'요건 미충족 → 반송 불가, 수입통관/폐기로 전환되며 비용 증가.',
+      checklist:['요건 충족 확인','검사 입회(해당시)'],
+      docs:['요건확인서(해당시)'], delayTrigger:'물품검사·요건 다툼' },
+    { id:'rloading', label:'적재', stage:'적재', heat:'mid',
+      summary:'반송 수리 후 국외 반출을 위해 본선에 적재한다.',
+      law:'반송 적재. 적하목록·적재신고 일치.',
+      busanPractice:'반송 화물의 재선적 스케줄·목적지(원수출국/제3국) 확인.',
+      risk:'적재 누락·목적지 오류 → 재반송/추가 비용.',
+      checklist:['적재신고','목적지 확인','적하목록 일치'],
+      docs:['선적지시서','B/L'], delayTrigger:'재선적 스케줄 지연' },
+    { id:'rout', label:'반출(국외)', stage:'반출', heat:'low',
+      summary:'반송물품이 출항해 국외로 반출되며 반송이 종결된다.',
+      law:'출항·반출 확인으로 반송 이행 완료.',
+      busanPractice:'반송 이행 증빙 보관(사후관리·세무 대비).',
+      risk:'반출 미이행/증빙 누락 → 사후 관세·가산세 리스크.',
+      checklist:['출항 확인','반송이행 증빙 보관'],
+      docs:['On Board B/L'], delayTrigger:'출항 지연' },
+  ],
+};
+
+/* ---------- Incoterms 2020 (8필드 구조체, destinationUnloading={obligation,note}) ---------- */
+DB.incoterms = {
+  EXW:{ code:'EXW', name:'공장인도', mode:'any',  riskPct:5,  costPct:5,
+    deliveryEvent:'매도인 구내에서 물품을 매수인 처분하에 둠(미적재)', riskTransferEvent:'매도인 구내(인도 시)',
+    sellerCostUntil:'매도인 구내', exportClearanceBy:'buyer', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'n/a', note:'매도인 구내 인도 — 목적지 하역 개념 없음'},
+    insuranceMinimum:'none', gotcha:'매수인이 수출통관까지 부담 — 실무상 매수인 부담 과중' },
+  FCA:{ code:'FCA', name:'운송인인도', mode:'any', riskPct:20, costPct:20,
+    deliveryEvent:'지정장소에서 매수인 지정 운송인에게 인도(매도인 구내면 적재, 그 외면 미하역)', riskTransferEvent:'운송인 인도 시',
+    sellerCostUntil:'인도지점', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'n/a', note:'출발지/지정장소 인도'},
+    insuranceMinimum:'none', gotcha:'인도장소에 따라 적재책임 달라짐 · 2020: 본선적재 표기 B/L 옵션' },
+  CPT:{ code:'CPT', name:'운송비지급인도', mode:'any', riskPct:25, costPct:85,
+    deliveryEvent:'최초 운송인에게 인도', riskTransferEvent:'최초 운송인 인도(출발지)',
+    sellerCostUntil:'목적지(운임 매도인 부담)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'conditional', note:'원칙 매수인. 운임에 양하비 포함(Liner) 시 운송계약 귀속'},
+    insuranceMinimum:'none', gotcha:'비용≠위험: 위험은 출발지, 비용은 목적지까지' },
+  CIP:{ code:'CIP', name:'운송비·보험료지급인도', mode:'any', riskPct:25, costPct:85,
+    deliveryEvent:'최초 운송인에게 인도', riskTransferEvent:'최초 운송인 인도(출발지)',
+    sellerCostUntil:'목적지(운임+보험 매도인)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'conditional', note:'CPT와 동일(보험 추가)'},
+    insuranceMinimum:'ICC(A)', gotcha:'2020 개정: 보험 ICC(A) 전위험으로 상향(CIF는 ICC(C))' },
+  DAP:{ code:'DAP', name:'도착지인도', mode:'any', riskPct:90, costPct:90,
+    deliveryEvent:'목적지 도착 운송수단 위에서 양하 준비된 채 인도', riskTransferEvent:'목적지(하역 전)',
+    sellerCostUntil:'목적지(하역 전)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'conditional', note:'규칙상 매수인 하역. 단 운송계약상 매도인이 양하비 부담했으면 별도 합의 없는 한 회수 불가'},
+    insuranceMinimum:'none', gotcha:'수입통관·관세는 매수인 부담' },
+  DPU:{ code:'DPU', name:'도착지양하인도', mode:'any', riskPct:92, costPct:92,
+    deliveryEvent:'목적지에서 양하(하역) 완료 후 인도', riskTransferEvent:'목적지(하역 후)',
+    sellerCostUntil:'목적지(하역 포함)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'seller', note:'유일하게 매도인이 하역 의무 — DAP와의 핵심 구분점'},
+    insuranceMinimum:'none', gotcha:'Incoterms 중 유일하게 매도인이 목적지 하역까지 책임' },
+  DDP:{ code:'DDP', name:'관세지급인도', mode:'any', riskPct:95, costPct:100,
+    deliveryEvent:'목적지 도착 운송수단 위에서 양하 준비된 채 인도', riskTransferEvent:'목적지',
+    sellerCostUntil:'수입통관·관세까지 전부', exportClearanceBy:'seller', importClearanceBy:'seller',
+    destinationUnloading:{obligation:'conditional', note:'DAP와 동일 하역구조(+수입통관·관세 매도인). 하역은 매수인 원칙·운송계약 조건부'},
+    insuranceMinimum:'none', gotcha:'매도인 최대 의무 — 수입관세·통관까지 부담' },
+  FAS:{ code:'FAS', name:'선측인도', mode:'sea', riskPct:35, costPct:35,
+    deliveryEvent:'지정 선적항 본선 선측(alongside)에 물품 적치', riskTransferEvent:'선측 적치 시',
+    sellerCostUntil:'선측', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'n/a', note:'선측 인도(선적항)'},
+    insuranceMinimum:'none', gotcha:'본선 적재 전에 위험 이전' },
+  FOB:{ code:'FOB', name:'본선인도', mode:'sea', riskPct:40, costPct:40,
+    deliveryEvent:'지정 선적항에서 본선에 적재', riskTransferEvent:'본선 적재 시',
+    sellerCostUntil:'본선 적재', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'n/a', note:'본선 적재 인도'},
+    insuranceMinimum:'none', gotcha:'비용=위험 일치(본선 적재 시점)' },
+  CFR:{ code:'CFR', name:'운임포함인도', mode:'sea', riskPct:40, costPct:85,
+    deliveryEvent:'선적항 본선에 적재', riskTransferEvent:'본선 적재(출발지)',
+    sellerCostUntil:'목적항(운임 매도인)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'conditional', note:'원칙 매수인. 운임 양하비 포함 여부 따름'},
+    insuranceMinimum:'none', gotcha:'비용≠위험: 위험은 본선적재, 비용은 목적항까지' },
+  CIF:{ code:'CIF', name:'운임·보험료포함인도', mode:'sea', riskPct:40, costPct:85,
+    deliveryEvent:'선적항 본선에 적재', riskTransferEvent:'본선 적재(출발지)',
+    sellerCostUntil:'목적항(운임+보험 매도인)', exportClearanceBy:'seller', importClearanceBy:'buyer',
+    destinationUnloading:{obligation:'conditional', note:'CFR과 동일(보험 추가)'},
+    insuranceMinimum:'ICC(C)', gotcha:'2020: 보험 최소담보 ICC(C)(CIP는 ICC(A)). 비용≠위험' },
+};
+DB.incotermGroups = [
+  { key:'any', label:'복합운송 (모든 운송수단)', codes:['EXW','FCA','CPT','CIP','DAP','DPU','DDP'] },
+  { key:'sea', label:'해상·내수로 전용', codes:['FAS','FOB','CFR','CIF'] },
+];
+
+/* ---------- 수입신고필증 10대 항목 ---------- */
+DB.declFields = [
+  { id:'f1', label:'① 신고번호 & 신고일자', sample:'12345-26-100000U / 2026.06.04',
+    meaning:'수입신고를 식별하는 고유번호와 신고 접수일. 신고번호는 세관·연도·일련번호 체계로 구성된다.',
+    risk:'신고일자는 적용 환율·세율·법령의 기준 시점. 정정 시 신고번호 추적성이 핵심.' },
+  { id:'f2', label:'② 납세의무자', sample:'(주)○○상사 / 통관고유부호 OOSANG1234',
+    meaning:'관세·부가세 납부 의무를 지는 화주(수입자). 통관고유부호로 식별된다.',
+    risk:'명의대여·실수입자 불일치 → 납세의무·환급 분쟁, 관세조사 트리거.' },
+  { id:'f3', label:'③ 거래구분 & 적출국', sample:'거래구분 11(일반거래 예시) / 적출국 CN',
+    meaning:'거래의 형태 코드와 물품이 선적된 국가(적출국). 적출국은 원산지와 다를 수 있다.',
+    risk:'거래구분 코드는 관세청 고시 별표 기준 — 잘못 선택 시 통계·환급·검증 오류. 적출국≠원산지 혼동 주의.' },
+  { id:'f4', label:'④ 운송수단 & B/L 번호', sample:'선박 / MBL: ABCD1234567 · HBL: H-998877',
+    meaning:'운송수단(선박/항공)과 선하증권 번호. Master/House B/L로 화물을 추적한다.',
+    risk:'B/L 번호 오기 → 적하목록·반입정보 불일치로 반입/검사 지연.' },
+  { id:'f5', label:'⑤ 반입일자 및 장치장 코드', sample:'2026.06.03 / 장치장 03012345(예시)',
+    meaning:'보세구역 반입일과 장치장(보세구역) 식별코드. 장치기간 기산점.',
+    risk:'장치기간 도과 → 매각/과태료. 장치장 코드 오류는 반출입 정합성 문제.' },
+  { id:'f6', label:'⑥ 세번부호 (HS Code 10자리)', sample:'8471.30-0000 (HSK 10단위, 교육용 예시)',
+    meaning:'품목분류 번호. HS 6자리(국제 공통) + 한국 4자리(HSK) = 10단위. 세율·요건의 기준.',
+    risk:'품목분류 오류 → 세율 차이로 추징/환급. 예시 번호는 실제 세율·요건과 무관(교육용).' },
+  { id:'f7', label:'⑦ 품명 및 규격', sample:'노트북 컴퓨터 / 14" · CPU · RAM 등 상업규격',
+    meaning:'물품의 상업적 명칭과 규격. 품목분류·과세가격·요건 판단의 사실 기초.',
+    risk:'규격 누락/모호 → 품목분류 다툼, 관세평가(유사물품 비교) 곤란.' },
+  { id:'f8', label:'⑧ 결제금액 (거래조건)', sample:'CIF USD 50,000.00',
+    meaning:'송품장상 결제금액과 인도조건(Incoterms, 예: CIF/FOB). 과세가격 산정의 출발점.',
+    risk:'인도조건에 따라 가산/공제 요소가 달라짐(FOB면 운임·보험 가산). 가격조작 시 평가 추징.' },
+  { id:'f9', label:'⑨ 과세가격 (원화 CIF)', sample:'₩66,000,000 (적용환율 × CIF 거래가격)',
+    meaning:'관세 부과 기준액. 거래가격(1방법) = 송품장가 + 가산요소(운임·보험·로열티 등) − 공제요소. 한국은 CIF 기반.',
+    risk:'저가신고/가산요소(로열티·금형비) 누락 → 관세평가 추징. 특수관계자 거래는 거래가격(1방법) 부인 → 2~6방법(동종·동질 → 유사 → 국내판매(공제) → 산정 → 합리적 기준) 순차 적용.' },
+  { id:'f10', label:'⑩ 세액 산정 (관세·부가세 등)', sample:'관세 8% + 부가세 10% → 산출 카드 참조',
+    meaning:'관세 = 과세가격 × 관세율. 부가세 과세표준 = 과세가격 + 관세 + 내국세(개소세 등). 아래 산출 카드에서 read-only 예시.',
+    risk:'세액 과소 → 신고불성실(과소신고) 가산세(부족세액 10%, 부정행위 40%) + 납부지연 가산세(미납일수 일할). 두 가산세는 성격이 다르다(과소신고 제재 vs 지연이자).' },
+];
+
+/* ---------- 세액 read-only 산출 카드 (계산 예시) ---------- */
+DB.dutyCard = {
+  note:'계산 예시 — 실제 신고 산출 대체물이 아님. 샘플 1건 기준 read-only.',
+  base:[
+    { label:'과세가격(원화 CIF)', val:'₩66,000,000', cls:'text-slate-200', formula:'거래가격(1방법) + 가산요소 − 공제요소' },
+    { label:'적용 관세율(예시)', val:'8%', cls:'text-slate-200', formula:'세번부호별 세율 — 예시값(실세율 아님)' },
+  ],
+  steps:[
+    { label:'관세', val:'₩5,280,000', cls:'text-cost', formula:'과세가격 × 관세율 = 66,000,000 × 8%' },
+    { label:'개별소비세 등 내국세', val:'₩0', cls:'text-slate-400', formula:'해당 품목만 — 예시는 미해당' },
+    { label:'부가세 과세표준', val:'₩71,280,000', cls:'text-tax', formula:'과세가격 + 관세 + 내국세 = 66,000,000 + 5,280,000 + 0' },
+    { label:'부가가치세', val:'₩7,128,000', cls:'text-tax', formula:'과세표준 × 10% = 71,280,000 × 10%' },
+  ],
+  total:{ label:'총 납부세액(예시)', val:'₩12,408,000', formula:'관세 + 내국세 + 부가세' },
+  disclaimer:'품목별 세율·감면·FTA 특혜·개별소비세 산정은 본 카드에서 계산하지 않으며 실무 리스크로 분리한다.',
+};
+
+/* ---------- 수출/반송 보조패널 (수입신고필증 자리 대체) ---------- */
+DB.altPanel = {
+  export:{ title:'수출신고필증 요약', icon:'fa-file-export',
+    rows:[
+      { k:'신고수리·필증', v:'수출신고 수리 시 수출신고필증 발급. 내국물품의 외국물품화.' },
+      { k:'적재의무기한', v:'수리일로부터 원칙 30일 내 적재. 도과 시 과태료.' },
+      { k:'영세율', v:'수출은 부가가치세 영세율(0%) 적용 — 매입세액은 환급.' },
+      { k:'관세환급', v:'수출용 원재료 수입 시 납부 관세를 환급(개별/간이정액).' },
+      { k:'신고가격', v:'일반적으로 FOB 기준 신고가격. Incoterms에 따라 운임·보험 포함 여부 상이.' },
+    ],
+    risk:'전략물자 허가 누락, 적재의무기한 도과, 환급 소요량 과다가 주요 리스크.' },
+  return:{ title:'반송 사유·거래구분', icon:'fa-rotate-left',
+    rows:[
+      { k:'전제', v:'수입통관하지 않은(미통관) 외국물품을 다시 국외로 반출.' },
+      { k:'단순반송', v:'주문 착오·재고 조정 등으로 원상태 반출.' },
+      { k:'위약물품 반송', v:'계약 상이·하자 물품 반송 — 하자/계약 불일치 입증 필요.' },
+      { k:'중계무역', v:'국내 통관 없이 제3국으로 중계 — 계약 정합성 확인.' },
+      { k:'거래구분', v:'사유별 거래구분 코드 선택(관세청 고시 별표 기준).' },
+    ],
+    risk:'사유 증빙 부실 시 반송 부인 → 수입통관/폐기 전환으로 비용 급증.' },
+};
+
+/* ================= 상태머신 v2 ================= */
+const S = { customsType:'import', port:'new', incoterm:null, activeNode:null, modalField:null };
+
+function setState(patch){
+  const prevType = S.customsType, prevPort = S.port;
+  Object.assign(S, patch);
+  // reset 규칙: 통관유형 변경 → 노드·모달 초기화 / 포트 변경 → 노드 초기화 (incoterm은 직교 → 유지)
+  if (patch.customsType && patch.customsType !== prevType){ S.activeNode = null; S.modalField = null; }
+  if (patch.port && patch.port !== prevPort){ S.activeNode = null; }
+  render();
+}
+
+const TYPES = [
+  { key:'import', label:'수입통관', en:'Import', accent:'emerald', icon:'fa-arrow-down-to-bracket' },
+  { key:'export', label:'수출통관', en:'Export', accent:'sky',     icon:'fa-arrow-up-from-bracket' },
+  { key:'return', label:'반송통관', en:'Return', accent:'amber',   icon:'fa-rotate-left' },
+];
+const ACCENT = {
+  emerald:{ on:'bg-emerald-500 text-slate-900', dot:'text-emerald-400' },
+  sky:    { on:'bg-sky-500 text-slate-900',     dot:'text-sky-400' },
+  amber:  { on:'bg-amber-500 text-slate-900',   dot:'text-amber-400' },
+};
+const HEAT = {
+  high:{ bg:'#f43f5e', ring:'ring-rose-500/40', label:'고위험' },
+  mid: { bg:'#f59e0b', ring:'ring-amber-500/40', label:'중위험' },
+  low: { bg:'#10b981', ring:'ring-emerald-500/40', label:'저위험' },
+};
+
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+
+/* 현재 통관유형+포트의 플로우 노드(bonded 노드에 포트 보세창고 합성) */
+function currentNodes(){
+  const wh = DB.warehouses[S.port];
+  return DB.flow[S.customsType].map(n=>{
+    if(!n.bonded) return n;
+    const list = wh.items.map(w=>w.name).join(' · ');
+    return Object.assign({}, n, {
+      busanPractice: n.busanPractice + ` 〔${wh.label} 보세창고 예시: ${list}〕`,
+      docs: n.docs,
+    });
+  });
+}
+
+/* ================= 렌더 ================= */
+function render(){ renderHero(); renderFlow(); renderViewport(); renderIncoterm(); renderDoc(); }
+
+function renderHero(){
+  $('typeTabs').innerHTML = TYPES.map(t=>{
+    const on = S.customsType===t.key;
+    return `<button role="tab" aria-selected="${on}" aria-label="${t.label}"
+      class="tx-chip px-3 sm:px-4 py-2 rounded-lg text-sm font-bold tx-fade ${on?ACCENT[t.accent].on:'text-slate-300 hover:text-white'}"
+      data-type="${t.key}"><i class="fa-solid ${t.icon} mr-1"></i>${t.label}</button>`;
+  }).join('');
+  $('typeTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>setState({customsType:b.dataset.type}));
+
+  const ports=[{k:'north',l:'북항'},{k:'new',l:'신항'}];
+  $('portToggle').innerHTML =
+    `<span class="text-xs text-slate-400 mr-1">부산항</span>`+
+    `<div class="flex rounded-lg bg-slate-800/70 p-1 ring-1 ring-slate-700" role="group" aria-label="부산항 터미널 선택">`+
+    ports.map(p=>{ const on=S.port===p.k;
+      return `<button class="tx-chip px-3 py-1.5 rounded-md text-xs font-bold tx-fade ${on?'bg-slate-200 text-slate-900':'text-slate-300'}"
+        aria-pressed="${on}" aria-label="부산항 ${p.l}" data-port="${p.k}">${p.l}</button>`; }).join('')+
+    `</div>`;
+  $('portToggle').querySelectorAll('button').forEach(b=>b.onclick=()=>setState({port:b.dataset.port}));
+}
+
+function renderFlow(){
+  const nodes = currentNodes();
+  const t = TYPES.find(x=>x.key===S.customsType);
+  $('flowMeta').textContent = `${t.label} · ${DB.warehouses[S.port].label} · ${nodes.length}개 노드`;
+
+  // 히트맵(SVG)
+  const W=Math.max(nodes.length*120, 600), seg=W/nodes.length;
+  $('heatmap').setAttribute('viewBox',`0 0 ${W} 64`);
+  $('heatmap').innerHTML = nodes.map((n,i)=>{
+    const h=HEAT[n.heat], on=S.activeNode===n.id, x=i*seg;
+    return `<g class="tx-node" role="listitem" tabindex="0" data-node="${n.id}" style="cursor:pointer">
+      <rect x="${x+3}" y="10" width="${seg-6}" height="44" rx="8" fill="${h.bg}" opacity="${on?1:0.82}"
+        stroke="${on?'#fff':'transparent'}" stroke-width="${on?2:0}"></rect>
+      <text x="${x+seg/2}" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">${esc(n.label)}</text>
+      <text x="${x+seg/2}" y="46" text-anchor="middle" font-size="10" fill="#0f172a" opacity="0.75">${esc(h.label)}</text>
+    </g>`;
+  }).join('');
+  $('heatmap').querySelectorAll('.tx-node').forEach(g=>{
+    g.onclick=()=>setState({activeNode:g.dataset.node});
+    g.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setState({activeNode:g.dataset.node}); } };
+  });
+
+  // desktop 노드맵
+  $('flowDesktop').innerHTML = nodes.map((n,i)=>{
+    const on=S.activeNode===n.id, h=HEAT[n.heat];
+    const node=`<button class="tx-node flex-shrink-0 w-[150px] min-h-[88px] text-left rounded-xl p-3 tx-fade ring-1 ${on?'bg-slate-700 ring-sky-400':'bg-slate-800/80 '+h.ring+' hover:bg-slate-700'}"
+      aria-label="${esc(n.label)} 단계 상세" data-node="${n.id}">
+      <div class="flex items-center gap-1.5"><span class="inline-block w-2 h-2 rounded-full" style="background:${h.bg}"></span>
+      <span class="text-[11px] text-slate-400">${esc(n.stage)}</span></div>
+      <div class="mt-1 text-sm font-bold text-white">${esc(n.label)}</div>
+      <div class="mt-1 text-[11px] text-slate-400 line-clamp-2">${esc(n.summary)}</div></button>`;
+    const arrow = i<nodes.length-1 ? `<div class="tx-connector"><i class="fa-solid fa-chevron-right"></i></div>` : '';
+    return node+arrow;
+  }).join('');
+  // mobile stepper
+  $('flowMobile').innerHTML = nodes.map((n,i)=>{
+    const on=S.activeNode===n.id, h=HEAT[n.heat];
+    return `<button class="tx-node w-full min-h-[56px] text-left rounded-xl p-3 tx-fade ring-1 flex items-start gap-3 ${on?'bg-slate-700 ring-sky-400':'bg-slate-800/80 ring-slate-700'}"
+      aria-label="${esc(n.label)} 단계 상세" data-node="${n.id}">
+      <span class="flex-shrink-0 w-6 h-6 rounded-full grid place-items-center text-[11px] font-bold text-slate-900" style="background:${h.bg}">${i+1}</span>
+      <span><span class="text-sm font-bold text-white">${esc(n.label)}</span>
+      <span class="block text-[11px] text-slate-400">${esc(n.stage)} · ${esc(n.summary)}</span></span></button>`;
+  }).join('');
+
+  [...$('flowDesktop').querySelectorAll('.tx-node'), ...$('flowMobile').querySelectorAll('.tx-node')]
+    .forEach(b=>b.onclick=()=>setState({activeNode:b.dataset.node}));
+}
+
+function renderViewport(){
+  const vp=$('viewport');
+  if(!S.activeNode){
+    vp.innerHTML = `<div class="lg:col-span-2 rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
+      <i class="fa-solid fa-hand-pointer mr-1"></i> 위 플로우 노드를 클릭하면 <b class="text-slate-300">관세법 이론</b> vs <b class="text-slate-300">부산항 실무·리스크</b>가 열립니다.</div>`;
+    return;
+  }
+  const n = currentNodes().find(x=>x.id===S.activeNode);
+  if(!n){ vp.innerHTML=''; return; }
+  vp.innerHTML = `
+    <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-4">
+      <div class="text-xs font-bold text-sky-400 mb-1"><i class="fa-solid fa-scale-balanced mr-1"></i>관세법 이론</div>
+      <h3 class="text-base font-bold text-white">${esc(n.label)} <span class="text-xs font-normal text-slate-500">· ${esc(n.stage)}</span></h3>
+      <p class="mt-2 text-sm text-slate-300">${esc(n.summary)}</p>
+      <p class="mt-2 text-sm text-slate-400"><b class="text-slate-300">법적 근거:</b> ${esc(n.law)}</p>
+      <div class="mt-3"><div class="text-xs font-bold text-slate-400 mb-1">체크리스트</div>
+        <ul class="space-y-1 text-sm text-slate-300">${n.checklist.map(c=>`<li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i>${esc(c)}</li>`).join('')}</ul></div>
+    </div>
+    <div class="rounded-xl bg-gradient-to-br from-rose-950/40 to-slate-800/60 ring-1 ring-rose-500/30 p-4">
+      <div class="text-xs font-bold text-rose-400 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>부산항 실무 &amp; 리스크</div>
+      <p class="mt-1 text-sm text-slate-300">${esc(n.busanPractice)}</p>
+      <div class="mt-3 rounded-lg bg-rose-950/40 ring-1 ring-rose-500/30 p-3">
+        <div class="text-xs font-bold text-rose-300 mb-1">리스크</div>
+        <p class="text-sm text-slate-200">${esc(n.risk)}</p></div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        ${n.docs.map(d=>`<span class="text-[11px] px-2 py-1 rounded bg-slate-700/70 text-slate-300"><i class="fa-regular fa-file-lines mr-1"></i>${esc(d)}</span>`).join('')}
+      </div>
+      <p class="mt-3 text-xs text-amber-300"><i class="fa-solid fa-clock mr-1"></i>지연 트리거: ${esc(n.delayTrigger)}</p>
+    </div>`;
+}
+
+function renderIncoterm(){
+  const grid=$('incotermGrid');
+  grid.innerHTML = DB.incotermGroups.map(g=>`
+    <div class="rounded-xl bg-slate-800/40 ring-1 ring-slate-700 p-3">
+      <div class="text-xs font-bold text-slate-400 mb-2">${esc(g.label)}</div>
+      <div class="flex flex-wrap gap-2">
+        ${g.codes.map(c=>{ const on=S.incoterm===c;
+          return `<button class="tx-chip px-3 py-2 rounded-lg text-sm font-bold tx-fade ring-1 ${on?'bg-emerald-500 text-slate-900 ring-emerald-400':'bg-slate-900/60 text-slate-200 ring-slate-700 hover:ring-emerald-500/50'}"
+            aria-pressed="${on}" aria-label="Incoterms ${c} ${esc(DB.incoterms[c].name)}" data-code="${c}">${c}</button>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('button').forEach(b=>b.onclick=()=>setState({incoterm:b.dataset.code}));
+
+  const d=$('incotermDetail');
+  if(!S.incoterm){ d.innerHTML=`<div class="rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
+    <i class="fa-solid fa-arrow-pointer mr-1"></i> 11개 규칙 중 하나를 선택하면 <b class="text-cost">비용</b>·<b class="text-risk">위험</b> 분기점 게이지가 표시됩니다.</div>`; return; }
+  const it=DB.incoterms[S.incoterm];
+  const insBadge = it.insuranceMinimum==='none' ? '보험 의무 없음'
+    : `보험 ${it.insuranceMinimum} (${it.insuranceMinimum==='ICC(A)'?'전위험':'최소담보'})`;
+  const ob={seller:'매도인',buyer:'매수인',conditional:'조건부(운송계약)',['n/a']:'해당없음'}[it.destinationUnloading.obligation];
+  d.innerHTML = `
+    <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-4">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h3 class="text-lg font-bold text-white">${it.code} <span class="text-sm font-normal text-slate-400">· ${esc(it.name)}</span></h3>
+        <span class="text-[11px] px-2 py-1 rounded bg-slate-700 text-slate-300">${it.mode==='sea'?'해상·내수로 전용':'복합운송(모든 수단)'}</span>
+      </div>
+      <!-- 게이지: 매도인 → 매수인 -->
+      <div class="mt-4">
+        <div class="flex justify-between text-[11px] text-slate-400 mb-1"><span>매도인(SELLER)</span><span>매수인(BUYER)</span></div>
+        <div class="relative h-9 rounded-full bg-gradient-to-r from-emerald-900/40 via-slate-700/40 to-rose-900/40 ring-1 ring-slate-600">
+          <div class="absolute top-0 bottom-0 -translate-x-1/2 flex flex-col items-center" style="left:${it.costPct}%">
+            <span class="w-1 h-9 bg-cost rounded"></span></div>
+          <div class="absolute top-0 bottom-0 -translate-x-1/2 flex flex-col items-center" style="left:${it.riskPct}%">
+            <span class="w-1 h-9 bg-risk rounded"></span></div>
+        </div>
+        <div class="flex gap-4 mt-2 text-xs">
+          <span class="text-cost"><i class="fa-solid fa-coins mr-1"></i>비용 분기 (매도인 비용 종점)</span>
+          <span class="text-risk"><i class="fa-solid fa-bolt mr-1"></i>위험 분기 (위험 이전 지점)</span>
+        </div>
+        ${it.costPct!==it.riskPct?`<p class="mt-2 text-xs text-amber-300"><i class="fa-solid fa-circle-info mr-1"></i>C-텀 특성: 위험은 일찍(출발지), 비용은 늦게(목적지) 이전 — 비용≠위험 분리.</p>`:`<p class="mt-2 text-xs text-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i>비용·위험 분기점 일치.</p>`}
+      </div>
+      <!-- 8필드 구조체 -->
+      <div class="mt-4 grid sm:grid-cols-2 gap-2 text-sm">
+        ${[
+          ['인도(delivery)', it.deliveryEvent],
+          ['위험 이전(risk)', it.riskTransferEvent],
+          ['매도인 비용 종점(cost)', it.sellerCostUntil],
+          ['수출통관(export)', it.exportClearanceBy==='seller'?'매도인':'매수인'],
+          ['수입통관(import)', it.importClearanceBy==='seller'?'매도인':'매수인'],
+          ['목적지 하역(unloading)', `${ob} — ${it.destinationUnloading.note}`],
+          ['최소 보험(insurance)', insBadge],
+        ].map(([k,v])=>`<div class="rounded-lg bg-slate-900/50 ring-1 ring-slate-700 p-2.5">
+          <div class="text-[11px] text-slate-500">${esc(k)}</div><div class="text-slate-200">${esc(v)}</div></div>`).join('')}
+      </div>
+      <div class="mt-3 rounded-lg bg-amber-950/30 ring-1 ring-amber-500/30 p-3 text-sm text-amber-200">
+        <i class="fa-solid fa-lightbulb mr-1"></i><b>핵심:</b> ${esc(it.gotcha)}</div>
+    </div>`;
+}
+
+function renderDoc(){
+  const title=$('docTitle'), hint=$('docHint'), body=$('docBody');
+  if(S.customsType==='import'){
+    title.innerHTML = `<i class="fa-solid fa-file-invoice-dollar text-violet-400"></i> 수입신고필증 인스펙터`;
+    hint.textContent='항목 클릭 → 의미 & 실무 리스크';
+    body.innerHTML = `
+      <div class="grid sm:grid-cols-2 gap-2">
+        ${DB.declFields.map(f=>`<button class="tx-hot text-left rounded-lg bg-slate-800/70 ring-1 ring-slate-700 hover:ring-violet-500/60 p-3 tx-fade"
+          aria-label="${esc(f.label)} 상세" data-field="${f.id}">
+          <div class="text-sm font-bold text-white">${esc(f.label)}</div>
+          <div class="mt-1 text-[12px] text-slate-400 font-mono">${esc(f.sample)}</div></button>`).join('')}
+      </div>
+      ${dutyCardHTML()}`;
+    body.querySelectorAll('[data-field]').forEach(b=>b.onclick=()=>openModal(b.dataset.field));
+  } else {
+    const p=DB.altPanel[S.customsType];
+    title.innerHTML = `<i class="fa-solid ${p.icon} text-violet-400"></i> ${esc(p.title)}`;
+    hint.textContent = S.customsType==='export' ? '수입신고필증 자리 — 수출 보조패널' : '수입신고필증 자리 — 반송 보조패널';
+    body.innerHTML = `
+      <div class="grid gap-2">
+        ${p.rows.map(r=>`<div class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 p-3">
+          <div class="text-sm font-bold text-white">${esc(r.k)}</div>
+          <div class="mt-0.5 text-sm text-slate-300">${esc(r.v)}</div></div>`).join('')}
+      </div>
+      <div class="mt-3 rounded-lg bg-rose-950/30 ring-1 ring-rose-500/30 p-3 text-sm text-rose-200">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i>${esc(p.risk)}</div>`;
+  }
+}
+
+function dutyCardHTML(){
+  const c=DB.dutyCard;
+  return `<div class="mt-4 rounded-xl bg-gradient-to-br from-violet-950/40 to-slate-800/60 ring-1 ring-violet-500/30 p-4">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <div class="text-sm font-bold text-white"><i class="fa-solid fa-calculator mr-1 text-violet-300"></i>세액 산출 카드</div>
+      <span class="text-[11px] px-2 py-1 rounded bg-violet-500/20 text-violet-200">read-only · ${esc(c.note)}</span>
+    </div>
+    <div class="mt-3 grid sm:grid-cols-2 gap-2">
+      ${c.base.map(r=>rowHTML(r)).join('')}
+    </div>
+    <div class="mt-2 space-y-1">
+      ${c.steps.map(r=>rowHTML(r)).join('')}
+    </div>
+    <div class="mt-3 flex items-center justify-between rounded-lg bg-slate-900/60 ring-1 ring-violet-500/30 p-3">
+      <span class="text-sm text-slate-300">${esc(c.total.label)}</span>
+      <span class="text-lg font-bold text-violet-200">${esc(c.total.val)}</span>
+    </div>
+    <p class="mt-2 text-[11px] text-slate-500">부가세 과세표준 = 과세가격 + 관세 + 내국세(개소세·주세·교육세·농특세·교통세 중 해당분). ${esc(c.disclaimer)}</p>
+  </div>`;
+}
+function rowHTML(r){
+  return `<div class="flex items-center justify-between gap-3 rounded-lg bg-slate-900/40 ring-1 ring-slate-700 p-2.5">
+    <span class="text-sm ${r.cls||'text-slate-300'}">${esc(r.label)}
+      <span class="block text-[11px] text-slate-500 font-normal">${esc(r.formula)}</span></span>
+    <span class="text-sm font-bold ${r.cls||'text-slate-200'}">${esc(r.val)}</span></div>`;
+}
+
+/* ================= 모달 (open 생성 · close 제거) ================= */
+function openModal(fid){
+  S.modalField=fid;
+  const f=DB.declFields.find(x=>x.id===fid);
+  $('modalRoot').innerHTML = `
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="${esc(f.label)} 설명">
+      <div id="mBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+      <div class="tx-modal-card relative w-full max-w-lg rounded-2xl bg-slate-800 ring-1 ring-slate-600 p-5 shadow-2xl">
+        <div class="flex items-start justify-between gap-3">
+          <h3 class="text-lg font-bold text-white">${esc(f.label)}</h3>
+          <button id="mClose" class="text-slate-400 hover:text-white" aria-label="닫기"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="mt-1 text-xs text-slate-400 font-mono">${esc(f.sample)}</div>
+        <div class="mt-4 rounded-lg bg-slate-900/60 ring-1 ring-slate-700 p-3">
+          <div class="text-xs font-bold text-sky-400 mb-1"><i class="fa-solid fa-book mr-1"></i>의미 (법적 정의)</div>
+          <p class="text-sm text-slate-200">${esc(f.meaning)}</p></div>
+        <div class="mt-3 rounded-lg bg-rose-950/30 ring-1 ring-rose-500/30 p-3">
+          <div class="text-xs font-bold text-rose-300 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>실무 리스크 관리</div>
+          <p class="text-sm text-slate-200">${esc(f.risk)}</p></div>
+      </div>
+    </div>`;
+  $('mClose').onclick=closeModal; $('mBackdrop').onclick=closeModal;
+  document.addEventListener('keydown', escClose);
+  $('mClose').focus();
+}
+function closeModal(){ S.modalField=null; $('modalRoot').innerHTML=''; document.removeEventListener('keydown', escClose); }
+function escClose(e){ if(e.key==='Escape') closeModal(); }
+
+/* ================= init ================= */
+render();
+</script>
+</body>
+</html>

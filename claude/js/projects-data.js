@@ -549,10 +549,13 @@ const PROJECTS = [
     start: '2026-06-04',
     latest: '2026-06-04',
     progress: 1,
-    link: 'https://github.com/gmpark-creator/tradelogix-nexus',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-nexus/',
+    preview: { type:'embed', height:640, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-nexus/', label:'통관 마스터 — 수입·수출·반송 × 북항/신항 플로우 + Incoterms 2020 비용/위험 게이지 + 수입신고필증 인스펙터 (변증법 R1~R3 → Codex 검수 PASS)' }
+    ]},
     summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
            + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
-           + '변증법 협업(Claude 제안 ↔ Codex 반박·검수)으로 진행 — 현재 Part 1 설계(R1 Thesis) 완료, Codex 반박 대기.',
+           + '변증법 협업(Claude 제안 ↔ Codex 반박·검수) R1~R3 수렴 후 Codex 사후검수 PASS — Part 1 통관 마스터 구현 완료(라이브 프리뷰).',
     method: '단일 HTML5 + Tailwind(Play CDN) + Vanilla JS + FontAwesome로 구현. 중앙 상태머신(통관유형·항만·Incoterm·활성필드)을 '
           + '단방향 setState→render 루프로 돌리고, 인라인 SVG로 보세창고 플로우차트와 비용/위험 분기점 게이지를 그린다. 모든 텍스트 한국어, 실무급 통관·관세 콘텐츠.',
     stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS', 'FontAwesome', 'SVG'],
@@ -565,11 +568,12 @@ const PROJECTS = [
     ],
     issues: [
       { type:'완료', title:'#9 워크스페이스·레포 신설 (변증법 협업 베이스 적용)', desc:'기존 프로젝트와 분리된 독립 레포 gmpark-creator/tradelogix-nexus(private) 생성 — master(박사 베이스라인)/newton(Claude)/codex(Codex) 3 worktree 물리 격리. AGENTS.md·CODEX_SYNC.md 변증법 규약 + Part 1 R1 Thesis 영속화.' },
-      { type:'이슈', title:'Part 1 통관 마스터 R1 Thesis(설계) 완료 — Codex 반박 대기', desc:'Claude가 상태머신·4대 컴포넌트·도메인 콘텐츠·단일파일 전략을 설계(R1 Thesis)하고 공격 포인트 6개를 제시. 변증법 베이스대로 구현 전 Codex의 R1 Antithesis(반박)→IMPLEMENTATION GO 승인을 받아야 구현 착수. 구현은 Claude 단독, 이후 Codex 검수.' }
+      { type:'완료', title:'Part 1 통관 마스터 구현 완료 — 변증법 R1~R3 + Codex 검수 PASS', desc:'Claude 제안 ↔ Codex 반박 3라운드(R1·R2 BLOCK → R3 PASS·IMPLEMENTATION GO) 후 Claude 단독 구현(index.html 52KB): 상태머신 v2, 통관 3유형 동등 플로우(수입9/수출6/반송5), Incoterms 11 8필드 구조체+비용/위험 게이지, 수입신고필증 10필드 인스펙터+세액 read-only 카드(부가세 과표=과세가격+관세+내국세), desktop/mobile 이중렌더+lazy+접근성+fallback. Codex 사후검수 PASS(데이터계약 55 + Playwright headless + 390px overflow0 + 모달 생성/제거 + CDN fallback smoke). 라이브 프리뷰 배포.' }
     ],
     milestones: [
       { date:'2026-06-04', title:'프로젝트 #9 신설 — TradeLogix Nexus (무역과 물류)', desc:'지식 대시보드 시리즈 9번으로 신설. Part 1 = 통관 마스터(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증). 독립 레포·worktree 격리 셋업, 대시보드 등록.' },
-      { date:'2026-06-04', title:'Part 1 통관 마스터 — R1 Thesis(설계) 작성', desc:'변증법 협업 베이스 첫 적용 — Claude가 설계 제안(R1 Thesis) 작성·영속화. 다음 = Codex R1 Antithesis(반박) → 라운드 무제한 → Codex 구현 승인 후 Claude 단독 구현.' }
+      { date:'2026-06-04', title:'Part 1 통관 마스터 — R1 Thesis(설계) 작성', desc:'변증법 협업 베이스 첫 적용 — Claude가 설계 제안(R1 Thesis) 작성·영속화. 다음 = Codex R1 Antithesis(반박) → 라운드 무제한 → Codex 구현 승인 후 Claude 단독 구현.' },
+      { date:'2026-06-04', title:'Part 1 구현 완료 + Codex 검수 PASS (변증법 1사이클 종료)', desc:'설계 변증법 R1~R3(R1·R2 Codex BLOCK → R3 PASS·IMPLEMENTATION GO) → Claude 단독 구현(index.html) → Codex 사후검수 PASS(데이터계약 55·Playwright headless·390px·fallback). 라이브 프리뷰 대시보드 임베드. master 통합은 박사 디렉팅 대기.' }
     ]
   }
 ];
