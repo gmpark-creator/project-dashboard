@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선사 업무 · 선박 증서 도해 — 31종 증서의 종류와 용도</title>
+<style>
+  :root{
+    --ink:#0d1b2a; --ink2:#1b2a3a; --muted:#5b6b7c; --line:#e2e8f0; --line2:#eef2f7;
+    --bg:#f5f7fa; --card:#ffffff; --sea:#0e4a6e; --sea2:#12628f; --teal:#0c8a8a; --gold:#b8860b;
+    --shadow:0 1px 2px rgba(13,27,42,.04),0 8px 24px rgba(13,27,42,.06);
+    --shadow-lg:0 10px 40px rgba(13,27,42,.12);
+    --c-registry:#3a55c5; --c-class:#0c8a8a; --c-marpol:#1f9d57; --c-ism:#d08700;
+    --c-crew:#7b54d4; --c-ins:#d4435e; --c-dg:#e0671b; --c-sani:#1f93c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",
+      -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.65;
+    word-break:keep-all; overflow-wrap:break-word; letter-spacing:-.01em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:0 22px}
+  .hero{
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(18,98,143,.45), transparent 60%),
+      linear-gradient(155deg,#0a2236 0%,#0e4a6e 55%,#0c6a7d 100%);
+    color:#eaf4fb; padding:46px 0 38px; position:relative; overflow:hidden;
+  }
+  .hero::after{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:46px 46px; mask:linear-gradient(180deg,#000,transparent 80%); pointer-events:none}
+  .hero .wrap{position:relative;z-index:1}
+  .eyebrow{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#7fd3e8;font-weight:700}
+  .hero h1{font-size:clamp(26px,3.4vw,40px);font-weight:800;margin:10px 0 6px;letter-spacing:-.02em}
+  .hero h1 .sub{color:#9fe0f0}
+  .hero .lead{color:#c4dcec;max-width:760px;font-size:16px}
+  .hero .vessel-name{margin-top:18px;display:inline-flex;align-items:center;gap:12px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    padding:10px 16px;border-radius:12px;backdrop-filter:blur(6px)}
+  .vessel-name .imo{font-family:ui-monospace,Menlo,Consolas,monospace;color:#9fe0f0;font-size:13px}
+  .vessel-name b{font-size:17px;letter-spacing:.02em}
+  .stats{display:flex;flex-wrap:wrap;gap:14px;margin-top:24px}
+  .stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    border-radius:12px;padding:12px 18px;min-width:118px}
+  .stat .n{font-size:24px;font-weight:800;color:#fff;line-height:1.1}
+  .stat .l{font-size:12px;color:#a9cde0;margin-top:3px}
+  section{padding:34px 0}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .sec-head h2{font-size:21px;font-weight:800;color:var(--ink)}
+  .sec-head .ko{color:var(--muted);font-size:14px;font-weight:500}
+  .framing{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+  .frame-col{padding:24px 26px}
+  .frame-col h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .frame-col p{color:var(--muted);font-size:14px}
+  .frame-col .tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-block;margin-top:12px}
+  .frame-customs{background:linear-gradient(180deg,#fbfcfe,#f4f7fb)}
+  .frame-customs h3{color:#64748b}
+  .frame-customs .ico{filter:grayscale(.3);opacity:.7}
+  .frame-customs .tag{background:#eef2f7;color:#64748b}
+  .frame-carrier{background:linear-gradient(180deg,#f1fbfa,#e9f7f6)}
+  .frame-carrier h3{color:var(--teal)}
+  .frame-carrier .tag{background:#d6f1ee;color:#0a6e6e}
+  .frame-div{width:1px;background:var(--line);position:relative}
+  .frame-div span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    width:40px;height:40px;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--muted)}
+  .frame-note{grid-column:1/-1;border-top:1px solid var(--line2);padding:14px 26px;
+    background:#fafcfe;font-size:13.5px;color:var(--ink2)}
+  .frame-note b{color:var(--teal)}
+  .vcard{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .vcard-top{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+    padding:20px 26px;background:linear-gradient(180deg,#f8fbfd,#f1f6fa);border-bottom:1px solid var(--line)}
+  .vcard-top .vt-name{font-size:19px;font-weight:800}
+  .vcard-top .vt-name small{display:block;font-weight:500;color:var(--muted);font-size:13px;margin-top:2px}
+  .vcard-top .vt-badges{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;background:#eef4f9;color:var(--sea)}
+  .pill.ship{background:#e6f3f2;color:#0a6e6e}
+  .pill.flag{background:#fdf2e3;color:#a36a06}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0}
+  .pcell{padding:13px 18px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+  .pcell .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .pcell .v{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
+  .flagline{display:flex;gap:0;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow);padding:22px 26px;align-items:stretch}
+  .flagstep{flex:1;min-width:200px;position:relative;padding:4px 20px 4px 0}
+  .flagstep:not(:last-child)::after{content:"→";position:absolute;right:6px;top:14px;color:#cbd5e1;font-size:20px;font-weight:800}
+  .flagstep .fl-flag{font-size:13px;font-weight:800;color:var(--sea);display:flex;align-items:center;gap:7px}
+  .flagstep .fl-dot{width:11px;height:11px;border-radius:50%;background:var(--sea2);box-shadow:0 0 0 4px #e3eef5}
+  .flagstep.cur .fl-dot{background:var(--gold);box-shadow:0 0 0 4px #faedcf}
+  .flagstep.cur .fl-flag{color:var(--gold)}
+  .flagstep .fl-when{font-size:12px;color:var(--muted);margin:5px 0 0 18px}
+  .flagstep .fl-desc{font-size:13px;color:var(--ink2);margin:4px 0 0 18px}
+  .flag-explain{margin-top:14px;font-size:13.5px;color:var(--ink2);background:#fff8ec;border:1px solid #f3e2bf;
+    border-radius:12px;padding:13px 16px}
+  .flag-explain b{color:var(--gold)}
+  .controls{position:sticky;top:0;z-index:30;background:rgba(245,247,250,.9);backdrop-filter:blur(10px);
+    padding:14px 0;margin:0 -22px;border-bottom:1px solid var(--line)}
+  .controls .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+  .chip{font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink2);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .chip:hover{border-color:#cbd5e1;transform:translateY(-1px)}
+  .chip .dot{width:9px;height:9px;border-radius:50%}
+  .chip.active{color:#fff;border-color:transparent}
+  .chip.active.all{background:var(--ink)}
+  .chip .cnt{font-size:11px;opacity:.7;font-weight:600}
+  .search{position:relative}
+  .search input{border:1px solid var(--line);border-radius:999px;padding:9px 16px 9px 38px;font-size:14px;
+    width:230px;background:var(--card);color:var(--ink);outline:none;font-family:inherit}
+  .search input:focus{border-color:var(--sea2);box-shadow:0 0 0 3px rgba(18,98,143,.12)}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .group{margin-top:30px}
+  .group-head{display:flex;align-items:center;gap:11px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid}
+  .group-head .gi{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:#fff;flex-shrink:0}
+  .group-head h3{font-size:18px;font-weight:800}
+  .group-head .gko{color:var(--muted);font-size:13px;font-weight:500}
+  .group-head .gcount{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);
+    background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  .cert{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;transition:.18s;border-top:3px solid}
+  .cert:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+  .cert-head{padding:16px 18px 12px}
+  .cert-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .abbr{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:15px;color:#fff;
+    padding:5px 11px;border-radius:8px;letter-spacing:.02em;white-space:nowrap}
+  .status{margin-left:auto;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+  .status.interim{background:#fff3df;color:#b06f00}
+  .status.full{background:#e7f6ec;color:#1c8a4a}
+  .cert h4{font-size:16px;font-weight:800;color:var(--ink);line-height:1.35}
+  .cert .en{font-size:12px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.4}
+  .cert-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .mtag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f1f5f9;color:#475569}
+  .mtag.exp{background:#fef0f0;color:#c0392b}
+  .purpose{margin:0 18px;padding:13px 15px;background:linear-gradient(180deg,#f3fbfa,#ecf8f6);
+    border:1px solid #d5ede9;border-radius:11px}
+  .purpose .plabel{font-size:11px;font-weight:800;color:#0a6e6e;letter-spacing:.05em;display:flex;align-items:center;gap:6px;margin-bottom:5px}
+  .purpose p{font-size:13.5px;color:var(--ink2);line-height:1.62}
+  .cert-body{padding:14px 18px 0}
+  .field{margin-bottom:12px}
+  .field .fl{font-size:11px;font-weight:800;color:var(--sea);text-transform:uppercase;letter-spacing:.05em;
+    display:flex;align-items:center;gap:6px;margin-bottom:3px}
+  .field p{font-size:13px;color:var(--ink2);line-height:1.6}
+  .field.miss .fl{color:#c0392b}
+  .field.miss p{color:#7a3b34}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px}
+  .kv dt{color:var(--muted);font-weight:600;white-space:nowrap}
+  .kv dd{color:var(--ink2)}
+  .toggle{margin:8px 18px 16px;border:none;background:#f4f7fa;color:var(--sea);font-weight:700;
+    font-size:13px;padding:9px;border-radius:9px;cursor:pointer;font-family:inherit;width:calc(100% - 36px);
+    display:flex;align-items:center;justify-content:center;gap:7px;transition:.15s}
+  .toggle:hover{background:#e9f0f6}
+  .toggle .chev{transition:transform .2s}
+  .cert.open .toggle .chev{transform:rotate(180deg)}
+  .cert .cert-body{display:none}
+  .cert.open .cert-body{display:block}
+  .empty{text-align:center;color:var(--muted);padding:50px;font-size:15px}
+  .caveats{background:#f1f8fb;border:1px solid #cfe6f0;border-radius:18px;padding:24px 26px;margin-top:10px}
+  .caveats h3{font-size:16px;font-weight:800;color:#0a6e6e;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .caveats ul{list-style:none;display:grid;gap:11px}
+  .caveats li{font-size:13.5px;color:var(--ink2);padding-left:24px;position:relative;line-height:1.6}
+  .caveats li::before{content:"▸";position:absolute;left:2px;top:0;color:var(--teal);font-weight:800}
+  .caveats li b{color:#0a6e6e}
+  .masknote{margin-top:14px;font-size:12.5px;color:#7a6a3a;background:#fffaf0;border:1px solid #efe2c4;border-radius:11px;padding:11px 15px}
+  footer{padding:34px 0 50px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.8}
+  footer b{color:var(--ink2)}
+  @media (max-width:760px){
+    .framing{grid-template-columns:1fr}
+    .frame-div{display:none}
+    .frame-customs,.frame-carrier{border-bottom:1px solid var(--line)}
+    .controls{position:static}
+    .search input{width:100%}
+    .cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">선사 업무 · Ship Operation &amp; Management</div>
+    <h1>선박 증서 도해 <span class="sub">— 31종 선박 증서의 종류와 용도</span></h1>
+    <p class="lead">선사(선박 운항·관리회사)가 한 척의 컨테이너선을 합법적으로 운항하기 위해 갖추는 모든 증서를
+       기능별로 분류하고, 각 증서가 <b style="color:#bfe9f5">무엇을 증명하며 실무에서 어떤 용도로 쓰이는지</b> 정리했습니다.
+       이 증서들은 화물의 수출입 통관(通關)이 아니라, <b style="color:#bfe9f5">선박 자체의 운항·관리(선사 업무)</b>에 속합니다.</p>
+    <div class="vessel-name">
+      <b>예시 선박 — 국제항해 컨테이너선</b>
+      <span class="imo">15,039 GT · 1,220 TEU · 기니비사우 선적(편의치적)</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">31</div><div class="l">선박 증서</div></div>
+      <div class="stat"><div class="n">8</div><div class="l">기능 분류</div></div>
+      <div class="stat"><div class="n">25</div><div class="l">임시(Interim)증서</div></div>
+      <div class="stat"><div class="n">8+</div><div class="l">근거 국제협약</div></div>
+      <div class="stat"><div class="n">PSC</div><div class="l">항만국통제 수검 서류</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="sec-head"><h2>이 자료의 위치</h2><span class="ko">프로젝트 9번 · 통관(通關)이 아닌 「선사 업무」 카테고리</span></div>
+    <div class="framing">
+      <div class="frame-col frame-customs">
+        <h3><span class="ico">📦</span> 통관 (通關) — 화물 중심</h3>
+        <p>수출입 <b>화물</b>을 국경 넘어 반출입하기 위한 세관 절차. 수출입신고, HS 코드 분류, 관세·부가세 납부,
+           B/L·인보이스·패킹리스트, 원산지증명, 검역(식품·동식물) 등 <b>화물(cargo)</b>에 관한 업무.</p>
+        <span class="tag">이 자료의 대상이 아님</span>
+      </div>
+      <div class="frame-div"><span>VS</span></div>
+      <div class="frame-col frame-carrier">
+        <h3><span>🚢</span> 선사 업무 — 선박 중심</h3>
+        <p>선박을 <b>국적기 게양·등록</b>하고, 국제협약(SOLAS·MARPOL·MLC·ISM·ISPS 등) 기준의 안전·환경·보안·노동
+           요건을 충족시켜 <b>선박(ship)</b>을 합법적으로 운항·관리하는 업무. 아래 31종 증서가 모두 여기에 속한다.</p>
+        <span class="tag">◀ 이 자료의 대상</span>
+      </div>
+      <div class="frame-note">
+        한 컨테이너선이 항만에 입·출항하면 <b>두 갈래</b>의 서류가 작동한다. ① 실린 <b>화물</b>을 통관시키는 「통관 서류」(통관 카테고리)와,
+        ② <b>선박 자체</b>의 국적·안전·환경·보안·노동·보험 적격성을 증명하는 「선박 증서」(선사 업무 카테고리)다.
+        본 도해는 ②에 해당하는 <b>선박 증서 31종</b>을 다룬다 — 항만국통제(PSC) 수검·용선 협상·보험 부보·입출항 신고의 근거가 되는 서류들이다.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>대상 선박 (예시 제원)</h2><span class="ko">모든 증서가 공통으로 가리키는 선박 — 식별정보는 마스킹</span></div>
+    <div class="vcard">
+      <div class="vcard-top">
+        <div class="vt-name">국제항해 컨테이너선 <small>중형 피더급 · 선박 식별정보(선명·IMO·소유/관리·보험·선원)는 공개본에서 마스킹</small></div>
+        <div class="vt-badges">
+          <span class="pill ship">컨테이너선 · 1,220 TEU</span>
+          <span class="pill flag">기국 기니비사우 (편의치적)</span>
+          <span class="pill">국제 인정 선급(RO)</span>
+        </div>
+      </div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>선적(기국) 변경과 임시증서</h2><span class="ko">왜 대부분의 증서가 「임시(Interim)」인가 — 예시</span></div>
+    <div class="flagline">
+      <div class="flagstep">
+        <div class="fl-flag"><span class="fl-dot"></span> 🇨🇳 중국 (건조국)</div>
+        <div class="fl-when">건조 ~ 첫 등록 전</div>
+        <div class="fl-desc">건조국 선적으로 출발(연안 운항). 국제항해용 협약증서 본격 비치 전 단계.</div>
+      </div>
+      <div class="flagstep">
+        <div class="fl-flag"><span class="fl-dot"></span> 🇵🇦 파나마 (1차 편의치적)</div>
+        <div class="fl-when">이후 등록 말소</div>
+        <div class="fl-desc">대표적 편의치적국에 1차 등록. 이 시기 이력은 <b>CSR(연속개요기록부)</b>에 남는다.</div>
+      </div>
+      <div class="flagstep cur">
+        <div class="fl-flag"><span class="fl-dot"></span> 🇬🇼 기니비사우 (현재 기국)</div>
+        <div class="fl-when">최근 재선적 ~ 현재</div>
+        <div class="fl-desc">현재 기국. 인정 선급(RO)이 발급한 법정증서 대부분이 <b>임시(Interim/Provisional)</b>.</div>
+      </div>
+      <div class="flag-explain">
+        <b>핵심:</b> 선박이 기국을 옮기면(<b>재선적, re-flag</b>) 새 기국이 발급하는 법정증서는 정기검사 완료 전까지 정식이 아닌
+        <b>임시증서</b>로 나온다(통상 유효기간 5~6개월). 선사는 <b>만료 전 정식(Full)증서로 전환</b>해야 운항 적법성이 유지된다.
+        보험계열(P&amp;I·난파물·연료유오염)과 검역 증서는 1년/면제형 정식으로, CSR은 직전 선적기의 이력 기록으로 별도 관리된다.
+      </div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="wrap">
+      <div class="chips" id="chips"></div>
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="search" placeholder="증서·약어·협약 검색…">
+      </div>
+    </div>
+  </div>
+
+  <section id="certRoot" style="padding-top:14px"></section>
+
+  <section>
+    <div class="sec-head"><h2>증서 운용 — 핵심 포인트</h2><span class="ko">선사 업무 실무에서 기억할 일반 원칙</span></div>
+    <div class="caveats">
+      <h3>⚓ 선박 증서 운용의 일반 원칙</h3>
+      <ul>
+        <li><b>임시증서는 만료 전 정식 전환</b> — 재선적·신조 인수 직후 발급되는 임시(Interim)증서는 유효기간(5~6개월)이 짧다. 만료 전 정기검사를 받아 정식(Full)증서로 전환하지 않으면 항만국통제(PSC) 억류·출항금지로 이어진다.</li>
+        <li><b>선급증서가 모든 법정증서의 전제</b> — 선박이 인정 선급에 정상 입급(in class)되어 있어야 SOLAS 안전증서·만재흘수선·MARPOL 등 법정증서가 유효하다. 입급 정지 시 연쇄 무효화된다.</li>
+        <li><b>회사 DOC ↔ 선박 SMC 연계</b> — 선박의 안전관리증서(SMC)는 관리회사의 적합증서(DOC)가 유효해야만 효력을 갖는다. 둘은 항상 함께 비치·제시된다.</li>
+        <li><b>CSR 연속성</b> — 연속개요기록부(CSR)는 선적·소유·관리 변경 시마다 새 호수로 끊김 없이 이어져야 한다. 재선적 시 신·구 기국 간 이력 인계가 필수다.</li>
+        <li><b>재정보증 증서와 보험자 적격성</b> — P&amp;I·난파물제거(WRC)·연료유오염(BCC) 등 재정보증 증서는 협약 가입국 입항의 필수 요건이다. 일부 항만국은 국제그룹(IG) P&amp;I 클럽이 발급한 Blue Card를 선호·요구하므로 보증자 적격성을 사전 확인한다.</li>
+        <li><b>증서 정보 정합성</b> — 증서 간 IMO 번호·선명·톤수·선종 표기가 일치해야 한다. 불일치(오기)는 PSC 지적 사유가 되므로 발급기관에 정정 요청한다.</li>
+      </ul>
+      <div class="masknote">🔒 <b>마스킹 안내:</b> 본 공개본은 선박 식별정보(선명·IMO·호출부호·MMSI), 소유·나용선·관리회사명과 주소, 보험증권번호·보험사·보장한도, 선원·발급담당자 인명, 증서 일련번호 등 상업·개인정보를 제거하고, <b>증서의 종류·용도·근거협약·기능 분류</b>(교육적 내용)만 남긴 버전입니다.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <b>선사 업무 · 선박 증서 도해</b> — 국제항해 컨테이너선의 선박 증서 31종 분류·용도 정리 (공개 마스킹본)<br>
+    프로젝트 9번 「선사 업무」 카테고리 · 통관(通關) 카테고리와 구분 · 자급식(self-contained) 단일 HTML<br>
+    <span style="color:#94a3b8">실제 증서 PDF에서 추출한 증서 종류·용도 정보를 일반화해 정리 · 식별·상업·개인정보 마스킹 적용</span>
+  </div>
+</footer>
+
+<script>
+/* ============ 선박 제원 (마스킹: 식별정보 제거, 일반 제원만) ============ */
+const PARTICULARS = [
+  ["선종","컨테이너선 (1,220 TEU)"], ["기국 / 선적","기니비사우 (편의치적)"],
+  ["선급(Class)","국제 인정 선급(RO)"], ["건조","2023년 · 중국 조선소"],
+  ["총톤수 / 순톤수","15,039 / 8,433"], ["재화중량(DWT)","약 24,280 MT"],
+  ["전장(LOA) / 수선간장(LPP)","149.8 m / 143.7 m"], ["폭(B) / 깊이(D)","23.96 m / 13.80 m"],
+  ["하기만재흘수 / 건현","10.49 m / 3.33 m"], ["주기관","저속 디젤 1기 · 약 4,400 kW"],
+  ["보조기관","디젤 발전기 3기"], ["속력 / 정원","11.0 kn / 20명"],
+  ["평형수처리(BWMS)","여과 + 자외선(UV) 방식"], ["GMDSS 항행구역","A1 + A2 + A3 (원양)"],
+];
+
+/* ============ 분류(그룹) 정의 ============ */
+const GROUPS = {
+  registry:{label:"등록 · 국적 · 톤수",ko:"선박이 누구의 것이고 어느 나라 국적인지 — 모든 증서의 출발점",icon:"🪪",color:"var(--c-registry)"},
+  classConstruction:{label:"선급 · 구조 · 안전 · 통신",ko:"선박이 안전하게 항해할 수 있는가 (SOLAS · 만재흘수선 · GMDSS)",icon:"🛟",color:"var(--c-class)"},
+  marpol:{label:"해양환경 오염방지",ko:"기름·대기·평형수·오수·방오·쓰레기 — MARPOL 등 환경협약",icon:"🌊",color:"var(--c-marpol)"},
+  ismIsps:{label:"안전관리 · 보안",ko:"회사·선박의 안전관리체제(ISM)와 보안체제(ISPS)",icon:"🛡️",color:"var(--c-ism)"},
+  crewLabour:{label:"선원 · 배승 · 노동",ko:"최소 승무정원과 선원 노동·생활 조건",icon:"👨‍✈️",color:"var(--c-crew)"},
+  insurance:{label:"보험 · 재정보증",ko:"오염·난파·배상 책임을 담보하는 재무보증",icon:"💰",color:"var(--c-ins)"},
+  dangerousGoods:{label:"위험물 운송",ko:"컨테이너 위험물(IMDG) 적재 자격",icon:"☣️",color:"var(--c-dg)"},
+  sanitation:{label:"검역 · 위생",ko:"입항 검역 통과를 위한 선박 위생 증명",icon:"🩺",color:"var(--c-sani)"},
+};
+const GROUP_ORDER = ["registry","classConstruction","marpol","ismIsps","crewLabour","insurance","dangerousGoods","sanitation"];
+
+/* ============ 증서 데이터 (31종 · 마스킹본) ============ */
+const CERTS = [
+/* ---- 등록·국적·톤수 ---- */
+{g:"registry",abbr:"RP",st:"interim",ko:"임시 선박등록증서 (가등록 국적증서)",en:"Provisional Certificate of Registry",
+ issuer:"기국 선박등록청",behalf:"기국(기니비사우) 정부 직접 발급",
+ basis:"기국 선박등록청 운영규정 · UNCLOS 1982 제91·94조(국적·기국 관할)",
+ exp:"약 6개월 (임시)", issued:"기국 등록 시",
+ certifies:"선박이 기국 선박등록청에 임시 등록되어 그 나라 국적을 적법하게 취득했음을 증명한다. 국적·선적항·선박식별정보·소유관계(등록선주 + 나용선자)·선박제원·선급을 국가가 공인하는, 정식 등록증 발급 전 한시 국적증명 문서다.",
+ purpose:"선박이 국적기를 적법하게 게양하고 국제항해를 할 수 있는 가장 기본적인 국적증명서. 입출항 시 항만당국·세관·도선·대리점에 제출하는 1순위 서류이자 PSC 수검 시 가장 먼저 확인되는 국적·소유권·톤수의 원천. 용선계약·보험 부보·항비 산정·무선국 허가의 기초가 된다.",
+ miss:"국적 미증명 시 무국적선으로 간주되어 어느 항만에도 입항 불가·출항금지·억류. 다른 모든 협약증서의 발급 근거가 사라져 전체 증서체계가 무효화된다.",
+ vessel:"임시 국적증명 · 정식 등록증 발급 전 한시 유효 · 호출부호/MMSI 배정의 기초"},
+
+{g:"registry",abbr:"ITC",st:"interim",ko:"국제톤수증서 (1969)",en:"International Tonnage Certificate (1969)",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"1969 선박톤수측정 국제협약 (Tonnage Convention 1969)",
+ exp:"약 5개월 (임시)", issued:"기국 등록 시",
+ certifies:"선박의 총톤수(GT 15,039)와 순톤수(NT 8,433)가 1969 톤수측정협약에 따라 산정되었음을 증명한다. 톤수 산입 공간(선수루·갑판실·해치커버·화물창)과 제외 공간, 여객정원, 몰드흘수를 명기한다.",
+ purpose:"선박의 공식 톤수를 증명하는 기본 신분증서. 입출항 신고와 항만사용료·도선료·예선료·운하통항료(수에즈·파나마)·등록세 산정의 근거가 된다. 다른 SOLAS·MARPOL·MLC 협약의 적용 여부와 안전설비 요건이 모두 이 톤수를 기준으로 결정되므로 반드시 유효해야 한다.",
+ miss:"미보유·실효 시 PSC 결함·출항정지. 입항신고·항만료 산정 근거가 없어 정상 입출항이 거부되고, 타 법정증서의 적용 판정과 등록 자체가 무효화될 수 있다.",
+ vessel:"GT 15,039 / NT 8,433 · L 143.80 × B 23.96 × D 13.80 m · 화물창 3개"},
+
+{g:"registry",abbr:"CSR 1",st:"full",ko:"연속개요기록부 (제1호 문서)",en:"Continuous Synopsis Record — Document No.1",
+ issuer:"직전 기국 해사청 (파나마)",behalf:"직전 기국 정부 직접 발급",
+ basis:"SOLAS 1974 제XI-1장 제5규칙 (Continuous Synopsis Record)",
+ exp:"만료 없음(누적 기록)", issued:"1차 편의치적 등록 시",
+ certifies:"선박의 등록 이력과 운항 주체의 연속 개요를 증명하는 공식 기록부. 제1호 문서는 직전 편의치적국(파나마) 등록 시점의 선주·나용선자·ISM회사·선급과 직전 기국(건조국) 정보를 기재한다.",
+ purpose:"SOLAS XI-1/5에 따라 선상에 상시 비치하는 필수 이력 문서. 입출항·PSC 수검 시 선적·선주·나용선·ISM회사·선급 변경 이력을 끊김 없이 입증한다. 선박 매매 실사·기국 변경·용선 협상에서 선박의 진정한 이력을 추적하는 근거가 된다.",
+ miss:"미비치·연속성 단절 시 SOLAS XI-1/5 위반으로 PSC 결함·억류. 선박 신원·이력 입증 불가로 입항 거부·기국 변경·매각 절차 지연을 초래한다.",
+ vessel:"직전 편의치적 등록기 기록 · 나용선 등록기간 명기 · 직전 기국 = 건조국"},
+
+{g:"registry",abbr:"CSR 2",st:"full",ko:"연속개요기록부 (제2호 문서)",en:"Continuous Synopsis Record — Document No.2",
+ issuer:"직전 기국 해사청 (파나마)",behalf:"직전 기국 정부 직접 발급",
+ basis:"SOLAS 1974 제XI-1장 제5규칙 · IMO Res. A.959(23)·MSC.198(80)",
+ exp:"만료 없음(누적 기록)", issued:"직전 기국 말소 시",
+ certifies:"CSR 연속 시리즈의 제2호 문서로, 선박이 직전 편의치적국(파나마) 등록에서 말소(ceased to be registered)되었음을 기록한다. 즉 직전 선적기간의 종료를 확정하는 이력 단면이다.",
+ purpose:"선상 CSR 파일에 시간순으로 비치하여 소유·관리·선급·기국 변경 이력을 연속 입증한다. 본 문서는 직전 기국 말소를 담은 기록으로, 새 기국 재선적·관리회사 변경 시 신·구 기국 간 인계와 새 CSR 발행의 근거가 된다. 용선·매매(S&P) 협상에서 깨끗한 이력을 증빙한다.",
+ miss:"CSR 누락·불연속 시 SOLAS XI-1/5 위반으로 PSC 결함·억류. 말소 이력 문서가 없으면 재선적·매각 절차가 지연되고 새 기국으로의 이력 인계가 불가능하다.",
+ vessel:"직전 기국 말소 시점 기록 · 이후 현재 기국 신규 CSR로 연속"},
+
+/* ---- 선급·구조·안전·통신 ---- */
+{g:"classConstruction",abbr:"CLASS",st:"interim",ko:"선급증서 (임시)",en:"Class Certificate (Interim)",
+ issuer:"국제 인정 선급(RO)",behalf:"선급 자체 권한 (법정증서 아님)",
+ basis:"선급규칙 「Rules for the Classification and Construction of Ships」 Ch.1",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"선급 검사관 검사 결과 본선의 선체·기관·의장·배치가 선급규칙에 적합함을 증명하고, 선체 선급부호 H·기관 선급부호 M을 부여한다. 즉 본선이 선급 구조·기관 기준을 만족해 「입급(in class)」되어 있음을 인증한다.",
+ purpose:"모든 법정증서(SOLAS 안전증서·만재흘수선·MARPOL 등)의 전제가 되는 핵심 기반증서. PSC 수검 시 감항성·입급 유효성을 증명하며, 정기용선 계약에서 용선주가 요구하는 「정상 입급(in class) 유지」를 입증한다. 선체보험(H&M)·P&I 효력 유지의 조건이기도 하다.",
+ miss:"입급 정지(class suspended) 시 PSC 중대결함·억류. 연계된 SOLAS·만재흘수선 등 법정증서가 함께 무효화되어 출항금지, 용선 해지·보험 무효로 이어진다.",
+ vessel:"선급부호 선체 H · 기관 M · 추가부호 없음"},
+
+{g:"classConstruction",abbr:"SC",st:"interim",ko:"화물선 안전구조증서 (임시)",en:"Cargo Ship Safety Construction Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 74/88 제II-1장(구조·기관·전기) · 제II-2장(방화구조)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"선체 구조·기관(추진·보조기계)·전기설비의 상태가 SOLAS II-1·II-2장(소화설비 제외) 요건에 적합함을 인증한다. 규칙 I/10 검사를 받았고 구조·설비 상태가 만족스러우며, 선저외판 검사 이력을 명기한다.",
+ purpose:"선박의 감항성(seaworthiness)을 증명하는 핵심 서류. PSC 수검 시 안전 3대 증서(구조·설비·무선) 중 구조 부문으로 제시하고, 용선 인도 시 적법·안전한 선박임을 입증하는 근거가 된다.",
+ miss:"미보유·실효 시 PSC 중대결함·억류·출항금지. 감항성 미입증으로 용선료 손실(off-hire)·해지, 선체보험·P&I 무효로 이어진다.",
+ vessel:"양식 CSSC-IC · 면제증서 미발급 · 선저외판검사 이력 명기"},
+
+{g:"classConstruction",abbr:"SE",st:"interim",ko:"화물선 안전설비증서 (임시) · 설비기록부(Form E) 첨부",en:"Cargo Ship Safety Equipment Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 74/88 제III장(구명설비·LSA Code)·제IV·V장(무선·항해)·제II-2장(방화)·COLREG",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"화물선이 SOLAS상 요구되는 안전설비(구명·소방·항해·신호)를 적합하게 갖추었음을 증명한다. 첨부 설비기록부(Form E)에 실제 탑재 내역 기재 — 완전밀폐형 구명정 양현 각 1척, 구조정 1척, 구명뗏목 2개, 구명부환·구명동의·방수복, 자이로컴퍼스·ECDIS·레이더 2대·ARPA·AIS·VDR·BNWAS·LRIT 등.",
+ purpose:"PSC 검사관이 최우선으로 확인하는 SOLAS 핵심 증서. 미보유·실효·설비 미비 시 결함·억류 사유. 용선·입항허가·보험 부보 시 감항성 증빙으로 제출되고, Form E는 비상시 구명·소방 자원 현황 확인 자료가 된다.",
+ miss:"미보유·실효 시 PSC 중대결함·억류·입항거부. SOLAS 위반으로 기국·항만국 처벌, 용선 거부·해지, 사고 시 보험 면책·무효.",
+ vessel:"구명정 정원 20명 · 항해장비 대부분 PROVIDED · 5페이지(본문+Form E)"},
+
+{g:"classConstruction",abbr:"SR",st:"interim",ko:"화물선 안전무선증서 (임시) · 무선설비기록부(Form R) 첨부",en:"Cargo Ship Safety Radio Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 74/88 제IV장(무선통신 GMDSS) · 항행구역 A1+A2+A3",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 SOLAS IV장(GMDSS) 무선통신 설비 요건을 충족함을 증명한다. VHF·MF 무선설비(DSC·무선전화), 인정 위성지구국(SES), 조난경보 2차수단·MSI 수신설비·EPIRB·휴대형 VHF·레이더 SART가 PROVIDED. 설비 가용성은 이중화+육상정비로 확보(MF/HF 미탑재).",
+ purpose:"SOLAS 화물선 4대 핵심 안전증서 중 무선 부문. 미보유·실효 시 출항 불가. A1+A2+A3 인증으로 연안~원양 전 구역 운항 자격을 보유함을 입증하고, 조난·안전통신·위성통신 능력으로 해상안전 체계 편입·보험 요건을 충족한다.",
+ miss:"미보유·실효 시 PSC 중대결함·억류·출항금지. 무선설비 부적합 시 조난·안전통신 불능으로 보험 담보가 제한·무효화될 수 있다.",
+ vessel:"항행구역 A1+A2+A3 · 무선 유자격자 최소 2명 · 3페이지(본문+Form R)"},
+
+{g:"classConstruction",abbr:"ILL",st:"interim",ko:"국제만재흘수선증서 (임시)",en:"International Load Line Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"1966 만재흘수선협약(LL 1966) + 1988 의정서 · 제14조(검사)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"검사 결과 건현(freeboard)이 협약에 따라 지정되고 만재흘수선(load line) 표시가 선체에 올바르게 마킹되었음을 증명한다. 열대(T)·하기(S)·동기(W) 건현 수치와 청수보정을 명기. 해역·계절별 안전 최대흘수를 인증해 과적을 방지한다.",
+ purpose:"선박의 합법적 최대 적재흘수선을 입증해 화물 적부계획(loading plan)을 결정한다. 용선자·검수인이 적재가능 화물량(deadweight, draft survey)을 산정하는 근거로, 용선계약 이행·정산의 기준이 된다.",
+ miss:"미보유·만료·과적(흘수선 초과) 적발 시 PSC 주요결함·출항금지·억류. 협약 위반 행정처분·벌금, 용선 적격 위반·보험 면책으로 이어진다.",
+ vessel:"선박길이 L 143.80 m · 하기건현 약 3,330 mm · 신조선 · 양식 ILLC-IC"},
+
+{g:"classConstruction",abbr:"SSL",st:"interim",ko:"임시 선박 무선국 허가장",en:"Provisional Ship's Radio Station License",
+ issuer:"기국 통신주관청 (선박등록청)",behalf:"기국 정부 (통신주관청)",
+ basis:"SOLAS 제IV장(GMDSS) · ITU 국제무선규칙(Radio Regulations)",
+ exp:"약 6개월 (임시)", issued:"기국 등록 시",
+ certifies:"본선이 GMDSS 기준에 따라 무선설비를 적법하게 설치·운용할 수 있는 무선국으로 인가되었음을 증명한다. 호출부호·MMSI 번호를 정식 배정하고, 운용 가능 해역으로 A1+A2+A3를 지정. 무선회계기관(AAIC)을 명시한다.",
+ purpose:"선박의 VHF/MF/HF·위성 무선통신설비를 합법적으로 운용할 권한을 부여한다. 배정된 호출부호·MMSI로 조난통신·VTS/항만 관제 교신·AIS 운용이 이루어져 실제 항해·접안에 직접 사용된다. PSC 수검 시 GMDSS 설비 적법성 입증의 필수 서류.",
+ miss:"미보유 시 SOLAS IV장·ITU 무선규칙 위반으로 PSC 결함·출항정지. 권한 없는 송신은 불법 운용이며 조난통신·항만교신 불능으로 안전운항이 제한된다.",
+ vessel:"호출부호·MMSI 배정(마스킹) · GMDSS A1+A2+A3 · AAIC 지정"},
+
+/* ---- 해양환경 오염방지 ---- */
+{g:"marpol",abbr:"IOPP",st:"interim",ko:"국제유류오염방지증서 (임시) · Form A 첨부",en:"International Oil Pollution Prevention Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 I(유류오염방지) · Reg.14(15ppm 빌지)·Reg.37(SOPEP)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MARPOL 부속서 I 검사를 받아 선체·설비·배관·배치·재료가 유류오염방지 요건에 적합함을 증명한다. 첨부 Form A에 경보·자동정지형 15ppm 유수분리장치, 슬러지탱크·유성빌지수탱크, 표준배출연결관, SOPEP 구비를 기재.",
+ purpose:"본선이 유류오염 방지 요건(빌지수 15ppm 처리·슬러지 보존·SOPEP 비치)을 충족함을 입증해 전 세계 입출항 자격을 확보한다. PSC 수검 시 Form A·기름기록부(ORB)와의 정합성이 핵심 점검 대상이며, 용선·선급·보험에서 환경규제 적합 선박임을 보증한다.",
+ miss:"미보유·실효 시 MARPOL 부속서 I 위반으로 PSC 억류·출항금지·입항거부·과징금. 용선 위반과 유류오염 사고 시 P&I 보상 거부로 이어진다.",
+ vessel:"15ppm 빌지분리기 · 슬러지·빌지 보존탱크 · 이중선체(12A) 적용 제외 · 4페이지(본문+Form A)"},
+
+{g:"marpol",abbr:"BWMC",st:"interim",ko:"평형수관리증서 (적합성진술서·임시)",en:"Ballast Water Management Certificate (Statement of Compliance)",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행 (SoC 형식)",
+ basis:"선박평형수관리협약(BWM Convention 2004) · Reg.D-2(성능기준)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 평형수·침전물 관리협약(BWM 2004) 요건에 적합함을 증명한다. 검사(Reg.E-1) 결과 D-2 성능기준에 적합하며, 여과+자외선(UV) 방식의 평형수처리설비(BWMS, 약 400 m³/h)를 설치. 평형수 적재용량 약 7,720 m³. 외래 수생생물·병원체의 국가 간 이동을 방지하는 처리체계를 인증.",
+ purpose:"PSC 수검 시 가장 먼저 확인하는 환경증서 중 하나. BWMS 설치·D-2 적합·검사 이행을 즉시 제시해 결함·억류를 예방한다. 美 USCG·호주·EU 등 입항국 평형수 규제 대응과 정기용선 적합성 보증의 근거가 된다.",
+ miss:"미비치·실효 시 BWM 협약 위반으로 PSC 결함·억류·출항금지. 무처리·미준수 시 입항거부·벌금, 용선 클레임·운항 중단.",
+ vessel:"BWMS 여과+UV(약 400 m³/h) · 평형수 약 7,720 m³ · D-2 적합"},
+
+{g:"marpol",abbr:"IAPP",st:"interim",ko:"국제대기오염방지증서 (임시) · 구조설비기록부 첨부",en:"International Air Pollution Prevention Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI(대기오염) · Reg.13(NOx)·Reg.14(SOx)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MARPOL 부속서 VI 검사를 받아 대기오염 관련 설비·시스템이 요건에 부합함을 증명한다. 첨부 기록부에 주기관 + 보조기관 3대가 모두 NOx Tier II 충족, SOx는 ECA 외 0.50%·ECA 내 0.10% 저유황유 사용(스크러버 없음), 연료유 샘플링 포인트 설치를 기재.",
+ purpose:"본선이 부속서 VI 요건(엔진 NOx Tier·연료 황함유량·SOx/VOC/소각)을 충족함을 입증해 입출항·PSC에 제출한다. ECA 항해 시 0.10% 저유황유 사용 적격과 글로벌 0.50% 황규제 준수의 근거. IEEC와 함께 본선의 대기·환경 적격성을 보증한다.",
+ miss:"미보유·실효 시 부속서 VI 위반으로 PSC 결함·억류·출항금지. ECA 항해 자격 상실, 용선 위반, P&I 환경담보 무효.",
+ vessel:"엔진 4기 NOx Tier II · ECA 0.10% 저유황유 · 5페이지(본문+기록부)"},
+
+{g:"marpol",abbr:"EIAPP · ME",st:"interim",ko:"기관 국제대기오염방지증서 — 주기관(Main Engine)",en:"Engine International Air Pollution Prevention Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI Reg.13(NOx) · 개정 NOx 기술코드 2008(NTC)",
+ exp:"약 5개월 (임시) — 엔진 수명 동안 유효", issued:"엔진 사전인증 후",
+ certifies:"주기관(저속 디젤, 약 4,400 kW, E3 사이클)이 설치 전 사전인증(pre-certification) 검사를 받아 엔진 본체·부품·조정요소·기술파일이 부속서 VI 제13규칙 NOx 한계에 적합함을 증명한다. 적용한계 대비 모기관 실측값이 한계 이내임을 보인다.",
+ purpose:"선박 IAPP 증서 발급·갱신의 전제 서류. 엔진 수명 내내 기술파일과 함께 선내에 비치되어, PSC 수검 시 기관실 NOx 적합성 증빙으로 제시된다. 신조·기관 교체·벳팅(SIRE/CDI) 시 환경 적합성 확인의 핵심.",
+ miss:"미비·실효 시 부속서 VI 부적합으로 IAPP 유효성이 위협받고 PSC 결함·억류. NOx 미적합 엔진 운항으로 출항금지·과징금.",
+ vessel:"주기관 1기 · 약 4,400 kW/600 rpm · E3 사이클 · 기술파일·선상 검증(EPC) 비치"},
+
+{g:"marpol",abbr:"EIAPP · AE1",st:"interim",ko:"기관 국제대기오염방지증서 — 보조기관 1호기",en:"Engine IAPP Certificate (Aux. Engine No.1)",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI Reg.13(NOx) · 개정 NOx 기술코드 2008",
+ exp:"약 5개월 (임시) — 엔진 수명 동안 유효", issued:"엔진 사전인증 후",
+ certifies:"보조기관 1호기(중속 디젤, D2 사이클)가 사전인증 검사를 받아 부속서 VI 제13규칙 NOx 한계(Tier II)에 적합함을 증명한다. 기술파일·선상 NOx 검증절차(엔진 파라미터 점검, EPC)를 포함한다.",
+ purpose:"보조기관은 발전·하역·정박 중 항상 가동되므로 각 기관별 EIAPP가 선박 IAPP 발급의 전제. PSC 수검 시 원본·기술파일·선상 검증기록을 선내에서 확인한다.",
+ miss:"미비·실효 시 해당 기관이 부속서 VI 위반 상태가 되어 IAPP 무효화·PSC 결함·억류로 이어진다.",
+ vessel:"보조기관 AE1 · D2 사이클 · NOx Tier II 적합 · 기술파일 첨부"},
+
+{g:"marpol",abbr:"EIAPP · AE2",st:"interim",ko:"기관 국제대기오염방지증서 — 보조기관 2호기",en:"Engine IAPP Certificate (Aux. Engine No.2)",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI Reg.13(NOx) · 개정 NOx 기술코드 2008",
+ exp:"약 5개월 (임시) — 엔진 수명 동안 유효", issued:"엔진 사전인증 후",
+ certifies:"보조기관 2호기(중속 디젤, D2 사이클)가 사전인증 검사를 받아 NOx 한계(Tier II)에 적합함을 증명한다. 기술파일·선상 검증절차를 영구 첨부한다.",
+ purpose:"보조기관별 NOx 적합성을 입증하는 IAPP 전제 서류. 신조 인도·기국 등록·정기용선(환경규정 준수 보증) 단계에서 환경 컴플라이언스 증빙으로 제출된다.",
+ miss:"미비·실효 시 IAPP 무효화·PSC 결함·출항정지·억류, 용선 위반·보험 불이익.",
+ vessel:"보조기관 AE2 · D2 사이클 · NOx Tier II 적합"},
+
+{g:"marpol",abbr:"EIAPP · AE3",st:"interim",ko:"기관 국제대기오염방지증서 — 보조기관 3호기",en:"Engine IAPP Certificate (Aux. Engine No.3)",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI Reg.13(NOx) · 개정 NOx 기술코드 2008",
+ exp:"약 5개월 (임시) — 엔진 수명 동안 유효", issued:"엔진 사전인증 후",
+ certifies:"보조기관 3호기(중속 디젤, D2 사이클)가 사전인증 검사를 받아 NOx 한계(Tier II)에 적합함을 증명한다. 기술파일과 선상 NOx 검증절차가 필수 부속요소로 선내 비치되어야 함을 명시한다.",
+ purpose:"보조기관 3호기의 NOx 적합성 증빙. 입출항·PSC 수검 시 엔진별 적합성을 확인하는 서류로, 증서·부속서·기술파일이 항상 선내 비치되어야 한다.",
+ miss:"미보유·미비치 시 부속서 VI 위반으로 PSC 결함·억류, IAPP 유효성 위협·출항금지.",
+ vessel:"보조기관 AE3 · D2 사이클 · NOx Tier II 적합"},
+
+{g:"marpol",abbr:"IEEC",st:"interim",ko:"국제에너지효율증서 (임시) · 구조기록부 첨부",en:"International Energy Efficiency Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 VI Reg.22~26 · EEXI(MEPC.350(78)) · SEEMP",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MARPOL 부속서 VI 에너지효율 규칙(제22~26규칙)에 적합함을 증명한다. 달성 EEDI 10.80(요구 16.00 이하), 달성 EEXI 10.80(요구 18.30 이하)으로 둘 다 기준 충족, SEEMP(선박에너지효율관리계획서) 비치, EEDI·EEXI 기술파일 첨부. 선박의 설계·운항 CO₂ 배출효율이 IMO 기준에 부합함을 인증.",
+ purpose:"본선이 IMO 온실가스 감축 규제(EEDI/EEXI/SEEMP)를 충족함을 입증해 운항 자격을 유지한다. 용선 협상에서 EEXI/EEDI 수치·연비가 선박 선정·연료비·CII 연계 판단 자료가 되고, SEEMP에 따른 연료절감·CO₂ 모니터링 이행의 근거가 된다.",
+ miss:"미보유·실효·기준 미달 시 부속서 VI 위반으로 PSC 결함·억류·출항금지, 용선 적격 위반·보험 거부.",
+ vessel:"EEDI 10.80/16.00 · EEXI 10.80/18.30 g-CO₂/t·mile · 4페이지(본문+기록부)"},
+
+{g:"marpol",abbr:"ISPP",st:"interim",ko:"국제오수오염방지증서 (임시)",en:"International Sewage Pollution Prevention Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"MARPOL 부속서 IV(오수오염방지) · Reg.9·10 · 처리장치 MEPC.227(64)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MARPOL 부속서 IV에 적합한 오수처리장치와 배출배관을 갖추었음을 증명한다. 유출수 성능은 MEPC.227(64) 기준 충족, 표준 육상연결구와 약 24.6 m³ 저장탱크를 구비. 분뇨·생활오수를 무단배출하지 않는 처리·저장·인도 체계를 인증.",
+ purpose:"오수를 해상에 무단배출하지 않고 처리·저장·수용시설 인도 체계를 갖췄음을 증명하는 MARPOL 필수 법정증서. PSC 수검 시 우선 확인 대상이며, 특별구역·연안국 오수배출 규제 준수와 용선 적격성 입증에 쓰인다.",
+ miss:"미보유·실효 시 부속서 IV 결함으로 PSC 출항정지·억류, 무단배출 적발 시 벌금·형사처벌, 용선 적격 위반·보험 거부.",
+ vessel:"오수처리장치 설치 · 저장탱크 약 24.6 m³ · 인증 정원 20명"},
+
+{g:"marpol",abbr:"IAFS",st:"interim",ko:"국제방오시스템증서 (임시) · 방오시스템기록부 첨부",en:"International Anti-Fouling System Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"유해방오시스템규제협약(AFS Convention 2001) · 부속서1(유기주석·시벗트린 금지)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"선체 외부 방오도료가 협약이 금지하는 유해물질(유기주석 TBT·시벗트린 Cybutryne)을 포함하지 않음을 증명한다. 첨부 기록부에 실제 사용 도료가 무유기주석·자기연마형(SPC) 방오도료이며 활성성분은 아산화구리·코퍼피리치온임을 기재.",
+ purpose:"선체 방오도료가 금지물질을 함유하지 않음을 입증해 AFS 당사국 항만 입항 시 PSC 환경규제 적합성을 증명한다(국제총톤수 400톤 이상 의무 보유). 도크 입거·재도장 계획 시 방오도료 사양 근거자료로 사용된다.",
+ miss:"미보유·결함 시 AFS 당사국 PSC 결함지적·출항정지·입항거부. 금지물질 확인 시 도크 입거·재도장 명령·벌금, 용선 적격 위반·보험 제한.",
+ vessel:"무유기주석 SPC 방오도료 · 활성성분 아산화구리·코퍼피리치온"},
+
+{g:"marpol",abbr:"GPPC",st:"interim",ko:"선박 쓰레기오염방지 적합확인서 (임시)",en:"Statement of Compliance for Garbage Pollution Prevention",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행 (SoC 형식)",
+ basis:"MARPOL 부속서 V(쓰레기오염방지) · Reg.10(쓰레기관리계획·기록부)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MARPOL 부속서 V(쓰레기오염방지) 요건에 적합하게 설비·서류를 갖추었음을 증명한다. 쓰레기 수거용기·게시판, 쓰레기관리계획(MEPC.220(63))과 쓰레기기록부를 비치(소각기·처리장치는 미설치). 선주의 쓰레기 처리 책임을 명기.",
+ purpose:"선박이 부속서 V의 쓰레기 처리·기록·게시 요건을 충족함을 입증하는 자료. PSC 수검 시 쓰레기관리계획·기록부·게시판 비치 여부와 함께 확인되며, 용선·운항 시 해양환경규정 준수를 항만당국·용선주에 제시한다.",
+ miss:"쓰레기관리계획·기록부·게시판 미비 시 부속서 V 결함으로 PSC 출항정지·시정명령. 부적절 투기는 과태료·형사처벌, 용선 위반(off-hire).",
+ vessel:"쓰레기 수거용기·게시판 비치 · 소각기 미설치 · 양식 SOC GPP-IC"},
+
+/* ---- 안전관리·보안 ---- */
+{g:"ismIsps",abbr:"DOC",st:"interim",ko:"임시 안전관리적합증서 (회사용 임시 DOC)",en:"Interim Document of Compliance",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 제IX장(선박 안전운항관리) · 국제안전관리규약(ISM Code)",
+ exp:"약 6개월 (임시)", issued:"관리회사 인증 시",
+ certifies:"특정 선박이 아닌, 선박을 운항·관리하는 「회사(Company)」의 안전관리체제(SMS)가 ISM Code 목표를 충족함을 증명한다. 인증 선종은 「기타 화물선(Other cargo ship)」으로, 회사가 ISM 요건의 조직·문서·절차를 갖추었음을 기국 권한으로 인정.",
+ purpose:"회사 차원의 운항 자격을 증명하는 필수 증서. 본선의 SMC(안전관리증서)는 회사의 유효한 DOC를 전제로만 발급·유지되므로, DOC 사본은 본선에 비치되어 PSC 수검 시 SMC와 함께 제시된다. 용선주·화주·보험자가 관리회사의 ISM 적합성을 확인하는 자료.",
+ miss:"회사 DOC 실효 시 그 회사가 관리하는 선박의 SMC도 무효가 되어 SOLAS IX장/ISM 위반으로 PSC 중대결함·억류·출항정지. 용선 적격 위반·보험 담보 거절.",
+ vessel:"대상 = 관리회사(ISM Company, 마스킹) · 인증 선종 기타 화물선"},
+
+{g:"ismIsps",abbr:"SMC",st:"interim",ko:"임시 안전관리증서 (선박용 임시 SMC)",en:"Interim Safety Management Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 제IX장 · ISM Code 제14.4항(임시 SMC)",
+ exp:"약 6개월 (임시)", issued:"재선적 직후",
+ certifies:"본선의 안전관리체제(SMS)가 ISM Code 요건에 부합하게 임시로 도입·운영되고 있음을 증명한다. 본선을 관리하는 회사의 임시 DOC가 본선에 유효 적용됨을 확인. 신조선 인수·기국/회사 변경 단계에서 ISM Code 14.4 요건 충족을 전제로 발급되며, 회사 임시 DOC 유효를 조건으로 한다.",
+ purpose:"ISM 적용 선박이 합법적으로 운항을 개시·계속하기 위한 필수 증서. 정식 SMC 심사 완료 전까지 본 임시증서로 입출항·운항을 수행한다. PSC 검사관이 가장 먼저 확인하는 ISM 핵심 서류이며, 용선·벳팅·보험 인수 시 안전관리체제 운영을 입증한다.",
+ miss:"유효 SMC 부재 시 SOLAS IX장 위반으로 PSC 중대결함·억류·출항정지. ISM warranty 위반으로 용선 취소·손배, 보험 담보 무효·면책.",
+ vessel:"회사 임시 DOC 연계 · 정식 SMC 전환 전 최대 6개월"},
+
+{g:"ismIsps",abbr:"ISSC",st:"interim",ko:"임시 국제선박보안증서",en:"Interim International Ship Security Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 제XI-2장(해상보안) · ISPS Code Part A 제19.4조",
+ exp:"약 6개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 ISPS Code Part A 19.4.2조 임시 보안증서 발급요건을 충족했음을 증명한다. 선박보안평가(SSA)에 근거해 승인된 선박보안계획(SSP)을 비치·시행 중이고, 선박보안책임자(SSO)·회사보안책임자(CSO)가 지정되어 보안임무를 수행할 수 있음을 인증. 본 건은 최초 임시증서.",
+ purpose:"선박이 보안상 적법하게 입출항·접안하기 위한 필수 보안 적격 서류. 유효 ISSC 없이는 어느 항만에도 정상 입항 불가. PSC 수검 시 가장 먼저 확인되는 핵심 보안증서이며, 입항 전 보안통보·MARSEC 보안등급 대응·SSP/SSO 지정 확인의 근거가 된다.",
+ miss:"미보유·실효 시 SOLAS XI-2장·ISPS 위반으로 PSC 출항정지·억류·입항거부·항외 대기. 용선 부적합(off-hire), 터미널 거래 거부, 보험 담보 문제.",
+ vessel:"SSP 비치·SSO/CSO 지정 · 최초 임시증서"},
+
+/* ---- 선원·배승·노동 ---- */
+{g:"crewLabour",abbr:"MSMC",st:"interim",ko:"임시 최소안전승무증서 (최소승무정원증서)",en:"Provisional Minimum Safe Manning Certificate",
+ issuer:"기국 선박등록청 (주관청)",behalf:"기국 정부 (기국 주관청)",
+ basis:"SOLAS 제V장(항해안전) 제14규칙(Safe Manning) · STCW · GMDSS",
+ exp:"약 6개월 (임시)", issued:"기국 등록 시",
+ certifies:"선박이 안전하게 항해하기 위해 승선시켜야 하는 법정 최소 승무원의 인원·직책·자격(STCW 조항)을 기국이 인증한다. 갑판부(선장·1등항해사·항해사·갑판부원·조리사)와 기관부(기관장·1등기관사·기관사·기관부원)를 규정하고, GMDSS 무선통신사 자격 보유 인원도 명시.",
+ purpose:"본선이 법정 최소 승무정원 요건을 충족함을 입증해 PSC 수검 시 제시한다. 검사관은 실제 승선 인원·직책·STCW 자격이 본 증서 기준 이상인지 대조한다. 선원 배승계획(crewing)·당직 편성·GMDSS 통신사 배치·용선 적합성·보험·ISM 운용의 기준이 된다.",
+ miss:"승무원이 최소 정원·자격에 미달하면 PSC 중대결함·억류·출항정지. SOLAS V/14 위반 행정처분, 용선 위반·보험 거절.",
+ vessel:"항해구역 무제한·전세계 · GMDSS A1+A2+A3 · 최소정원 약 14명"},
+
+{g:"crewLabour",abbr:"MLC",st:"interim",ko:"임시 해사노동인증서",en:"Interim Maritime Labour Certificate",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"해사노동협약(MLC 2006) · Title 5 · Standard A5.1.3 para.7(임시인증)",
+ exp:"약 6개월 (임시)", issued:"재선적 직후",
+ certifies:"본선이 MLC 2006(해사노동협약)의 선원 노동·생활조건 요건을 충족할 절차·준비를 갖추었음을 임시로 증명한다. 최저연령·의료증명·근로계약·임금·근로/휴식시간·거주설비·식량·보건안전·의료관리 등 14개 항목 검사를 받았고, 선주가 협약 준수 절차를 입증했으며 선장이 요건을 숙지하고 DMLC 정보가 제출되었음을 확인.",
+ purpose:"선원의 근로·생활조건이 국제노동기준(MLC 2006)에 부합함을 입증해 선박을 합법 운항·입출항시킨다. PSC 핵심 점검 대상으로 미소지·실효 시 억류 사유. MLC 미체결국 항만에서도 'no more favourable treatment' 원칙으로 점검되므로 글로벌 운항에 필수.",
+ miss:"미비치·실효 시 PSC 결함·억류·출항금지. 정식 MLC 미취득 시 입항거부·용선 위반·선원 클레임 노출, 가동 중단으로 영업손실.",
+ vessel:"검사 14개 항목 · DMLC 정식단계 완비 필요"},
+
+/* ---- 보험·재정보증 ---- */
+{g:"insurance",abbr:"P&I",st:"full",ko:"선주배상책임보험 증권 (P&I)",en:"Marine Liability Insurance Policy",
+ issuer:"해상 배상책임 보험사",behalf:"해당없음 (상업 보험사)",
+ basis:"보험사 약관 · CLC·Bunkers·WRC·MLC 관련 배상책임 담보(P&I류)",
+ exp:"1년", issued:"보험 인수 시",
+ certifies:"보험사가 선주와 해상배상책임보험을 체결했음을 증명한다. 담보 범위는 선원에 대한 책임, 환경오염 책임, 난파물 제거 책임 등이며 보험기간 총 책임한도가 설정된다. 영국법 준거·국제중재로 분쟁을 해결하고, 선급유지·ISM/MARPOL/ISPS/SOLAS 준수 등 워런티가 부가된다.",
+ purpose:"선사가 제3자 배상책임 위험을 전가하기 위해 필수로 가입하는 보험. 입출항 시 재무책임 증빙으로 제출하고 PSC 수검 시 유효 부보를 입증한다. 오염·난파·선원 사고 시 막대한 배상금을 담보받아 선사 재무를 보호하며, 용선·선박금융·기항지 입항허가 요건에서 P&I 부보 증빙으로 활용된다.",
+ miss:"미보유·실효 시 대부분 항만 입항거부·PSC 출항정지·억류. 사고 시 선사가 거액 배상금을 전액 부담. 용선 부보의무 위반·선박금융 담보 위반.",
+ vessel:"담보: 선원·환경오염·난파물 책임 · 총한도·증권번호·보험사·피보험자 마스킹"},
+
+{g:"insurance",abbr:"WRC",st:"full",ko:"난파물제거 책임 재정보증 증서",en:"Insurance Certificate — Wreck Removal Liability",
+ issuer:"기국 선박등록청 (보험자 제공)",behalf:"기국 정부 대행 (협약상 강제증서)",
+ basis:"2007 난파물제거 나이로비 국제협약 제12조 (Nairobi WRC 2007)",
+ exp:"1년", issued:"보험 인수 시",
+ certifies:"본선에 대해 나이로비 난파물제거협약 제12조 요건을 충족하는 보험/재정보증이 유효함을 증명한다. 선박이 난파(좌초·침몰·전복·유기)되어 위험한 난파물이 되었을 때, 위치표시·표지·제거 비용에 대한 선주 책임을 담보할 재정능력을 갖췄음을 확인한다.",
+ purpose:"협약상 강제 비치증서로 본선에 상시 보관하고 입출항 시 PSC·항만당국에 난파물제거 책임의 재정보증 보유를 입증한다. 협약 비준국 항만 기항의 필수 요건이며, BCC·P&I와 함께 선박의 재무보증 패키지를 구성해 용선 적격성을 증명한다.",
+ miss:"비준 항만국에서 미비치·실효 시 PSC 결함·입항거부·출항정지·억류. 실제 난파 시 선주가 막대한 제거비용을 직접 무한 부담, 협약 위반 제재·용선 위반.",
+ vessel:"보증기간 1년 · 보험자·증권번호 마스킹 · 보험자 IG클럽 여부 확인 권장"},
+
+{g:"insurance",abbr:"BCC",st:"full",ko:"연료유 오염손해 민사책임 재정보증 증서",en:"Insurance Certificate — Bunker Oil Pollution Civil Liability",
+ issuer:"기국 선박등록청 (보험자 제공)",behalf:"기국 정부 대행 (협약상 강제증서)",
+ basis:"2001 연료유오염손해 민사책임 국제협약 제7조 (Bunkers Convention 2001)",
+ exp:"1년", issued:"보험 인수 시",
+ certifies:"본선의 연료유(벙커유) 유출 오염손해에 대한 선주 민사책임을 담보하는 보험/재정보증이 유효함을 기국이 증명한다. 1,000총톤 초과 선박(본선 15,039톤)은 협약상 강제 재정보증 보유 의무가 있으며, 본 증서가 그 이행 증거가 된다.",
+ purpose:"벙커협약 가입국 항만 입출항 시 항만당국·PSC에 강제 연료유 오염책임보험 보유를 입증한다. 당사국은 증서 미소지 선박의 입항·정박을 거부할 수 있어 입항 전 필수 비치. 용선 담보능력 증명·오염사고 보상재원 확보의 근거.",
+ miss:"미보유·실효 시 벙커협약 당사국 항만에서 PSC 억류·입출항 거부로 운항 중단. 용선 해지·손배, 오염사고 시 선주 무한책임 노출·미보상 리스크.",
+ vessel:"강제 보유 대상(1,000 GT 초과) · 보증기간 1년 · 보험자·증권번호 마스킹"},
+
+/* ---- 위험물 운송 ---- */
+{g:"dangerousGoods",abbr:"IMDG",st:"interim",ko:"위험물 운송선박 특별요건 적합증서 (임시)",en:"Document of Compliance — Ships Carrying Dangerous Goods",
+ issuer:"국제 인정 선급(RO)",behalf:"기국 정부 대행",
+ basis:"SOLAS 제II-2장 제19규칙 · IMDG Code(국제해상위험물규칙)",
+ exp:"약 5개월 (임시)", issued:"재선적 직후",
+ certifies:"본선 구조·설비가 SOLAS II-2/19에 적합하며 부속서에 명시된 등급의 위험물을 적재·운송하기에 적합함을 증명한다. 허용등급(2.1·2.2 가스, Class 3 인화점 23~60℃ 인화성액체, 4.1, 5.1, 5.2, 6.1, 8, 9)을 특정 화물창·해치커버 위(밀폐형 컨테이너/이동식탱크)에서 운송 가능. Class 1 폭발물·2.3 독성가스·저인화점 액체·고체산적위험물은 운송 불가.",
+ purpose:"컨테이너에 위험물(IMDG 화물)을 선적·운송하기 위한 필수 적재 자격증서. 위험물 부킹 수락·적재계획(stowage)·분리(segregation) 검토 시 허용등급·허용 화물공간을 근거로 적법성을 판단한다. 위험물 운송 용선계약 시 운송 능력 증빙으로 운임·계약 적격성에 직결.",
+ miss:"미보유·실효 시 위험물 선적 거부로 운송계약 이행 불가. SOLAS II-2/19 위반으로 PSC 결함·출항정지·억류, 무자격 적재 시 용선 위반·보험 담보 배제.",
+ vessel:"허용공간 밀폐형 컨테이너(Space Type 2B) · 고체산적위험물 전 품목 불가 · 4페이지"},
+
+/* ---- 검역·위생 ---- */
+{g:"sanitation",abbr:"SSCEC",st:"full",ko:"선박위생관리면제증서",en:"Ship Sanitation Control Exemption Certificate",
+ issuer:"입항지 검역당국",behalf:"해당없음 (입항지 검역당국)",
+ basis:"국제보건규칙(IHR 2005) 제39조·부속서3 · WHO 모델 양식",
+ exp:"최장 6개월", issued:"입항 검역 시",
+ certifies:"선박 위생검사 결과 매개체(벡터)·설치류·미생물/화학 위험·위생불량 등 감염·오염 증거가 발견되지 않았음을 증명한다. 주방·식품저장·화물창·거주구역·음용수·오수·평형수탱크·기관실·의료설비 등 전 구역 'NONE'(이상없음) 판정으로, 훈증·구서 등 위생관리조치를 면제(exempted)받았음을 인증.",
+ purpose:"입항 시 검역(quarantine)을 통과하고 자유입항허가(Free Pratique)를 받기 위해 필수 비치·제시하는 증서. PSC·검역관 승선검사 시 추가 위생관리조치(훈증·구서)가 불필요함을 입증하고, 유효기간(최장 6개월) 내 다음 기항지에서도 재검사·억류 없이 신속 입출항하게 한다.",
+ miss:"미보유·실효 시 자유입항허가 지연·거부로 검역묘박지 억류 또는 재검사. 위생불량 시 강제 훈증·소독·구서 부과(비용·시간), PSC 결함·출항지연, 정기선 스케줄 차질.",
+ vessel:"전 구역 NONE(이상없음) · 위생관리조치 면제형 · 증서번호 마스킹"},
+];
+
+/* ============ 렌더링 ============ */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+document.getElementById("pgrid").innerHTML = PARTICULARS.map(([k,v])=>
+  `<div class="pcell"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join("");
+const counts={}; CERTS.forEach(c=>counts[c.g]=(counts[c.g]||0)+1);
+const chipsEl=document.getElementById("chips");
+let chipsHtml=`<button class="chip active all" data-g="all">전체 <span class="cnt">${CERTS.length}</span></button>`;
+GROUP_ORDER.forEach(g=>{
+  chipsHtml+=`<button class="chip" data-g="${g}"><span class="dot" style="background:${GROUPS[g].color}"></span>${esc(GROUPS[g].label)} <span class="cnt">${counts[g]||0}</span></button>`;
+});
+chipsEl.innerHTML=chipsHtml;
+function cardHtml(c,i){
+  const col=GROUPS[c.g].color;
+  const stCls=c.st==="interim"?"interim":"full";
+  const stTxt=c.st==="interim"?"임시 Interim":"정식 Full";
+  return `<article class="cert" style="border-top-color:${col}" data-g="${c.g}" data-i="${i}">
+    <div class="cert-head">
+      <div class="cert-top">
+        <span class="abbr" style="background:${col}">${esc(c.abbr)}</span>
+        <span class="status ${stCls}">${stTxt}</span>
+      </div>
+      <h4>${esc(c.ko)}</h4>
+      <div class="en">${esc(c.en)}</div>
+      <div class="cert-meta">
+        <span class="mtag">${esc(c.basis.split("·")[0].trim())}</span>
+        <span class="mtag exp">유효 ${esc(c.exp)}</span>
+      </div>
+    </div>
+    <div class="purpose">
+      <div class="plabel">🚢 선사 업무 용도</div>
+      <p>${esc(c.purpose)}</p>
+    </div>
+    <button class="toggle">자세히 보기 <span class="chev">▾</span></button>
+    <div class="cert-body">
+      <div class="field"><div class="fl">📌 무엇을 증명하는가</div><p>${esc(c.certifies)}</p></div>
+      <div class="field miss"><div class="fl">⛔ 미보유·실효 시</div><p>${esc(c.miss)}</p></div>
+      <div class="field"><div class="fl">⚖ 근거 협약·규칙</div><p>${esc(c.basis)}</p></div>
+      <div class="field">
+        <dl class="kv">
+          <dt>발급주체</dt><dd>${esc(c.issuer)}</dd>
+          <dt>대행 정부</dt><dd>${esc(c.behalf)}</dd>
+          <dt>발급 시점</dt><dd>${esc(c.issued)}</dd>
+          <dt>유효기간</dt><dd>${esc(c.exp)}</dd>
+          <dt>주요 데이터</dt><dd>${esc(c.vessel)}</dd>
+        </dl>
+      </div>
+    </div>
+  </article>`;
+}
+const root=document.getElementById("certRoot");
+function render(){
+  let html="";
+  GROUP_ORDER.forEach(g=>{
+    const items=CERTS.map((c,i)=>({c,i})).filter(x=>x.c.g===g);
+    const cards=items.map(x=>cardHtml(x.c,x.i)).join("");
+    html+=`<div class="group" data-group="${g}">
+      <div class="group-head" style="border-color:${GROUPS[g].color}">
+        <span class="gi" style="background:${GROUPS[g].color}">${GROUPS[g].icon}</span>
+        <div><h3>${esc(GROUPS[g].label)}</h3><div class="gko">${esc(GROUPS[g].ko)}</div></div>
+        <span class="gcount">${items.length}종</span>
+      </div>
+      <div class="cards">${cards}</div>
+    </div>`;
+  });
+  html+=`<div class="empty" id="empty" style="display:none">검색 결과가 없습니다.</div>`;
+  root.innerHTML=html;
+  bindToggles();
+}
+function bindToggles(){
+  root.querySelectorAll(".toggle").forEach(btn=>{
+    btn.addEventListener("click",()=>btn.closest(".cert").classList.toggle("open"));
+  });
+}
+render();
+let curG="all", curQ="";
+function applyFilter(){
+  const certs=root.querySelectorAll(".cert");
+  const q=curQ.trim().toLowerCase();
+  let any=false;
+  certs.forEach(el=>{
+    const i=+el.dataset.i, c=CERTS[i];
+    const inG = curG==="all" || c.g===curG;
+    const hay = (c.abbr+" "+c.ko+" "+c.en+" "+c.basis+" "+c.issuer+" "+c.certifies+" "+c.purpose).toLowerCase();
+    const inQ = !q || hay.indexOf(q)>=0;
+    const show = inG && inQ;
+    el.style.display = show?"":"none";
+    if(show) any=true;
+  });
+  root.querySelectorAll(".group").forEach(gr=>{
+    const visible=gr.querySelectorAll('.cert:not([style*="display: none"])').length;
+    gr.style.display = visible? "":"none";
+  });
+  document.getElementById("empty").style.display = any?"none":"block";
+}
+chipsEl.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b)return;
+  chipsEl.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  if(b.dataset.g==="all") b.classList.add("all");
+  curG=b.dataset.g; applyFilter();
+});
+document.getElementById("search").addEventListener("input",e=>{curQ=e.target.value; applyFilter();});
+</script>
+</body>
+</html>
