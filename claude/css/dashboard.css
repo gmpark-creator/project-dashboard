@@ -37,6 +37,7 @@ html[data-color="lime"]   { --ink-dark:#0c1505; --gray1-dark:#16240a; --accent-d
 html[data-color="neon"]   { --ink-dark:#160820; --gray1-dark:#25103a; --accent-dark:#ff3df0; --accent-light:#c81fa6; }  /* 4 · INST — 형광 마젠타 */
 html[data-color="gold"]   { --ink-dark:#181206; --gray1-dark:#281e0b; --accent-dark:#fbbf24; --accent-light:#a9710a; }  /* 6 · Atelier — 골드 */
 html[data-color="gray"]   { --ink-dark:#101216; --gray1-dark:#1c1f25; --accent-dark:#9fb0c7; --accent-light:#586273; }  /* 7 · Premarket — 그레이 */
+html[data-color="teal"]   { --ink-dark:#04181f; --gray1-dark:#0a2630; --accent-dark:#22d3ee; --accent-light:#0e7490; }  /* 9 · TradeLogix — 시안/청록(무역·항만, blue·green·navy와 확실히 구분) */
 
 /* ---- DARK 모드 (기본) ---- */
 html[data-mode="dark"] {
@@ -1170,7 +1171,10 @@ body.is-tz-open .kst-block {
   z-index: 80;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none;        /* 왼쪽창(사이드바)·오른쪽창(본문) 구분 스크롤바 숨김 (박사 2026-06-04) — 스크롤 기능 유지, 막대만 비표시 */
+  -ms-overflow-style: none;
 }
+.sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 .sidebar-head {
   padding: 28px 24px 24px;
