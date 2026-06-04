@@ -538,6 +538,39 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-31', title:'영역 1 — 화살표 연계 기업명 라벨', desc:'공급망 화살표마다 연계 기업명 라벨(색 매칭) 표시 → 어느 기업과의 관계인지 식별. push 5171afd.' },
       { isCore:true, date:'2026-05-31', title:'영역 2 — 전력 유니버스 신설 + 멀티영역 구조·영역 선택기', desc:'반도체 전용 앱을 데이터 주도 멀티영역 Knowledgeverse로 일반화(AtlasArea + AreaSelector 드롭다운). 두 번째 영역 「전력 유니버스」(대한민국 전력) 추가 — 발전원 14분류 + 전력 3D 아이콘 9종(원자로·냉각탑·태양광·풍력·댐·수소탱크·배터리·송전탑·계통허브) + 전력 기업/기관 23 + 공급망 33관계, 본사 한반도 핀. 데이터는 워크플로 5에이전트 수집·적대적 사실검증. tsc+vite·ESLint 0·Playwright 2영역×2모드 검증(콘솔 에러 0). semiconductor-universe push 08db798, 미리보기 재배포.' }
     ]
+  },
+  {
+    id: 'tradelogix',
+    name: 'TradeLogix Nexus',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 인터랙티브 대시보드',
+    icon: 'anchor',
+    platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
+    status: 'in-progress',
+    start: '2026-06-04',
+    latest: '2026-06-04',
+    progress: 1,
+    link: 'https://github.com/gmpark-creator/tradelogix-nexus',
+    summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
+           + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
+           + '변증법 협업(Claude 제안 ↔ Codex 반박·검수)으로 진행 — 현재 Part 1 설계(R1 Thesis) 완료, Codex 반박 대기.',
+    method: '단일 HTML5 + Tailwind(Play CDN) + Vanilla JS + FontAwesome로 구현. 중앙 상태머신(통관유형·항만·Incoterm·활성필드)을 '
+          + '단방향 setState→render 루프로 돌리고, 인라인 SVG로 보세창고 플로우차트와 비용/위험 분기점 게이지를 그린다. 모든 텍스트 한국어, 실무급 통관·관세 콘텐츠.',
+    stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS', 'FontAwesome', 'SVG'],
+    stackDetail: [
+      { area: '상태머신·렌더 엔진', tech: 'Vanilla JS', how: '통관유형(수입·수출·반송)·항만(북항·신항)·선택 Incoterm·활성 신고필증 필드를 단일 상태 객체로 두고, setState→render 단방향 루프로 패널별 부분 렌더한다. 프레임워크 0, zero-latency 트랜지션.' },
+      { area: '보세창고 프로세스 플로우차트', tech: 'SVG, Vanilla JS', how: '부산항 북항(세방·동방 우암물류·BPA 지정보세창고)·신항(HJNC 배후물류단지·세방부산신항물류센터·DWL글로벌·BIDC) 보세창고 노드를 인라인 SVG로 그리고, 노드 클릭 시 관세법 이론 vs 부산항 실무·리스크 스플릿 뷰포트를 렌더한다.' },
+      { area: 'Incoterms 2020 매트릭스·분기점 게이지', tech: 'SVG, Vanilla JS', how: '11규칙(Multimodal 7 + Maritime 4)을 그리드로 배치하고, 클릭 시 매도인→매수인 축에 비용 분기점·위험 분기점을 마커로 표시하는 게이지를 그린다(C-텀 비용≠위험 분리 강조).' },
+      { area: '수입신고필증 인스펙터', tech: 'Tailwind, Vanilla JS', how: '한국 수입신고필증 레이아웃을 Tailwind grid로 재현하고 10개 핵심 항목(신고번호·납세의무자·HS세번·과세가격·세액 등)을 핫스팟으로, 클릭 시 의미+실무 리스크 모달을 띄운다.' },
+      { area: '디자인 시스템', tech: 'Tailwind CSS, FontAwesome', how: '다크 엔터프라이즈 SaaS(베이스 #0F172A, slate 컨테이너) + 재무/리스크 경계 그라데이션(비용 emerald·위험 rose·세액 violet). FontAwesome 아이콘.' },
+    ],
+    issues: [
+      { type:'완료', title:'#9 워크스페이스·레포 신설 (변증법 협업 베이스 적용)', desc:'기존 프로젝트와 분리된 독립 레포 gmpark-creator/tradelogix-nexus(private) 생성 — master(박사 베이스라인)/newton(Claude)/codex(Codex) 3 worktree 물리 격리. AGENTS.md·CODEX_SYNC.md 변증법 규약 + Part 1 R1 Thesis 영속화.' },
+      { type:'이슈', title:'Part 1 통관 마스터 R1 Thesis(설계) 완료 — Codex 반박 대기', desc:'Claude가 상태머신·4대 컴포넌트·도메인 콘텐츠·단일파일 전략을 설계(R1 Thesis)하고 공격 포인트 6개를 제시. 변증법 베이스대로 구현 전 Codex의 R1 Antithesis(반박)→IMPLEMENTATION GO 승인을 받아야 구현 착수. 구현은 Claude 단독, 이후 Codex 검수.' }
+    ],
+    milestones: [
+      { date:'2026-06-04', title:'프로젝트 #9 신설 — TradeLogix Nexus (무역과 물류)', desc:'지식 대시보드 시리즈 9번으로 신설. Part 1 = 통관 마스터(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증). 독립 레포·worktree 격리 셋업, 대시보드 등록.' },
+      { date:'2026-06-04', title:'Part 1 통관 마스터 — R1 Thesis(설계) 작성', desc:'변증법 협업 베이스 첫 적용 — Claude가 설계 제안(R1 Thesis) 작성·영속화. 다음 = Codex R1 Antithesis(반박) → 라운드 무제한 → Codex 구현 승인 후 Claude 단독 구현.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
