@@ -119,6 +119,20 @@
         '<path d="M12 6c1.8-1.2 4-1.8 6.5-1.8 1.5 0 2.5.4 2.5 1v12.4c0 .5-.6.8-1.2.7C17.8 18 16 18.4 12 20"/>' +
         '<path d="M12 6v14"/>' +
       '</svg>',
+    // 무역·물류 — 지구(세계지도) + 항로 곡선 + 세계지도 위를 왔다갔다하는 마커 애니메이션
+    // 박사 발화 2026-06-04 "세계지도에서 왔다갔다하는 느낌의 앰블럼". #9 TradeLogix Nexus.
+    // currentColor라 #9 테마색(teal/시안) 자동. 마커는 항로 path를 keyPoints 0→1→0 으로 왕복.
+    'trade-globe':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<circle cx="12" cy="12" r="9"/>' +
+        '<ellipse cx="12" cy="12" rx="3.6" ry="9"/>' +
+        '<path d="M3 12h18"/>' +
+        '<path d="M5.2 7h13.6M5.2 17h13.6" stroke-opacity="0.45"/>' +
+        '<path d="M6.5 15.6Q12 4.4 17.6 9" stroke-dasharray="1.7 2.3" stroke-opacity="0.95"/>' +
+        '<circle r="1.45" fill="currentColor" stroke="none">' +
+          '<animateMotion dur="3.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear" path="M6.5 15.6Q12 4.4 17.6 9"/>' +
+        '</circle>' +
+      '</svg>',
     // fallback
     'box':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +

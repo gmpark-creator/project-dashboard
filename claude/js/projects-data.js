@@ -543,7 +543,7 @@ const PROJECTS = [
     id: 'tradelogix',
     name: 'TradeLogix Nexus',
     subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 인터랙티브 대시보드',
-    icon: 'anchor',
+    icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
