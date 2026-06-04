@@ -542,7 +542,7 @@ const PROJECTS = [
   {
     id: 'tradelogix',
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무. 선박 증서 31종 도해(종류·용도)',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
@@ -551,7 +551,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(선박 증서 31종 도해)를 한 화면에서 선택·전환 — 따로 분리하지 않고 허브에서 통합' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 선사업무는 다시 MAGE/증서 서브허브로 분기' }
     ]},
     summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
            + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
@@ -571,14 +571,16 @@ const PROJECTS = [
       { type:'완료', title:'#9 워크스페이스·레포 신설 (변증법 협업 베이스 적용)', desc:'기존 프로젝트와 분리된 독립 레포 gmpark-creator/tradelogix-nexus(private) 생성 — master(박사 베이스라인)/newton(Claude)/codex(Codex) 3 worktree 물리 격리. AGENTS.md·CODEX_SYNC.md 변증법 규약 + Part 1 R1 Thesis 영속화.' },
       { type:'완료', title:'Part 1 통관 마스터 구현 완료 — 변증법 R1~R3 + Codex 검수 PASS', desc:'Claude 제안 ↔ Codex 반박 3라운드(R1·R2 BLOCK → R3 PASS·IMPLEMENTATION GO) 후 Claude 단독 구현(index.html 52KB): 상태머신 v2, 통관 3유형 동등 플로우(수입9/수출6/반송5), Incoterms 11 8필드 구조체+비용/위험 게이지, 수입신고필증 10필드 인스펙터+세액 read-only 카드(부가세 과표=과세가격+관세+내국세), desktop/mobile 이중렌더+lazy+접근성+fallback. Codex 사후검수 PASS(데이터계약 55 + Playwright headless + 390px overflow0 + 모달 생성/제거 + CDN fallback smoke). 라이브 프리뷰 배포.' },
       { type:'완료', title:'선사 업무 — 선박 증서 31종 도해 추가 (2026-06-05)', desc:'#9의 두 축(통관 / 선사 업무) 중 「선사 업무」 자료. 국제항해 컨테이너선 증서철 31종 PDF를 Claude 워크플로(32 에이전트 병렬)로 명칭·근거협약·용도·유효기간을 추출·교차감사해 8개 기능분류(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 인터랙티브 도해(자급식 단일 HTML)로 작성. 각 증서의 정의·「선사 업무 용도」·미보유 시 결과·근거협약을 카드+분류 필터+검색으로 제공. 공개 게시 위해 선명·IMO·소유/관리회사·보험·선원·증서번호 등 식별·상업·개인정보를 마스킹(상세본은 로컬 비공개). Part 1 통관 마스터와 별개의 독립 단일 HTML로 previews/ship-certs/에 배치.' },
-      { type:'완료', title:'VIEW 카테고리 선택 허브 신설 — 통관절차/선사업무 통합 (2026-06-05)', desc:'박사 지시 — VIEW 클릭 시 두 카테고리를 따로 분리하지 않고 한 화면에서 선택. previews/tradelogix-hub/ 신설(자급식 단일 HTML): 「통관절차」(통관 마스터 앱)·「선사업무」(선박 증서 31종 도해) 두 카드 선택 화면 + 카드 선택 시 동일 화면 내 임베드 뷰어(← 카테고리 복귀, 딥링크 #customs·#carrier). #9 프리뷰를 이 허브 하나로 통합(기존 2탭 분리 → 1 진입+카테고리 전환). 통관 앱·선사업무 도해 자체는 그대로 두고 허브가 둘을 연결.' }
+      { type:'완료', title:'VIEW 카테고리 선택 허브 신설 — 통관절차/선사업무 통합 (2026-06-05)', desc:'박사 지시 — VIEW 클릭 시 두 카테고리를 따로 분리하지 않고 한 화면에서 선택. previews/tradelogix-hub/ 신설(자급식 단일 HTML): 「통관절차」(통관 마스터 앱)·「선사업무」(선박 증서 31종 도해) 두 카드 선택 화면 + 카드 선택 시 동일 화면 내 임베드 뷰어(← 카테고리 복귀, 딥링크 #customs·#carrier). #9 프리뷰를 이 허브 하나로 통합(기존 2탭 분리 → 1 진입+카테고리 전환). 통관 앱·선사업무 도해 자체는 그대로 두고 허브가 둘을 연결.' },
+      { type:'완료', title:'선사업무 서브허브화 — MAGE 프로젝트(supply DB) 통합 (2026-06-05)', desc:'박사 지시(집작업 선박증서 + Claude 정리 MAGE를 합쳐 정리) — #9 선사업무를 서브허브(previews/ship-ops-hub/)로 재편: ① MAGE 프로젝트 = 북극 탐사선단(NIKOLAY TRUBYATCHINSKY·AKADEMIK KAZANIN·SAPFIR) 선박 supply 조달 DB(raw 361→표준 199품목; A화학2·B식료품95·C기관예비품76[Cummins N14]·D전자전기15·E공구위생11)를 previews/mage-supply/에 marked.js 뷰어로 배치(batch-01, 50/215p, Codex 교차검수 대기). ② 선박증서 = 박사 작성 31종 도해(ship-certs) 그대로 연결. tradelogix-hub 선사업무 카드 → 서브허브 링크. 통관(Module1) + 선사(Module2: MAGE·증서) 통합 완성.' }
     ],
     milestones: [
       { date:'2026-06-04', title:'프로젝트 #9 신설 — TradeLogix Nexus (무역과 물류)', desc:'지식 대시보드 시리즈 9번으로 신설. Part 1 = 통관 마스터(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증). 독립 레포·worktree 격리 셋업, 대시보드 등록.' },
       { date:'2026-06-04', title:'Part 1 통관 마스터 — R1 Thesis(설계) 작성', desc:'변증법 협업 베이스 첫 적용 — Claude가 설계 제안(R1 Thesis) 작성·영속화. 다음 = Codex R1 Antithesis(반박) → 라운드 무제한 → Codex 구현 승인 후 Claude 단독 구현.' },
       { date:'2026-06-04', title:'Part 1 구현 완료 + Codex 검수 PASS (변증법 1사이클 종료)', desc:'설계 변증법 R1~R3(R1·R2 Codex BLOCK → R3 PASS·IMPLEMENTATION GO) → Claude 단독 구현(index.html) → Codex 사후검수 PASS(데이터계약 55·Playwright headless·390px·fallback). 라이브 프리뷰 대시보드 임베드. master 통합은 박사 디렉팅 대기.' },
       { date:'2026-06-05', title:'「선사 업무」 선박 증서 31종 도해 추가 + 대시보드 #9 임베드', desc:'#9의 선사 업무 축으로 선박 증서 31종(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 도해를 마스킹 공개본으로 작성해 previews/ship-certs/에 배치. 증서철 31종 PDF를 워크플로(32 에이전트)로 추출·교차감사. Edge 헤드리스 렌더 검증(데스크탑·모바일 리플로우 정상).' },
-      { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' }
+      { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' },
+      { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' }
     ]
   }
 ];
