@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unused Stack Visual Lab — Project Dashboard</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="backlink" href="../">Project Dashboard</a>
+    <div class="titleblock">
+      <p class="eyebrow">NOT YET USED STACKS / REFERENCE VISUALS</p>
+      <h1>Unused Stack Visual Lab</h1>
+    </div>
+    <div class="metrics" aria-label="coverage metrics">
+      <div><strong id="metricGroups">--</strong><span>groups</span></div>
+      <div><strong id="metricStacks">--</strong><span>stacks</span></div>
+      <div><strong id="metricCombos">--</strong><span>combos</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="control-strip" aria-label="stack controls">
+      <div class="searchbox">
+        <label for="stackSearch">검색</label>
+        <input id="stackSearch" type="search" placeholder="Rust, WebGPU, Supabase..." autocomplete="off">
+      </div>
+      <div id="groupFilters" class="filters" aria-label="group filters"></div>
+    </section>
+
+    <section class="overview">
+      <div class="signal-panel">
+        <canvas id="signalCanvas" width="920" height="320" aria-label="stack flow visualization"></canvas>
+        <div class="signal-caption">
+          <strong>stack flow</strong>
+          <span>미사용 후보를 프로젝트 표면으로 연결하는 조합 지도</span>
+        </div>
+      </div>
+      <aside class="coverage-card">
+        <h2>Coverage</h2>
+        <p>대시보드 메인의 `NOT YET USED` 후보 전체를 원본 데이터에서 읽어 시각화한다.</p>
+        <div class="coverage-row"><span>represented</span><strong id="coverageCount">--</strong></div>
+        <div class="coverage-bar"><i id="coverageBar"></i></div>
+        <p class="small">각 스택은 아래 매트릭스에 1회 이상 등장하며, 조합 카드는 실제 프로젝트에 붙일 수 있는 참고 표면이다.</p>
+      </aside>
+    </section>
+
+    <section class="combo-section">
+      <div class="section-head">
+        <h2>Combination Prototypes</h2>
+        <p>여러 미사용 스택을 묶어 만들 수 있는 예시 버전. 각 카드에 “어느 부분에 어떤 스택을 쓰는지”를 명시했다.</p>
+      </div>
+      <div id="comboGrid" class="combo-grid"></div>
+    </section>
+
+    <section class="matrix-section">
+      <div class="section-head">
+        <h2>Full Stack Matrix</h2>
+        <p>대시보드 메인 하단의 미사용 스택 88개 전체 목록. 추천 프로젝트와 참고용 구현 표면을 함께 표시한다.</p>
+      </div>
+      <div id="stackMatrix" class="matrix-grid"></div>
+    </section>
+  </main>
+
+  <script src="../js/projects-data.js"></script>
+  <script src="./stack-lab.js"></script>
+</body>
+</html>

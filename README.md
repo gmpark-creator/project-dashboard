@@ -6,6 +6,7 @@
 
 - 메인 인덱스: https://gmpark-creator.github.io/project-dashboard/
 - Codex 운영 리포트: https://gmpark-creator.github.io/project-dashboard/codex/
+- 미사용 기술스택 시각화 랩: https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/
 - Solar Project - Codex: https://gmpark-creator.github.io/project-dashboard/solar-project-codex/
 - Solar Project - Claude: https://gmpark-creator.github.io/project-dashboard/solar-project-claude/
 - INST EXTRACTOR 브리핑: https://gmpark-creator.github.io/project-dashboard/codex/inst-extractor/
