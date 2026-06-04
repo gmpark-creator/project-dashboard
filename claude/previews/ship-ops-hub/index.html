@@ -3,33 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeLogix Nexus — 무역과 물류 · 카테고리 선택</title>
+<title>선사업무 — TradeLogix Nexus · 카테고리 선택</title>
 <style>
   :root{
     --bg:#0F172A; --bg2:#111e36; --panel:#1e293b; --line:#334155;
     --ink:#e2e8f0; --muted:#94a3b8; --cyan:#38bdf8; --teal:#2dd4cf; --gold:#fbbf24;
-    --customs:#38bdf8; --carrier:#2dd4cf;
+    --mage:#2dd4cf; --certs:#fbbf24;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
     font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:
-      radial-gradient(900px 480px at 18% -8%, rgba(56,189,248,.14), transparent 60%),
-      radial-gradient(900px 520px at 86% 108%, rgba(45,212,207,.12), transparent 60%),
+      radial-gradient(900px 480px at 18% -8%, rgba(45,212,207,.14), transparent 60%),
+      radial-gradient(900px 520px at 86% 108%, rgba(251,191,36,.10), transparent 60%),
       linear-gradient(160deg,#0F172A 0%,#111e36 60%,#0F172A 100%);
     color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased;
     min-height:100%; letter-spacing:-.01em;
   }
-
-  /* ===== SELECTOR ===== */
   #selector{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 22px;position:relative;overflow:hidden}
   #selector::before{content:"";position:absolute;inset:0;
     background-image:linear-gradient(rgba(120,190,210,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,190,210,.05) 1px,transparent 1px);
     background-size:48px 48px;mask:radial-gradient(700px 500px at 50% 40%,#000,transparent 75%);pointer-events:none}
   .brand{text-align:center;margin-bottom:34px;position:relative;z-index:1}
-  .brand .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:12px}
-  .brand h1{font-size:clamp(28px,4.4vw,46px);font-weight:800;letter-spacing:-.02em;
+  .brand .eyebrow{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:12px}
+  .brand h1{font-size:clamp(26px,4.2vw,42px);font-weight:800;letter-spacing:-.02em;
     background:linear-gradient(92deg,#bff3fb,#7fe6df 60%,#bff3fb);-webkit-background-clip:text;background-clip:text;color:transparent}
   .brand .tagline{margin-top:10px;color:var(--muted);font-size:15px}
   .brand .tagline b{color:#bfe9f5}
@@ -39,7 +37,7 @@
     position:relative;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;
     background:linear-gradient(180deg,rgba(19,40,58,.92),rgba(12,28,42,.92));
     padding:30px 28px 26px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;
-    display:flex;flex-direction:column;min-height:280px;color:inherit;font:inherit;
+    display:flex;flex-direction:column;min-height:286px;color:inherit;font:inherit;
   }
   .cat::after{content:"";position:absolute;left:0;top:0;height:100%;width:4px;background:var(--accent)}
   .cat:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 0 1px var(--accent) inset}
@@ -47,7 +45,7 @@
   .cat .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.08em}
   .cat .ico{width:62px;height:62px;border-radius:16px;display:grid;place-items:center;margin:12px 0 16px;
     background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent)}
-  .cat .ico svg{width:32px;height:32px;stroke:var(--accent)}
+  .cat .ico svg{width:32px;height:32px;stroke:var(--accent);fill:none}
   .cat h2{font-size:23px;font-weight:800}
   .cat .en{font-size:12.5px;color:var(--muted);font-style:italic;margin-top:3px;font-weight:500}
   .cat p{margin-top:13px;color:#c2d6e2;font-size:13.5px;line-height:1.6;flex:1}
@@ -56,97 +54,90 @@
   .cat .open{margin-top:18px;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--accent)}
   .cat .open .arr{transition:transform .18s}
   .cat:hover .open .arr{transform:translateX(4px)}
-  .cat[data-cat="customs"]{--accent:var(--customs)}
-  .cat[data-cat="carrier"]{--accent:var(--carrier)}
+  .cat[data-cat="mage"]{--accent:var(--mage)}
+  .cat[data-cat="certs"]{--accent:var(--certs)}
 
   .foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;position:relative;z-index:1;line-height:1.7}
   .foot b{color:#9fc2d2}
 
-  /* ===== VIEWER ===== */
   #viewer{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
   #viewer.on{display:flex}
   .vbar{display:flex;align-items:center;gap:14px;padding:10px 16px;background:rgba(12,28,42,.96);
     border-bottom:1px solid var(--line);backdrop-filter:blur(8px);flex-shrink:0}
   .back{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);
     color:var(--ink);font:inherit;font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
-  .back:hover{border-color:var(--cyan);background:rgba(34,211,238,.1)}
+  .back:hover{border-color:var(--teal);background:rgba(45,212,207,.1)}
   .vtitle{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
   .vtitle .dot{width:9px;height:9px;border-radius:50%}
   .vtitle .vsub{color:var(--muted);font-weight:500;font-size:12.5px}
   .vbar .spacer{flex:1}
   .newtab{color:var(--muted);font-size:12.5px;text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:9px;transition:.15s;white-space:nowrap}
-  .newtab:hover{color:var(--cyan);border-color:var(--cyan)}
+  .newtab:hover{color:var(--teal);border-color:var(--teal)}
   #frame{flex:1;width:100%;border:0;background:#0F172A}
-  .loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--muted);font-size:14px}
 
-  @media (max-width:680px){
-    .cards{grid-template-columns:1fr}
-    .cat{min-height:auto}
-    .vtitle .vsub{display:none}
-  }
+  @media (max-width:680px){ .cards{grid-template-columns:1fr} .cat{min-height:auto} .vtitle .vsub{display:none} }
 </style>
 </head>
 <body>
 
-<!-- ===== 카테고리 선택 ===== -->
 <div id="selector">
   <div class="brand">
-    <div class="eyebrow">TradeLogix Nexus · 무역과 물류</div>
-    <h1>카테고리를 선택하세요</h1>
-    <p class="tagline">하나의 무역·물류 허브에서 <b>통관절차</b>와 <b>선사업무</b>를 함께 다룹니다. 보고 싶은 영역을 고르세요.</p>
+    <div class="eyebrow">TradeLogix Nexus · 선사업무 (Ocean Carrier &amp; Fleet Ops)</div>
+    <h1>선사업무 — 항목을 선택하세요</h1>
+    <p class="tagline"><b>MAGE 프로젝트</b>(선박 조달 DB)와 <b>선박 증서</b>(31종 도해)를 한 화면에서 다룹니다.</p>
   </div>
 
   <div class="cards">
-    <button class="cat" data-cat="customs" data-url="../tradelogix-nexus/index.html"
-            data-title="통관절차" data-sub="Customs Clearance · Part 1 통관 마스터">
+    <button class="cat" data-cat="mage" data-url="../mage-supply/index.html"
+            data-title="MAGE 프로젝트" data-sub="Marine Arctic Geological Expedition · 선박 Supply DB">
       <span class="num">CATEGORY 01</span>
       <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>
+        <svg viewBox="0 0 24 24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="3.6" ry="9"/><path d="M3 12h18"/>
+          <path d="M6.5 15.6Q12 4.4 17.6 9" stroke-dasharray="1.7 2.3"/>
         </svg>
       </span>
-      <h2>통관절차</h2>
-      <div class="en">Customs Clearance — Part 1 통관 마스터</div>
-      <p>부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 인터랙티브하게 탐색합니다.</p>
+      <h2>MAGE 프로젝트</h2>
+      <div class="en">Marine Arctic Geological Expedition — 선박 Supply 조달 DB</div>
+      <p>북극 해양 지질탐사 선단(NIKOLAY TRUBYATCHINSKY 등)의 선박용품 조달기록을 추출·중복제거·개념해설·용도매핑한 한국어 마스터 DB. 화학·식료품·기관 예비품(Cummins N14)·전자전기·공구위생 5개 카테고리.</p>
       <div class="meta">
-        <span class="chip">수입·수출·반송</span><span class="chip">Incoterms 2020</span><span class="chip">수입신고필증</span><span class="chip">부산항 북항·신항</span>
+        <span class="chip">표준 199품목</span><span class="chip">50/215p</span><span class="chip">엔진 스페어</span><span class="chip">프로비전</span>
       </div>
       <span class="open">열기 <span class="arr">→</span></span>
     </button>
 
-    <button class="cat" data-cat="carrier" data-url="../ship-ops-hub/index.html"
-            data-title="선사업무" data-sub="Ocean Carrier &amp; Fleet Ops · MAGE 프로젝트 + 선박증서">
+    <button class="cat" data-cat="certs" data-url="../ship-certs/index.html"
+            data-title="선박 증서" data-sub="Ship Certificates · 31종 도해">
       <span class="num">CATEGORY 02</span>
       <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="5" r="2.4"/><path d="M12 7.4V21"/><path d="M5 21a7 7 0 0 0 7-7"/><path d="M19 21a7 7 0 0 1-7-7"/><path d="M8 12h8"/>
+        <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 13h7M9 17h7M9 9h2"/>
         </svg>
       </span>
-      <h2>선사업무</h2>
-      <div class="en">Ocean Carrier &amp; Fleet Ops — MAGE 프로젝트 + 선박 증서</div>
-      <p>선사 업무를 두 갈래로 다룹니다. ① <b>MAGE 프로젝트</b> — 북극 탐사선단(NIKOLAY 등)의 선박 supply 조달 DB(표준 199품목). ② <b>선박 증서</b> — 국제항해 선박 증서 31종 도해(SOLAS·MARPOL·MLC).</p>
+      <h2>선박 증서</h2>
+      <div class="en">Ship Certificates — 국제항해 선박 증서 31종 도해</div>
+      <p>국제항해 컨테이너선이 합법 운항을 위해 갖추는 선박 증서 31종을 8개 기능분류(등록·국적 / 선급·안전 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험 / 위험물 / 검역)로 정리하고 종류·용도·근거협약을 설명합니다.</p>
       <div class="meta">
-        <span class="chip">MAGE supply DB</span><span class="chip">선박증서 31종</span><span class="chip">엔진·프로비전</span><span class="chip">SOLAS·MARPOL·MLC</span>
+        <span class="chip">증서 31종</span><span class="chip">8개 분류</span><span class="chip">SOLAS·MARPOL·MLC</span>
       </div>
       <span class="open">열기 <span class="arr">→</span></span>
     </button>
   </div>
 
   <div class="foot">
-    <b>TradeLogix Nexus</b> — 무역과 물류 통합 허브 · 통관절차(Part 1) + 선사업무(MAGE 프로젝트 · 선박증서)<br>
-    프로젝트 9번 · 카테고리는 한 화면에서 전환됩니다
+    <b>선사업무</b> — MAGE 프로젝트(조달 DB) + 선박 증서(31종) · 프로젝트 9번 / TradeLogix Nexus<br>
+    항목은 한 화면에서 전환됩니다
   </div>
 </div>
 
-<!-- ===== 뷰어 ===== -->
 <div id="viewer" aria-hidden="true">
   <div class="vbar">
-    <button class="back" id="back" type="button">← 카테고리</button>
+    <button class="back" id="back" type="button">← 선사업무</button>
     <div class="vtitle"><span class="dot" id="vdot"></span><span id="vtitle">—</span> <span class="vsub" id="vsub"></span></div>
     <span class="spacer"></span>
     <a class="newtab" id="newtab" href="#" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
   </div>
-  <iframe id="frame" title="선택한 카테고리" loading="lazy"></iframe>
+  <iframe id="frame" title="선택한 항목" loading="lazy"></iframe>
 </div>
 
 <script>
@@ -157,13 +148,13 @@
   var vsub     = document.getElementById('vsub');
   var vdot     = document.getElementById('vdot');
   var newtab   = document.getElementById('newtab');
-  var ACCENT   = { customs:'#22d3ee', carrier:'#2dd4cf' };
+  var ACCENT   = { mage:'#2dd4cf', certs:'#fbbf24' };
 
   function openCat(cat, url, title, sub){
     frame.src = url;
     vtitle.textContent = title;
     vsub.textContent = sub || '';
-    vdot.style.background = ACCENT[cat] || '#22d3ee';
+    vdot.style.background = ACCENT[cat] || '#2dd4cf';
     newtab.href = url;
     viewer.classList.add('on');
     viewer.setAttribute('aria-hidden','false');
@@ -185,10 +176,9 @@
   });
   document.getElementById('back').addEventListener('click', closeCat);
 
-  // 딥링크: #customs / #carrier 로 진입 시 해당 카테고리 바로 열기
   (function(){
     var h = (location.hash || '').replace('#','');
-    if (h === 'customs' || h === 'carrier') {
+    if (h === 'mage' || h === 'certs') {
       var b = document.querySelector('.cat[data-cat="'+h+'"]');
       if (b) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
     }

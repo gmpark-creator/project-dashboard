@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAGE Project · SUPPLY — TradeLogix Nexus 선사업무</title>
+<style>
+  :root{
+    --bg:#0F172A; --panel:#1e293b; --line:#334155; --ink:#e2e8f0; --muted:#94a3b8;
+    --cyan:#38bdf8; --teal:#2dd4cf; --gold:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased; letter-spacing:-.01em;
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 460px at 16% -8%, rgba(45,212,207,.12), transparent 60%),
+      radial-gradient(900px 520px at 88% 108%, rgba(56,189,248,.10), transparent 60%),
+      linear-gradient(160deg,#0F172A 0%,#111e36 60%,#0F172A 100%);
+    min-height:100vh;
+  }
+  /* topbar */
+  .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:11px 16px;background:rgba(12,28,42,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+  .topbar .tt{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px}
+  .topbar .tt .dot{width:9px;height:9px;border-radius:50%;background:var(--teal)}
+  .topbar .tt .sub{color:var(--muted);font-weight:500;font-size:12.5px}
+  .topbar .spacer{flex:1}
+  .topbar .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+    background:color-mix(in srgb,var(--teal) 16%,transparent);color:#bff3fb;border:1px solid color-mix(in srgb,var(--teal) 40%,transparent)}
+  /* hero */
+  .wrap{max-width:1120px;margin:0 auto;padding:22px 18px 70px}
+  .hero{border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;
+    background:linear-gradient(180deg,rgba(19,40,58,.9),rgba(12,28,42,.9));margin-bottom:22px}
+  .hero .eyebrow{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--teal);font-weight:700}
+  .hero h1{margin:8px 0 4px;font-size:clamp(22px,3.4vw,32px);font-weight:800;
+    background:linear-gradient(92deg,#bff3fb,#7fe6df 60%,#bff3fb);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .lead{color:#c2d6e2;font-size:14px;line-height:1.6;margin-top:6px}
+  .hero .lead b{color:#bfe9f5}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:rgba(255,255,255,.02);min-width:96px}
+  .stat .v{font-size:20px;font-weight:800;color:#bff3fb}
+  .stat .k{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .fleet{margin-top:14px;display:flex;flex-wrap:wrap;gap:7px}
+  .fleet .chip{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:#9fc2d2;border:1px solid var(--line)}
+  /* markdown render */
+  .md h1{display:none}            /* batch md의 최상위 H1은 hero로 대체 */
+  .md h2{color:var(--teal);font-size:19px;border-bottom:1px solid var(--line);padding-bottom:7px;margin:36px 0 10px}
+  .md h3{color:var(--cyan);font-size:15px;margin:22px 0 6px}
+  .md p{color:#c2d6e2;line-height:1.65;font-size:13.5px;margin:8px 0}
+  .md ul,.md ol{color:#c2d6e2;font-size:13.5px;line-height:1.6}
+  .md table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;display:block;overflow-x:auto;white-space:normal}
+  .md th{background:rgba(45,212,207,.12);color:#bff3fb;text-align:left;padding:8px 10px;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+  .md td{padding:8px 10px;border:1px solid var(--line);vertical-align:top;color:#d8e3ea}
+  .md tbody tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+  .md code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:5px;font-size:12px;color:#bfe9f5}
+  .md blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:7px 14px;background:rgba(45,212,207,.06);color:#c2d6e2;border-radius:0 8px 8px 0;font-size:13px}
+  .md a{color:var(--cyan)}
+  .md strong{color:#eaf3f7}
+  .md hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+  .loading{color:var(--muted);font-size:14px;padding:30px 0;text-align:center}
+  .err{border:1px solid #b45;border-radius:12px;padding:16px;background:rgba(180,69,85,.1);color:#ffd9df;font-size:13.5px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tt"><span class="dot"></span>MAGE Project · SUPPLY <span class="sub">선사업무 · 선박 조달기록 DB</span></div>
+  <span class="spacer"></span>
+  <span class="badge">batch-01 · 50/215p</span>
+  <a class="badge" href="batch-01.md" target="_blank" rel="noopener" style="text-decoration:none">원본 .md ↗</a>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Module 2 · Ocean Carrier &amp; Fleet Ops</div>
+    <h1>MAGE Project — 선박 Supply 조달 DB</h1>
+    <p class="lead">MAGE(Marine Arctic Geological Expedition · 북극 해양 지질 탐사) 선단의 선박용품 조달기록을
+       <b>추출 → 중복제거 → 개념해설 → 용도매핑</b>한 한국어 마스터 DB. 50페이지 배치 누적 처리.</p>
+    <div class="stats">
+      <div class="stat"><div class="v">361</div><div class="k">raw 품목</div></div>
+      <div class="stat"><div class="v">199</div><div class="k">표준 통합</div></div>
+      <div class="stat"><div class="v">5</div><div class="k">카테고리</div></div>
+      <div class="stat"><div class="v">50/215</div><div class="k">처리 페이지</div></div>
+    </div>
+    <div class="fleet">
+      <span class="chip">NIKOLAY TRUBYATCHINSKY (RV)</span>
+      <span class="chip">AKADEMIK KAZANIN</span>
+      <span class="chip">SAPFIR</span>
+      <span class="chip">공급 COENS GLS · 더마린코리아</span>
+      <span class="chip">부산세관</span>
+    </div>
+  </div>
+
+  <article id="content" class="md"><div class="loading">DB를 불러오는 중…</div></article>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script>
+  (function(){
+    var el = document.getElementById('content');
+    function render(md){
+      try { el.innerHTML = marked.parse(md); }
+      catch(e){ el.innerHTML = '<div class="err">렌더 오류: ' + (e && e.message) + '</div>'; }
+    }
+    fetch('batch-01.md', {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+      .then(render)
+      .catch(function(e){
+        el.innerHTML = '<div class="err">DB 파일(batch-01.md)을 불러오지 못했습니다 ('+e.message+').<br>'
+          + 'GitHub Pages(https)에서는 정상 표시됩니다. 로컬 file:// 직접 열람 시 브라우저 보안정책으로 fetch가 차단될 수 있습니다 — '
+          + '<a href="batch-01.md" target="_blank" rel="noopener">원본 .md 열기 ↗</a></div>';
+      });
+  })();
+</script>
+</body>
+</html>
