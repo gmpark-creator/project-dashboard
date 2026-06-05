@@ -849,6 +849,12 @@
 
           <div class="atlas-section-head atlas-gap"><strong>+ NOT YET USED · 미사용 &amp; 추천</strong><span class="count">${pad2(unusedCount)} CANDIDATES</span></div>
           <div class="atlas-unused-grid">${unusedHtml}</div>
+          <div class="atlas-lab-cta" style="margin-top:22px;text-align:center">
+            <a href="stack-lab/" target="_blank" rel="noopener"
+               style="display:inline-block;padding:12px 22px;border:1px solid var(--accent);border-radius:12px;color:var(--accent);font-weight:800;font-size:13px;letter-spacing:.01em;text-decoration:none;background:color-mix(in srgb,var(--accent) 9%,transparent);transition:.15s"
+               onmouseover="this.style.background='color-mix(in srgb,var(--accent) 18%,transparent)'"
+               onmouseout="this.style.background='color-mix(in srgb,var(--accent) 9%,transparent)'">🧪 미사용 기술스택 시각화 랩 — 18그룹 · 88스택 · 10조합 프로토타입 열기 ↗</a>
+          </div>
         </div>
       </section>`;
   }
