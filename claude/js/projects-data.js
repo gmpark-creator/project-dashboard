@@ -489,8 +489,8 @@ const PROJECTS = [
     ]
   },
   {
-    id: 'tech-stack-atlas',
-    name: 'Tech Stack Atlas',
+    id: 'tech-stack',
+    name: 'Tech Stack Collection',
     subtitle: '기술 스택 모음 — 전 프로젝트가 쓴 스택과 아직 안 쓴 후보 88종을 18그룹으로 정리하고, 미사용 스택을 실제로 조합한 10가지 프로토타입을 시각화한 참고 아카이브',
     icon: 'stack',
     platform: '웹 · 참고 시각화 (자급식 단일 HTML)',
@@ -500,7 +500,7 @@ const PROJECTS = [
     progress: 100,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/', label:'Tech Stack Atlas — 사용/미사용 기술스택 18그룹·88후보 매트릭스 + 카테고리 필터·검색 + 10조합 프로토타입(AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track 등) + Canvas 스택플로 애니메이션' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/', label:'Tech Stack Collection — 사용/미사용 기술스택 18그룹·88후보 매트릭스 + 카테고리 필터·검색 + 10조합 프로토타입(AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track 등) + Canvas 스택플로 애니메이션' }
     ]},
     summary: '대시보드 전 프로젝트가 사용한 기술스택과, 아직 쓰지 않은 후보 기술 88종을 한곳에 모은 참고 아카이브.\n'
            + 'projects-data.js의 STACK_ATLAS 데이터를 단일 소스로 읽어 18개 그룹·88후보를 매트릭스·카드·필터·검색으로 시각화한다(별도 카탈로그 중복 없음).\n'
@@ -516,10 +516,10 @@ const PROJECTS = [
     ],
     issues: [
       { type:'완료', title:'Codex 구현 — 미사용 기술스택 시각화 (2026-06-05)', desc:'어제 박사 지시 「아직 안 쓴 기술스택을 예시 조합으로 만들어 전달」 → Codex가 STACK_ATLAS.unused 소스로 자급식 단일 HTML 구현: 18그룹·88후보 매트릭스 + 10조합 프로토타입 + 검색/카테고리 필터 + Canvas 스택플로. node --check·Edge 헤드리스(데스크탑/모바일 overflow 0) PASS. previews/stack-lab/에 배치, 핸드오프 노트(internal/notes) 첨부.' },
-      { type:'완료', title:'독립 프로젝트로 분리 (2026-06-05)', desc:'박사 지시 — 메인 홈 하단 버튼/사이드바 메뉴가 아니라 「Tech Stack Atlas」 독립 프로젝트 카드로 분리. projects-data에 정식 등록(고유색 teal), 프리뷰 임베드. 홈 stack-atlas 섹션의 진입 버튼은 제거.' }
+      { type:'완료', title:'독립 프로젝트로 분리 (2026-06-05)', desc:'박사 지시 — 메인 홈 하단 버튼/사이드바 메뉴가 아니라 「Tech Stack Collection」 독립 프로젝트 카드로 분리. projects-data에 정식 등록(고유색 teal), 프리뷰 임베드. 홈 stack-atlas 섹션의 진입 버튼은 제거.' }
     ],
     milestones: [
-      { date:'2026-06-05', title:'Tech Stack Atlas 신설 — 미사용 기술스택 모음', desc:'Codex 구현(stack-lab) → 박사 지시로 독립 프로젝트(Tech Stack Atlas) 카드화. STACK_ATLAS 단일 소스, 18그룹·88후보·10조합 프로토타입·Canvas 애니메이션. 고유색 teal 부여.' }
+      { date:'2026-06-05', title:'Tech Stack Collection 신설 — 미사용 기술스택 모음', desc:'Codex 구현(stack-lab) → 박사 지시로 독립 프로젝트(Tech Stack Collection) 카드화. STACK_ATLAS 단일 소스, 18그룹·88후보·10조합 프로토타입·Canvas 애니메이션. 고유색 teal 부여.' }
     ]
   }
 ];

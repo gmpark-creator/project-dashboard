@@ -133,7 +133,7 @@
           '<animateMotion dur="3.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear" path="M6.5 15.6Q12 4.4 17.6 9"/>' +
         '</circle>' +
       '</svg>',
-    // 기술 스택 모음 — 층층 레이어 (Tech Stack Atlas)
+    // 기술 스택 모음 — 층층 레이어 (Tech Stack Collection)
     'stack':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<path d="M12 3l9 5-9 5-9-5 9-5z"/>' +
