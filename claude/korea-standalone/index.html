@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="2026 PRESIDENT KOREA — 대통령 5년 단임 정치 시뮬레이션. 단독 프로젝트 리포트(대시보드에서 분리).">
+  <title>2026 PRESIDENT KOREA — Project Report</title>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="dashboard.css?v=20260605-kgs">
+
+  <!-- 단독 리포트: 프로젝트 1개(korea-gov-sim), 색=lime(구 5번 색 유지). 메인 대시보드와 동일 엔진(dashboard.js). -->
+  <script>
+    window.__DEFAULT_COLOR = 'lime';
+    window.__PROJECT_COLOR = { 'korea-gov-sim': 'lime' };
+    (function () {
+      var mode = 'dark';
+      try { var sm = localStorage.getItem('dash-mode'); if (sm === 'light' || sm === 'dark') mode = sm; } catch (e) {}
+      document.documentElement.dataset.mode = mode;
+      var color = window.__DEFAULT_COLOR;
+      try {
+        var m = (location.hash || '').match(/^#\/p\/([\w-]+)$/);
+        if (m && window.__PROJECT_COLOR[m[1]]) color = window.__PROJECT_COLOR[m[1]];
+      } catch (e) {}
+      document.documentElement.dataset.color = color;
+    })();
+  </script>
+</head>
+<body>
+
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<div class="corner-ui corner-tr">
+  <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-label="Toggle sidebar">
+    <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="label">MENU</span>
+  </button>
+</div>
+<div class="corner-ui corner-br">
+  <div class="section-index"><span class="current" id="section-index-current">00</span><span class="sep">/</span><span class="total" id="section-index-total">01</span></div>
+</div>
+
+<div class="color-ui"><button type="button" class="color-toggle" id="color-toggle" aria-expanded="false">Color</button></div>
+<div class="color-panel-scrim" id="color-panel-scrim" aria-hidden="true"></div>
+<aside class="color-panel" id="color-panel" aria-label="Display mode switcher" aria-hidden="true">
+  <div class="color-panel-head"><span class="title"><em>+</em>화면 모드</span><button type="button" class="close" id="color-close" aria-label="Close">×</button></div>
+  <div class="color-list" id="color-list"></div>
+</aside>
+
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Project navigation">
+    <button type="button" class="sidebar-close" id="sidebar-close" aria-label="Close sidebar">×</button>
+
+    <div class="sidebar-head">
+      <a href="#/" class="brand" data-route="home">G.M.PARK</a>
+      <span class="sub">2026 PRESIDENT KOREA · 단독 리포트</span>
+    </div>
+
+    <a href="../" class="sidebar-home" style="color:#a6f72b;border-bottom:1px solid rgba(255,255,255,.07)">← 전체 프로젝트 대시보드</a>
+    <a href="#/" class="sidebar-home" data-route="home" id="sidebar-home-link">이 프로젝트 홈</a>
+
+    <div class="sidebar-label"><span>+ Project</span><span class="count" id="sidebar-count">--</span></div>
+    <nav class="sidebar-list" id="sidebar-list" aria-label="Project list"></nav>
+
+    <div class="sidebar-foot">
+      <div class="kst-block">
+        <div class="kst-row-main"><span class="kst-time" id="kst-time">--:--:--</span><span class="kst-offset" id="kst-offset">UTC+9</span></div>
+        <div class="kst-row-sub"><span class="kst-date" id="kst-date">YYYY-MM-DD</span><span class="kst-loc">KST · SEOUL</span></div>
+      </div>
+      <button type="button" class="tz-toggle" id="tz-toggle" aria-expanded="false" aria-controls="world-clock"><span class="tz-toggle-label">+ TIME ZONES</span><span class="tz-toggle-arrow">↓</span></button>
+      <ul class="world-clock" id="world-clock"></ul>
+      <span class="director">G.M.PARK · DIRECTOR</span>
+    </div>
+  </aside>
+
+  <div class="sidebar-scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+  <div class="main-area">
+    <main id="main-content" aria-live="polite"></main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <span class="brand-large">2026 PRESIDENT KOREA</span>
+            <p>대통령 5년 단임 정치 시뮬레이션 · 단독 프로젝트 리포트<br>Director · Creator · 2025 — Present</p>
+          </div>
+          <div class="footer-col">
+            <h5>Quick Nav</h5>
+            <ul>
+              <li><a href="../">← 전체 프로젝트 대시보드</a></li>
+              <li><a href="#/p/korea-gov-sim">프로젝트 상세</a></li>
+              <li><a href="../previews/korea-gov-sim/?lang=ko&v=kgs3" target="_blank" rel="noopener">플레이 가능 빌드 ↗</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2026 G.M.PARK · All Rights Reserved.</p>
+          <p>2026 PRESIDENT KOREA · 단독 리포트 · 메인 대시보드에서 분리 2026-06-05</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script src="kgs-projects-data.js?v=20260605-kgs" defer></script>
+<script src="dashboard.js?v=20260605-kgs" defer></script>
+</body>
+</html>
