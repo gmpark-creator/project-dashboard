@@ -491,16 +491,16 @@ const PROJECTS = [
   {
     id: 'tech-stack',
     name: 'Tech Stack Collection',
-    subtitle: '기술 스택 모음 — 전 프로젝트가 쓴 스택과 아직 안 쓴 후보 88종을 18그룹으로 정리하고, 미사용 스택을 실제로 조합한 10가지 프로토타입을 시각화한 참고 아카이브',
+    subtitle: '기술 스택 모음 — #9 TradeLogix 대시보드의 현재 스택 정밀 분석 + 대체 기술 시뮬레이션 + 미래 스택 조합 엔진을 한 화면 3탭으로 탐색하는 기술 아키텍처 진화 허브',
     icon: 'stack',
     platform: '웹 · 참고 시각화 (자급식 단일 HTML)',
     status: 'completed',
     start: '2026-06-05',
     latest: '2026-06-05',
     progress: 100,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-collection/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/', label:'Tech Stack Collection — 사용/미사용 기술스택 18그룹·88후보 매트릭스 + 카테고리 필터·검색 + 10조합 프로토타입(AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track 등) + Canvas 스택플로 애니메이션' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-collection/', label:'Tech Stack Collection — 기술 스택 아키텍처 진화 허브: ①현재 스택 정밀 분석(대시보드 화면 청사진 8영역) ②대체 기술 시뮬레이션(UI·스타일·시각화·배포 계층 대체안 → 성능·복잡도·유지보수·가벼움 즉시 재계산 + 전환위험 등급) ③미래 스택 조합 엔진(해상항적·AI통관감사·항만 디지털트윈·선사 지식그래프 4종)' }
     ]},
     summary: '대시보드 전 프로젝트가 사용한 기술스택과, 아직 쓰지 않은 후보 기술 88종을 한곳에 모은 참고 아카이브.\n'
            + 'projects-data.js의 STACK_ATLAS 데이터를 단일 소스로 읽어 18개 그룹·88후보를 매트릭스·카드·필터·검색으로 시각화한다(별도 카탈로그 중복 없음).\n'
@@ -515,6 +515,7 @@ const PROJECTS = [
       { area: '스택플로 애니메이션', tech: 'Canvas', how: '미사용 스택의 흐름을 애니메이션 Canvas 패널로 시각화한다.' },
     ],
     issues: [
+      { type:'완료', title:'기술 스택 아키텍처 진화 허브 — Codex 설계 → Claude 구현 (2026-06-05)', desc:'#9 변증법 규약대로 Codex가 구현 커밋이 아닌 완성 단일 HTML 소스를 제공 → Claude가 구현자로 받아 전달 과정의 줄바꿈 깨짐을 복구한 뒤 previews/tech-stack-collection/에 커밋. 3탭 인터랙티브: ① 현재 스택 정밀 분석(대시보드 화면 청사진 8영역별 사용 기술·역할 인스펙터) ② 대체 시뮬레이션(화면 상태·스타일·시각화·배포 4계층의 대체안 선택 시 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 즉시 재계산 + 전환위험 등급) ③ 미래 조합 엔진(Rust+WASM 해상항적·FastAPI+LangChain AI 통관감사·WebGPU 항만 디지털트윈·Neo4j 선사 지식그래프). Tech Stack Collection 카드 메인 콘텐츠로 연결. JS 문법 검증 PASS.' },
       { type:'완료', title:'Codex 구현 — 미사용 기술스택 시각화 (2026-06-05)', desc:'어제 박사 지시 「아직 안 쓴 기술스택을 예시 조합으로 만들어 전달」 → Codex가 STACK_ATLAS.unused 소스로 자급식 단일 HTML 구현: 18그룹·88후보 매트릭스 + 10조합 프로토타입 + 검색/카테고리 필터 + Canvas 스택플로. node --check·Edge 헤드리스(데스크탑/모바일 overflow 0) PASS. previews/stack-lab/에 배치, 핸드오프 노트(internal/notes) 첨부.' },
       { type:'완료', title:'독립 프로젝트로 분리 (2026-06-05)', desc:'박사 지시 — 메인 홈 하단 버튼/사이드바 메뉴가 아니라 「Tech Stack Collection」 독립 프로젝트 카드로 분리. projects-data에 정식 등록(고유색 teal), 프리뷰 임베드. 홈 stack-atlas 섹션의 진입 버튼은 제거.' }
     ],
