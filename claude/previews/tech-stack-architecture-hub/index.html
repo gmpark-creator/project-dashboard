@@ -7,13 +7,9 @@
 <meta name="theme-color" content="#0b1220">
 <!-- self-contained favicon (data-URI) — /favicon.ico 네트워크 요청·404 제거 (Codex B1) -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBiMTIyMCIvPjxwYXRoIGQ9Ik0xNiA1bDkgNS05IDUtOS01IDktNXoiIGZpbGw9IiMzOGJkZjgiLz48cGF0aCBkPSJNNyAxNmw5IDUgOS01IiBmaWxsPSJub25lIiBzdHJva2U9IiMzNGQ2YzAiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyAyMWw5IDUgOS01IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNGI3NDAiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { theme: { extend: { colors: {
-    base:'#0b1220', panel:'#13203a', line:'#26385a', ink:'#e7eefb', muted:'#93a4c4',
-    cyan:'#38bdf8', mint:'#34d6c0', gold:'#f4b740', danger:'#fb7185'
-  } } } };
-</script>
+<!-- Tailwind: 사전컴파일 정적 CSS(_build/tailwind.config.js로 생성) — Play CDN 대체.
+     production warning 제거 + 런타임 CDN 의존 0. 색 토큰은 기존 인라인 config와 1:1. -->
+<link rel="stylesheet" href="tech-hub.css?v=20260605-tw">
 <style>
   :root{ color-scheme:dark; }
   html,body{ margin:0; }
