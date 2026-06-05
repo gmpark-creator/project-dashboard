@@ -298,7 +298,7 @@
       gNode.appendChild(g); kgNodeSel[n.id] = g; n._g = g; n._c = c; n._t = t;
     });
 
-    if (eng) eng.textContent = window.d3 ? '(D3 force)' : '(폴백 SVG)';
+    if (eng) eng.textContent = window.d3 ? '(D3 포스 레이아웃)' : '(폴백 SVG)';
 
     if (window.d3) {
       const sim = window.d3.forceSimulation(nodes)
@@ -502,7 +502,7 @@
       <span class="rounded bg-rose/10 px-2 py-1 font-bold text-rose">교육용 시뮬레이션</span>
       <span class="rounded bg-base/60 px-2 py-1 text-muted">데이터 <b class="text-ink">가상</b></span>
       <span class="rounded bg-base/60 px-2 py-1 text-muted">런타임 <b class="text-ink">정적 프리뷰</b></span>
-      <span class="rounded bg-base/60 px-2 py-1 text-muted">tick <b id="status-tick" class="text-mint">--:--:--</b></span>`;
+      <span class="rounded bg-base/60 px-2 py-1 text-muted">틱 <b id="status-tick" class="text-mint">--:--:--</b></span>`;
   }
 
   function init() {
