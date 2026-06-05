@@ -487,6 +487,40 @@ const PROJECTS = [
       { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' },
       { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' }
     ]
+  },
+  {
+    id: 'tech-stack-atlas',
+    name: 'Tech Stack Atlas',
+    subtitle: '기술 스택 모음 — 전 프로젝트가 쓴 스택과 아직 안 쓴 후보 88종을 18그룹으로 정리하고, 미사용 스택을 실제로 조합한 10가지 프로토타입을 시각화한 참고 아카이브',
+    icon: 'stack',
+    platform: '웹 · 참고 시각화 (자급식 단일 HTML)',
+    status: 'completed',
+    start: '2026-06-05',
+    latest: '2026-06-05',
+    progress: 100,
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/',
+    preview: { type:'embed', height:640, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/stack-lab/', label:'Tech Stack Atlas — 사용/미사용 기술스택 18그룹·88후보 매트릭스 + 카테고리 필터·검색 + 10조합 프로토타입(AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track 등) + Canvas 스택플로 애니메이션' }
+    ]},
+    summary: '대시보드 전 프로젝트가 사용한 기술스택과, 아직 쓰지 않은 후보 기술 88종을 한곳에 모은 참고 아카이브.\n'
+           + 'projects-data.js의 STACK_ATLAS 데이터를 단일 소스로 읽어 18개 그룹·88후보를 매트릭스·카드·필터·검색으로 시각화한다(별도 카탈로그 중복 없음).\n'
+           + '미사용 스택을 실제로 조합하면 무엇이 나오는지 10가지 프로토타입(어느 스택이 어느 부분에 쓰이는지)으로 제시한다 — 어제 박사 지시로 Codex가 구현해 전달, 오늘 독립 프로젝트로 분리.',
+    method: 'Codex가 STACK_ATLAS.unused를 소스로 자급식 단일 HTML(index.html + stack-lab.js + styles.css)로 구현. '
+          + '두 번째 카탈로그를 만들지 않고 대시보드와 동일 데이터를 공유하며, 검색·19종 카테고리 필터·Canvas 스택플로 애니메이션을 포함한다. node --check·Edge 헤드리스(데스크탑/모바일 390px overflow 0) 검증.',
+    stack: ['HTML5', 'Vanilla JS', 'Canvas', 'CSS'],
+    stackDetail: [
+      { area: '데이터 소스 (단일 진실)', tech: 'Vanilla JS', how: 'projects-data.js의 window.STACK_ATLAS.unused를 읽어 18그룹·88후보를 렌더한다. 두 번째 스택 카탈로그를 만들지 않고 메인 대시보드와 동일 데이터를 공유한다.' },
+      { area: '매트릭스·카드·필터·검색', tech: 'Vanilla JS, CSS', how: '88개 후보 스택을 매트릭스(88행)와 카드로 표시하고, 19개 카테고리 필터와 텍스트 검색으로 좁힌다. 다크 대시보드 비주얼 시스템·반응형.' },
+      { area: '조합 프로토타입 10종', tech: 'Vanilla JS', how: 'AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track·INST Audio Workbench·Knowledgeverse Graph Studio·Solar WebGPU Lab 등 10가지 조합 예시 — 각 조합에서 어느 스택이 어느 부분에 쓰이는지 매핑.' },
+      { area: '스택플로 애니메이션', tech: 'Canvas', how: '미사용 스택의 흐름을 애니메이션 Canvas 패널로 시각화한다.' },
+    ],
+    issues: [
+      { type:'완료', title:'Codex 구현 — 미사용 기술스택 시각화 (2026-06-05)', desc:'어제 박사 지시 「아직 안 쓴 기술스택을 예시 조합으로 만들어 전달」 → Codex가 STACK_ATLAS.unused 소스로 자급식 단일 HTML 구현: 18그룹·88후보 매트릭스 + 10조합 프로토타입 + 검색/카테고리 필터 + Canvas 스택플로. node --check·Edge 헤드리스(데스크탑/모바일 overflow 0) PASS. previews/stack-lab/에 배치, 핸드오프 노트(internal/notes) 첨부.' },
+      { type:'완료', title:'독립 프로젝트로 분리 (2026-06-05)', desc:'박사 지시 — 메인 홈 하단 버튼/사이드바 메뉴가 아니라 「Tech Stack Atlas」 독립 프로젝트 카드로 분리. projects-data에 정식 등록(고유색 teal), 프리뷰 임베드. 홈 stack-atlas 섹션의 진입 버튼은 제거.' }
+    ],
+    milestones: [
+      { date:'2026-06-05', title:'Tech Stack Atlas 신설 — 미사용 기술스택 모음', desc:'Codex 구현(stack-lab) → 박사 지시로 독립 프로젝트(Tech Stack Atlas) 카드화. STACK_ATLAS 단일 소스, 18그룹·88후보·10조합 프로토타입·Canvas 애니메이션. 고유색 teal 부여.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
