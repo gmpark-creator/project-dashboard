@@ -491,36 +491,36 @@ const PROJECTS = [
   {
     id: 'tech-stack',
     name: 'Tech Stack Collection',
-    subtitle: '기술 스택 모음 — #9 TradeLogix 대시보드의 현재 스택 정밀 분석 + 대체 기술 시뮬레이션 + 미래 스택 조합 엔진을 한 화면 3탭으로 탐색하는 기술 아키텍처 진화 허브',
+    subtitle: '기술 스택 모음 — 대시보드 8개 프로젝트가 각 화면·기능에 어떤 기술을 쓰는지 분해하고, 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 미래 프로젝트를 제안하는 3탭 아키텍처 진화 허브',
     icon: 'stack',
-    platform: '웹 · 참고 시각화 (자급식 단일 HTML)',
+    platform: '웹 · 참고 시각화 (자급식 단일 페이지 + Tailwind)',
     status: 'completed',
     start: '2026-06-05',
     latest: '2026-06-05',
     progress: 100,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-collection/',
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-collection/', label:'Tech Stack Collection — 기술 스택 아키텍처 진화 허브: ①현재 스택 정밀 분석(대시보드 화면 청사진 8영역) ②대체 기술 시뮬레이션(UI·스타일·시각화·배포 계층 대체안 → 성능·복잡도·유지보수·가벼움 즉시 재계산 + 전환위험 등급) ③미래 스택 조합 엔진(해상항적·AI통관감사·항만 디지털트윈·선사 지식그래프 4종)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/', label:'기술 스택 아키텍처 & 진화 허브 — ①현재 스택 정밀 분해(8개 프로젝트 × 화면영역별 사용기술 인스펙터, 95개 스택을 역할·한마디·없으면·예시 5필드로 설명) ②기술 대체 시뮬레이션(22개 시나리오: UI·스타일·시각화·데이터·배포 계층 대체안 → 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 + 트레이드오프) ③미래 스택 조합 엔진(미사용 88후보 기반 5종 조합)' }
     ]},
-    summary: '대시보드 전 프로젝트가 사용한 기술스택과, 아직 쓰지 않은 후보 기술 88종을 한곳에 모은 참고 아카이브.\n'
-           + 'projects-data.js의 STACK_ATLAS 데이터를 단일 소스로 읽어 18개 그룹·88후보를 매트릭스·카드·필터·검색으로 시각화한다(별도 카탈로그 중복 없음).\n'
-           + '미사용 스택을 실제로 조합하면 무엇이 나오는지 10가지 프로토타입(어느 스택이 어느 부분에 쓰이는지)으로 제시한다 — 어제 박사 지시로 Codex가 구현해 전달, 오늘 독립 프로젝트로 분리.',
-    method: 'Codex가 STACK_ATLAS.unused를 소스로 자급식 단일 HTML(index.html + stack-lab.js + styles.css)로 구현. '
-          + '두 번째 카탈로그를 만들지 않고 대시보드와 동일 데이터를 공유하며, 검색·19종 카테고리 필터·Canvas 스택플로 애니메이션을 포함한다. node --check·Edge 헤드리스(데스크탑/모바일 390px overflow 0) 검증.',
-    stack: ['HTML5', 'Vanilla JS', 'Canvas', 'CSS'],
+    summary: '대시보드의 8개 프로젝트가 각각 어느 화면·기능에 어떤 기술을 쓰는지 비개발자도 알 수 있게 분해하고, 그 스택을 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 수 있는 미래 프로젝트를 제안한다.\n'
+           + '데이터는 projects-data.js의 각 프로젝트 stackDetail(seed)을 단일 소스로 읽고, 모듈 내부 보강 레이어(역할·한마디·없으면·예시)를 normalize로 합쳐 화면에 띄운다 — 별도 카탈로그 중복 없음.\n'
+           + '①현재 스택 정밀 분해(8프로젝트·95스택) ②기술 대체 시뮬레이션(22시나리오) ③미래 스택 조합 엔진(미사용 핵심 기반 5조합)의 3탭 구성.',
+    method: 'HTML5 + Tailwind CSS(Play CDN) + Vanilla JS 자급식 단일 페이지(index.html + tech-hub.js + tech-hub-data.js). '
+          + 'normalize(seed+enrichment)로 PROJECTS.filter(id!=="tech-stack") 8개를 정규화 → 7필드(tech/role/what/withoutIt/example/sourceArea/sourceHow) 빈값 0. '
+          + '상태머신(setTab→renderS1/S2/S3, lazy 활성탭만 DOM). #9 변증법 규약: Codex R2 IMPLEMENTATION GO 후 Claude 구현, node --check·6게이트(정규화·S2≥16·S3 unused≥2·언어·위치·렌더) 자동검수 PASS.',
+    stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS'],
     stackDetail: [
-      { area: '데이터 소스 (단일 진실)', tech: 'Vanilla JS', how: 'projects-data.js의 window.STACK_ATLAS.unused를 읽어 18그룹·88후보를 렌더한다. 두 번째 스택 카탈로그를 만들지 않고 메인 대시보드와 동일 데이터를 공유한다.' },
-      { area: '매트릭스·카드·필터·검색', tech: 'Vanilla JS, CSS', how: '88개 후보 스택을 매트릭스(88행)와 카드로 표시하고, 19개 카테고리 필터와 텍스트 검색으로 좁힌다. 다크 대시보드 비주얼 시스템·반응형.' },
-      { area: '조합 프로토타입 10종', tech: 'Vanilla JS', how: 'AIS Edge Operations·Premarket Macro Brain·DDUIM Vision Track·INST Audio Workbench·Knowledgeverse Graph Studio·Solar WebGPU Lab 등 10가지 조합 예시 — 각 조합에서 어느 스택이 어느 부분에 쓰이는지 매핑.' },
-      { area: '스택플로 애니메이션', tech: 'Canvas', how: '미사용 스택의 흐름을 애니메이션 Canvas 패널로 시각화한다.' },
+      { area: '데이터 소스 (단일 진실)', tech: 'Vanilla JS', how: 'projects-data.js의 window.PROJECTS(각 프로젝트 stackDetail)와 window.STACK_ATLAS를 읽어 단일 소스로 삼는다. 스냅샷 복사 없이 대시보드와 동일 데이터를 공유해 drift 0.' },
+      { area: '정규화 레이어 (seed+보강)', tech: 'Vanilla JS', how: 'stackDetail(area/tech/how) seed에 보강 데이터(role/what/withoutIt/example)를 area 키로 합쳐 7필드로 normalize한다. 빈 문자열 0을 게이트로 검증.' },
+      { area: '3탭 렌더·상태머신', tech: 'Vanilla JS', how: 'setTab→renderS1/S2/S3 상태머신으로 활성 탭만 렌더(lazy). S1 화면청사진·인스펙터, S2 대체 게이지·before/after, S3 조합 아키텍처·데이터흐름.' },
+      { area: '스타일·반응형', tech: 'Tailwind CSS', how: 'Tailwind Play CDN + 커스텀 색 토큰(다크). lg 브레이크포인트로 390px 모바일에서 단일 컬럼 — 수평 오버플로 0.' },
     ],
     issues: [
-      { type:'완료', title:'기술 스택 아키텍처 진화 허브 — Codex 설계 → Claude 구현 (2026-06-05)', desc:'#9 변증법 규약대로 Codex가 구현 커밋이 아닌 완성 단일 HTML 소스를 제공 → Claude가 구현자로 받아 전달 과정의 줄바꿈 깨짐을 복구한 뒤 previews/tech-stack-collection/에 커밋. 3탭 인터랙티브: ① 현재 스택 정밀 분석(대시보드 화면 청사진 8영역별 사용 기술·역할 인스펙터) ② 대체 시뮬레이션(화면 상태·스타일·시각화·배포 4계층의 대체안 선택 시 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 즉시 재계산 + 전환위험 등급) ③ 미래 조합 엔진(Rust+WASM 해상항적·FastAPI+LangChain AI 통관감사·WebGPU 항만 디지털트윈·Neo4j 선사 지식그래프). Tech Stack Collection 카드 메인 콘텐츠로 연결. JS 문법 검증 PASS.' },
-      { type:'완료', title:'Codex 구현 — 미사용 기술스택 시각화 (2026-06-05)', desc:'어제 박사 지시 「아직 안 쓴 기술스택을 예시 조합으로 만들어 전달」 → Codex가 STACK_ATLAS.unused 소스로 자급식 단일 HTML 구현: 18그룹·88후보 매트릭스 + 10조합 프로토타입 + 검색/카테고리 필터 + Canvas 스택플로. node --check·Edge 헤드리스(데스크탑/모바일 overflow 0) PASS. previews/stack-lab/에 배치, 핸드오프 노트(internal/notes) 첨부.' },
-      { type:'완료', title:'독립 프로젝트로 분리 (2026-06-05)', desc:'박사 지시 — 메인 홈 하단 버튼/사이드바 메뉴가 아니라 「Tech Stack Collection」 독립 프로젝트 카드로 분리. projects-data에 정식 등록(고유색 teal), 프리뷰 임베드. 홈 stack-atlas 섹션의 진입 버튼은 제거.' }
+      { type:'완료', title:'전면 재구축 — 「하나도 안 맞음」 폐기 후 변증법 재설계 (2026-06-05)', desc:'박사 피드백 「결과물이 처음 요구와 하나도 맞지 않는다」 → 기존 tech-stack-collection 폐기. Codex가 프롬프트(R2 계약)부터 재작성, Claude Thesis→Codex Antithesis R1 BLOCK 6→R2 GO. 핵심 정정: 분석 대상을 TradeLogix 단일이 아니라 PROJECTS.filter(id!=="tech-stack") 8개 전체로, stackDetail 3필드를 seed로 두고 보강 5필드를 normalize, S2 시나리오 프로젝트별≥2·전체≥16, S3 미사용은 STACK_ATLAS.unused 기준. previews/tech-stack-architecture-hub/에 구현, tech-stack-collection 삭제.' },
+      { type:'완료', title:'6게이트 자동검수 PASS (2026-06-05)', desc:'정규화 8/8·스택 95개 빈필드 0·시나리오 22(≥16)·프로젝트별≥2·affectedComponents≥2·metrics 4수치·combos 5(≥4)·unused핵심 전부 STACK_ATLAS.unused 대조 통과·렌더 카피 한글 게이트 0·node --check PASS.' }
     ],
     milestones: [
-      { date:'2026-06-05', title:'Tech Stack Collection 신설 — 미사용 기술스택 모음', desc:'Codex 구현(stack-lab) → 박사 지시로 독립 프로젝트(Tech Stack Collection) 카드화. STACK_ATLAS 단일 소스, 18그룹·88후보·10조합 프로토타입·Canvas 애니메이션. 고유색 teal 부여.' }
+      { date:'2026-06-05', title:'기술 스택 아키텍처 & 진화 허브 — 재구축 완료', desc:'8개 프로젝트 × 화면영역별 사용기술 정밀 분해(95스택 5필드 설명) + 22개 대체 시뮬레이션(4지표 게이지+트레이드오프) + 미사용 88후보 기반 5종 미래 조합 엔진. HTML5+Tailwind+Vanilla JS, normalize(seed+보강), 6게이트 PASS.' }
     ]
   }
 ];
