@@ -40,7 +40,7 @@ const PROJECTS = [
       { type:'완료', title:'지도 기반 실시간 선박 추적 구현', desc:'Leaflet 지도에 선박 마커·항행 정보를 실시간 표시.' },
       { type:'완료', title:'2개 노선 버전 Vercel 배포', desc:'ops-main / kyowa-line-ops 두 버전을 웹에 배포해 운영 중.' },
       { type:'이슈', title:'위치 데이터 소스 정식화 검토', desc:'추후 정식 서비스로 다듬을 경우 합법적 AIS 데이터 API 연동을 함께 검토 예정.' },
-      { type:'이슈', title:'수정 작업엔 레포 접근 권한 필요', desc:'왕먀오 박사가 Vercel로 배포한 구조 — 코드 수정 시 연결된 GitHub 저장소 협업자 권한 확보가 선행되어야 함을 확인(2026-05-22).' }
+      { type:'완료', title:'협업 권한 확보 — gmpark 브랜치 작업 가능 (2026-06-05)', desc:'형(clavef)이 ship-ais-tracker 브랜치/배포 구조를 정비 — 박사(gmpark-creator)에게 WRITE 권한 + gmpark 전용 브랜치 부여. gmpark에 push하면 ais.vercel.co.kr에 자동 미리보기(public), railway-poller 백엔드도 gmpark-preview Railway 환경에 자동 재배포. main=production은 보호(직접 push 차단, PR→형 승인·CODEOWNERS 머지)라 실서비스와 완전 격리. 이제 막힘없이 수정 작업 가능 — 로컬 클론 ../ship-ais-tracker, gmpark 브랜치 셋업 완료.' }
     ],
     milestones: [
       { date:'2025-09-15', title:'프로젝트 시작', desc:'선단 선박 목록·데이터 구조 정의' },
