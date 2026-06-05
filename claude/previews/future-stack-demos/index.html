@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Future Stack Demos — 프리마켓 콕핏 · 노리지 그래프 비서</title>
+<meta name="theme-color" content="#0a0f1c">
+<!-- self-contained favicon (data-URI) — /favicon.ico 요청·404 제거 -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBiMTIyMCIvPjxwYXRoIGQ9Ik0xNiA1bDkgNS05IDUtOS01IDktNXoiIGZpbGw9IiMzOGJkZjgiLz48cGF0aCBkPSJNNyAxNmw5IDUgOS01IiBmaWxsPSJub25lIiBzdHJva2U9IiMzNGQ2YzAiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyAyMWw5IDUgOS01IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNGI3NDAiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=">
+
+<!-- Demo runtime stack: Tailwind Play CDN + ECharts + D3 (핸드오프 명시). 실패해도 폴백 렌더. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    base:'#0a0f1c', panel:'#111a2e', panel2:'#0e1626', line:'#243352', ink:'#e8eefb', muted:'#8aa0c6',
+    cyan:'#38bdf8', mint:'#34d6c0', gold:'#f4b740', rose:'#fb7185', violet:'#a78bfa', lime:'#a3e635'
+  } } } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+  :root{ color-scheme:dark; }
+  html,body{ margin:0; }
+  body{
+    background:linear-gradient(180deg,#0a0f1c,#0b1322 60%,#0a0f1c);
+    color:#e8eefb; word-break:keep-all; -webkit-font-smoothing:antialiased; letter-spacing:-.01em;
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  .tab-panel{ display:none; } .tab-panel.on{ display:block; }
+  .seg.active{ background:rgba(56,189,248,.16); color:#fff; border-color:rgba(56,189,248,.6); }
+  .chip.active,.cellsel.active,.rowsel.active{ border-color:rgba(52,214,192,.75)!important; background:rgba(52,214,192,.12)!important; }
+  .fr:focus-visible{ outline:3px solid rgba(244,183,64,.85); outline-offset:2px; }
+  .xscroll{ overflow-x:auto; } .xscroll::-webkit-scrollbar{ height:8px; } .xscroll::-webkit-scrollbar-thumb{ background:#34507e; border-radius:8px; }
+  .card{ background:#111a2e; border:1px solid #243352; border-radius:8px; }
+  .tick-flash{ animation:tickf .6s ease; }
+  @keyframes tickf{ 0%{ color:#34d6c0 } 100%{ color:inherit } }
+  /* D3 graph */
+  .kg-link{ stroke:#34507e; stroke-opacity:.5; }
+  .kg-link.hl{ stroke:#f4b740; stroke-opacity:.95; stroke-width:2.4px; }
+  .kg-node circle{ cursor:pointer; }
+  .kg-node.hl circle{ stroke:#f4b740; stroke-width:3px; }
+  .kg-node.dim{ opacity:.28; }
+  text{ font-family:inherit; }
+</style>
+</head>
+<body class="min-h-screen">
+<main class="mx-auto max-w-7xl px-3 py-4 sm:px-5 space-y-4">
+
+  <!-- 상단 상태 스트립 -->
+  <header class="card p-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-[11px] font-bold text-mint">Project #9 · 미래 스택 참고 데모</p>
+        <h1 class="truncate text-lg font-black text-white sm:text-xl">Future Stack Demos</h1>
+      </div>
+      <div id="status-strip" class="flex flex-wrap items-center gap-1.5 text-[11px]"></div>
+    </div>
+  </header>
+
+  <!-- 세그먼트 컨트롤 -->
+  <nav class="grid grid-cols-3 gap-2 card p-1.5" aria-label="데모 전환">
+    <button class="seg fr rounded-md px-2 py-2.5 text-xs font-bold sm:text-sm border border-transparent text-muted" data-tab="premarket" aria-pressed="true" aria-label="프리마켓 콕핏 데모">프리마켓 콕핏</button>
+    <button class="seg fr rounded-md px-2 py-2.5 text-xs font-bold sm:text-sm border border-transparent text-muted" data-tab="knowledge" aria-pressed="false" aria-label="노리지 그래프 비서 데모">노리지 그래프 비서</button>
+    <button class="seg fr rounded-md px-2 py-2.5 text-xs font-bold sm:text-sm border border-transparent text-muted" data-tab="stackmap" aria-pressed="false" aria-label="스택 사용 지도">스택 사용 지도</button>
+  </nav>
+
+  <!-- ===================== PREMARKET ===================== -->
+  <section id="p-premarket" class="tab-panel on space-y-4">
+    <div class="rounded-md border border-rose/40 bg-rose/5 px-3 py-2 text-[12px] leading-5 text-rose">
+      본 화면은 교육용 시뮬레이션이며 투자 판단, 매매 신호, 실시간 시세 제공이 아닙니다. 모든 수치는 가상 데이터입니다.
+    </div>
+
+    <!-- Market Pulse Strip -->
+    <section class="card p-3">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="text-sm font-black text-white">마켓 펄스 <span class="ml-1 rounded bg-cyan/10 px-1.5 py-0.5 text-[10px] font-bold text-cyan">WebSocket 푸시 시뮬레이션</span></h2>
+        <span class="text-[10px] text-muted">1.5–2.5초 가상 틱</span>
+      </div>
+      <div id="pm-pulse" class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"></div>
+    </section>
+
+    <!-- 시나리오 컨트롤 -->
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">시나리오</h2>
+      <div id="pm-scenarios" class="mt-2 flex flex-wrap gap-2"></div>
+      <p id="pm-scenario-summary" class="mt-2 text-[12px] leading-5 text-slate-300"></p>
+    </section>
+
+    <div class="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <div class="space-y-4">
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">매크로 히트맵 <span id="pm-heatmap-eng" class="ml-1 text-[10px] font-bold text-muted"></span></h2>
+          <div id="pm-heatmap" class="mt-2 min-h-[220px]"></div>
+        </section>
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">시그널 타임라인</h2>
+          <div class="mt-1 flex flex-wrap gap-2 text-[11px] text-muted">
+            <span><i class="inline-block h-2 w-2 rounded-full align-middle" style="background:#38bdf8"></i> 가격 압력</span>
+            <span><i class="inline-block h-2 w-2 rounded-full align-middle" style="background:#a78bfa"></i> 매크로 압력</span>
+            <span><i class="inline-block h-2 w-2 rounded-full align-middle" style="background:#34d6c0"></i> 뉴스 감성</span>
+          </div>
+          <div id="pm-timeline" class="mt-2 min-h-[240px]"></div>
+        </section>
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">텍스트 신호 <span class="ml-1 rounded bg-violet/10 px-1.5 py-0.5 text-[10px] font-bold text-violet">Transformers 감성 시뮬레이션</span></h2>
+          <div id="pm-headlines" class="mt-2 space-y-2"></div>
+        </section>
+      </div>
+      <aside class="lg:sticky lg:top-3 lg:self-start">
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">인스펙터</h2>
+          <div id="pm-inspector" class="mt-2"></div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- 아키텍처 파이프라인 -->
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">아키텍처 파이프라인 <span class="ml-1 text-[10px] font-bold text-muted">노드 클릭 → 스택 상세</span></h2>
+      <div id="pm-pipeline" class="mt-2 xscroll"></div>
+    </section>
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">시각화 대상 스택 <span class="ml-1 text-[10px] font-bold text-muted">칩 클릭 → 어디·무엇·왜·시뮬레이션</span></h2>
+      <div id="pm-stacks" class="mt-2 flex flex-wrap gap-2"></div>
+    </section>
+  </section>
+
+  <!-- ===================== KNOWLEDGE ===================== -->
+  <section id="p-knowledge" class="tab-panel space-y-4">
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">자연어 질문</h2>
+      <div class="mt-2 flex gap-2">
+        <input id="kg-qinput" class="fr w-full rounded-md border border-line bg-base/70 px-3 py-2 text-sm text-ink placeholder:text-muted" placeholder="예: HBM 병목과 관련된 장비를 찾아줘" aria-label="지식 그래프 자연어 질문 입력">
+      </div>
+      <div id="kg-chips" class="mt-2 flex flex-wrap gap-2"></div>
+    </section>
+
+    <div class="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <section class="card p-3">
+        <h2 class="text-sm font-black text-white">지식 그래프 <span id="kg-graph-eng" class="ml-1 text-[10px] font-bold text-muted"></span></h2>
+        <div id="kg-graph" class="mt-2 min-h-[360px]"></div>
+      </section>
+      <aside class="space-y-4">
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">RAG 비서 답변 <span class="ml-1 rounded bg-violet/10 px-1.5 py-0.5 text-[10px] font-bold text-violet">LLM 미호출 시뮬레이션</span></h2>
+          <div id="kg-answer" class="mt-2"></div>
+        </section>
+        <section class="card p-3">
+          <h2 class="text-sm font-black text-white">인스펙터</h2>
+          <div id="kg-inspector" class="mt-2"></div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <section class="card p-3">
+        <h2 class="text-sm font-black text-white">WebGPU 유니버스 <span id="kg-gpu-status" class="ml-1 text-[10px] font-bold"></span></h2>
+        <canvas id="kg-webgpu-canvas" class="mt-2 w-full rounded-md border border-line" height="150" aria-label="WebGPU 파티클 시뮬레이션 (Canvas 폴백)"></canvas>
+        <p id="kg-webgpu-note" class="mt-2 text-[12px] leading-5 text-slate-300"></p>
+        <details class="mt-2 rounded-md border border-line bg-base/50 p-2">
+          <summary class="cursor-pointer text-[12px] font-bold text-muted">WGSL 참고용 의사 셰이더 보기</summary>
+          <pre id="kg-wgsl" class="mt-2 xscroll whitespace-pre rounded bg-black/40 p-2 text-[11px] leading-4 text-lime"></pre>
+        </details>
+      </section>
+      <section class="card p-3">
+        <h2 class="text-sm font-black text-white">글로벌 공급망 <span class="ml-1 text-[10px] font-bold text-muted">Cesium 대체 SVG · 호 클릭</span></h2>
+        <div id="kg-globe" class="mt-2"></div>
+      </section>
+    </div>
+
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">아키텍처 파이프라인 <span class="ml-1 text-[10px] font-bold text-muted">노드 클릭 → 스택 상세</span></h2>
+      <div id="kg-pipeline" class="mt-2 xscroll"></div>
+    </section>
+    <section class="card p-3">
+      <h2 class="text-sm font-black text-white">시각화 대상 스택 <span class="ml-1 text-[10px] font-bold text-muted">칩 클릭 → 어디·무엇·왜·시뮬레이션</span></h2>
+      <div id="kg-stacks" class="mt-2 flex flex-wrap gap-2"></div>
+    </section>
+  </section>
+
+  <!-- ===================== STACK MAP ===================== -->
+  <section id="p-stackmap" class="tab-panel">
+    <section class="card p-3">
+      <h2 class="text-base font-black text-white">스택 사용 지도</h2>
+      <p class="mt-1 text-[12px] text-muted">두 데모를 컴포넌트 레벨로 비교 — 무엇이 <b class="text-mint">실제 동작</b>이고 무엇이 <b class="text-gold">정적 시뮬레이션</b>·<b class="text-rose">제품화 필요</b>인지.</p>
+      <div id="sm-table" class="mt-3 xscroll"></div>
+    </section>
+  </section>
+
+  <footer class="px-1 pb-8 pt-1 text-[11px] leading-5 text-slate-500">
+    <b class="text-slate-400">정직성 고지:</b> 이 페이지는 정적 GitHub Pages 프리뷰입니다. 실제 시장 데이터·실제 AI 추론·실제 Go/Redis/DuckDB/WebSocket/Rust/WebGPU 인프라는 동작하지 않으며,
+    "개념 아키텍처 스택"은 제품화 시 어떤 기술이 어느 부분을 맡을지 <b>시각적으로 이해</b>시키기 위한 설명용입니다. Demo runtime = Tailwind Play CDN · ECharts · D3.js · Vanilla JS.
+  </footer>
+</main>
+
+<script src="future-demos-data.js"></script>
+<script src="future-demos.js"></script>
+</body>
+</html>
