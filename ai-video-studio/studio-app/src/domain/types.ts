@@ -8,6 +8,7 @@ export type AssetKind = "image" | "video" | "audio" | "brand";
 export type ImageAssetRole = "product" | "character" | "location" | "style" | "keyframe" | "thumbnail" | "logo" | "background";
 export type AssetSource = "image_maker" | "upload" | "external";
 export type ImageMakerPurpose = "photoreal" | "product" | "character" | "background" | "style" | "poster" | "thumbnail" | "transparent";
+export type AssetUsageMode = "first_frame" | "last_frame" | "style_reference" | "character_reference" | "product_reference" | "background_reference";
 
 export type Saec = {
   subject: string;
@@ -112,6 +113,7 @@ export type GenerationJob = {
   createdAt: string;
   updatedAt: string;
   error: ErrorResponse | null;
+  promptPackage: GenerationPromptPackage;
 };
 
 export type ExportSpec = {
@@ -203,8 +205,34 @@ export type AssetUsage = {
   role: ImageAssetRole;
   target: "project" | "shot";
   targetId: string;
-  mode: "first_frame" | "last_frame" | "style_reference" | "character_reference" | "product_reference" | "background_reference";
+  mode: AssetUsageMode;
   createdAt: string;
+};
+
+export type GenerationReference = {
+  assetId: string;
+  role: ImageAssetRole;
+  mode: AssetUsageMode;
+  url: string;
+  rightsStatus: ImageAsset["rights"]["status"];
+};
+
+export type GenerationPromptPackage = {
+  projectId: string;
+  shotId: string;
+  saec: Saec;
+  directionSpec: DirectionSpec;
+  requirements: ShotRequirements;
+  references: GenerationReference[];
+  routingHints: {
+    startFrameAssetId: string | null;
+    lastFrameAssetId: string | null;
+    styleReferenceAssetIds: string[];
+    characterReferenceAssetIds: string[];
+    productReferenceAssetIds: string[];
+    backgroundReferenceAssetIds: string[];
+    rightsReviewRequired: boolean;
+  };
 };
 
 export type ReferenceBoard = {

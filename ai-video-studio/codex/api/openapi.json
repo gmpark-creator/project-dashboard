@@ -150,6 +150,111 @@
         }
       }
     },
+    "/projects/{projectId}/assets": {
+      "get": {
+        "operationId": "listImageAssets",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project image asset list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["assets"],
+                  "properties": {
+                    "assets": {
+                      "type": "array",
+                      "items": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAsset" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "registerExternalImage",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["label", "role", "url"],
+                "properties": {
+                  "label": { "type": "string" },
+                  "role": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAssetRole" },
+                  "url": { "type": "string" },
+                  "aspect": { "$ref": "../schemas/domain.schema.json#/$defs/Aspect" },
+                  "prompt": { "type": "string" },
+                  "rightsConfirmed": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registered external image asset",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAsset" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/image-jobs": {
+      "post": {
+        "operationId": "createImageJob",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt", "purpose", "role", "aspect"],
+                "properties": {
+                  "prompt": { "type": "string" },
+                  "purpose": { "$ref": "../schemas/domain.schema.json#/$defs/ImageMakerPurpose" },
+                  "role": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAssetRole" },
+                  "aspect": { "$ref": "../schemas/domain.schema.json#/$defs/Aspect" },
+                  "style": { "type": "string" },
+                  "count": { "type": "integer", "minimum": 1, "maximum": 4 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Image generation job queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["job"],
+                  "properties": {
+                    "job": { "$ref": "../schemas/domain.schema.json#/$defs/ImageJob" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/shots/{shotId}/generate": {
       "post": {
         "operationId": "generateShot",
@@ -183,6 +288,76 @@
                   },
                   "required": ["takes", "jobs"]
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shots/{shotId}/references": {
+      "post": {
+        "operationId": "attachImageToShot",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["assetId", "mode"],
+                "properties": {
+                  "assetId": { "type": "string", "pattern": "^img_" },
+                  "mode": { "$ref": "../schemas/domain.schema.json#/$defs/AssetUsageMode" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Reference image attached to shot",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shots/{shotId}/direction": {
+      "patch": {
+        "operationId": "updateShotDirection",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "camera": { "type": "string" },
+                  "composition": { "type": "string" },
+                  "lighting": { "type": "string" },
+                  "motion": { "type": "string" },
+                  "style": { "type": "string" },
+                  "avoid": { "type": "array", "items": { "type": "string" } },
+                  "notes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shot direction updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
               }
             }
           }
@@ -434,7 +609,8 @@
                 "schema": {
                   "oneOf": [
                     { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" },
-                    { "$ref": "../schemas/domain.schema.json#/$defs/RenderJob" }
+                    { "$ref": "../schemas/domain.schema.json#/$defs/RenderJob" },
+                    { "$ref": "../schemas/domain.schema.json#/$defs/ImageJob" }
                   ]
                 }
               }

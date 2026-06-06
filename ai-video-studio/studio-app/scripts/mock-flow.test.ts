@@ -63,15 +63,26 @@ const externalAsset = registerExternalImage({
   url: "https://example.com/person.png",
   rightsConfirmed: true
 });
+const styleAsset = registerExternalImage({
+  projectId: project.id,
+  label: "권리 확인 전 스타일 참조",
+  role: "style",
+  url: "https://example.com/mood.png",
+  rightsConfirmed: false
+});
 const productAsset = bundle.imageAssets.find((asset) => asset.role === "product");
 assert.ok(productAsset, "generated product asset should exist");
 attachImageToShot(bundle.shots[0].id, { assetId: productAsset.id, mode: "first_frame" });
 attachImageToShot(bundle.shots[0].id, { assetId: externalAsset.id, mode: "character_reference" });
+attachImageToShot(bundle.shots[1].id, { assetId: styleAsset.id, mode: "style_reference" });
 updateShotDirection(bundle.shots[0].id, { motion: "느린 푸시인", notes: "딸기 과육과 컵 표면 물방울 강조" });
 bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after attaching references");
 assert.equal(bundle.shots[0].referenceImageIds.length, 2, "shot should keep reference image ids");
-assert.equal(bundle.shots[0].requirements.imageToVideo, true, "image references should mark shot as image-to-video capable");
+assert.equal(bundle.shots[0].requirements.imageToVideo, true, "first-frame references should mark shot as image-to-video capable");
+assert.equal(bundle.shots[0].requirements.characterLock, true, "character references should request character lock");
+assert.ok(bundle.shots[0].requirements.characterId, "character references should create a character id");
+assert.equal(bundle.shots[1].requirements.imageToVideo, false, "style-only references should not force image-to-video");
 assert.equal(bundle.shots[0].directionSpec.motion, "느린 푸시인", "shot direction should be editable");
 
 generateAll(project.id, { tier: "fast" });
@@ -83,6 +94,25 @@ assert.ok(bundle, "bundle should exist after generation");
 
 const failedShots = bundle.shots.filter((shot) => shot.status === "failed");
 assert.equal(failedShots.length, 2, "mock generation should inject exactly 2 failed shots");
+const firstShotId = bundle.shots[0].id;
+const secondShotId = bundle.shots[1].id;
+
+const referencedShotJob = bundle.generationJobs.find((job) => job.shotId === firstShotId);
+assert.ok(referencedShotJob, "referenced shot should create a generation job");
+assert.equal(referencedShotJob.promptPackage.routingHints.startFrameAssetId, productAsset.id, "first-frame asset should be in generation prompt package");
+assert.deepEqual(
+  referencedShotJob.promptPackage.routingHints.characterReferenceAssetIds,
+  [externalAsset.id],
+  "character reference should be in generation prompt package"
+);
+assert.equal(referencedShotJob.promptPackage.requirements.characterLock, true, "prompt package should snapshot character lock");
+assert.equal(referencedShotJob.promptPackage.directionSpec.motion, "느린 푸시인", "prompt package should snapshot direction spec");
+
+const styleShotJob = bundle.generationJobs.find((job) => job.shotId === secondShotId);
+assert.ok(styleShotJob, "style-referenced shot should create a generation job");
+assert.deepEqual(styleShotJob.promptPackage.routingHints.styleReferenceAssetIds, [styleAsset.id], "style reference should be routed as style only");
+assert.equal(styleShotJob.promptPackage.requirements.imageToVideo, false, "style-only generation package should not request image-to-video");
+assert.equal(styleShotJob.promptPackage.routingHints.rightsReviewRequired, true, "unconfirmed reference rights should be visible to the adapter package");
 
 const failedShot = failedShots[0];
 const beforeTakes = bundle.takes.filter((take) => take.shotId === failedShot.id).length;

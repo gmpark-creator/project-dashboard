@@ -28,6 +28,18 @@
       "type": "string",
       "enum": ["queued", "running", "done", "failed", "cancelled"]
     },
+    "AssetUsageMode": {
+      "type": "string",
+      "enum": ["first_frame", "last_frame", "style_reference", "character_reference", "product_reference", "background_reference"]
+    },
+    "ImageAssetRole": {
+      "type": "string",
+      "enum": ["product", "character", "location", "style", "keyframe", "thumbnail", "logo", "background"]
+    },
+    "ImageMakerPurpose": {
+      "type": "string",
+      "enum": ["photoreal", "product", "character", "background", "style", "poster", "thumbnail", "transparent"]
+    },
     "SAEC": {
       "type": "object",
       "required": ["subject", "action", "environment", "camera", "framing", "lighting", "style", "negative"],
@@ -140,12 +152,28 @@
     },
     "Shot": {
       "type": "object",
-      "required": ["id", "sceneId", "order", "durationSec", "saec", "requirements", "status", "selectedTakeId", "qualityFlags"],
+      "required": [
+        "id",
+        "projectId",
+        "sceneId",
+        "order",
+        "title",
+        "durationSec",
+        "saec",
+        "requirements",
+        "status",
+        "selectedTakeId",
+        "qualityFlags",
+        "referenceImageIds",
+        "directionSpec"
+      ],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^sht_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
         "sceneId": { "type": "string", "pattern": "^scn_" },
         "order": { "type": "integer", "minimum": 0 },
+        "title": { "type": "string" },
         "durationSec": { "type": "number", "minimum": 1, "maximum": 16 },
         "saec": { "$ref": "#/$defs/SAEC" },
         "requirements": { "$ref": "#/$defs/ShotRequirements" },
@@ -154,7 +182,29 @@
         "qualityFlags": {
           "type": "array",
           "items": { "$ref": "#/$defs/QualityFlag" }
-        }
+        },
+        "referenceImageIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^img_" }
+        },
+        "directionSpec": { "$ref": "#/$defs/DirectionSpec" }
+      }
+    },
+    "DirectionSpec": {
+      "type": "object",
+      "required": ["camera", "composition", "lighting", "motion", "style", "avoid", "notes"],
+      "additionalProperties": false,
+      "properties": {
+        "camera": { "type": "string" },
+        "composition": { "type": "string" },
+        "lighting": { "type": "string" },
+        "motion": { "type": "string" },
+        "style": { "type": "string" },
+        "avoid": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "notes": { "type": "string" }
       }
     },
     "Take": {
@@ -190,19 +240,141 @@
     },
     "GenerationJob": {
       "type": "object",
-      "required": ["id", "shotId", "takeId", "status", "progress", "createdAt"],
+      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^gen_" },
         "shotId": { "type": "string", "pattern": "^sht_" },
         "takeId": { "type": "string", "pattern": "^tak_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
         "status": { "$ref": "#/$defs/JobStatus" },
         "progress": { "type": "number", "minimum": 0, "maximum": 1 },
         "etaSec": { "type": ["integer", "null"], "minimum": 0 },
         "stage": { "type": "string" },
+        "shouldFail": { "type": "boolean" },
+        "dueAt": { "type": "integer" },
         "error": { "$ref": "#/$defs/ErrorResponse" },
         "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "promptPackage": { "$ref": "#/$defs/GenerationPromptPackage" }
+      }
+    },
+    "GenerationReference": {
+      "type": "object",
+      "required": ["assetId", "role", "mode", "url", "rightsStatus"],
+      "additionalProperties": false,
+      "properties": {
+        "assetId": { "type": "string", "pattern": "^img_" },
+        "role": { "$ref": "#/$defs/ImageAssetRole" },
+        "mode": { "$ref": "#/$defs/AssetUsageMode" },
+        "url": { "type": "string" },
+        "rightsStatus": { "type": "string", "enum": ["user_confirmed", "generated", "needs_review"] }
+      }
+    },
+    "GenerationPromptPackage": {
+      "type": "object",
+      "required": ["projectId", "shotId", "saec", "directionSpec", "requirements", "references", "routingHints"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "shotId": { "type": "string", "pattern": "^sht_" },
+        "saec": { "$ref": "#/$defs/SAEC" },
+        "directionSpec": { "$ref": "#/$defs/DirectionSpec" },
+        "requirements": { "$ref": "#/$defs/ShotRequirements" },
+        "references": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GenerationReference" }
+        },
+        "routingHints": {
+          "type": "object",
+          "required": [
+            "startFrameAssetId",
+            "lastFrameAssetId",
+            "styleReferenceAssetIds",
+            "characterReferenceAssetIds",
+            "productReferenceAssetIds",
+            "backgroundReferenceAssetIds",
+            "rightsReviewRequired"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "startFrameAssetId": { "type": ["string", "null"], "pattern": "^img_" },
+            "lastFrameAssetId": { "type": ["string", "null"], "pattern": "^img_" },
+            "styleReferenceAssetIds": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+            "characterReferenceAssetIds": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+            "productReferenceAssetIds": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+            "backgroundReferenceAssetIds": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+            "rightsReviewRequired": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "ImageAsset": {
+      "type": "object",
+      "required": ["id", "projectId", "kind", "role", "source", "label", "prompt", "url", "thumbUrl", "aspect", "width", "height", "rights", "createdAt", "updatedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^img_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "kind": { "type": "string", "const": "image" },
+        "role": { "$ref": "#/$defs/ImageAssetRole" },
+        "source": { "type": "string", "enum": ["image_maker", "upload", "external"] },
+        "label": { "type": "string" },
+        "prompt": { "type": "string" },
+        "url": { "type": "string" },
+        "thumbUrl": { "type": "string" },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "rights": {
+          "type": "object",
+          "required": ["status", "note"],
+          "additionalProperties": false,
+          "properties": {
+            "status": { "type": "string", "enum": ["user_confirmed", "generated", "needs_review"] },
+            "note": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ImageVariant": {
+      "type": "object",
+      "required": ["id", "assetId", "label", "status", "url", "thumbUrl", "scoreLabel"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^ivar_" },
+        "assetId": { "type": ["string", "null"], "pattern": "^img_" },
+        "label": { "type": "string" },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "url": { "type": ["string", "null"] },
+        "thumbUrl": { "type": ["string", "null"] },
+        "scoreLabel": { "type": "string", "enum": ["추천", "안정적", "확인 필요"] }
+      }
+    },
+    "ImageJob": {
+      "type": "object",
+      "required": ["id", "projectId", "status", "progress", "etaSec", "stage", "prompt", "purpose", "role", "aspect", "style", "count", "variants", "dueAt", "createdAt", "updatedAt", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^ijob_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 },
+        "stage": { "type": "string", "enum": ["queued", "prompting", "generating", "saving", "done", "failed"] },
+        "prompt": { "type": "string" },
+        "purpose": { "$ref": "#/$defs/ImageMakerPurpose" },
+        "role": { "$ref": "#/$defs/ImageAssetRole" },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "style": { "type": "string" },
+        "count": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "variants": { "type": "array", "items": { "$ref": "#/$defs/ImageVariant" } },
+        "dueAt": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "error": { "$ref": "#/$defs/ErrorResponse" }
       }
     },
     "RenderJob": {

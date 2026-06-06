@@ -2,9 +2,11 @@ import { INTENT_TEMPLATES } from "../domain/templates";
 import type {
   Aspect,
   AssetUsage,
+  AssetUsageMode,
   EditState,
   ExportSpec,
   GenerationJob,
+  GenerationPromptPackage,
   ImageAsset,
   ImageAssetRole,
   ImageJob,
@@ -352,6 +354,90 @@ function addAssetToBoard(current: StudioState, asset: ImageAsset, usage?: Omit<A
   }
 }
 
+function shotUsages(current: StudioState, shot: Shot) {
+  const board = current.referenceBoards[shot.projectId];
+  if (!board) return [];
+  const seen = new Set<string>();
+  return board.usages.filter((usage) => {
+    const key = `${usage.assetId}:${usage.mode}:${usage.target}:${usage.targetId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return usage.target === "shot" && usage.targetId === shot.id && shot.referenceImageIds.includes(usage.assetId);
+  });
+}
+
+function ensureCharacterFromAsset(current: StudioState, shot: Shot, asset: ImageAsset) {
+  const project = current.projects.find((item) => item.id === shot.projectId);
+  if (!project) return;
+  const existing = project.characters.find((character) => character.refImageUrls.includes(asset.url));
+  if (existing) {
+    shot.requirements.characterId = existing.id;
+    return;
+  }
+  const character = {
+    id: uid("chr"),
+    label: asset.label || "참조 인물",
+    refImageUrls: [asset.url]
+  };
+  project.characters.push(character);
+  shot.requirements.characterId = character.id;
+}
+
+function applyReferenceRequirements(current: StudioState, shot: Shot) {
+  const usages = shotUsages(current, shot);
+  for (const usage of usages) {
+    const asset = current.imageAssets.find((item) => item.id === usage.assetId);
+    if (!asset) continue;
+    if (usage.mode === "first_frame" || usage.mode === "last_frame") {
+      shot.requirements.imageToVideo = true;
+    }
+    if (usage.mode === "character_reference") {
+      shot.requirements.characterLock = true;
+      ensureCharacterFromAsset(current, shot, asset);
+    }
+  }
+}
+
+function buildGenerationPromptPackage(current: StudioState, shot: Shot): GenerationPromptPackage {
+  const usages = shotUsages(current, shot);
+  const references = usages
+    .map((usage) => {
+      const asset = current.imageAssets.find((item) => item.id === usage.assetId);
+      if (!asset) return null;
+      return {
+        assetId: asset.id,
+        role: usage.role,
+        mode: usage.mode,
+        url: asset.url,
+        rightsStatus: asset.rights.status
+      };
+    })
+    .filter((reference): reference is NonNullable<typeof reference> => Boolean(reference));
+
+  const idsByMode = (mode: AssetUsageMode) => references.filter((reference) => reference.mode === mode).map((reference) => reference.assetId);
+
+  return {
+    projectId: shot.projectId,
+    shotId: shot.id,
+    saec: { ...shot.saec },
+    directionSpec: {
+      ...shot.directionSpec,
+      avoid: [...shot.directionSpec.avoid]
+    },
+    requirements: { ...shot.requirements },
+    references,
+    routingHints: {
+      startFrameAssetId: idsByMode("first_frame")[0] || null,
+      lastFrameAssetId: idsByMode("last_frame")[0] || null,
+      styleReferenceAssetIds: idsByMode("style_reference"),
+      characterReferenceAssetIds: idsByMode("character_reference"),
+      productReferenceAssetIds: idsByMode("product_reference"),
+      backgroundReferenceAssetIds: idsByMode("background_reference"),
+      rightsReviewRequired: references.some((reference) => reference.rightsStatus === "needs_review")
+    }
+  };
+}
+
 function makeImageAsset(
   current: StudioState,
   input: {
@@ -479,8 +565,6 @@ export function attachImageToShot(shotId: string, input: { assetId: string; mode
   const asset = current.imageAssets.find((item) => item.id === input.assetId);
   if (!shot || !asset || shot.projectId !== asset.projectId) throw new Error("Shot or image asset not found");
   if (!shot.referenceImageIds.includes(asset.id)) shot.referenceImageIds.push(asset.id);
-  shot.requirements.imageToVideo = true;
-  if (input.mode === "character_reference") shot.requirements.characterLock = true;
   addAssetToBoard(current, asset, {
     assetId: asset.id,
     role: asset.role,
@@ -488,6 +572,7 @@ export function attachImageToShot(shotId: string, input: { assetId: string; mode
     targetId: shot.id,
     mode: input.mode
   });
+  applyReferenceRequirements(current, shot);
   write(current);
   return shot;
 }
@@ -538,7 +623,8 @@ function makeGenerationJob(current: StudioState, shot: Shot, take: Take, shouldF
     dueAt: Date.now() + 2500 + (shot.order % 4) * 650,
     createdAt: now(),
     updatedAt: now(),
-    error: null
+    error: null,
+    promptPackage: buildGenerationPromptPackage(current, shot)
   };
   current.generationJobs.push(job);
   return job;
@@ -578,6 +664,7 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
   const takes: Take[] = [];
   const jobs: GenerationJob[] = [];
 
+  applyReferenceRequirements(current, shot);
   shot.status = "generating";
   shot.requirements.tier = tier;
   shot.qualityFlags = [];
@@ -641,6 +728,7 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   if (!source || source.status !== "done") throw new Error("Done take not found");
   const shot = current.shots.find((item) => item.id === source.shotId);
   if (!shot) throw new Error("Source shot not found");
+  applyReferenceRequirements(current, shot);
   const take = makeTake(current, shot, "final", current.takes.filter((item) => item.shotId === shot.id).length);
   take.label = "게시용";
   take.upgradeSourceTakeId = source.id;

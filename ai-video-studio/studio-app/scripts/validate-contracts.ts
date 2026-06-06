@@ -25,8 +25,10 @@ type Routing = {
 
 const capabilities = readJson<Capabilities>(join(codexDir, "config", "provider-capabilities.json"));
 const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"));
-readJson(join(codexDir, "schemas", "domain.schema.json"));
-readJson(join(codexDir, "api", "openapi.json"));
+const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
+const openApi = readJson<{ paths: Record<string, { get?: { operationId?: string }; post?: { operationId?: string }; patch?: { operationId?: string } }> }>(
+  join(codexDir, "api", "openapi.json")
+);
 
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
@@ -44,6 +46,28 @@ for (const rule of routing.rules) {
   }
 }
 
+for (const defName of ["ImageAsset", "ImageJob", "AssetUsageMode", "DirectionSpec", "GenerationPromptPackage"]) {
+  assert.ok(domainSchema.$defs[defName], `domain schema missing ${defName}`);
+}
+
+const requiredOperations = new Set([
+  "listImageAssets",
+  "registerExternalImage",
+  "createImageJob",
+  "attachImageToShot",
+  "updateShotDirection",
+  "generateShot"
+]);
+const operationIds = new Set<string>();
+for (const path of Object.values(openApi.paths)) {
+  for (const method of [path.get, path.post, path.patch]) {
+    if (method?.operationId) operationIds.add(method.operationId);
+  }
+}
+for (const operation of requiredOperations) {
+  assert.ok(operationIds.has(operation), `openapi missing operation ${operation}`);
+}
+
 const templateDir = join(codexDir, "config", "templates");
 const templateFiles = readdirSync(templateDir).filter((name) => name.endsWith(".json"));
 assert.equal(templateFiles.length, 6, "expected 6 intent templates");
@@ -59,5 +83,6 @@ for (const file of templateFiles) {
 console.log("validate-contracts OK", {
   providers: capabilities.providers.length,
   routingRules: routing.rules.length,
-  templates: templateFiles.length
+  templates: templateFiles.length,
+  visualMakerOps: requiredOperations.size
 });
