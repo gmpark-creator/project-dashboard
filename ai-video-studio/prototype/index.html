@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cutpilot — AI 영상 제작 · 프로토타입(목업)</title>
+<style>
+  :root{
+    --bg:#0a0e17; --bg2:#0e1422; --panel:#131b2c; --panel2:#172134; --line:#26324a;
+    --ink:#e8eefb; --muted:#8aa0c6; --dim:#5d6e8c;
+    --cyan:#38bdf8; --mint:#34d6c0; --violet:#a78bfa; --gold:#f4b740; --rose:#fb7185; --lime:#a3e635; --emerald:#34d399;
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(900px 500px at 12% -6%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(800px 500px at 92% 104%, rgba(167,139,250,.10), transparent 60%),
+      linear-gradient(160deg,#0a0e17,#0c1120 60%,#0a0e17);
+    color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased; letter-spacing:-.01em;
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100%;
+  }
+  .app{display:flex;min-height:100vh}
+  /* RAIL */
+  .rail{width:230px;flex-shrink:0;border-right:1px solid var(--line);background:rgba(13,19,30,.7);
+    display:flex;flex-direction:column;padding:18px 14px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;padding:6px 8px 16px}
+  .brand .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--violet));display:grid;place-items:center;color:#06101f;font-size:15px}
+  .brand small{display:block;font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.12em}
+  .nav{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+  .nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:0;color:var(--muted);
+    font:inherit;font-weight:600;font-size:14px;padding:11px 12px;border-radius:11px;cursor:pointer;transition:.14s}
+  .nav button .n{width:20px;text-align:center;opacity:.9}
+  .nav button:hover{background:rgba(255,255,255,.04);color:var(--ink)}
+  .nav button.active{background:linear-gradient(135deg,rgba(56,189,248,.16),rgba(167,139,250,.16));color:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+  .rail .step{font-size:10px;color:var(--dim);padding:14px 12px 6px;letter-spacing:.1em;font-weight:700}
+  .rail-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+  .credits{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-size:13px}
+  .credits b{color:var(--gold)}
+  .who{font-size:11px;color:var(--dim);padding:0 6px}
+  /* MAIN */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;gap:12px;padding:14px 26px;border-bottom:1px solid var(--line);background:rgba(10,14,23,.6);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+  .topbar h1{font-size:16px;font-weight:800}
+  .topbar .sub{color:var(--dim);font-size:12.5px}
+  .topbar .save{margin-left:auto;font-size:12px;color:var(--mint);display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+  .wrap{padding:24px 26px 60px;max-width:1180px;width:100%}
+  .note{font-size:12px;color:var(--dim);background:rgba(255,255,255,.03);border:1px dashed var(--line);border-radius:10px;padding:9px 12px;margin-bottom:18px}
+  /* generic */
+  h2.sec{font-size:13px;color:var(--muted);font-weight:700;margin:22px 0 12px;letter-spacing:.02em}
+  .grid{display:grid;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .pad{padding:16px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+    font:inherit;font-weight:700;font-size:13.5px;padding:10px 15px;border-radius:11px;cursor:pointer;transition:.14s}
+  .btn:hover{border-color:var(--cyan)}
+  .btn.primary{background:linear-gradient(135deg,var(--cyan),var(--violet));border:0;color:#06101f}
+  .btn.ghost{background:none}
+  .cost{font-size:11px;font-weight:800;color:var(--gold);background:rgba(244,183,64,.12);border:1px solid rgba(244,183,64,.3);border-radius:999px;padding:2px 8px;margin-left:4px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#b9c8de;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
+  .chip:hover{border-color:var(--cyan);color:#fff}
+  .badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px}
+  .b-fast{background:rgba(56,189,248,.14);color:#7fd3fb;border:1px solid rgba(56,189,248,.3)}
+  .b-final{background:rgba(167,139,250,.16);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+  .b-eco{background:rgba(163,230,53,.13);color:#bef264;border:1px solid rgba(163,230,53,.3)}
+  .b-warn{background:rgba(251,113,133,.14);color:#fda4af;border:1px solid rgba(251,113,133,.35)}
+  .b-ok{background:rgba(52,211,153,.14);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+  .thumb{aspect-ratio:9/16;background:linear-gradient(135deg,#1b2740,#10182a);display:grid;place-items:center;color:var(--dim);font-size:26px;position:relative}
+  .thumb.l{aspect-ratio:16/9}
+  .prog{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--mint))}
+  .muted{color:var(--muted)} .dim{color:var(--dim)} .small{font-size:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  textarea,input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;padding:13px 14px;resize:vertical}
+  textarea:focus,input:focus{outline:2px solid rgba(56,189,248,.4);border-color:var(--cyan)}
+  .purpose{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .purpose .p{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 10px;cursor:pointer;text-align:center;transition:.14s}
+  .purpose .p:hover{border-color:var(--cyan);transform:translateY(-2px)}
+  .purpose .p.on{border-color:var(--violet);box-shadow:0 0 0 1px var(--violet) inset,0 10px 30px rgba(0,0,0,.4)}
+  .purpose .p b{display:block;font-size:13.5px;margin-bottom:3px}
+  .purpose .p span{font-size:11px;color:var(--dim)}
+  .takes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .take{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg2);cursor:pointer;transition:.14s}
+  .take:hover{border-color:var(--cyan)} .take.sel{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint) inset}
+  .take .tp{aspect-ratio:9/16;background:linear-gradient(135deg,#1b2740,#0f1830);display:grid;place-items:center;color:var(--dim);font-size:30px;position:relative}
+  .take .play{position:absolute;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;color:#fff;font-size:16px;backdrop-filter:blur(2px)}
+  .take .meta{padding:9px 10px;display:flex;align-items:center;justify-content:space-between}
+  .shotlist{display:flex;flex-direction:column;gap:4px}
+  .shotlist button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;cursor:pointer}
+  .shotlist button:hover{background:rgba(255,255,255,.04);color:var(--ink)}
+  .shotlist button.on{background:rgba(56,189,248,.1);color:#fff}
+  .si{width:16px;text-align:center}
+  .sbcard{border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:11px}
+  .sbcard .tp{aspect-ratio:16/9;background:linear-gradient(135deg,#1b2740,#0f1830);border-radius:8px;display:grid;place-items:center;color:var(--dim);margin-bottom:9px}
+  .toggle{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer}
+  .toggle .sw{width:30px;height:17px;border-radius:999px;background:#2a3650;position:relative;transition:.14s}
+  .toggle.on .sw{background:var(--mint)} .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.14s}
+  .toggle.on .sw::after{left:15px}
+  .timeline{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:10px}
+  .tl-row{display:flex;align-items:center;gap:5px;margin-bottom:7px}
+  .tl-row .lab{width:54px;font-size:11px;color:var(--dim)}
+  .clip{height:26px;border-radius:6px;background:linear-gradient(135deg,#26466b,#1b3350);border:1px solid #2f567f;flex:0 0 auto;display:grid;place-items:center;font-size:10px;color:#bfe0ff}
+  .strip{height:14px;border-radius:5px;flex:1}
+  .player{aspect-ratio:9/16;max-width:300px;margin:0 auto;border-radius:14px;background:linear-gradient(160deg,#16203a,#0c1426);border:1px solid var(--line);display:grid;place-items:center;color:var(--dim);position:relative}
+  .player .ctrl{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#cdd9ee;font-size:13px;font-variant-numeric:tabular-nums}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .seg button{background:var(--panel2);border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:12.5px;font-weight:700;padding:8px 13px;cursor:pointer}
+  .seg button:last-child{border-right:0}.seg button.on{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#06101f}
+  .render{display:flex;flex-direction:column;gap:11px}
+  .render .rj{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+  .render .rj .lab{width:96px;font-size:13px;font-weight:700}
+  .magic{background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(167,139,250,.08));border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;gap:10px;align-items:center}
+  .magic input{background:rgba(10,14,23,.6)}
+  .kbd{font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .hide{display:none!important}
+  @media (max-width:920px){
+    .rail{position:fixed;left:0;bottom:0;top:auto;width:100%;height:auto;flex-direction:row;overflow-x:auto;z-index:20;padding:8px}
+    .brand,.rail .step,.rail-foot{display:none}.nav{flex-direction:row}.nav button{white-space:nowrap}
+    .purpose{grid-template-columns:repeat(2,1fr)}.takes{grid-template-columns:1fr;}.main{padding-bottom:60px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- RAIL -->
+  <aside class="rail">
+    <div class="brand"><span class="logo">▶</span><div>Cutpilot<small>가칭 · AI VIDEO</small></div></div>
+    <div class="step">제작 흐름</div>
+    <nav class="nav" id="nav">
+      <button data-s="dash" class="active"><span class="n">▦</span> 프로젝트</button>
+      <button data-s="new"><span class="n">＋</span> 새 영상</button>
+      <button data-s="story"><span class="n">▤</span> 스토리보드</button>
+      <button data-s="compare"><span class="n">▥</span> 비교·선택</button>
+      <button data-s="edit"><span class="n">✦</span> 다듬기</button>
+      <button data-s="export"><span class="n">⤓</span> 내보내기</button>
+    </nav>
+    <div class="rail-foot">
+      <div class="credits"><span>크레딧</span><b>1,240 ⚡</b></div>
+      <div class="who">G.M.PARK · 디렉터</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <h1 id="t-title">프로젝트</h1><span class="sub" id="t-sub"></span>
+      <span class="save"><span class="dot"></span> 자동 저장됨</span>
+    </header>
+    <div class="wrap" id="view"></div>
+  </main>
+</div>
+
+<script>
+/* ---------- 목 데이터 ---------- */
+const PROJECTS = [
+  {t:"봄 신상 광고", intent:"광고", st:"검토중", prog:"7/9 컷", pct:60, asp:"9:16", warn:false, kind:"go"},
+  {t:"카페 신메뉴 쇼츠", intent:"쇼츠", st:"생성중", prog:"2/6 컷", pct:33, asp:"9:16", warn:false, kind:"gen"},
+];
+const DONE = [
+  {t:"앱 소개 v3", intent:"앱소개"}, {t:"한강뷰 매물 투어", intent:"공간"},
+  {t:"브랜드 필름", intent:"캠페인"}, {t:"코딩 교육 3강", intent:"교육"},
+];
+const SHOTS = [
+  {id:"1.1", name:"카페 외경", st:"sel"},
+  {id:"1.2", name:"도어 푸시인", st:"sel"},
+  {id:"2.1", name:"딸기라떼 히어로", st:"review"},
+  {id:"2.2", name:"빨대 꽂기", st:"gen"},
+  {id:"2.3", name:"한 모금 리액션", st:"warn"},
+  {id:"3.1", name:"테라스 사용씬", st:"pending"},
+];
+
+/* ---------- 화면들 ---------- */
+const screens = {
+  dash(){ return `
+    <div class="note">화면 1 · <b>프로젝트 대시보드</b> — 진행중을 위로(재진입 우선). 카드에 상태·진행률. 모델명은 어디에도 없음.</div>
+    <div class="between"><h2 class="sec" style="margin:0">이어서 작업하기</h2>
+      <button class="btn primary" onclick="go('new')">＋ 새 영상 만들기</button></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-top:10px">
+      ${PROJECTS.map(p=>`
+        <div class="card" style="cursor:pointer" onclick="go('${p.kind==='gen'?'compare':'compare'}')">
+          <div class="thumb">🎬 ${p.warn?'<span class="badge b-warn" style="position:absolute;top:8px;right:8px">⚠</span>':''}</div>
+          <div class="pad">
+            <div class="between"><b style="font-size:14px">${p.t}</b></div>
+            <div class="row small dim" style="margin-top:6px">
+              <span class="badge b-final">${p.intent}</span>
+              <span>${p.st==='생성중'?'◔ ':'• '}${p.st}</span>
+            </div>
+            <div class="small dim" style="margin:8px 0 5px">${p.prog} · ${p.asp}</div>
+            <div class="prog"><i style="width:${p.pct}%"></i></div>
+          </div>
+        </div>`).join("")}
+      <div class="card" style="cursor:pointer;border-style:dashed" onclick="go('new')">
+        <div class="thumb" style="aspect-ratio:9/16">＋<div class="small" style="margin-top:8px">새로 시작</div></div>
+      </div>
+    </div>
+    <h2 class="sec">완료된 영상</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+      ${DONE.map(p=>`<div class="card" style="cursor:pointer" onclick="go('export')">
+        <div class="thumb l">▶</div>
+        <div class="pad"><b style="font-size:13.5px">${p.t}</b>
+          <div class="row small dim" style="margin-top:6px"><span class="badge b-ok">완료</span><span>${p.intent}</span></div></div>
+      </div>`).join("")}
+    </div>`;
+  },
+
+  new(){ return `
+    <div class="note">화면 2 · <b>새 영상</b> — 아이디어+목적을 한 흐름으로. 목적이 화면비·길이·티어를 자동 결정. 복잡한 설정은 「고급 옵션」에 숨김.</div>
+    <div class="card pad" style="max-width:760px">
+      <h2 class="sec" style="margin-top:0">무엇을 만들까요?</h2>
+      <textarea rows="3" placeholder="예) 우리 카페 신메뉴 딸기라떼를 소개하는 인스타 쇼츠. 산뜻하고 통통 튀는 느낌.">우리 카페 신메뉴 딸기라떼를 소개하는 인스타 쇼츠. 산뜻하고 통통 튀는 느낌.</textarea>
+      <div class="row" style="margin-top:10px">
+        <span class="chip">📎 이미지·제품URL·대본 첨부</span>
+        <span class="dim small">빠른 예시:</span>
+        <span class="chip">신상 광고</span><span class="chip">앱 소개</span><span class="chip">매물 투어</span><span class="chip">교육</span>
+      </div>
+      <h2 class="sec">목적 선택 <span class="dim" style="font-weight:500">— 화면비·길이·톤이 자동 맞춰집니다</span></h2>
+      <div class="purpose" id="purpose">
+        ${[["쇼츠","9:16 · 15s"],["광고","9:16 · 30s"],["앱소개","16:9 · 60s"],["공간","16:9 · 90s"],["교육","16:9 · 60s"],["캠페인","16:9 · 60s"]]
+          .map((p,i)=>`<div class="p ${i===0?'on':''}" onclick="pick(this)"><b>${p[0]}</b><span>${p[1]}</span></div>`).join("")}
+      </div>
+      <div class="row" style="margin-top:14px"><span class="chip" onclick="this.nextElementSibling.classList.toggle('hide')">▸ 고급 옵션 (수동: 비율·길이·티어·엔진선호)</span>
+        <span class="dim small hide">seed · negative · fps · 해상도 · 엔진 선호 — 기본은 숨김(비전문가 보호)</span></div>
+      <div class="between" style="margin-top:18px">
+        <button class="btn ghost" onclick="go('compare')">알아서 만들어줘 (Express)</button>
+        <button class="btn primary" onclick="go('story')">스토리보드 만들기 →</button>
+      </div>
+    </div>`;
+  },
+
+  story(){ return `
+    <div class="note">화면 3 · <b>스토리보드/샷 리스트</b> — 아이디어를 자동 분해(1 장소=1 씬, 1 동작=1 컷). 컷마다 SAEC 프롬프트 초안. 「🎬자동」=엔진을 시스템이 결정(엔진명 비노출).</div>
+    <div class="between">
+      <div class="row"><b>봄 신상 광고 · 스토리보드</b><span class="dim small">4 씬 · 9 컷 · 약 30s</span></div>
+      <button class="btn primary" onclick="go('compare')">전체 생성 ▶ <span class="cost">90 ⚡</span></button>
+    </div>
+    <h2 class="sec">씬 1 · 카페 외경 (낮)</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+      ${[["1.1","와이드·햇살 외경","3s","빠른"],["1.2","도어 푸시인","2s","빠른"]].map(s=>sb(s)).join("")}
+    </div>
+    <h2 class="sec">씬 2 · 음료 클로즈업 (실내) <span class="badge b-final" style="margin-left:6px">🔒 인물 일관</span></h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+      ${[["2.1","딸기라떼 히어로 ECU","3s","빠른"],["2.2","빨대 꽂기","2s","빠른"],["2.3","한 모금 리액션","2s","빠른"]].map(s=>sb(s)).join("")}
+    </div>
+    <div class="row" style="margin-top:16px"><span class="chip">+ 장면 추가</span><span class="chip">↕ 순서 변경(드래그)</span><span class="chip">🔒 캐릭터 레퍼런스</span><span class="chip">🎙 내레이션 대본</span></div>`;
+  },
+
+  compare(){ return `
+    <div class="note">화면 4 · <b>생성 결과 비교·선택</b> (앱의 심장) — 컷마다 후보 A/B/C 나란히. 모델명 대신 「A안」. 실패/불만 컷만 재생성. 만족하면 1클릭 「고품질 승급」.</div>
+    <div class="between"><div class="row"><b>봄 신상 광고 · 컷 검토</b><span class="dim small">7/9 생성완료 (부분 진행)</span></div>
+      <button class="btn primary" onclick="go('edit')">고품질로 모두 확정 → <span class="cost">+96 ⚡</span></button></div>
+    <div class="grid" style="grid-template-columns:200px 1fr;margin-top:14px">
+      <div class="card pad">
+        <div class="small dim" style="margin-bottom:8px">컷 목록</div>
+        <div class="shotlist">
+          ${SHOTS.map((s,i)=>`<button class="${i===2?'on':''}" onclick="selShot(this)">
+            <span class="si">${({sel:'✓',review:'▶',gen:'◔',warn:'⚠',pending:'·'})[s.st]}</span>
+            <span>${s.id} ${s.name}</span></button>`).join("")}
+        </div>
+      </div>
+      <div class="card pad">
+        <div class="between"><b>컷 2.1 · 딸기라떼 히어로</b><span class="badge b-fast">빠른 미리보기</span></div>
+        <div class="takes" style="margin-top:12px">
+          ${["A","B","C"].map((l,i)=>`<div class="take ${i===0?'sel':''}" onclick="selTake(this)">
+            <div class="tp">🎞<div class="play">▶</div></div>
+            <div class="meta"><b class="small">${l}안</b><span class="badge ${i===0?'b-ok':'b-fast'}">${i===0?'● 이걸로':'이걸로'}</span></div>
+          </div>`).join("")}
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn">↻ 이 컷 다시 <span class="cost">6 ⚡</span></button>
+          <button class="btn">✂ 이 부분만 다시</button>
+          <button class="btn primary">✨ 고품질 승급 <span class="cost" style="color:#06101f;background:rgba(255,255,255,.3);border:0">12 ⚡</span></button>
+        </div>
+        <div class="card pad" style="margin-top:14px;background:rgba(251,113,133,.07);border-color:rgba(251,113,133,.3)">
+          <span class="badge b-warn">⚠ 자동검사</span> <span class="small">컷 2.3 「한 모금 리액션」에서 <b>모션 흔들림</b>이 의심돼요 — 이 컷만 다시 생성할까요?</span>
+        </div>
+        <div class="small dim" style="margin-top:12px">프롬프트: "딸기라떼 클로즈업, 김이 모락, 빨대가 꽂힌다 …" <span class="chip" style="padding:2px 8px">✎ 손보기</span></div>
+      </div>
+    </div>`;
+  },
+
+  edit(){ return `
+    <div class="note">화면 5 · <b>다듬기</b> — 선택 컷을 이어 붙인 풀영상. 편집은 <b>대화(Magic Box)</b>로. 자막/BGM/보이스는 자동 초안 후 미세조정. 타임라인은 고급(접힘).</div>
+    <div class="grid" style="grid-template-columns:300px 1fr">
+      <div class="card pad"><div class="player">🎬<div class="ctrl">▶ 00:12 / 00:30</div></div></div>
+      <div class="card pad">
+        <div class="between"><b>봄 신상 광고 · 다듬기</b><button class="btn primary" onclick="go('export')">내보내기 →</button></div>
+        <h2 class="sec" style="margin-top:14px">대화형 편집 (Magic Box)</h2>
+        <div class="magic"><span>💬</span><input placeholder="예) 마지막에 로고 3초 넣어줘 / BGM 더 신나게 / 자막 키워줘"><span class="kbd">Enter</span></div>
+        <div class="row" style="margin-top:12px">
+          <span class="toggle on" onclick="tg(this)"><span class="sw"></span>자막</span>
+          <span class="toggle on" onclick="tg(this)"><span class="sw"></span>BGM · 산뜻팝 ▾</span>
+          <span class="toggle on" onclick="tg(this)"><span class="sw"></span>내레이션 · 보이스A ▾</span>
+          <span class="toggle" onclick="tg(this)"><span class="sw"></span>전환 부드럽게</span>
+        </div>
+        <div class="row" style="margin-top:14px"><span class="chip" onclick="this.parentElement.nextElementSibling.classList.toggle('hide')">▾ 타임라인 (고급)</span></div>
+        <div class="timeline hide">
+          <div class="tl-row"><span class="lab">🎬 컷</span>
+            ${["1.1","1.2","2.1","2.2","2.3","3.1"].map(c=>`<div class="clip" style="width:${40+Math.round(c.length*8)}px">${c}</div>`).join("")}</div>
+          <div class="tl-row"><span class="lab">🔊 BGM</span><div class="strip" style="background:linear-gradient(90deg,#1f3a5c,#16314f)"></div></div>
+          <div class="tl-row"><span class="lab">🎙 보이스</span><div class="strip" style="background:linear-gradient(90deg,#2a1f4d,#1d1638)"></div></div>
+          <div class="tl-row"><span class="lab">💬 자막</span><div class="strip" style="background:repeating-linear-gradient(90deg,#26324a 0 22px,transparent 22px 30px)"></div></div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  export(){ return `
+    <div class="note">화면 6 · <b>내보내기/렌더 상태</b> — 해상도·길이컷(다중)·비율 파생 선택. 비용·시간 사전 표시. 길이컷마다 독립 렌더(부분 완료 우선).</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="card pad">
+        <h2 class="sec" style="margin-top:0">형식</h2>
+        <div class="small dim">해상도</div><div class="seg" style="margin:6px 0 12px"><button>720p</button><button class="on">1080p</button><button>4K ✨</button></div>
+        <div class="small dim">길이컷 (다중 선택)</div>
+        <div class="row" style="margin:6px 0 12px"><span class="toggle on" onclick="tg(this)"><span class="sw"></span>6s 훅</span><span class="toggle on" onclick="tg(this)"><span class="sw"></span>15s 표준</span><span class="toggle on" onclick="tg(this)"><span class="sw"></span>30s 풀</span></div>
+        <div class="small dim">비율 파생</div><div class="row" style="margin:6px 0 12px"><span class="chip">9:16 원본</span><span class="chip">16:9</span><span class="chip">1:1</span></div>
+        <div class="small dim">자막</div><div class="seg" style="margin:6px 0 14px"><button class="on">번인</button><button>.srt 별도</button><button>둘 다</button></div>
+        <div class="between"><span class="small dim">예상 약 2분</span><button class="btn primary">내보내기 시작 ▶ <span class="cost" style="color:#06101f;background:rgba(255,255,255,.3);border:0">48 ⚡</span></button></div>
+      </div>
+      <div class="card pad">
+        <h2 class="sec" style="margin-top:0">렌더 진행</h2>
+        <div class="render">
+          <div class="rj"><span class="lab">1080p · 30s</span><div style="flex:1"><div class="prog"><i style="width:82%"></i></div><div class="small dim" style="margin-top:5px">오디오 믹스 중… 82%</div></div></div>
+          <div class="rj"><span class="lab">1080p · 15s</span><div style="flex:1"><span class="badge b-ok">✓ 완료</span></div><button class="btn">▶</button><button class="btn">⬇</button></div>
+          <div class="rj"><span class="lab">720p · 6s</span><div style="flex:1"><span class="badge b-ok">✓ 완료</span></div><button class="btn">⬇</button></div>
+        </div>
+        <div class="small dim" style="margin-top:12px">완료 시 대시보드에 「완료」 카드로 반영 + 공유 링크 생성. 실패해도 이전 산출물 보존(재시도).</div>
+      </div>
+    </div>`;
+  }
+};
+
+function sb(s){ return `<div class="sbcard"><div class="tp">🎬</div>
+  <div class="between"><b class="small">컷 ${s[0]} · ${s[1]}</b></div>
+  <div class="row small dim" style="margin-top:6px"><span>${s[2]}</span><span class="badge b-fast">🎬 ${s[3]}</span></div>
+  <div class="row" style="margin-top:8px"><span class="chip" style="padding:3px 9px">프롬프트 ✎</span><span class="chip" style="padding:3px 9px">⋯</span></div></div>`; }
+
+/* ---------- 라우팅·인터랙션 ---------- */
+const TITLES={dash:["프로젝트","진행중·완료 한눈에"],new:["새 영상","아이디어 → 목적"],story:["스토리보드","장면/샷 자동 분해"],compare:["비교·선택","후보 A/B/C 중 선택"],edit:["다듬기","자막·BGM·보이스"],export:["내보내기","최종 MP4 렌더"]};
+function go(s){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.s===s));
+  document.getElementById('view').innerHTML=screens[s]();
+  document.getElementById('t-title').textContent=TITLES[s][0];
+  document.getElementById('t-sub').textContent="· "+TITLES[s][1];
+  window.scrollTo(0,0);
+}
+function pick(el){ el.parentElement.querySelectorAll('.p').forEach(p=>p.classList.remove('on')); el.classList.add('on'); }
+function selShot(el){ el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
+function selTake(el){ el.parentElement.querySelectorAll('.take').forEach(t=>{t.classList.remove('sel'); t.querySelector('.badge').className='badge b-fast'; t.querySelector('.badge').textContent='이걸로';});
+  el.classList.add('sel'); const b=el.querySelector('.badge'); b.className='badge b-ok'; b.textContent='● 이걸로'; }
+function tg(el){ el.classList.toggle('on'); }
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) go(b.dataset.s);});
+go('dash');
+</script>
+</body>
+</html>
