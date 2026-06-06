@@ -28,8 +28,12 @@ import {
   upgradeTake
 } from "../src/server/mock-service";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
+import { getRuntimeReadiness } from "../src/server/readiness";
 
 const originalPersist = process.env.CUTPILOT_MOCK_PERSIST;
+const originalRuntimeMode = process.env.CUTPILOT_RUNTIME_MODE;
+const readinessEnvNames = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT", "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "CUTPILOT_QUEUE_URL"];
+const originalReadinessEnv = new Map(readinessEnvNames.map((name) => [name, process.env[name]] as const));
 const defaultStateFile = join(process.cwd(), "data", "cutpilot-mock-state.json");
 const originalStateFile = existsSync(defaultStateFile) ? readFileSync(defaultStateFile, "utf8") : null;
 process.env.CUTPILOT_MOCK_PERSIST = "1";
@@ -50,6 +54,20 @@ if (originalStateFile === null) {
 if (typeof originalPersist === "undefined") delete process.env.CUTPILOT_MOCK_PERSIST;
 else process.env.CUTPILOT_MOCK_PERSIST = originalPersist;
 process.env.CUTPILOT_MOCK_PERSIST = "0";
+delete process.env.CUTPILOT_RUNTIME_MODE;
+for (const name of readinessEnvNames) delete process.env[name];
+
+const readiness = getRuntimeReadiness();
+assert.equal(readiness.mode, "mock", "readiness should default to mock mode");
+assert.equal(readiness.ready, true, "mock readiness should be usable without production credentials");
+assert.ok(readiness.checks.some((check) => check.id === "provider_credentials" && check.status === "warn"), "mock readiness should warn about missing provider credentials");
+if (typeof originalRuntimeMode === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
+else process.env.CUTPILOT_RUNTIME_MODE = originalRuntimeMode;
+for (const name of readinessEnvNames) {
+  const value = originalReadinessEnv.get(name);
+  if (typeof value === "undefined") delete process.env[name];
+  else process.env[name] = value;
+}
 
 resetMockState();
 

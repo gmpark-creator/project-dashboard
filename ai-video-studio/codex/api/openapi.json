@@ -729,6 +729,21 @@
         }
       }
     },
+    "/system/readiness": {
+      "get": {
+        "operationId": "getRuntimeReadiness",
+        "responses": {
+          "200": {
+            "description": "Runtime readiness checks for mock or production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/RuntimeReadiness" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

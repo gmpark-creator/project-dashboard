@@ -394,6 +394,19 @@ export type CancelJobResult = {
   reason: string;
 };
 
+export type RuntimeReadiness = {
+  mode: "mock" | "production";
+  generatedAt: string;
+  ready: boolean;
+  missingEnv: string[];
+  checks: Array<{
+    id: string;
+    label: string;
+    status: "pass" | "warn" | "fail";
+    detail: string;
+  }>;
+};
+
 export type StudioState = {
   version: number;
   credits: { balance: number; spent: number; reserved: number };

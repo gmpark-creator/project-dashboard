@@ -220,6 +220,31 @@
         "reason": { "type": "string" }
       }
     },
+    "RuntimeReadiness": {
+      "type": "object",
+      "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "type": "string", "enum": ["mock", "production"] },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "ready": { "type": "boolean" },
+        "missingEnv": { "type": "array", "items": { "type": "string" } },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "status", "detail"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "status": { "type": "string", "enum": ["pass", "warn", "fail"] },
+              "detail": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
     "Scene": {
       "type": "object",
       "required": ["id", "projectId", "order", "title"],
@@ -839,6 +864,7 @@
     "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
+    "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
