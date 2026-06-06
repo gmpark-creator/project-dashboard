@@ -663,6 +663,39 @@
         }
       }
     },
+    "/projects/{projectId}/default-render": {
+      "post": {
+        "operationId": "setDefaultRender",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["renderJobId"],
+                "properties": {
+                  "renderJobId": { "type": "string", "pattern": "^rnd_" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default render version selected",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ProjectBundle" }
+              }
+            }
+          },
+          "400": { "description": "Missing render job id" }
+        }
+      }
+    },
     "/projects/{projectId}/render-preview": {
       "post": {
         "operationId": "previewRender",

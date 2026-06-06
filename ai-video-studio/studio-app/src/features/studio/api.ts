@@ -50,5 +50,7 @@ export const studioApi = {
     json<RenderPreview>(`/api/projects/${projectId}/render-preview`, { method: "POST", body: JSON.stringify({ spec }) }),
   startRender: (projectId: string, specs: ExportSpec[]) =>
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/renders`, { method: "POST", body: JSON.stringify({ specs }) }),
+  setDefaultRender: (projectId: string, renderJobId: string) =>
+    json<ProjectBundle>(`/api/projects/${projectId}/default-render`, { method: "POST", body: JSON.stringify({ renderJobId }) }),
   tick: () => json("/api/jobs/tick", { method: "POST", body: "{}" })
 };

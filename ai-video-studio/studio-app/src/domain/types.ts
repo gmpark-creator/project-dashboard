@@ -50,6 +50,7 @@ export type Project = {
   progress: { shotsDone: number; shotsTotal: number };
   characters: Array<{ id: string; label: string; refImageUrls: string[] }>;
   thumbUrl: string | null;
+  defaultRenderJobId: string | null;
   credits: { spent: number; estimateRemaining: number };
   createdAt: string;
   updatedAt: string;

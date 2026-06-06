@@ -90,7 +90,7 @@
     },
     "Project": {
       "type": "object",
-      "required": ["id", "title", "intent", "status", "aspect", "targetDurationSec", "progress", "createdAt", "updatedAt"],
+      "required": ["id", "title", "intent", "status", "aspect", "targetDurationSec", "progress", "defaultRenderJobId", "createdAt", "updatedAt"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^prj_" },
@@ -114,6 +114,7 @@
           "default": []
         },
         "thumbUrl": { "type": ["string", "null"], "format": "uri" },
+        "defaultRenderJobId": { "type": ["string", "null"], "pattern": "^rnd_" },
         "credits": { "$ref": "#/$defs/CreditSummary" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }

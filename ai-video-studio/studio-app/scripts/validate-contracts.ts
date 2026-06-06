@@ -77,6 +77,7 @@ const requiredOperations = new Set([
   "deleteImageAsset",
   "previewRender",
   "setAudio",
+  "setDefaultRender",
   "updateStoryboard",
   "updateShotDirection",
   "generateShot"

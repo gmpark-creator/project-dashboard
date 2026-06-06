@@ -15,6 +15,7 @@ import {
   resetMockState,
   selectTake,
   setAudio,
+  setDefaultRender,
   startRender,
   tickJobs,
   updateShotDirection,
@@ -229,6 +230,11 @@ assert.ok(bundle.renderJobs.every((job) => job.status === "done"), "render jobs 
 assert.ok(bundle.renderJobs.every((job) => job.outputUrl?.startsWith("https://interactive-examples.mdn.mozilla.net/")), "done render jobs should expose browser-playable output URLs");
 assert.ok(bundle.renderJobs.every((job) => job.shareUrl?.startsWith("https://cutpilot.local/share/")), "done render jobs should expose share URLs");
 assert.ok(bundle.project.thumbUrl?.startsWith("data:image/svg+xml"), "done projects should keep a poster thumbnail");
+assert.ok(bundle.project.defaultRenderJobId, "completed projects should auto-select a default render version");
+const fifteenSecondRender = bundle.renderJobs.find((job) => job.spec.cut === "15s");
+assert.ok(fifteenSecondRender, "15s render should exist for default version selection");
+bundle = setDefaultRender(project.id, fifteenSecondRender.id) || bundle;
+assert.equal(bundle.project.defaultRenderJobId, fifteenSecondRender.id, "setDefaultRender should persist the selected render version");
 const renderedBundle = bundle;
 assert.ok(
   renderedBundle.renderJobs.every((job) => job.renderPlan.shots.length + job.renderPlan.missingShotIds.length === renderedBundle.shots.length),

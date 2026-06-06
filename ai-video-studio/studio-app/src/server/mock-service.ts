@@ -89,6 +89,11 @@ function normalizeState(current: StudioState): StudioState {
   if (!next.referenceBoards) next.referenceBoards = {};
 
   for (const project of next.projects) {
+    const mutableProject = project as Project & { defaultRenderJobId: string | null | undefined };
+    if (typeof mutableProject.defaultRenderJobId === "undefined") mutableProject.defaultRenderJobId = null;
+    if (mutableProject.defaultRenderJobId && !next.renderJobs.some((job) => job.id === mutableProject.defaultRenderJobId && job.projectId === project.id)) {
+      mutableProject.defaultRenderJobId = null;
+    }
     if (!next.referenceBoards[project.id]) {
       next.referenceBoards[project.id] = defaultReferenceBoard(project.id);
     }
@@ -291,6 +296,7 @@ export function createProject(input: { title?: string; idea: string; intent: Int
     progress: { shotsDone: 0, shotsTotal: 0 },
     characters: [],
     thumbUrl: null,
+    defaultRenderJobId: null,
     credits: { spent: current.credits.spent, estimateRemaining: 180 },
     createdAt: now(),
     updatedAt: now()
@@ -1150,6 +1156,19 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   return { jobs };
 }
 
+export function setDefaultRender(projectId: string, renderJobId: string): ProjectBundle | null {
+  const current = state();
+  const project = current.projects.find((item) => item.id === projectId);
+  if (!project) throw new Error("Project not found");
+  const job = current.renderJobs.find((item) => item.id === renderJobId && item.projectId === projectId);
+  if (!job) throw new Error("Render job not found");
+  if (job.status !== "done") throw new Error("Only completed renders can be the default version");
+  project.defaultRenderJobId = job.id;
+  project.thumbUrl = mockPosterUrl(job.id, `${job.spec.cut} render`);
+  write(current);
+  return getProjectBundle(projectId);
+}
+
 export function forceDueJobs(kind: "generationJobs" | "renderJobs" | "imageJobs") {
   const current = state();
   for (const job of current[kind]) {
@@ -1291,9 +1310,11 @@ export function tickJobs() {
       current.credits.reserved = Math.max(0, current.credits.reserved - 16);
       current.credits.spent += 16;
       const project = current.projects.find((item) => item.id === job.projectId);
+      if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;
       if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {
         project.status = "done";
-        project.thumbUrl = mockPosterUrl(job.id, "Final render");
+        const defaultJob = current.renderJobs.find((item) => item.id === project.defaultRenderJobId && item.projectId === project.id) || job;
+        project.thumbUrl = mockPosterUrl(defaultJob.id, `${defaultJob.spec.cut} render`);
       }
     }
   }
