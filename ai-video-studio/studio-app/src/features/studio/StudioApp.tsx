@@ -379,6 +379,10 @@ export function StudioApp() {
                   "렌더 잡 3개를 시작했습니다."
                 )
               }
+              onSetDefault={(renderJobId) =>
+                bundle &&
+                run(() => studioApi.setDefaultRender(bundle.project.id, renderJobId), "기본 버전으로 설정했습니다.")
+              }
               onRenderAction={notify}
             />
           ) : null}
@@ -1457,10 +1461,12 @@ function Edit({
 function ExportView({
   bundle,
   onRender,
+  onSetDefault,
   onRenderAction
 }: {
   bundle: ProjectBundle | null;
   onRender: (resolution: "720p" | "1080p" | "4k", caption: "none" | "burn-in" | "srt" | "both") => void;
+  onSetDefault: (renderJobId: string) => void;
   onRenderAction: (message: string) => void;
 }) {
   const [resolution, setResolution] = useState<"720p" | "1080p" | "4k">("1080p");
@@ -1470,8 +1476,6 @@ function ExportView({
   const [preview, setPreview] = useState<RenderPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  // 완료된 렌더 잡 중 인라인 플레이어를 펼친 잡 id. 한 번에 하나만 펼친다.
-  const [playerJobId, setPlayerJobId] = useState<string | null>(null);
   const projectId = bundle?.project.id ?? null;
   const aspect = bundle?.project.aspect ?? null;
   // preview는 전체 타임라인 점검이라 길이별(6s/15s/30s)로 갈리지 않는다. cut은 "full"로 고정하고
@@ -1490,20 +1494,6 @@ function ExportView({
     } finally {
       setPreviewing(false);
     }
-  }
-
-  // 공유 링크는 토스트로만 끝내지 않고 실제 URL을 클립보드에 복사하고, 행에도 링크를 노출한다.
-  async function copyShare(url: string) {
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        onRenderAction("공유 링크를 클립보드에 복사했습니다.");
-        return;
-      }
-    } catch {
-      // 권한 거부 등으로 복사가 막히면 아래 안내로 떨어진다.
-    }
-    onRenderAction("공유 링크를 복사할 수 없어 링크를 표시합니다. 직접 복사해 주세요.");
   }
 
   // 내보내기 화면을 열면(또는 프로젝트가 바뀌면) 현재 설정으로 한 번 미리 점검한다. 이후 설정을
@@ -1574,79 +1564,184 @@ function ExportView({
         </div>
       </section>
       <section className="panel">
-        <h2>렌더 잡</h2>
+        <h2>렌더 버전</h2>
         {latestJob ? <RenderPreflight job={latestJob} shotTitleById={shotTitleById} /> : null}
-        <div className="grid" style={{ marginTop: 12 }}>
-          {bundle.renderJobs.map((job) => {
-            const open = playerJobId === job.id;
-            return (
-              <div className="row-card render-row" key={job.id}>
-                <strong>
-                  {job.spec.resolution} · {job.spec.cut}
-                </strong>
-                <div style={{ flex: 1 }}>
-                  <div className="progress">
-                    <i style={{ width: `${Math.round(job.progress * 100)}%` }} />
-                  </div>
-                  <div className="meta">
-                    <span>{statusLabel(job.status)}</span>
-                    {renderStageLabel(job) ? <span>{renderStageLabel(job)}</span> : null}
-                  </div>
-                </div>
-                {job.status === "done" ? (
-                  <div className="render-actions">
-                    {job.outputUrl ? (
-                      <button type="button" className="secondary" onClick={() => setPlayerJobId(open ? null : job.id)}>
-                        {open ? "미리보기 닫기" : "미리보기"}
-                      </button>
-                    ) : null}
-                    {job.outputUrl ? (
-                      <a
-                        className="secondary"
-                        href={job.outputUrl}
-                        download
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={() => onRenderAction("다운로드를 시작합니다.")}
-                      >
-                        다운로드
-                      </a>
-                    ) : null}
-                    {job.shareUrl ? (
-                      <button type="button" className="secondary" onClick={() => copyShare(job.shareUrl as string)}>
-                        공유 링크 복사
-                      </button>
-                    ) : null}
-                  </div>
-                ) : (
-                  <span className="badge fast">진행</span>
-                )}
-                {open && job.outputUrl ? (
-                  <div className="render-player">
-                    <div className="edit-preview-stage" style={{ aspectRatio: aspectRatioCss(bundle.project.aspect) }}>
-                      <video
-                        className="take-video"
-                        controls
-                        playsInline
-                        muted
-                        preload="metadata"
-                        poster={bundle.project.thumbUrl ?? undefined}
-                        src={job.outputUrl}
-                      />
-                    </div>
-                    {job.shareUrl ? (
-                      <a className="share-link" href={job.shareUrl} target="_blank" rel="noreferrer">
-                        공유 링크: {job.shareUrl}
-                      </a>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-          {!bundle.renderJobs.length ? <div className="empty">아직 렌더 잡이 없습니다.</div> : null}
-        </div>
+        {bundle.renderJobs.length ? (
+          <RenderVersions
+            jobs={bundle.renderJobs}
+            defaultRenderJobId={bundle.project.defaultRenderJobId}
+            aspect={bundle.project.aspect}
+            posterUrl={bundle.project.thumbUrl}
+            onSetDefault={onSetDefault}
+            onRenderAction={onRenderAction}
+          />
+        ) : (
+          <div className="empty" style={{ marginTop: 12 }}>
+            아직 렌더 잡이 없습니다.
+          </div>
+        )}
       </section>
+    </div>
+  );
+}
+
+// 길이별(6s/15s/30s/full) 렌더 결과를 세그먼트 탭으로 보여준다. 탭 하나가 길이 버전 하나에 대응하고,
+// 활성 탭만 인라인 플레이어·다운로드·공유·기본 설정을 노출해 화면을 좁고 운영 중심으로 유지한다.
+const RENDER_CUT_ORDER: ExportSpec["cut"][] = ["6s", "15s", "30s", "full"];
+const renderCutLabels: Record<ExportSpec["cut"], string> = {
+  "6s": "6초",
+  "15s": "15초",
+  "30s": "30초",
+  full: "전체"
+};
+
+function RenderVersions({
+  jobs,
+  defaultRenderJobId,
+  aspect,
+  posterUrl,
+  onSetDefault,
+  onRenderAction
+}: {
+  jobs: RenderJob[];
+  defaultRenderJobId: string | null;
+  aspect: Aspect;
+  posterUrl: string | null;
+  onSetDefault: (renderJobId: string) => void;
+  onRenderAction: (message: string) => void;
+}) {
+  const [activeCut, setActiveCut] = useState<ExportSpec["cut"] | null>(null);
+
+  // 같은 길이로 여러 번 렌더하면 잡이 쌓인다. 길이별 대표 잡은 ①기본으로 지정된 잡 ②가장 최근 완료된 잡
+  // ③가장 최근 잡 순으로 고른다. 그래야 기본 표시와 플레이어가 항상 같은 버전을 가리킨다.
+  const jobsByCut = new Map<ExportSpec["cut"], RenderJob[]>();
+  for (const job of jobs) {
+    const list = jobsByCut.get(job.spec.cut) ?? [];
+    list.push(job);
+    jobsByCut.set(job.spec.cut, list);
+  }
+  const availableCuts = RENDER_CUT_ORDER.filter((cut) => jobsByCut.has(cut));
+
+  function representativeFor(cut: ExportSpec["cut"]): RenderJob {
+    const list = jobsByCut.get(cut) as RenderJob[];
+    const asDefault = list.find((job) => job.id === defaultRenderJobId);
+    if (asDefault) return asDefault;
+    const done = list.filter((job) => job.status === "done");
+    return done.length ? done[done.length - 1] : list[list.length - 1];
+  }
+
+  const defaultCut = availableCuts.find((cut) => representativeFor(cut).id === defaultRenderJobId) ?? null;
+  // 사용자가 고른 탭을 우선하되, 없으면 기본 버전 → 완료된 첫 버전 → 첫 버전 순으로 떨어진다.
+  const effectiveCut =
+    (activeCut && availableCuts.includes(activeCut) ? activeCut : null) ??
+    (defaultCut && availableCuts.includes(defaultCut) ? defaultCut : null) ??
+    availableCuts.find((cut) => representativeFor(cut).status === "done") ??
+    availableCuts[0] ??
+    null;
+
+  if (!effectiveCut) return null;
+
+  const activeJob = representativeFor(effectiveCut);
+  const isDefault = activeJob.id === defaultRenderJobId;
+  const ready = activeJob.status === "done" && Boolean(activeJob.outputUrl);
+
+  // 공유 링크는 토스트로만 끝내지 않고 실제 URL을 클립보드에 복사하고, 아래에도 링크를 노출한다.
+  async function copyShare(url: string) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        onRenderAction("공유 링크를 클립보드에 복사했습니다.");
+        return;
+      }
+    } catch {
+      // 권한 거부 등으로 복사가 막히면 아래 안내로 떨어진다.
+    }
+    onRenderAction("공유 링크를 복사할 수 없어 링크를 표시합니다. 직접 복사해 주세요.");
+  }
+
+  return (
+    <div className="render-versions">
+      <div className="seg-tabs" role="tablist" aria-label="렌더 길이 버전">
+        {availableCuts.map((cut) => {
+          const rep = representativeFor(cut);
+          const selected = cut === effectiveCut;
+          return (
+            <button
+              key={cut}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              className={`seg-tab${selected ? " is-active" : ""}`}
+              onClick={() => setActiveCut(cut)}
+            >
+              <span className="seg-tab-label">{renderCutLabels[cut]}</span>
+              {rep.id === defaultRenderJobId ? <span className="seg-tab-default">기본</span> : null}
+              {rep.status !== "done" ? <span className="seg-tab-dot" aria-hidden="true" /> : null}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="render-version-body" role="tabpanel" aria-label={`${renderCutLabels[effectiveCut]} 버전`}>
+        <div className="render-version-head">
+          <strong>
+            {renderCutLabels[effectiveCut]} 버전 · {activeJob.spec.resolution}
+          </strong>
+          {isDefault ? <span className="badge ok">기본 버전</span> : null}
+        </div>
+
+        {ready ? (
+          <>
+            <div className="edit-preview-stage" style={{ aspectRatio: aspectRatioCss(aspect) }}>
+              <video
+                key={activeJob.id}
+                className="take-video"
+                controls
+                playsInline
+                muted
+                preload="metadata"
+                poster={posterUrl ?? undefined}
+                src={activeJob.outputUrl as string}
+              />
+            </div>
+            <div className="render-actions">
+              <a
+                className="secondary"
+                href={activeJob.outputUrl as string}
+                download
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => onRenderAction("다운로드를 시작합니다.")}
+              >
+                다운로드
+              </a>
+              {activeJob.shareUrl ? (
+                <button type="button" className="secondary" onClick={() => copyShare(activeJob.shareUrl as string)}>
+                  공유 링크 복사
+                </button>
+              ) : null}
+              <button type="button" className="secondary" disabled={isDefault} onClick={() => onSetDefault(activeJob.id)}>
+                {isDefault ? "기본 버전" : "기본으로 설정"}
+              </button>
+            </div>
+            {activeJob.shareUrl ? (
+              <a className="share-link" href={activeJob.shareUrl} target="_blank" rel="noreferrer">
+                공유 링크: {activeJob.shareUrl}
+              </a>
+            ) : null}
+          </>
+        ) : (
+          <div className="render-version-progress">
+            <div className="progress">
+              <i style={{ width: `${Math.round(activeJob.progress * 100)}%` }} />
+            </div>
+            <div className="meta">
+              <span>{statusLabel(activeJob.status)}</span>
+              {renderStageLabel(activeJob) ? <span>{renderStageLabel(activeJob)}</span> : null}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

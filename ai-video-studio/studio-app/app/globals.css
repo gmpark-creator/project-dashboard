@@ -788,6 +788,87 @@ label {
   word-break: break-all;
 }
 
+/* 렌더 길이별 버전 탭: 익숙한 세그먼트 버튼. 활성 탭만 플레이어/액션을 노출해 화면을 좁게 유지한다. */
+.render-versions {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.seg-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+
+.seg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.seg-tab:hover {
+  color: var(--text);
+}
+
+.seg-tab.is-active {
+  background: var(--panel);
+  border-color: rgba(80, 200, 232, .42);
+  color: var(--text);
+}
+
+.seg-tab-default {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 217, 121, .45);
+  color: #b6f0b5;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.seg-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--cyan);
+}
+
+.render-version-body {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.render-version-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.render-version-head strong {
+  font-size: 14px;
+}
+
+.render-version-progress {
+  display: grid;
+  gap: 8px;
+}
+
 .notice {
   margin-top: 12px;
   border: 1px solid rgba(244, 201, 93, .4);
