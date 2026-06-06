@@ -28,6 +28,10 @@
       "type": "string",
       "enum": ["queued", "running", "done", "failed", "cancelled"]
     },
+    "AssetKind": {
+      "type": "string",
+      "enum": ["image", "video", "audio", "brand"]
+    },
     "RenderSourceHash": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$"
@@ -174,6 +178,26 @@
           }
         },
         "note": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "MediaArtifact": {
+      "type": "object",
+      "required": ["id", "projectId", "ownerType", "ownerId", "sourceJobId", "kind", "role", "url", "storageKey", "contentType", "bytes", "status", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^art_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "ownerType": { "type": "string", "enum": ["imageAsset", "take", "renderJob"] },
+        "ownerId": { "type": "string" },
+        "sourceJobId": { "type": ["string", "null"] },
+        "kind": { "$ref": "#/$defs/AssetKind" },
+        "role": { "type": "string", "enum": ["image_asset", "image_thumbnail", "take_video", "take_poster", "render_output"] },
+        "url": { "type": "string" },
+        "storageKey": { "type": "string" },
+        "contentType": { "type": "string" },
+        "bytes": { "type": ["number", "null"], "minimum": 0 },
+        "status": { "type": "string", "enum": ["stored", "external"] },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
@@ -524,6 +548,7 @@
         "editState",
         "credits",
         "creditTransactions",
+        "mediaArtifacts",
         "renderSourceHash"
       ],
       "additionalProperties": false,
@@ -540,6 +565,7 @@
         "editState": { "$ref": "#/$defs/EditState" },
         "credits": { "$ref": "#/$defs/StudioCredits" },
         "creditTransactions": { "type": "array", "items": { "$ref": "#/$defs/CreditTransaction" } },
+        "mediaArtifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifact" } },
         "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
       }
     },
@@ -792,6 +818,7 @@
     "project": { "$ref": "#/$defs/Project" },
     "projectBundle": { "$ref": "#/$defs/ProjectBundle" },
     "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
+    "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },

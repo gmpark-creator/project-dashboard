@@ -106,6 +106,8 @@ bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after image job");
 assert.equal(bundle.imageJobs.length, 1, "image maker should create an image job");
 assert.equal(bundle.imageAssets.filter((asset) => asset.source === "image_maker").length, 4, "image maker should save 4 assets");
+assert.equal(bundle.mediaArtifacts.filter((artifact) => artifact.role === "image_asset").length, 4, "image maker should register image asset artifacts");
+assert.equal(bundle.mediaArtifacts.filter((artifact) => artifact.role === "image_thumbnail").length, 4, "image maker should register image thumbnail artifacts");
 
 const externalAsset = registerExternalImage({
   projectId: project.id,
@@ -156,6 +158,8 @@ const doneTakes = bundle.takes.filter((take) => take.status === "done");
 assert.ok(doneTakes.length > 0, "mock generation should produce playable done takes");
 assert.ok(doneTakes.every((take) => take.videoUrl?.startsWith("https://interactive-examples.mdn.mozilla.net/")), "done takes should expose browser-playable video URLs");
 assert.ok(doneTakes.every((take) => take.posterUrl?.startsWith("data:image/svg+xml")), "done takes should expose inline SVG poster URLs");
+assert.equal(bundle.mediaArtifacts.filter((artifact) => artifact.role === "take_video").length, doneTakes.length, "done takes should register video artifacts");
+assert.equal(bundle.mediaArtifacts.filter((artifact) => artifact.role === "take_poster").length, doneTakes.length, "done takes should register poster artifacts");
 assert.ok(bundle.generationJobs.every((job) => job.providerAttempts.length === 1), "each generation job should keep one provider attempt record");
 const succeededAttempt = bundle.generationJobs.find((job) => job.status === "done")?.providerAttempts[0];
 assert.ok(succeededAttempt, "completed generation jobs should keep provider attempt telemetry");
@@ -289,6 +293,7 @@ assert.equal(bundle.renderJobs.length, 3, "render should create 3 jobs");
 assert.ok(bundle.renderJobs.every((job) => job.status === "done"), "render jobs should complete when forced due");
 assert.ok(bundle.renderJobs.every((job) => job.outputUrl?.startsWith("https://interactive-examples.mdn.mozilla.net/")), "done render jobs should expose browser-playable output URLs");
 assert.ok(bundle.renderJobs.every((job) => job.shareUrl?.startsWith("https://cutpilot.local/share/")), "done render jobs should expose share URLs");
+assert.equal(bundle.mediaArtifacts.filter((artifact) => artifact.role === "render_output").length, bundle.renderJobs.length, "done renders should register output artifacts");
 assert.ok(bundle.project.thumbUrl?.startsWith("data:image/svg+xml"), "done projects should keep a poster thumbnail");
 assert.ok(bundle.project.defaultRenderJobId, "completed projects should auto-select a default render version");
 const fifteenSecondRender = bundle.renderJobs.find((job) => job.spec.cut === "15s");
@@ -340,6 +345,7 @@ assert.equal(forcedDelete.deleted, true, "force delete should remove a used asse
 bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after force deleting an asset");
 assert.equal(bundle.shots.some((shot) => shot.referenceImageIds.includes(styleAsset.id)), false, "force delete should remove shot references");
+assert.equal(bundle.mediaArtifacts.some((artifact) => artifact.ownerId === styleAsset.id), false, "force delete should remove image asset artifacts");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,

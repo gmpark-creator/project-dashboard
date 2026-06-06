@@ -368,10 +368,27 @@ export type CreditTransaction = {
   createdAt: string;
 };
 
+export type MediaArtifact = {
+  id: string;
+  projectId: string;
+  ownerType: "imageAsset" | "take" | "renderJob";
+  ownerId: string;
+  sourceJobId: string | null;
+  kind: AssetKind;
+  role: "image_asset" | "image_thumbnail" | "take_video" | "take_poster" | "render_output";
+  url: string;
+  storageKey: string;
+  contentType: string;
+  bytes: number | null;
+  status: "stored" | "external";
+  createdAt: string;
+};
+
 export type StudioState = {
   version: number;
   credits: { balance: number; spent: number; reserved: number };
   creditTransactions: CreditTransaction[];
+  mediaArtifacts: MediaArtifact[];
   projects: Project[];
   scenes: Scene[];
   shots: Shot[];
@@ -398,5 +415,6 @@ export type ProjectBundle = {
   editState: EditState;
   credits: StudioState["credits"];
   creditTransactions: CreditTransaction[];
+  mediaArtifacts: MediaArtifact[];
   renderSourceHash: string;
 };

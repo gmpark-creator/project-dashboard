@@ -21,6 +21,7 @@ import type {
   ImageVariant,
   Intent,
   JobStatus,
+  MediaArtifact,
   Project,
   ProjectBundle,
   ProviderAttempt,
@@ -102,6 +103,7 @@ function blankState(): StudioState {
     version: 1,
     credits: { balance: 1240, spent: 0, reserved: 0 },
     creditTransactions: [],
+    mediaArtifacts: [],
     projects: [],
     scenes: [],
     shots: [],
@@ -158,9 +160,127 @@ function finishProviderAttempt(job: GenerationJob, status: "succeeded" | "failed
   attempt.fallbackSuggested = Boolean(error?.fallbackSuggested);
 }
 
+function artifactStorageKey(input: Pick<MediaArtifact, "projectId" | "ownerType" | "ownerId" | "role">) {
+  return `projects/${input.projectId}/${input.ownerType}/${input.ownerId}/${input.role}`;
+}
+
+function recordMediaArtifact(
+  current: StudioState,
+  input: Omit<MediaArtifact, "id" | "storageKey" | "createdAt">
+) {
+  const existing = current.mediaArtifacts.find(
+    (artifact) => artifact.ownerType === input.ownerType && artifact.ownerId === input.ownerId && artifact.role === input.role
+  );
+  if (existing) {
+    existing.url = input.url;
+    existing.sourceJobId = input.sourceJobId;
+    existing.contentType = input.contentType;
+    existing.bytes = input.bytes;
+    existing.status = input.status;
+    return existing;
+  }
+  const artifact: MediaArtifact = {
+    id: uid("art"),
+    ...input,
+    storageKey: artifactStorageKey(input),
+    createdAt: now()
+  };
+  current.mediaArtifacts.push(artifact);
+  return artifact;
+}
+
+function recordImageAssetArtifacts(current: StudioState, asset: ImageAsset, sourceJobId: string | null = null) {
+  const status = asset.source === "external" ? "external" : "stored";
+  recordMediaArtifact(current, {
+    projectId: asset.projectId,
+    ownerType: "imageAsset",
+    ownerId: asset.id,
+    sourceJobId,
+    kind: "image",
+    role: "image_asset",
+    url: asset.url,
+    contentType: "image/png",
+    bytes: null,
+    status
+  });
+  recordMediaArtifact(current, {
+    projectId: asset.projectId,
+    ownerType: "imageAsset",
+    ownerId: asset.id,
+    sourceJobId,
+    kind: "image",
+    role: "image_thumbnail",
+    url: asset.thumbUrl,
+    contentType: "image/jpeg",
+    bytes: null,
+    status: "stored"
+  });
+}
+
+function recordTakeArtifacts(current: StudioState, take: Take, sourceJobId: string) {
+  if (take.videoUrl) {
+    recordMediaArtifact(current, {
+      projectId: take.projectId,
+      ownerType: "take",
+      ownerId: take.id,
+      sourceJobId,
+      kind: "video",
+      role: "take_video",
+      url: take.videoUrl,
+      contentType: "video/mp4",
+      bytes: null,
+      status: "stored"
+    });
+  }
+  if (take.posterUrl) {
+    recordMediaArtifact(current, {
+      projectId: take.projectId,
+      ownerType: "take",
+      ownerId: take.id,
+      sourceJobId,
+      kind: "image",
+      role: "take_poster",
+      url: take.posterUrl,
+      contentType: "image/svg+xml",
+      bytes: null,
+      status: "stored"
+    });
+  }
+}
+
+function recordRenderArtifact(current: StudioState, job: RenderJob) {
+  if (!job.outputUrl) return;
+  recordMediaArtifact(current, {
+    projectId: job.projectId,
+    ownerType: "renderJob",
+    ownerId: job.id,
+    sourceJobId: job.id,
+    kind: "video",
+    role: "render_output",
+    url: job.outputUrl,
+    contentType: "video/mp4",
+    bytes: null,
+    status: "stored"
+  });
+}
+
+function backfillMediaArtifacts(current: StudioState) {
+  for (const asset of current.imageAssets) recordImageAssetArtifacts(current, asset);
+  for (const take of current.takes) {
+    if (take.status === "done") {
+      const sourceJob = current.generationJobs.find((job) => job.takeId === take.id);
+      recordTakeArtifacts(current, take, sourceJob?.id || take.id);
+    }
+  }
+  for (const job of current.renderJobs) {
+    if (job.status === "done") recordRenderArtifact(current, job);
+  }
+}
+
 function normalizeState(current: StudioState): StudioState {
-  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "imageAssets" | "imageJobs" | "referenceBoards">>;
+  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "referenceBoards">>;
   if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
+  if (!Array.isArray(next.mediaArtifacts)) next.mediaArtifacts = [];
   if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
   if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
   if (!next.referenceBoards) next.referenceBoards = {};
@@ -203,6 +323,7 @@ function normalizeState(current: StudioState): StudioState {
     if (!job.renderPlan || !(job.renderPlan as Partial<RenderPlan>).sourceHash) job.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
   }
 
+  backfillMediaArtifacts(next as StudioState);
   return next as StudioState;
 }
 
@@ -545,6 +666,7 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
     editState: current.editState[project.id] || defaultEditState(project.id),
     credits: current.credits,
     creditTransactions: current.creditTransactions.filter((transaction) => transaction.projectId === project.id),
+    mediaArtifacts: current.mediaArtifacts.filter((artifact) => artifact.projectId === project.id),
     renderSourceHash: buildRenderSourceHash(current, project.id)
   };
 }
@@ -733,6 +855,7 @@ function makeImageAsset(
     url?: string;
     aspect: Aspect;
     rights: ImageAsset["rights"];
+    sourceJobId?: string | null;
   }
 ) {
   const size = imageSize(input.aspect);
@@ -755,6 +878,7 @@ function makeImageAsset(
   };
   current.imageAssets.unshift(asset);
   addAssetToBoard(current, asset);
+  recordImageAssetArtifacts(current, asset, input.sourceJobId || null);
   return asset;
 }
 
@@ -896,6 +1020,7 @@ export function deleteImageAsset(projectId: string, assetId: string, options: { 
     variants: job.variants.map((variant) => (variant.assetId === assetId ? { ...variant, assetId: null } : variant))
   }));
   current.imageAssets = current.imageAssets.filter((item) => item.id !== assetId);
+  current.mediaArtifacts = current.mediaArtifacts.filter((artifact) => !(artifact.ownerType === "imageAsset" && artifact.ownerId === assetId));
   write(current);
   return {
     deleted: true,
@@ -969,7 +1094,7 @@ function makeGenerationJob(
   return job;
 }
 
-function completeTake(take: Take, shot: Shot) {
+function completeTake(current: StudioState, take: Take, shot: Shot, sourceJobId: string) {
   take.status = "done";
   take.videoUrl = mockVideoUrl(take.id);
   take.posterUrl = mockPosterUrl(take.id, `Shot ${shot.order + 1} option ${take.label}`);
@@ -983,6 +1108,7 @@ function completeTake(take: Take, shot: Shot) {
     completeness: 4,
     overall: Number(((4 + motion + 4 + 4) / 4).toFixed(1))
   };
+  recordTakeArtifacts(current, take, sourceJobId);
 }
 
 function failTake(take: Take) {
@@ -1346,6 +1472,7 @@ export function tickJobs() {
           label: `${job.purpose} ${variant.label}`,
           prompt: `${job.prompt} / ${job.style}`,
           aspect: job.aspect,
+          sourceJobId: job.id,
           rights: {
             status: "generated",
             note: "Image Maker에서 생성된 이미지입니다."
@@ -1405,7 +1532,7 @@ export function tickJobs() {
         job.progress = 1;
         job.stage = "done";
         finishProviderAttempt(job, "succeeded", null, timestamp);
-        if (take && shot) completeTake(take, shot);
+        if (take && shot) completeTake(current, take, shot, job.id);
         if (shot) {
           const doneTakes = current.takes.filter((item) => item.shotId === shot.id && item.status === "done");
           shot.status = "reviewing";
@@ -1450,6 +1577,7 @@ export function tickJobs() {
       job.stage = "done";
       job.outputUrl = mockVideoUrl(job.id);
       job.shareUrl = mockShareUrl(job.id);
+      recordRenderArtifact(current, job);
       captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed` });
       const project = current.projects.find((item) => item.id === job.projectId);
       if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;

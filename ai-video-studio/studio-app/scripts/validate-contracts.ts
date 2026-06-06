@@ -49,8 +49,10 @@ for (const rule of routing.rules) {
 for (const defName of [
   "ImageAsset",
   "ImageJob",
+  "AssetKind",
   "AssetUsageMode",
   "CreditTransaction",
+  "MediaArtifact",
   "DirectionSpec",
   "EditAudioPatch",
   "EditCommandInput",
