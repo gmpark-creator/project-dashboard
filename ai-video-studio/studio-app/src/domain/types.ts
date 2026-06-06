@@ -100,6 +100,22 @@ export type Take = {
   upgradeMode?: "final_regenerate" | "enhance" | "render_upscale";
 };
 
+export type ProviderAttemptStatus = "queued" | "submitted" | "polling" | "succeeded" | "failed";
+
+export type ProviderAttempt = {
+  id: string;
+  provider: string;
+  model: string;
+  requestId: string | null;
+  status: ProviderAttemptStatus;
+  startedAt: string;
+  completedAt: string | null;
+  latencyMs: number | null;
+  errorCode: string | null;
+  retryable: boolean;
+  fallbackSuggested: boolean;
+};
+
 export type GenerationJob = {
   id: string;
   shotId: string;
@@ -116,6 +132,7 @@ export type GenerationJob = {
   error: ErrorResponse | null;
   promptPackage: GenerationPromptPackage;
   routing: ProviderRoutingDecision;
+  providerAttempts: ProviderAttempt[];
 };
 
 export type ExportSpec = {

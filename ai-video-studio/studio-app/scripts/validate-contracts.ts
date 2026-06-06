@@ -55,6 +55,7 @@ for (const defName of [
   "EditAudioPatch",
   "EditCommandInput",
   "GenerationPromptPackage",
+  "ProviderAttempt",
   "ProviderRoutingDecision",
   "ProjectBundle",
   "RenderSourceHash",

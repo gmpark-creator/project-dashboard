@@ -278,9 +278,31 @@
         "overall": { "type": "number", "minimum": 1, "maximum": 5 }
       }
     },
+    "ProviderAttemptStatus": {
+      "type": "string",
+      "enum": ["queued", "submitted", "polling", "succeeded", "failed"]
+    },
+    "ProviderAttempt": {
+      "type": "object",
+      "required": ["id", "provider", "model", "requestId", "status", "startedAt", "completedAt", "latencyMs", "errorCode", "retryable", "fallbackSuggested"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^pat_" },
+        "provider": { "type": "string" },
+        "model": { "type": "string" },
+        "requestId": { "type": ["string", "null"] },
+        "status": { "$ref": "#/$defs/ProviderAttemptStatus" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" },
+        "latencyMs": { "type": ["number", "null"], "minimum": 0 },
+        "errorCode": { "type": ["string", "null"] },
+        "retryable": { "type": "boolean" },
+        "fallbackSuggested": { "type": "boolean" }
+      }
+    },
     "GenerationJob": {
       "type": "object",
-      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage", "routing"],
+      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage", "routing", "providerAttempts"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^gen_" },
@@ -297,7 +319,8 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "promptPackage": { "$ref": "#/$defs/GenerationPromptPackage" },
-        "routing": { "$ref": "#/$defs/ProviderRoutingDecision" }
+        "routing": { "$ref": "#/$defs/ProviderRoutingDecision" },
+        "providerAttempts": { "type": "array", "items": { "$ref": "#/$defs/ProviderAttempt" } }
       }
     },
     "ProviderRouteTarget": {

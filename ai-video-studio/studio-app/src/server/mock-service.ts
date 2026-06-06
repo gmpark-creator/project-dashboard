@@ -10,6 +10,7 @@ import type {
   AssetUsageMode,
   CreditTransaction,
   EditState,
+  ErrorResponse,
   ExportSpec,
   GenerationJob,
   GenerationPromptPackage,
@@ -22,6 +23,7 @@ import type {
   JobStatus,
   Project,
   ProjectBundle,
+  ProviderAttempt,
   ProviderRoutingDecision,
   ReferenceBoard,
   RenderJob,
@@ -114,6 +116,48 @@ function blankState(): StudioState {
   };
 }
 
+function makeProviderAttempt(target: ProviderRoutingDecision["selected"], startedAt = now()): ProviderAttempt {
+  return {
+    id: uid("pat"),
+    provider: target.provider,
+    model: target.model,
+    requestId: null,
+    status: "queued",
+    startedAt,
+    completedAt: null,
+    latencyMs: null,
+    errorCode: null,
+    retryable: false,
+    fallbackSuggested: false
+  };
+}
+
+function primaryProviderAttempt(job: GenerationJob) {
+  if (!job.providerAttempts.length) {
+    job.providerAttempts.push(makeProviderAttempt(job.routing.selected, job.createdAt));
+  }
+  return job.providerAttempts[0];
+}
+
+function markProviderAttemptPolling(job: GenerationJob) {
+  const attempt = primaryProviderAttempt(job);
+  if (!attempt.requestId) attempt.requestId = `mock_${job.id}`;
+  if (attempt.status === "queued" || attempt.status === "submitted") {
+    attempt.status = job.status === "running" ? "polling" : "submitted";
+  }
+}
+
+function finishProviderAttempt(job: GenerationJob, status: "succeeded" | "failed", error: ErrorResponse | null = null, completedAt = Date.now()) {
+  const attempt = primaryProviderAttempt(job);
+  if (!attempt.requestId) attempt.requestId = `mock_${job.id}`;
+  attempt.status = status;
+  attempt.completedAt = new Date(completedAt).toISOString();
+  attempt.latencyMs = Math.max(0, completedAt - new Date(attempt.startedAt).getTime());
+  attempt.errorCode = error?.code || null;
+  attempt.retryable = Boolean(error?.retryable);
+  attempt.fallbackSuggested = Boolean(error?.fallbackSuggested);
+}
+
 function normalizeState(current: StudioState): StudioState {
   const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "imageAssets" | "imageJobs" | "referenceBoards">>;
   if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
@@ -143,6 +187,14 @@ function normalizeState(current: StudioState): StudioState {
     if (shot && !mutableJob.promptPackage) mutableJob.promptPackage = buildGenerationPromptPackage(next as StudioState, shot);
     if (shot && mutableJob.promptPackage && !mutableJob.routing) {
       mutableJob.routing = chooseProviderRoute(shot, mutableJob.promptPackage, 0);
+    }
+    if (!Array.isArray(mutableJob.providerAttempts)) {
+      mutableJob.providerAttempts = mutableJob.routing ? [makeProviderAttempt(mutableJob.routing.selected, job.createdAt)] : [];
+    }
+    if (mutableJob.routing) {
+      const attempt = primaryProviderAttempt(mutableJob as GenerationJob);
+      if (job.status === "done" && attempt.status !== "succeeded") finishProviderAttempt(job, "succeeded", null, new Date(job.updatedAt).getTime());
+      if (job.status === "failed" && attempt.status !== "failed") finishProviderAttempt(job, "failed", job.error, new Date(job.updatedAt).getTime());
     }
   }
 
@@ -894,6 +946,7 @@ function makeGenerationJob(
   promptPackage: GenerationPromptPackage,
   routing: ProviderRoutingDecision
 ) {
+  const createdAt = now();
   const job: GenerationJob = {
     id: uid("gen"),
     shotId: shot.id,
@@ -905,11 +958,12 @@ function makeGenerationJob(
     stage: "queued",
     shouldFail,
     dueAt: Date.now() + 2500 + (shot.order % 4) * 650,
-    createdAt: now(),
-    updatedAt: now(),
+    createdAt,
+    updatedAt: createdAt,
     error: null,
     promptPackage,
-    routing
+    routing,
+    providerAttempts: [makeProviderAttempt(routing.selected, createdAt)]
   };
   current.generationJobs.push(job);
   return job;
@@ -1318,6 +1372,7 @@ export function tickJobs() {
     job.stage = job.status === "running" ? "provider_generation" : "queued";
     job.etaSec = Math.max(0, Math.ceil((job.dueAt - timestamp) / 1000));
     job.updatedAt = now();
+    markProviderAttemptPolling(job);
 
     if (timestamp >= job.dueAt) {
       const take = current.takes.find((item) => item.id === job.takeId);
@@ -1332,6 +1387,7 @@ export function tickJobs() {
           retryable: true,
           fallbackSuggested: true
         };
+        finishProviderAttempt(job, "failed", job.error, timestamp);
         if (take) failTake(take);
         refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation failed and was refunded" });
         if (shot) {
@@ -1348,6 +1404,7 @@ export function tickJobs() {
         job.status = "done";
         job.progress = 1;
         job.stage = "done";
+        finishProviderAttempt(job, "succeeded", null, timestamp);
         if (take && shot) completeTake(take, shot);
         if (shot) {
           const doneTakes = current.takes.filter((item) => item.shotId === shot.id && item.status === "done");
