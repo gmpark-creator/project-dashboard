@@ -503,7 +503,8 @@ const PROJECTS = [
     progress: 100,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/', label:'기술 스택 아키텍처 & 진화 허브 — ①현재 스택 정밀 분해(8개 프로젝트 × 화면영역별 사용기술 인스펙터, 95개 스택을 역할·한마디·없으면·예시 5필드로 설명) ②기술 대체 시뮬레이션(22개 시나리오: UI·스타일·시각화·데이터·배포 계층 대체안 → 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 + 트레이드오프) ③미래 스택 조합 엔진(미사용 88후보 기반 5종 조합)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/', label:'기술 스택 아키텍처 & 진화 허브 — ①현재 스택 정밀 분해(8개 프로젝트 × 화면영역별 사용기술 인스펙터, 95개 스택을 역할·한마디·없으면·예시 5필드로 설명) ②기술 대체 시뮬레이션(22개 시나리오: UI·스타일·시각화·데이터·배포 계층 대체안 → 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 + 트레이드오프) ③미래 스택 조합 엔진(미사용 88후보 기반 5종 조합)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/future-stack-demos/', label:'미래 스택 데모 (프리마켓 콕핏) — ①프리마켓 콕핏: ECharts 매크로 히트맵·시그널 타임라인·Transformers 감성 시뮬·4시나리오·WebSocket 푸시 시뮬 ②프로젝트별 도입: StackForge 통합 — 8개 프로젝트별 미사용 스택 도입 우선순위·커버리지·시너지(ECharts 게이지) ③노리지 그래프 비서: D3 force·WebGPU 감지 ④스택 사용 지도. 「이때까지 안 쓴 스택」을 실제로 사용해 만든 정적 교육용 데모(가상 데이터·투자자문 아님)' }
     ]},
     summary: '대시보드의 8개 프로젝트가 각각 어느 화면·기능에 어떤 기술을 쓰는지 비개발자도 알 수 있게 분해하고, 그 스택을 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 수 있는 미래 프로젝트를 제안한다.\n'
            + '데이터는 projects-data.js의 각 프로젝트 stackDetail(seed)을 단일 소스로 읽고, 모듈 내부 보강 레이어(역할·한마디·없으면·예시)를 normalize로 합쳐 화면에 띄운다 — 별도 카탈로그 중복 없음.\n'

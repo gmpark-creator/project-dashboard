@@ -455,12 +455,115 @@
         </tr>`).join('')}</tbody></table>`;
   }
 
+  /* ============================================================ ADOPTION (프로젝트별 도입 · StackForge 통합) ============================================================ */
+  /* 대시보드 window.STACK_ATLAS.unused(미사용 88종)를 직접 읽어 프로젝트별 도입 조합·우선순위를 계산.
+     런타임 차트는 ECharts 게이지(안 쓴 스택 사용). 전부 정적·결정론. */
+  const AD_TIER_SCORE = { high: 92, medium: 64, optional: 46, low: 26 };
+  const AD_TIER_LABEL = { high: '1순위', medium: '후보', optional: '선택', low: '후순위' };
+  const AD_TIER_COLOR = { high: '#fb7185', medium: '#f4b740', optional: '#38bdf8', low: '#8aa0c6' };
+  const AD_RANK = { high: 0, medium: 1, optional: 2, low: 3 };
+  function adDeriveTier(rec) { rec = rec || ''; if (rec.indexOf('최하') !== -1) return 'low'; if (rec.indexOf('1순위') !== -1) return 'high'; return /한정|보조|후보/.test(rec) ? 'optional' : 'medium'; }
+  function adShort(p) { return String(p).replace(/\s*\(.*\)\s*/g, ' ').replace('System Simulator', 'System').replace('Ship Tracker', 'Ship').trim() || p; }
+  let AD = null;
+  function adBuild() {
+    if (AD) return AD;
+    const atlas = window.STACK_ATLAS || { unused: [] };
+    const stacks = [];
+    (atlas.unused || []).forEach(g => (g.items || []).forEach(it => {
+      stacks.push({ name: it.name, catKey: g.key, catLabel: g.label || g.key, rec: it.recommendation || '', fit: it.fitProjects || [], tier: adDeriveTier(it.recommendation), fitCount: (it.fitProjects || []).length });
+    }));
+    const projects = [], seen = {}, cats = {};
+    stacks.forEach(s => { cats[s.catKey] = 1; s.fit.forEach(p => { if (!seen[p]) { seen[p] = 1; projects.push(p); } }); });
+    AD = { stacks, projects, totalCats: Math.max(1, Object.keys(cats).length) };
+    return AD;
+  }
+  const adState = { project: null, inspect: null };
+  let adGauge = null;
+  function adPlan(project) {
+    const d = adBuild();
+    const fit = d.stacks.filter(s => s.fit.indexOf(project) !== -1);
+    const byCat = {};
+    fit.forEach(s => { (byCat[s.catKey] = byCat[s.catKey] || { label: s.catLabel, items: [] }).items.push(s); });
+    const groups = Object.keys(byCat).map(k => byCat[k]);
+    groups.forEach(g => g.items.sort((a, b) => AD_RANK[a.tier] - AD_RANK[b.tier] || b.fitCount - a.fitCount));
+    const high = fit.filter(s => s.tier === 'high').length;
+    const pr = fit.length ? Math.round(fit.reduce((s, x) => s + AD_TIER_SCORE[x.tier], 0) / fit.length) : 0;
+    const cov = Math.round(Object.keys(byCat).length / d.totalCats * 100);
+    const score = Math.round(0.55 * pr + 0.3 * cov + 0.15 * Math.min(100, high * 20));
+    const top = fit.slice().sort((a, b) => AD_RANK[a.tier] - AD_RANK[b.tier] || b.fitCount - a.fitCount).slice(0, 6);
+    return { fit, groups, high, pr, cov, score, cats: Object.keys(byCat).length, top };
+  }
+  function renderAdGauge(score) {
+    const box = $('ad-gauge'); if (!box) return;
+    const col = score >= 80 ? '#fb7185' : score >= 60 ? '#f4b740' : score >= 40 ? '#38bdf8' : '#8aa0c6';
+    if (window.echarts) {
+      try {
+        if (adGauge) { adGauge.dispose(); adGauge = null; }
+        adGauge = window.echarts.init(box, null, { renderer: 'canvas', height: 200 });
+        adGauge.setOption({
+          backgroundColor: 'transparent',
+          series: [{
+            type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '94%', center: ['50%', '60%'],
+            progress: { show: true, width: 13, itemStyle: { color: col } },
+            axisLine: { lineStyle: { width: 13, color: [[1, '#1a2740']] } },
+            axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false }, anchor: { show: false }, title: { show: false },
+            detail: { valueAnimation: true, fontSize: 34, fontWeight: 'bolder', color: '#e8eefb', offsetCenter: [0, '-2%'], formatter: '{value}' },
+            data: [{ value: score }]
+          }]
+        });
+        return;
+      } catch (e) { /* fall through */ }
+    }
+    box.innerHTML = `<div class="flex flex-col items-center justify-center py-8"><div class="text-4xl font-black" style="color:${col}">${score}</div><div class="mt-1 text-[11px] text-muted">도입 준비 점수</div></div>`;
+  }
+  function setAdInspect(s) { adState.inspect = s; renderAdInspector(); }
+  function renderAdInspector() {
+    const box = $('ad-inspector'); if (!box) return;
+    const s = adState.inspect;
+    if (!s) { box.innerHTML = `<p class="text-[12px] leading-5 text-muted">카테고리 칩 · 우선 도입 항목을 누르면 적용 추천과 적합 프로젝트가 표시됩니다.</p>`; return; }
+    box.innerHTML = `<div class="text-xs font-bold" style="color:${AD_TIER_COLOR[s.tier]}">${esc(s.catLabel)} · ${AD_TIER_LABEL[s.tier]}</div>
+      <h3 class="text-base font-black text-white">${esc(s.name)}</h3>
+      <p class="mt-1.5 text-[12px] leading-5 text-slate-300">${esc(s.rec)}</p>
+      <div class="mt-2 text-[11px] font-bold text-muted">적합 프로젝트 ${s.fitCount}</div>
+      <div class="mt-1 flex flex-wrap gap-1">${(s.fit || []).map(p => `<span class="rounded border border-line px-1.5 py-0.5 text-[11px] text-slate-300">${esc(adShort(p))}</span>`).join('')}</div>`;
+  }
+  function renderAdoption() {
+    const d = adBuild();
+    if (!adState.project) adState.project = d.projects[0] || null;
+    const pc = $('ad-projects');
+    if (pc) pc.innerHTML = d.projects.length
+      ? d.projects.map(p => `<button type="button" class="chip fr rounded-md border border-line bg-base/50 px-3 py-1.5 text-xs font-bold ${p === adState.project ? 'active' : 'text-slate-300'}" data-act="ad-proj" data-id="${esc(p)}" aria-pressed="${p === adState.project}" aria-label="프로젝트 ${esc(p)}">${esc(adShort(p))}</button>`).join('')
+      : `<p class="text-[12px] text-muted">STACK_ATLAS 데이터를 불러오지 못했습니다.</p>`;
+    if (!adState.project) return;
+    const plan = adPlan(adState.project);
+    renderAdGauge(plan.score);
+    const st = $('ad-stats');
+    if (st) st.innerHTML = `
+      <div class="rounded-md border border-line bg-base/50 p-2 text-center"><div class="text-lg font-black text-white">${plan.fit.length}</div><div class="text-[10px] text-muted">미래 스택</div></div>
+      <div class="rounded-md border border-line bg-base/50 p-2 text-center"><div class="text-lg font-black text-rose">${plan.high}</div><div class="text-[10px] text-muted">1순위</div></div>
+      <div class="rounded-md border border-line bg-base/50 p-2 text-center"><div class="text-lg font-black text-mint">${plan.cats}/${d.totalCats}</div><div class="text-[10px] text-muted">카테고리</div></div>`;
+    const bd = $('ad-board');
+    if (bd) bd.innerHTML = plan.groups.map(g => `
+      <div class="rounded-md border border-line bg-base/40 p-2">
+        <div class="mb-1 text-[11px] font-bold text-muted">${esc(g.label)} <span class="text-slate-500">${g.items.length}</span></div>
+        <div class="flex flex-wrap gap-1.5">${g.items.map(s => `<button type="button" class="chip fr rounded-md border bg-base/50 px-2 py-1 text-[11px]" style="border-color:${AD_TIER_COLOR[s.tier]}66;color:${AD_TIER_COLOR[s.tier]}" data-act="ad-stack" data-id="${esc(s.name)}" aria-label="${esc(s.name)} ${AD_TIER_LABEL[s.tier]}">${esc(s.name)} <b class="opacity-70">${AD_TIER_LABEL[s.tier]}</b></button>`).join('')}</div>
+      </div>`).join('');
+    const tp = $('ad-top');
+    if (tp) tp.innerHTML = plan.top.map((s, i) => `<button type="button" class="fr flex w-full items-center gap-2 rounded-md border border-line bg-base/50 p-2 text-left" data-act="ad-stack" data-id="${esc(s.name)}" aria-label="${esc(s.name)} ${AD_TIER_LABEL[s.tier]}">
+      <span class="text-[10px] font-black text-muted">${String(i + 1).padStart(2, '0')}</span>
+      <span class="flex-1 text-[12px] font-bold text-white">${esc(s.name)}</span>
+      <span class="rounded px-1.5 py-0.5 text-[10px] font-bold" style="background:${AD_TIER_COLOR[s.tier]}22;color:${AD_TIER_COLOR[s.tier]}">${AD_TIER_LABEL[s.tier]}</span>
+      <span class="text-[10px] text-muted">적합 ${s.fitCount}</span></button>`).join('');
+    renderAdInspector();
+  }
+
   /* ============================================================ 탭/이벤트/init ============================================================ */
   function setTab(t) {
     state.tab = t;
-    ['premarket', 'knowledge', 'stackmap'].forEach(k => { const p = $('p-' + k); if (p) p.classList.toggle('on', k === t); });
+    ['premarket', 'adoption', 'knowledge', 'stackmap'].forEach(k => { const p = $('p-' + k); if (p) p.classList.toggle('on', k === t); });
     document.querySelectorAll('.seg').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('active', on); });
     if (t === 'premarket') renderPremarket();
+    else if (t === 'adoption') renderAdoption();
     else if (t === 'knowledge') renderKnowledge();
     else renderStackmap();
   }
@@ -478,6 +581,8 @@
     else if (act === 'kg-arc') { const a = (KG.supplyChainArcs || []).find(x => x.id === id); if (a) setKgInspect({ kind: 'arc', a }); }
     else if (act === 'kg-pipe') { const p = (KG.pipeline || []).find(x => x.id === id); if (p) setKgInspect({ kind: 'pipe', p }); }
     else if (act === 'kg-stack') { const s = (KG.stacks || []).find(x => x.tech === id); if (s) setKgInspect({ kind: 'stack', s }); }
+    else if (act === 'ad-proj') { adState.project = id; adState.inspect = null; renderAdoption(); }
+    else if (act === 'ad-stack') { const s = adBuild().stacks.find(x => x.name === id); if (s) setAdInspect(s); }
   }
   function onKey(e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -512,7 +617,7 @@
     const inp = $('kg-qinput'); if (inp) inp.addEventListener('keydown', onQInput);
     let rT = null;
     window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => {
-      try { if (pmHeat) pmHeat.resize(); if (pmTime) pmTime.resize(); } catch (e) {}
+      try { if (pmHeat) pmHeat.resize(); if (pmTime) pmTime.resize(); if (adGauge) adGauge.resize(); } catch (e) {}
       if (state.tab === 'knowledge') { buildGraph(); if (state.kg.question) highlightGraph((curQuestion() || {}).highlightedNodeIds || []); renderWebGPU(); }
     }, 220); });
     setTab('premarket');     // 초기 = 보이는 탭 (차트 정상 사이징)
