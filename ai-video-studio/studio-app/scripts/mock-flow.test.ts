@@ -4,12 +4,14 @@ import { join } from "node:path";
 import {
   applyEdit,
   attachImageToShot,
+  cancelJob,
   createImageJob,
   createProject,
   deleteImageAsset,
   detachImageFromShot,
   forceDueJobs,
   generateAll,
+  generateShot,
   getProjectBundle,
   previewRender,
   registerExternalImage,
@@ -60,6 +62,33 @@ assert.throws(
     }),
   /아이디어/,
   "blank ideas should be rejected before storyboard generation"
+);
+
+const cancelProject = createProject({
+  title: "Cancellation contract",
+  idea: "A queued job that should be cancelled before the worker completes",
+  intent: "shorts"
+});
+let cancelBundle = getProjectBundle(cancelProject.id);
+assert.ok(cancelBundle, "cancel project bundle should exist");
+const cancelShot = cancelBundle.shots[0];
+const cancelQueued = generateShot(cancelShot.id, { takeCount: 1 });
+const cancelResult = cancelJob(cancelQueued.jobs[0].id);
+assert.equal(cancelResult.cancelled, true, "active generation jobs should be cancellable");
+assert.equal(cancelResult.kind, "generationJob", "cancel result should identify generation jobs");
+assert.equal(cancelResult.refundedCredits, 6, "cancelled generation jobs should refund reserved credits");
+cancelBundle = getProjectBundle(cancelProject.id);
+assert.ok(cancelBundle, "cancel bundle should reload after cancellation");
+const cancelledGenerationJob = cancelBundle.generationJobs.find((job) => job.id === cancelQueued.jobs[0].id);
+assert.ok(cancelledGenerationJob, "cancelled generation job should remain inspectable");
+assert.equal(cancelledGenerationJob.status, "cancelled", "cancelled generation jobs should keep cancelled status");
+assert.equal(cancelledGenerationJob.providerAttempts[0].status, "cancelled", "provider attempt should record cancellation");
+assert.equal(cancelledGenerationJob.providerAttempts[0].errorCode, "JOB_CANCELLED", "cancelled attempt should keep normalized cancel code");
+const cancelledTake = cancelBundle.takes.find((take) => take.id === cancelQueued.takes[0].id);
+assert.equal(cancelledTake?.status, "cancelled", "cancelled generation jobs should cancel their take");
+assert.ok(
+  cancelBundle.creditTransactions.some((transaction) => transaction.kind === "refund" && transaction.jobId === cancelQueued.jobs[0].id),
+  "cancelled generation jobs should write a refund ledger entry"
 );
 
 const project = createProject({

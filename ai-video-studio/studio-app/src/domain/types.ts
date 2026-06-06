@@ -100,7 +100,7 @@ export type Take = {
   upgradeMode?: "final_regenerate" | "enhance" | "render_upscale";
 };
 
-export type ProviderAttemptStatus = "queued" | "submitted" | "polling" | "succeeded" | "failed";
+export type ProviderAttemptStatus = "queued" | "submitted" | "polling" | "succeeded" | "failed" | "cancelled";
 
 export type ProviderAttempt = {
   id: string;
@@ -382,6 +382,16 @@ export type MediaArtifact = {
   bytes: number | null;
   status: "stored" | "external";
   createdAt: string;
+};
+
+export type CancelJobResult = {
+  jobId: string;
+  kind: "generationJob" | "renderJob" | "imageJob" | null;
+  projectId: string | null;
+  cancelled: boolean;
+  status: JobStatus | null;
+  refundedCredits: number;
+  reason: string;
 };
 
 export type StudioState = {

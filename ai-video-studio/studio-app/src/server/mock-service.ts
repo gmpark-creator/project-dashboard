@@ -8,6 +8,7 @@ import type {
   AssetDeleteResult,
   AssetUsage,
   AssetUsageMode,
+  CancelJobResult,
   CreditTransaction,
   EditState,
   ErrorResponse,
@@ -158,6 +159,30 @@ function finishProviderAttempt(job: GenerationJob, status: "succeeded" | "failed
   attempt.errorCode = error?.code || null;
   attempt.retryable = Boolean(error?.retryable);
   attempt.fallbackSuggested = Boolean(error?.fallbackSuggested);
+}
+
+function cancelProviderAttempt(job: GenerationJob, completedAt = Date.now()) {
+  const attempt = primaryProviderAttempt(job);
+  if (!attempt.requestId) attempt.requestId = `mock_${job.id}`;
+  attempt.status = "cancelled";
+  attempt.completedAt = new Date(completedAt).toISOString();
+  attempt.latencyMs = Math.max(0, completedAt - new Date(attempt.startedAt).getTime());
+  attempt.errorCode = "JOB_CANCELLED";
+  attempt.retryable = false;
+  attempt.fallbackSuggested = false;
+}
+
+function cancelledError(): ErrorResponse {
+  return {
+    code: "JOB_CANCELLED",
+    userMessage: "작업이 취소되었습니다.",
+    retryable: false,
+    fallbackSuggested: false
+  };
+}
+
+function isActiveJob(status: JobStatus) {
+  return status === "queued" || status === "running";
 }
 
 function artifactStorageKey(input: Pick<MediaArtifact, "projectId" | "ownerType" | "ownerId" | "role">) {
@@ -1427,6 +1452,85 @@ export function setDefaultRender(projectId: string, renderJobId: string): Projec
   project.thumbUrl = mockPosterUrl(job.id, `${job.spec.cut} render`);
   write(current);
   return getProjectBundle(projectId);
+}
+
+export function cancelJob(jobId: string): CancelJobResult {
+  const current = state();
+  const timestamp = Date.now();
+  const cancelled = cancelledError();
+
+  const generationJob = current.generationJobs.find((job) => job.id === jobId);
+  if (generationJob) {
+    if (!isActiveJob(generationJob.status)) {
+      return {
+        jobId,
+        kind: "generationJob",
+        projectId: generationJob.projectId,
+        cancelled: false,
+        status: generationJob.status,
+        refundedCredits: 0,
+        reason: "job is not active"
+      };
+    }
+    const take = current.takes.find((item) => item.id === generationJob.takeId);
+    const action: CreditTransaction["action"] = take?.upgradeSourceTakeId ? "upgradeTake" : "generateShot";
+    const credits = take?.upgradeSourceTakeId ? 22 : 6;
+    generationJob.status = "cancelled";
+    generationJob.progress = 1;
+    generationJob.stage = "cancelled";
+    generationJob.etaSec = 0;
+    generationJob.error = cancelled;
+    generationJob.updatedAt = now();
+    cancelProviderAttempt(generationJob, timestamp);
+    if (take) {
+      take.status = "cancelled";
+      take.videoUrl = null;
+      take.posterUrl = null;
+      take.metrics = {};
+    }
+    refundReservedCredits(current, { projectId: generationJob.projectId, jobId, action, credits, note: "Generation job cancelled and reserved credits refunded" });
+    refreshProject(current, generationJob.projectId);
+    write(current);
+    return { jobId, kind: "generationJob", projectId: generationJob.projectId, cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
+  }
+
+  const imageJob = current.imageJobs.find((job) => job.id === jobId);
+  if (imageJob) {
+    if (!isActiveJob(imageJob.status)) {
+      return { jobId, kind: "imageJob", projectId: imageJob.projectId, cancelled: false, status: imageJob.status, refundedCredits: 0, reason: "job is not active" };
+    }
+    imageJob.status = "cancelled";
+    imageJob.progress = 1;
+    imageJob.etaSec = 0;
+    imageJob.error = cancelled;
+    imageJob.updatedAt = now();
+    imageJob.variants = imageJob.variants.map((variant) => ({ ...variant, status: "cancelled" }));
+    const credits = imageJob.count * 4;
+    refundReservedCredits(current, { projectId: imageJob.projectId, jobId, action: "generateImages", credits, note: "Image job cancelled and reserved credits refunded" });
+    write(current);
+    return { jobId, kind: "imageJob", projectId: imageJob.projectId, cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
+  }
+
+  const renderJob = current.renderJobs.find((job) => job.id === jobId);
+  if (renderJob) {
+    if (!isActiveJob(renderJob.status)) {
+      return { jobId, kind: "renderJob", projectId: renderJob.projectId, cancelled: false, status: renderJob.status, refundedCredits: 0, reason: "job is not active" };
+    }
+    renderJob.status = "cancelled";
+    renderJob.progress = 1;
+    renderJob.etaSec = 0;
+    renderJob.error = cancelled;
+    renderJob.updatedAt = now();
+    const credits = 16;
+    refundReservedCredits(current, { projectId: renderJob.projectId, jobId, action: "startRender", credits, note: "Render job cancelled and reserved credits refunded" });
+    const project = current.projects.find((item) => item.id === renderJob.projectId);
+    const hasActiveRender = current.renderJobs.some((job) => job.projectId === renderJob.projectId && isActiveJob(job.status));
+    if (project && project.status === "rendering" && !hasActiveRender) project.status = "edited";
+    write(current);
+    return { jobId, kind: "renderJob", projectId: renderJob.projectId, cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
+  }
+
+  return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
 }
 
 export function forceDueJobs(kind: "generationJobs" | "renderJobs" | "imageJobs") {

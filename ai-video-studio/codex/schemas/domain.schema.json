@@ -201,6 +201,25 @@
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
+    "CancelJobResult": {
+      "type": "object",
+      "required": ["jobId", "kind", "projectId", "cancelled", "status", "refundedCredits", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "jobId": { "type": "string" },
+        "kind": { "type": ["string", "null"], "enum": ["generationJob", "renderJob", "imageJob", null] },
+        "projectId": { "type": ["string", "null"] },
+        "cancelled": { "type": "boolean" },
+        "status": {
+          "anyOf": [
+            { "$ref": "#/$defs/JobStatus" },
+            { "type": "null" }
+          ]
+        },
+        "refundedCredits": { "type": "number", "minimum": 0 },
+        "reason": { "type": "string" }
+      }
+    },
     "Scene": {
       "type": "object",
       "required": ["id", "projectId", "order", "title"],
@@ -304,7 +323,7 @@
     },
     "ProviderAttemptStatus": {
       "type": "string",
-      "enum": ["queued", "submitted", "polling", "succeeded", "failed"]
+      "enum": ["queued", "submitted", "polling", "succeeded", "failed", "cancelled"]
     },
     "ProviderAttempt": {
       "type": "object",
@@ -819,6 +838,7 @@
     "projectBundle": { "$ref": "#/$defs/ProjectBundle" },
     "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
+    "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },

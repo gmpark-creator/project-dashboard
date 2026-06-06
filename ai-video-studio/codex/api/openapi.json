@@ -752,6 +752,26 @@
           }
         }
       }
+    },
+    "/jobs/{jobId}/cancel": {
+      "post": {
+        "operationId": "cancelJob",
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active job cancelled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CancelJobResult" }
+              }
+            }
+          },
+          "404": { "description": "Job not found" },
+          "409": { "description": "Job is not active" }
+        }
+      }
     }
   }
 }

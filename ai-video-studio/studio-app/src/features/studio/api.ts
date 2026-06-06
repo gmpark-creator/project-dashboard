@@ -1,4 +1,4 @@
-import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, Scene, Shot, Tier } from "@/domain/types";
+import type { AssetUsage, CancelJobResult, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, Scene, Shot, Tier } from "@/domain/types";
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -52,5 +52,6 @@ export const studioApi = {
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/renders`, { method: "POST", body: JSON.stringify({ specs }) }),
   setDefaultRender: (projectId: string, renderJobId: string) =>
     json<ProjectBundle>(`/api/projects/${projectId}/default-render`, { method: "POST", body: JSON.stringify({ renderJobId }) }),
+  cancelJob: (jobId: string) => json<CancelJobResult>(`/api/jobs/${jobId}/cancel`, { method: "POST", body: "{}" }),
   tick: () => json("/api/jobs/tick", { method: "POST", body: "{}" })
 };
