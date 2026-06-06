@@ -1,9 +1,15 @@
 import { INTENT_TEMPLATES } from "../domain/templates";
 import type {
   Aspect,
+  AssetUsage,
   EditState,
   ExportSpec,
   GenerationJob,
+  ImageAsset,
+  ImageAssetRole,
+  ImageJob,
+  ImageMakerPurpose,
+  ImageVariant,
   Intent,
   JobStatus,
   Project,
@@ -40,15 +46,39 @@ function blankState(): StudioState {
     takes: [],
     generationJobs: [],
     renderJobs: [],
+    imageAssets: [],
+    imageJobs: [],
+    referenceBoards: {},
     editState: {},
     updatedAt: now()
   };
+}
+
+function normalizeState(current: StudioState): StudioState {
+  const next = current as StudioState & Partial<Pick<StudioState, "imageAssets" | "imageJobs" | "referenceBoards">>;
+  if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
+  if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
+  if (!next.referenceBoards) next.referenceBoards = {};
+
+  for (const project of next.projects) {
+    if (!next.referenceBoards[project.id]) {
+      next.referenceBoards[project.id] = defaultReferenceBoard(project.id);
+    }
+  }
+
+  for (const shot of next.shots) {
+    if (!Array.isArray(shot.referenceImageIds)) shot.referenceImageIds = [];
+    if (!shot.directionSpec) shot.directionSpec = defaultDirectionSpec();
+  }
+
+  return next as StudioState;
 }
 
 function state(): StudioState {
   if (!globalStore.__aiVideoStudioMockState) {
     globalStore.__aiVideoStudioMockState = blankState();
   }
+  globalStore.__aiVideoStudioMockState = normalizeState(globalStore.__aiVideoStudioMockState);
   return globalStore.__aiVideoStudioMockState;
 }
 
@@ -75,6 +105,33 @@ function defaultEditState(projectId: string): EditState {
     voiceover: { enabled: false, voice: "보이스 A", source: "licensed_tts" },
     transitions: "soft",
     commands: []
+  };
+}
+
+function defaultDirectionSpec() {
+  return {
+    camera: "부드러운 푸시인",
+    composition: "핵심 대상이 선명하게 보이는 안정적인 구도",
+    lighting: "깨끗하고 자연스러운 조명",
+    motion: "과하지 않은 자연스러운 움직임",
+    style: "프로젝트 목적에 맞는 선명한 영상 톤",
+    avoid: ["흔들림", "플리커", "텍스트 왜곡", "불필요한 손"],
+    notes: ""
+  };
+}
+
+function defaultReferenceBoard(projectId: string) {
+  return {
+    projectId,
+    productImages: [],
+    characterImages: [],
+    locationImages: [],
+    styleImages: [],
+    keyframes: [],
+    thumbnails: [],
+    logos: [],
+    backgrounds: [],
+    usages: [] as AssetUsage[]
   };
 }
 
@@ -158,7 +215,9 @@ function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "asp
       },
       status: "pending",
       selectedTakeId: null,
-      qualityFlags: []
+      qualityFlags: [],
+      referenceImageIds: [],
+      directionSpec: defaultDirectionSpec()
     };
   });
 
@@ -192,6 +251,7 @@ export function createProject(input: { title?: string; idea: string; intent: Int
   current.scenes.push(...storyboard.scenes);
   current.shots.push(...storyboard.shots);
   current.editState[project.id] = defaultEditState(project.id);
+  current.referenceBoards[project.id] = defaultReferenceBoard(project.id);
   write(current);
   return project;
 }
@@ -220,6 +280,7 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
   const current = tickJobs();
   const project = projectId ? current.projects.find((item) => item.id === projectId) : current.projects[0];
   if (!project) return null;
+  if (!current.referenceBoards[project.id]) current.referenceBoards[project.id] = defaultReferenceBoard(project.id);
   refreshProject(current, project.id);
   write(current);
   return {
@@ -229,6 +290,9 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
     takes: current.takes.filter((take) => take.projectId === project.id),
     generationJobs: current.generationJobs.filter((job) => job.projectId === project.id),
     renderJobs: current.renderJobs.filter((job) => job.projectId === project.id),
+    imageAssets: current.imageAssets.filter((asset) => asset.projectId === project.id),
+    imageJobs: current.imageJobs.filter((job) => job.projectId === project.id),
+    referenceBoard: current.referenceBoards[project.id],
     editState: current.editState[project.id] || defaultEditState(project.id),
     credits: current.credits
   };
@@ -239,6 +303,8 @@ export function estimateCost(action: string, params?: { takeCount?: number }) {
     generateShot: 18,
     generateAll: 96,
     regenerate: 12,
+    generateImages: 24,
+    registerExternalImage: 0,
     upgradeTake: 22,
     startRender: 48
   };
@@ -246,6 +312,197 @@ export function estimateCost(action: string, params?: { takeCount?: number }) {
     credits: Math.ceil((table[action] || 10) * (params?.takeCount || 1)),
     etaSec: action === "startRender" ? 90 : 25
   };
+}
+
+function imageSize(aspect: Aspect) {
+  return (
+    {
+      "9:16": { width: 1080, height: 1920 },
+      "16:9": { width: 1920, height: 1080 },
+      "1:1": { width: 1536, height: 1536 },
+      "4:5": { width: 1280, height: 1600 }
+    } satisfies Record<Aspect, { width: number; height: number }>
+  )[aspect];
+}
+
+function boardBucket(role: ImageAssetRole): keyof ReturnType<typeof defaultReferenceBoard> | null {
+  return (
+    {
+      product: "productImages",
+      character: "characterImages",
+      location: "locationImages",
+      style: "styleImages",
+      keyframe: "keyframes",
+      thumbnail: "thumbnails",
+      logo: "logos",
+      background: "backgrounds"
+    } satisfies Record<ImageAssetRole, keyof ReturnType<typeof defaultReferenceBoard>>
+  )[role];
+}
+
+function addAssetToBoard(current: StudioState, asset: ImageAsset, usage?: Omit<AssetUsage, "createdAt">) {
+  const board = current.referenceBoards[asset.projectId] || defaultReferenceBoard(asset.projectId);
+  current.referenceBoards[asset.projectId] = board;
+  const bucket = boardBucket(asset.role);
+  if (bucket && Array.isArray(board[bucket]) && !(board[bucket] as string[]).includes(asset.id)) {
+    (board[bucket] as string[]).push(asset.id);
+  }
+  if (usage && !board.usages.some((item) => item.assetId === usage.assetId && item.targetId === usage.targetId && item.mode === usage.mode)) {
+    board.usages.push({ ...usage, createdAt: now() });
+  }
+}
+
+function makeImageAsset(
+  current: StudioState,
+  input: {
+    projectId: string;
+    role: ImageAssetRole;
+    source: ImageAsset["source"];
+    label: string;
+    prompt: string;
+    url?: string;
+    aspect: Aspect;
+    rights: ImageAsset["rights"];
+  }
+) {
+  const size = imageSize(input.aspect);
+  const asset: ImageAsset = {
+    id: uid("img"),
+    projectId: input.projectId,
+    kind: "image",
+    role: input.role,
+    source: input.source,
+    label: input.label,
+    prompt: input.prompt,
+    url: input.url || `mock://image/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.png`,
+    thumbUrl: `mock://thumb/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.jpg`,
+    aspect: input.aspect,
+    width: size.width,
+    height: size.height,
+    rights: input.rights,
+    createdAt: now(),
+    updatedAt: now()
+  };
+  current.imageAssets.unshift(asset);
+  addAssetToBoard(current, asset);
+  return asset;
+}
+
+export function listImageAssets(projectId: string) {
+  return tickJobs().imageAssets.filter((asset) => asset.projectId === projectId);
+}
+
+export function createImageJob(input: {
+  projectId: string;
+  prompt: string;
+  purpose: ImageMakerPurpose;
+  role: ImageAssetRole;
+  aspect: Aspect;
+  style?: string;
+  count?: number;
+}) {
+  const current = state();
+  const project = current.projects.find((item) => item.id === input.projectId);
+  const prompt = input.prompt.trim();
+  if (!project) throw new Error("Project not found");
+  if (!prompt) throw new Error("이미지 아이디어를 입력해 주세요.");
+  const count = Math.max(1, Math.min(input.count || 4, 4));
+  const variants: ImageVariant[] = Array.from({ length: count }, (_, index) => ({
+    id: uid("ivar"),
+    assetId: null,
+    label: `${String.fromCharCode(65 + index)}안`,
+    status: "queued",
+    url: null,
+    thumbUrl: null,
+    scoreLabel: index === 0 ? "추천" : index === 1 ? "안정적" : "확인 필요"
+  }));
+  const job: ImageJob = {
+    id: uid("ijob"),
+    projectId: project.id,
+    status: "queued",
+    progress: 0,
+    etaSec: 8,
+    stage: "queued",
+    prompt,
+    purpose: input.purpose,
+    role: input.role,
+    aspect: input.aspect,
+    style: input.style?.trim() || "깨끗한 상업용 비주얼",
+    count,
+    variants,
+    dueAt: Date.now() + 3600,
+    createdAt: now(),
+    updatedAt: now(),
+    error: null
+  };
+  current.imageJobs.unshift(job);
+  current.credits.reserved += count * 4;
+  write(current);
+  return { job };
+}
+
+export function registerExternalImage(input: {
+  projectId: string;
+  label: string;
+  role: ImageAssetRole;
+  url: string;
+  aspect?: Aspect;
+  prompt?: string;
+  rightsConfirmed?: boolean;
+}) {
+  const current = state();
+  const project = current.projects.find((item) => item.id === input.projectId);
+  const label = input.label.trim();
+  const url = input.url.trim();
+  if (!project) throw new Error("Project not found");
+  if (!label || !url) throw new Error("이미지 이름과 URL이 필요합니다.");
+  const asset = makeImageAsset(current, {
+    projectId: project.id,
+    role: input.role,
+    source: "external",
+    label,
+    prompt: input.prompt?.trim() || "외부에서 가져온 이미지",
+    url,
+    aspect: input.aspect || project.aspect,
+    rights: {
+      status: input.rightsConfirmed ? "user_confirmed" : "needs_review",
+      note: input.rightsConfirmed ? "사용자가 이미지 사용 권리를 확인했습니다." : "사용 전 이미지 권리와 인물 동의를 확인해야 합니다."
+    }
+  });
+  write(current);
+  return asset;
+}
+
+export function attachImageToShot(shotId: string, input: { assetId: string; mode: AssetUsage["mode"] }) {
+  const current = state();
+  const shot = current.shots.find((item) => item.id === shotId);
+  const asset = current.imageAssets.find((item) => item.id === input.assetId);
+  if (!shot || !asset || shot.projectId !== asset.projectId) throw new Error("Shot or image asset not found");
+  if (!shot.referenceImageIds.includes(asset.id)) shot.referenceImageIds.push(asset.id);
+  shot.requirements.imageToVideo = true;
+  if (input.mode === "character_reference") shot.requirements.characterLock = true;
+  addAssetToBoard(current, asset, {
+    assetId: asset.id,
+    role: asset.role,
+    target: "shot",
+    targetId: shot.id,
+    mode: input.mode
+  });
+  write(current);
+  return shot;
+}
+
+export function updateShotDirection(shotId: string, patch: Partial<Shot["directionSpec"]>) {
+  const current = state();
+  const shot = current.shots.find((item) => item.id === shotId);
+  if (!shot) throw new Error("Shot not found");
+  shot.directionSpec = {
+    ...shot.directionSpec,
+    ...patch,
+    avoid: patch.avoid ? patch.avoid.map((item) => item.trim()).filter(Boolean) : shot.directionSpec.avoid
+  };
+  write(current);
+  return shot;
 }
 
 function makeTake(current: StudioState, shot: Shot, tier: Tier, index: number, status: JobStatus = "queued") {
@@ -456,7 +713,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   return { jobs };
 }
 
-export function forceDueJobs(kind: "generationJobs" | "renderJobs") {
+export function forceDueJobs(kind: "generationJobs" | "renderJobs" | "imageJobs") {
   const current = state();
   for (const job of current[kind]) {
     if (job.status !== "done" && job.status !== "failed") {
@@ -469,6 +726,54 @@ export function forceDueJobs(kind: "generationJobs" | "renderJobs") {
 export function tickJobs() {
   const current = state();
   const timestamp = Date.now();
+
+  for (const job of current.imageJobs) {
+    if (job.status === "done" || job.status === "failed" || job.status === "cancelled") continue;
+    const elapsed = Math.max(0, timestamp - (job.dueAt - 3600));
+    job.progress = Math.min(0.96, elapsed / 3600);
+    job.status = job.progress > 0.12 ? "running" : "queued";
+    job.stage = job.progress > 0.64 ? "saving" : job.progress > 0.28 ? "generating" : job.progress > 0.12 ? "prompting" : "queued";
+    job.etaSec = Math.max(0, Math.ceil((job.dueAt - timestamp) / 1000));
+    job.updatedAt = now();
+    job.variants = job.variants.map((variant) => ({
+      ...variant,
+      status: job.status,
+      url: variant.url || (job.progress > 0.42 ? `mock://image-preview/${variant.id}.png` : null),
+      thumbUrl: variant.thumbUrl || (job.progress > 0.42 ? `mock://image-preview/${variant.id}.jpg` : null)
+    }));
+
+    if (timestamp >= job.dueAt) {
+      job.status = "done";
+      job.progress = 1;
+      job.stage = "done";
+      job.etaSec = 0;
+      job.variants = job.variants.map((variant, index) => {
+        if (variant.assetId) return { ...variant, status: "done" };
+        const asset = makeImageAsset(current, {
+          projectId: job.projectId,
+          role: job.role,
+          source: "image_maker",
+          label: `${job.purpose} ${variant.label}`,
+          prompt: `${job.prompt} / ${job.style}`,
+          aspect: job.aspect,
+          rights: {
+            status: "generated",
+            note: "Image Maker에서 생성된 이미지입니다."
+          }
+        });
+        return {
+          ...variant,
+          assetId: asset.id,
+          status: "done",
+          url: asset.url,
+          thumbUrl: asset.thumbUrl,
+          scoreLabel: index === 0 ? "추천" : variant.scoreLabel
+        };
+      });
+      current.credits.reserved = Math.max(0, current.credits.reserved - job.count * 4);
+      current.credits.spent += job.count * 4;
+    }
+  }
 
   for (const job of current.generationJobs) {
     if (job.status === "done" || job.status === "failed" || job.status === "cancelled") continue;

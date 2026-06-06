@@ -2,14 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Intent, Project, ProjectBundle, RenderJob, Shot, Take } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
-type View = "dashboard" | "new" | "storyboard" | "compare" | "edit" | "export";
+type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
 
 const titles: Record<View, [string, string]> = {
-  dashboard: ["프로젝트", "진행 중인 영상과 완료된 렌더를 확인합니다"],
-  new: ["새 영상", "아이디어와 목적만 정하면 스토리보드를 만듭니다"],
+  dashboard: ["프로젝트", "진행 중인 비주얼 프로젝트와 완료된 렌더를 확인합니다"],
+  images: ["Image Maker", "영상 재료가 될 제품, 인물, 배경, 스타일 이미지를 만듭니다"],
+  assets: ["Asset Library", "생성 이미지와 외부 이미지를 분류하고 영상 컷에 연결합니다"],
+  new: ["Video Maker", "아이디어와 목적만 정하면 스토리보드를 만듭니다"],
   storyboard: ["스토리보드", "장면과 컷을 확인하고 전체 생성을 시작합니다"],
   compare: ["비교 선택", "컷별 후보를 보고 선택하거나 해당 컷만 다시 시도합니다"],
   edit: ["다듬기", "자막, 사운드, 보이스, 전환을 저장합니다"],
@@ -37,6 +39,41 @@ function statusLabel(status: string) {
 
 function tierLabel(tier: string) {
   return tier === "final" ? "게시용 품질" : tier === "economy" ? "저비용" : "빠른 미리보기";
+}
+
+const roleLabels: Record<ImageAssetRole, string> = {
+  product: "제품",
+  character: "인물/캐릭터",
+  location: "장소",
+  style: "스타일",
+  keyframe: "첫 프레임",
+  thumbnail: "썸네일",
+  logo: "로고",
+  background: "배경"
+};
+
+const purposeLabels: Record<ImageMakerPurpose, string> = {
+  photoreal: "사진급 실사",
+  product: "제품 이미지",
+  character: "인물/캐릭터",
+  background: "배경",
+  style: "스타일",
+  poster: "포스터/글자",
+  thumbnail: "썸네일",
+  transparent: "투명 이미지"
+};
+
+function imageJobStageLabel(stage: string) {
+  return (
+    {
+      queued: "대기 중",
+      prompting: "요구사항 정리 중",
+      generating: "이미지 만드는 중",
+      saving: "Asset Library에 저장 중",
+      done: "완료",
+      failed: "실패"
+    }[stage] || stage
+  );
 }
 
 function shotStatusLabel(shot: Shot) {
@@ -159,6 +196,10 @@ export function StudioApp() {
     }
   }
 
+  function targetShotId() {
+    return selectedShot?.id || bundle?.shots[0]?.id || null;
+  }
+
   const creditBalance = bundle ? Math.max(0, bundle.credits.balance - bundle.credits.reserved) : 1240;
 
   return (
@@ -203,6 +244,7 @@ export function StudioApp() {
             <Dashboard
               projects={projects}
               onNew={() => goToView("new")}
+              onImages={() => goToView("images")}
               onOpen={async (projectId) => {
                 setSelectedProjectId(projectId);
                 setSelectedShotId(null);
@@ -212,6 +254,34 @@ export function StudioApp() {
                   setSelectedShotId(nextBundle.shots.find((shot) => shot.status === "failed")?.id || nextBundle.shots[0]?.id || null);
                   goToView(nextViewForBundle(nextBundle));
                 }
+              }}
+            />
+          ) : null}
+          {view === "images" ? (
+            <ImageMaker
+              bundle={bundle}
+              onGenerate={(input) => bundle && run(() => studioApi.createImageJob(bundle.project.id, input), "이미지 후보 생성을 시작했습니다.")}
+              onUseAsset={(assetId, mode) => {
+                const shotId = targetShotId();
+                if (!shotId) {
+                  notify("먼저 영상 프로젝트를 만들면 이미지를 컷 참조로 연결할 수 있습니다.");
+                  return;
+                }
+                run(() => studioApi.attachImageToShot(shotId, { assetId, mode }), "이미지를 영상 컷 참조로 연결했습니다.");
+              }}
+            />
+          ) : null}
+          {view === "assets" ? (
+            <AssetLibrary
+              bundle={bundle}
+              onRegister={(input) => bundle && run(() => studioApi.registerExternalImage(bundle.project.id, input), "외부 이미지를 Asset Library에 등록했습니다.")}
+              onUseAsset={(assetId, mode) => {
+                const shotId = targetShotId();
+                if (!shotId) {
+                  notify("먼저 영상 프로젝트를 만들면 이미지를 컷 참조로 연결할 수 있습니다.");
+                  return;
+                }
+                run(() => studioApi.attachImageToShot(shotId, { assetId, mode }), "이미지를 영상 컷 참조로 연결했습니다.");
               }}
             />
           ) : null}
@@ -247,6 +317,7 @@ export function StudioApp() {
               onRegenerate={(shotId, scope) => run(() => studioApi.regenerate(shotId, scope), "이전 후보를 보존하고 새 후보를 생성합니다.")}
               onSelect={(shotId, takeId) => run(() => studioApi.selectTake(shotId, takeId), "선택한 후보를 저장했습니다.")}
               onUpgrade={(takeId) => run(() => studioApi.upgradeTake(takeId), "게시용 품질로 다시 다듬는 잡을 시작했습니다.")}
+              onUpdateDirection={(shotId, patch) => run(() => studioApi.updateShotDirection(shotId, patch), "컷 연출 지시를 저장했습니다.")}
               onEdit={() => goToView("edit")}
             />
           ) : null}
@@ -275,16 +346,31 @@ export function StudioApp() {
   );
 }
 
-function Dashboard({ projects, onNew, onOpen }: { projects: Project[]; onNew: () => void; onOpen: (projectId: string) => void }) {
+function Dashboard({
+  projects,
+  onNew,
+  onImages,
+  onOpen
+}: {
+  projects: Project[];
+  onNew: () => void;
+  onImages: () => void;
+  onOpen: (projectId: string) => void;
+}) {
   if (!projects.length) {
     return (
       <div className="empty">
         <div>
-          <h2>아직 영상 프로젝트가 없습니다</h2>
-          <p>새 영상을 만들면 스토리보드와 생성 상태가 준비됩니다.</p>
-          <button type="button" className="primary" onClick={onNew}>
-            새 영상 만들기
-          </button>
+          <h2>아직 비주얼 프로젝트가 없습니다</h2>
+          <p>먼저 Video Maker에서 프로젝트를 만들면 이미지와 영상 재료를 함께 관리할 수 있습니다.</p>
+          <div className="actions" style={{ justifyContent: "center" }}>
+            <button type="button" className="primary" onClick={onNew}>
+              Video Maker 시작
+            </button>
+            <button type="button" className="secondary" onClick={onImages}>
+              Image Maker 보기
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -296,9 +382,14 @@ function Dashboard({ projects, onNew, onOpen }: { projects: Project[]; onNew: ()
           <h2>이어서 작업하기</h2>
           <p className="hint">프로젝트 상태와 렌더 진행률을 확인합니다.</p>
         </div>
-        <button type="button" className="primary" onClick={onNew}>
-          새 영상 만들기
-        </button>
+        <div className="actions" style={{ marginTop: 0 }}>
+          <button type="button" className="secondary" onClick={onImages}>
+            Image Maker
+          </button>
+          <button type="button" className="primary" onClick={onNew}>
+            Video Maker
+          </button>
+        </div>
       </div>
       <div className="grid projects">
         {projects.map((project) => (
@@ -323,6 +414,184 @@ function Dashboard({ projects, onNew, onOpen }: { projects: Project[]; onNew: ()
         ))}
       </div>
     </>
+  );
+}
+
+function ImageMaker({
+  bundle,
+  onGenerate,
+  onUseAsset
+}: {
+  bundle: ProjectBundle | null;
+  onGenerate: (input: { prompt: string; purpose: ImageMakerPurpose; role: ImageAssetRole; aspect: Project["aspect"]; style?: string; count?: number }) => void;
+  onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
+}) {
+  const [prompt, setPrompt] = useState("투명 컵의 딸기라떼 제품 이미지. 밝은 카페 배경, 딸기 과육과 얼음이 잘 보이게, 손은 나오지 않게.");
+  const [purpose, setPurpose] = useState<ImageMakerPurpose>("product");
+  const [role, setRole] = useState<ImageAssetRole>("product");
+  const [style, setStyle] = useState("밝고 깨끗한 프리미엄 광고 사진");
+  if (!bundle) {
+    return (
+      <div className="empty">
+        <div>
+          <h2>프로젝트가 필요합니다</h2>
+          <p>Image Maker에서 만든 이미지는 프로젝트의 Asset Library에 저장되고 Video Maker에서 재료로 사용됩니다.</p>
+        </div>
+      </div>
+    );
+  }
+  const imageMakerAssets = bundle.imageAssets.filter((asset) => asset.source === "image_maker");
+  return (
+    <div className="grid image-grid">
+      <section className="panel">
+        <h2>이미지 만들기</h2>
+        <p className="hint">제품, 인물, 배경, 스타일 이미지를 먼저 만든 뒤 영상 컷의 참조 이미지로 보낼 수 있습니다.</p>
+        <label style={{ marginTop: 16 }}>
+          이미지 지시
+          <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} />
+        </label>
+        <div className="grid two-compact" style={{ marginTop: 12 }}>
+          <label>
+            용도
+            <select value={purpose} onChange={(event) => setPurpose(event.target.value as ImageMakerPurpose)}>
+              {Object.entries(purposeLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            보관 분류
+            <select value={role} onChange={(event) => setRole(event.target.value as ImageAssetRole)}>
+              {Object.entries(roleLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label style={{ marginTop: 12 }}>
+          스타일
+          <input value={style} onChange={(event) => setStyle(event.target.value)} />
+        </label>
+        <div className="notice">모델명은 노출하지 않습니다. 이 화면은 목적과 지시만 받고, 실제 이미지 엔진 선택은 백엔드 라우팅이 담당합니다.</div>
+        <div className="actions">
+          <button type="button" className="primary" onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
+            이미지 후보 만들기 <span className="cost">24⚡</span>
+          </button>
+        </div>
+      </section>
+      <section className="panel">
+        <h2>이미지 후보와 저장된 재료</h2>
+        <div className="grid" style={{ marginTop: 12 }}>
+          {bundle.imageJobs.map((job) => (
+            <div className="row-card" key={job.id}>
+              <div>
+                <strong>{purposeLabels[job.purpose]}</strong>
+                <p className="hint">{imageJobStageLabel(job.stage)} · {Math.round(job.progress * 100)}%</p>
+              </div>
+              <span className={`badge ${job.status === "done" ? "ok" : "fast"}`}>{statusLabel(job.status)}</span>
+            </div>
+          ))}
+        </div>
+        <AssetGrid assets={imageMakerAssets} onUseAsset={onUseAsset} />
+      </section>
+    </div>
+  );
+}
+
+function AssetLibrary({
+  bundle,
+  onRegister,
+  onUseAsset
+}: {
+  bundle: ProjectBundle | null;
+  onRegister: (input: { label: string; role: ImageAssetRole; url: string; aspect?: Project["aspect"]; prompt?: string; rightsConfirmed?: boolean }) => void;
+  onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
+}) {
+  const [label, setLabel] = useState("외부 인물 참조");
+  const [url, setUrl] = useState("https://example.com/reference-image.png");
+  const [role, setRole] = useState<ImageAssetRole>("character");
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  if (!bundle) return <NoProject />;
+  return (
+    <div className="grid image-grid">
+      <section className="panel">
+        <h2>외부 이미지 등록</h2>
+        <p className="hint">나노바나나, 다른 이미지 툴, 직접 촬영 사진을 등록해 Video Maker의 참조 이미지로 사용할 수 있습니다.</p>
+        <div className="grid" style={{ marginTop: 16 }}>
+          <label>
+            이미지 이름
+            <input value={label} onChange={(event) => setLabel(event.target.value)} />
+          </label>
+          <label>
+            이미지 URL
+            <input value={url} onChange={(event) => setUrl(event.target.value)} />
+          </label>
+          <label>
+            분류
+            <select value={role} onChange={(event) => setRole(event.target.value as ImageAssetRole)}>
+              {Object.entries(roleLabels).map(([key, itemLabel]) => (
+                <option key={key} value={key}>
+                  {itemLabel}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="check-row">
+            <input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)} />
+            이 이미지의 사용 권리와 인물 동의를 확인했습니다.
+          </label>
+        </div>
+        <div className="notice">사람 사진, 브랜드 로고, 외부 생성 이미지는 사용 권리와 동의를 확인한 뒤 영상 재료로 사용해야 합니다.</div>
+        <div className="actions">
+          <button type="button" className="primary" onClick={() => onRegister({ label, role, url, aspect: bundle.project.aspect, rightsConfirmed })}>
+            Asset Library에 등록
+          </button>
+        </div>
+      </section>
+      <section className="panel">
+        <h2>Reference Board</h2>
+        <p className="hint">
+          제품 {bundle.referenceBoard.productImages.length} · 인물 {bundle.referenceBoard.characterImages.length} · 스타일 {bundle.referenceBoard.styleImages.length} · 첫 프레임{" "}
+          {bundle.referenceBoard.keyframes.length}
+        </p>
+        <AssetGrid assets={bundle.imageAssets} onUseAsset={onUseAsset} />
+      </section>
+    </div>
+  );
+}
+
+function AssetGrid({ assets, onUseAsset }: { assets: ImageAsset[]; onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void }) {
+  if (!assets.length) return <div className="empty compact-empty">아직 저장된 이미지 재료가 없습니다.</div>;
+  return (
+    <div className="grid asset-grid" style={{ marginTop: 12 }}>
+      {assets.map((asset) => (
+        <article className="asset-card" key={asset.id}>
+          <div className="asset-thumb">
+            <strong>{roleLabels[asset.role]}</strong>
+            <span>{asset.aspect}</span>
+          </div>
+          <div className="body">
+            <strong>{asset.label}</strong>
+            <div className="meta">
+              <span className="badge fast">{asset.source === "image_maker" ? "Image Maker" : "외부 이미지"}</span>
+              <span>{asset.rights.status === "needs_review" ? "권리 확인 필요" : "사용 가능"}</span>
+            </div>
+            <div className="actions">
+              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, "first_frame")}>
+                첫 프레임
+              </button>
+              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, asset.role === "character" ? "character_reference" : asset.role === "product" ? "product_reference" : "style_reference")}>
+                참조로 사용
+              </button>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -433,6 +702,7 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
                   <div className="meta">
                     <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(shot)}</span>
                     <span>{tierLabel(shot.requirements.tier)}</span>
+                    {shot.referenceImageIds.length ? <span>{shot.referenceImageIds.length}개 이미지 참조</span> : null}
                   </div>
                   <p className="hint">{shot.saec.action}</p>
                 </article>
@@ -453,6 +723,7 @@ function Compare({
   onRegenerate,
   onSelect,
   onUpgrade,
+  onUpdateDirection,
   onEdit
 }: {
   bundle: ProjectBundle | null;
@@ -463,10 +734,12 @@ function Compare({
   onRegenerate: (shotId: string, scope: "shot" | "segment") => void;
   onSelect: (shotId: string, takeId: string) => void;
   onUpgrade: (takeId: string) => void;
+  onUpdateDirection: (shotId: string, patch: Partial<DirectionSpec>) => void;
   onEdit: () => void;
 }) {
   if (!bundle || !selectedShot) return <NoProject />;
   const takes = bundle.takes.filter((take) => take.shotId === selectedShot.id);
+  const referenceAssets = bundle.imageAssets.filter((asset) => selectedShot.referenceImageIds.includes(asset.id));
   const hasTakes = takes.length > 0;
   const isFailed = selectedShot.status === "failed";
   const isGenerating = selectedShot.status === "generating" || takes.some((take) => take.status === "queued" || take.status === "running");
@@ -499,6 +772,7 @@ function Compare({
           ))}
         </div>
         {!takes.length ? <div className="empty">아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다.</div> : null}
+        <DirectionPanel shot={selectedShot} referenceAssets={referenceAssets} onUpdate={onUpdateDirection} />
         {selectedShot.qualityFlags[0] ? <div className="notice">{selectedShot.qualityFlags[0].hint}</div> : null}
         <div className="actions">
           {!hasTakes ? (
@@ -531,6 +805,62 @@ function Compare({
         </div>
       </section>
     </div>
+  );
+}
+
+function DirectionPanel({
+  shot,
+  referenceAssets,
+  onUpdate
+}: {
+  shot: Shot;
+  referenceAssets: ImageAsset[];
+  onUpdate: (shotId: string, patch: Partial<DirectionSpec>) => void;
+}) {
+  const [notes, setNotes] = useState(shot.directionSpec.notes);
+  const [motion, setMotion] = useState(shot.directionSpec.motion);
+
+  useEffect(() => {
+    setNotes(shot.directionSpec.notes);
+    setMotion(shot.directionSpec.motion);
+  }, [shot.id, shot.directionSpec.motion, shot.directionSpec.notes]);
+
+  return (
+    <section className="direction-box">
+      <div className="head">
+        <div>
+          <h2>컷별 연출 지시</h2>
+          <p className="hint">이미지 참조와 카메라 움직임을 함께 저장해 image-to-video 생성에 사용합니다.</p>
+        </div>
+        <span className="badge">{referenceAssets.length}개 참조</span>
+      </div>
+      {referenceAssets.length ? (
+        <div className="reference-strip">
+          {referenceAssets.map((asset) => (
+            <span key={asset.id} className="reference-chip">
+              {roleLabels[asset.role]} · {asset.label}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="hint">Image Maker나 Asset Library에서 이미지를 선택해 이 컷의 첫 프레임, 인물, 제품, 스타일 참조로 연결할 수 있습니다.</p>
+      )}
+      <div className="grid two-compact" style={{ marginTop: 12 }}>
+        <label>
+          움직임
+          <input value={motion} onChange={(event) => setMotion(event.target.value)} />
+        </label>
+        <label>
+          연출 메모
+          <input value={notes} placeholder="예) 컵 표면 물방울을 강조하고 손은 나오지 않게" onChange={(event) => setNotes(event.target.value)} />
+        </label>
+      </div>
+      <div className="actions">
+        <button type="button" className="secondary" onClick={() => onUpdate(shot.id, { motion, notes })}>
+          연출 지시 저장
+        </button>
+      </div>
+    </section>
   );
 }
 

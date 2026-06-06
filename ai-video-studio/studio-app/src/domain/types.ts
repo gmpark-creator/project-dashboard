@@ -4,6 +4,10 @@ export type Aspect = "9:16" | "16:9" | "1:1" | "4:5";
 export type ProjectStatus = "draft" | "storyboarded" | "generating" | "reviewing" | "edited" | "rendering" | "done" | "failed";
 export type ShotStatus = "pending" | "generating" | "reviewing" | "selected" | "failed";
 export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
+export type AssetKind = "image" | "video" | "audio" | "brand";
+export type ImageAssetRole = "product" | "character" | "location" | "style" | "keyframe" | "thumbnail" | "logo" | "background";
+export type AssetSource = "image_maker" | "upload" | "external";
+export type ImageMakerPurpose = "photoreal" | "product" | "character" | "background" | "style" | "poster" | "thumbnail" | "transparent";
 
 export type Saec = {
   subject: string;
@@ -71,6 +75,8 @@ export type Shot = {
   status: ShotStatus;
   selectedTakeId: string | null;
   qualityFlags: QualityFlag[];
+  referenceImageIds: string[];
+  directionSpec: DirectionSpec;
 };
 
 export type TakeMetrics = Partial<Record<"fidelity" | "consistency" | "motion" | "transition" | "audio" | "completeness" | "overall", number>>;
@@ -131,6 +137,89 @@ export type RenderJob = {
   error: ErrorResponse | null;
 };
 
+export type DirectionSpec = {
+  camera: string;
+  composition: string;
+  lighting: string;
+  motion: string;
+  style: string;
+  avoid: string[];
+  notes: string;
+};
+
+export type ImageAsset = {
+  id: string;
+  projectId: string;
+  kind: "image";
+  role: ImageAssetRole;
+  source: AssetSource;
+  label: string;
+  prompt: string;
+  url: string;
+  thumbUrl: string;
+  aspect: Aspect;
+  width: number;
+  height: number;
+  rights: {
+    status: "user_confirmed" | "generated" | "needs_review";
+    note: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ImageVariant = {
+  id: string;
+  assetId: string | null;
+  label: string;
+  status: JobStatus;
+  url: string | null;
+  thumbUrl: string | null;
+  scoreLabel: "추천" | "안정적" | "확인 필요";
+};
+
+export type ImageJob = {
+  id: string;
+  projectId: string;
+  status: JobStatus;
+  progress: number;
+  etaSec: number | null;
+  stage: "queued" | "prompting" | "generating" | "saving" | "done" | "failed";
+  prompt: string;
+  purpose: ImageMakerPurpose;
+  role: ImageAssetRole;
+  aspect: Aspect;
+  style: string;
+  count: number;
+  variants: ImageVariant[];
+  dueAt: number;
+  createdAt: string;
+  updatedAt: string;
+  error: ErrorResponse | null;
+};
+
+export type AssetUsage = {
+  assetId: string;
+  role: ImageAssetRole;
+  target: "project" | "shot";
+  targetId: string;
+  mode: "first_frame" | "last_frame" | "style_reference" | "character_reference" | "product_reference" | "background_reference";
+  createdAt: string;
+};
+
+export type ReferenceBoard = {
+  projectId: string;
+  productImages: string[];
+  characterImages: string[];
+  locationImages: string[];
+  styleImages: string[];
+  keyframes: string[];
+  thumbnails: string[];
+  logos: string[];
+  backgrounds: string[];
+  usages: AssetUsage[];
+};
+
 export type EditState = {
   projectId: string;
   captions: { enabled: boolean; mode: "burn-in" | "srt" | "both"; source: "script-first" | "stt" };
@@ -156,6 +245,9 @@ export type StudioState = {
   takes: Take[];
   generationJobs: GenerationJob[];
   renderJobs: RenderJob[];
+  imageAssets: ImageAsset[];
+  imageJobs: ImageJob[];
+  referenceBoards: Record<string, ReferenceBoard>;
   editState: Record<string, EditState>;
   updatedAt: string;
 };
@@ -167,6 +259,9 @@ export type ProjectBundle = {
   takes: Take[];
   generationJobs: GenerationJob[];
   renderJobs: RenderJob[];
+  imageAssets: ImageAsset[];
+  imageJobs: ImageJob[];
+  referenceBoard: ReferenceBoard;
   editState: EditState;
   credits: StudioState["credits"];
 };

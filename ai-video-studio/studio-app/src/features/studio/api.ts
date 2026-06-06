@@ -1,4 +1,4 @@
-import type { EditState, ExportSpec, Intent, Project, ProjectBundle, Tier } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, Tier } from "@/domain/types";
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -22,6 +22,18 @@ export const studioApi = {
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/generate-all`, { method: "POST", body: JSON.stringify({ tier }) }),
   generateShot: (shotId: string) =>
     json<{ jobs: unknown[] }>(`/api/shots/${shotId}/generate`, { method: "POST", body: JSON.stringify({ tier: "fast", takeCount: 3 }) }),
+  createImageJob: (
+    projectId: string,
+    input: { prompt: string; purpose: ImageMakerPurpose; role: ImageAssetRole; aspect: Project["aspect"]; style?: string; count?: number }
+  ) => json<{ job: ImageJob }>(`/api/projects/${projectId}/image-jobs`, { method: "POST", body: JSON.stringify(input) }),
+  registerExternalImage: (
+    projectId: string,
+    input: { label: string; role: ImageAssetRole; url: string; aspect?: Project["aspect"]; prompt?: string; rightsConfirmed?: boolean }
+  ) => json<ImageAsset>(`/api/projects/${projectId}/assets`, { method: "POST", body: JSON.stringify(input) }),
+  attachImageToShot: (shotId: string, input: { assetId: string; mode: AssetUsage["mode"] }) =>
+    json(`/api/shots/${shotId}/references`, { method: "POST", body: JSON.stringify(input) }),
+  updateShotDirection: (shotId: string, patch: Partial<DirectionSpec>) =>
+    json(`/api/shots/${shotId}/direction`, { method: "PATCH", body: JSON.stringify(patch) }),
   selectTake: (shotId: string, takeId: string) =>
     json(`/api/shots/${shotId}/select-take`, { method: "POST", body: JSON.stringify({ takeId }) }),
   regenerate: (shotId: string, scope: "shot" | "segment") =>
