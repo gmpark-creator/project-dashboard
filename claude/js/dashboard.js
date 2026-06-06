@@ -40,6 +40,11 @@
      박사 발화 "각 프로젝트별 앰블럼 다시 복구. 뜀 = 트로피, Solar = 태양"
      viewBox 24x24, stroke 1.8px, currentColor (테마 색 자동 따름). */
   const ICONS = {
+    // 헬스케어 — 심박 펄스 라인 (10 · FitRx 건강 가이드, currentColor=teal 자동)
+    'vitality':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M2 12h4l2.5-6 4 13 2.5-7H22"/>' +
+      '</svg>',
     // 컨테이너선 측면 — 박사 지적 "선박 모양으로 명확히"
     // hull(사다리꼴) + 컨테이너 3 stack + 후미 bridge + 물결
     'ship':

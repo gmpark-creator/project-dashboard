@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FitRx — ACSM 2026 근거기반 저항운동 가이드</title>
+<meta name="description" content="ACSM 2026 저항성 운동 Position Stand(17년 만의 개정, 137편 체계적 문헌고찰 종합)를 임상 가이드 톤으로 정리한 근거기반 운동 가이드. 목표별 처방·신화 검증.">
+<meta name="theme-color" content="#0e7490">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBlNzQ5MCIvPjxwYXRoIGQ9Ik02IDE2aDQuNWwyLTUgMyAxMCAyLjUtNUgyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
+<style>
+  :root{
+    --bg:#f4f7f9; --surf:#ffffff; --soft:#eef4f6; --line:#dde7eb; --line2:#cfdde2;
+    --ink:#0f2730; --ink2:#33505c; --muted:#5f7882; --dim:#8499a2;
+    --teal:#0e7490; --teal2:#0891b2; --cyan:#22d3ee; --mint:#10b981; --emerald:#059669;
+    --amber:#d97706; --rose:#e11d48; --violet:#7c5cdb;
+    --shadow:0 1px 2px rgba(15,39,48,.04),0 8px 26px rgba(15,39,48,.07);
+    --r:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:70px}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 480px at 88% -10%, rgba(34,211,238,.10), transparent 60%),
+      radial-gradient(800px 520px at -5% 8%, rgba(16,185,129,.08), transparent 55%),
+      var(--bg);
+    color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased; letter-spacing:-.011em; line-height:1.65;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  /* NAV */
+  .nav{position:sticky;top:0;z-index:30;background:rgba(244,247,249,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;gap:14px;height:58px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;color:var(--ink)}
+  .logo .mk{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--teal),var(--cyan));display:grid;place-items:center}
+  .logo .mk svg{width:18px;height:18px}
+  .logo small{font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.04em;display:block;margin-top:-2px}
+  .nav .links{margin-left:auto;display:flex;gap:4px}
+  .nav .links a{font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;padding:7px 11px;border-radius:9px}
+  .nav .links a:hover{background:var(--soft);color:var(--teal)}
+  @media(max-width:760px){.nav .links{display:none}}
+  /* HERO */
+  .hero{padding:46px 0 30px}
+  .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--teal);background:rgba(14,116,144,.08);border:1px solid rgba(14,116,144,.18);padding:6px 13px;border-radius:999px;text-transform:uppercase}
+  h1.title{font-size:clamp(28px,5vw,44px);font-weight:900;line-height:1.18;margin:18px 0 12px;letter-spacing:-.025em}
+  h1.title b{background:linear-gradient(100deg,var(--teal),var(--emerald));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:16.5px;color:var(--ink2);max-width:680px}
+  .cite{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  .cite .c{font-size:12px;color:var(--muted);background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:7px 12px}
+  .cite .c b{color:var(--teal)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+  .stat{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:16px 14px;box-shadow:var(--shadow)}
+  .stat .n{font-size:24px;font-weight:900;color:var(--teal);font-variant-numeric:tabular-nums}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:3px}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  /* DISCLAIMER */
+  .disc{display:flex;gap:11px;align-items:flex-start;background:#fffbeb;border:1px solid #fcd996;border-radius:14px;padding:13px 15px;margin-top:22px;font-size:13.5px;color:#7c5310}
+  .disc .i{font-size:16px;flex-shrink:0}
+  .disc b{color:#92400e}
+  /* SECTIONS */
+  section{padding:34px 0;border-top:1px solid var(--line)}
+  .kicker{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--teal2);text-transform:uppercase}
+  h2{font-size:clamp(22px,3.6vw,30px);font-weight:900;letter-spacing:-.02em;margin:8px 0 10px}
+  h3{font-size:18px;font-weight:800;margin:22px 0 10px;display:flex;align-items:center;gap:9px}
+  p.body{color:var(--ink2);font-size:15.5px;margin:10px 0}
+  .lead{font-size:16px;color:var(--ink2);max-width:720px}
+  /* CARDS */
+  .card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .b-hi{background:#dcfce7;color:#15803d} .b-mod{background:#fef9c3;color:#a16207} .b-lo{background:#fee2e2;color:#b91c1c}
+  .b-key{background:rgba(14,116,144,.1);color:var(--teal)}
+  .b-tag{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+  .ev{font-size:11.5px;color:var(--dim);margin-top:7px}
+  /* MATTERS / NOT */
+  .mlist{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .mlist li{display:flex;gap:12px;align-items:flex-start;background:var(--surf);border:1px solid var(--line);border-radius:13px;padding:13px 15px}
+  .mlist li .ic{width:26px;height:26px;border-radius:8px;flex-shrink:0;display:grid;place-items:center;font-size:14px;font-weight:900}
+  .yes .ic{background:#dcfce7;color:#15803d} .no .ic{background:#f1f5f9;color:#94a3b8}
+  .mlist li .tx b{font-size:14.5px} .mlist li .tx p{font-size:13.5px;color:var(--muted);margin-top:3px}
+  /* GOAL PICKER */
+  .goals{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:6px 0 18px}
+  @media(max-width:640px){.goals{grid-template-columns:repeat(2,1fr)}}
+  .goal{background:var(--surf);border:1.5px solid var(--line);border-radius:15px;padding:16px 12px;cursor:pointer;text-align:center;transition:.16s}
+  .goal:hover{border-color:var(--teal2);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .goal.on{border-color:var(--teal);background:linear-gradient(160deg,#ecfeff,#f0fdfa);box-shadow:0 0 0 1px var(--teal) inset,var(--shadow)}
+  .goal .e{font-size:24px} .goal b{display:block;font-size:14.5px;margin-top:6px} .goal span{font-size:11.5px;color:var(--muted)}
+  .rx{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .rx .hd{background:linear-gradient(120deg,var(--teal),var(--teal2));color:#fff;padding:16px 20px}
+  .rx .hd .t{font-size:12px;font-weight:700;opacity:.85;letter-spacing:.05em}
+  .rx .hd .g{font-size:21px;font-weight:900;margin-top:2px}
+  .rx .bd{padding:18px 20px}
+  .rxrow{display:flex;gap:13px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .rxrow:last-child{border-bottom:0}
+  .rxrow .k{width:108px;flex-shrink:0;font-size:13px;font-weight:800;color:var(--teal)}
+  .rxrow .v{font-size:14.5px;color:var(--ink2)}
+  .rxrow .v small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+  .skip{margin-top:14px;background:var(--soft);border-radius:12px;padding:12px 15px;font-size:13px;color:var(--muted)}
+  .skip b{color:var(--ink2)}
+  /* PYRAMID + CHART */
+  .viz{display:flex;justify-content:center;padding:8px 0}
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px;background:var(--surf);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--soft);font-size:12.5px;color:var(--muted);font-weight:800}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--ink)}
+  .vs td:nth-child(2){color:var(--dim)} .vs td:nth-child(3){color:var(--teal);font-weight:700}
+  /* slider demo */
+  .demo{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-top:8px}
+  .demo input[type=range]{width:100%;accent-color:var(--teal);margin:10px 0}
+  .bars{display:flex;align-items:flex-end;gap:18px;height:130px;padding:0 6px}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+  .bar .col{width:100%;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--cyan),var(--teal));transition:height .35s;align-self:flex-end}
+  .bar .col.str{background:linear-gradient(180deg,#fbbf24,#d97706)}
+  .bar .cap{font-size:11.5px;color:var(--muted);text-align:center}
+  .demo .lab{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px}
+  .demo .lab span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* CONCLUSION */
+  .num{counter-reset:c;list-style:none;display:flex;flex-direction:column;gap:12px}
+  .num li{display:flex;gap:14px;background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow)}
+  .num li::before{counter-increment:c;content:counter(c);flex-shrink:0;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--teal),var(--emerald));color:#fff;font-weight:900;display:grid;place-items:center}
+  .num li b{font-size:15px} .num li p{font-size:13.8px;color:var(--muted);margin-top:3px}
+  .tldr{background:linear-gradient(160deg,#ecfeff,#f0fdfa);border:1px solid #a5e8e0;border-radius:var(--r);padding:22px;margin-top:20px;text-align:center}
+  .tldr .q{font-size:17.5px;font-weight:800;color:var(--ink);line-height:1.6}
+  .tldr .q b{color:var(--teal)}
+  /* FOOTER */
+  footer{border-top:1px solid var(--line);padding:30px 0 60px;font-size:12.5px;color:var(--dim)}
+  footer b{color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;color:var(--muted);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin:2px}
+  .muted{color:var(--muted)} .small{font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav"><div class="wrap">
+  <span class="logo">
+    <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-5 3.5 11L15 9l2 3h4"/></svg></span>
+    <span>FitRx<small>ACSM 2026 근거기반 가이드</small></span>
+  </span>
+  <span class="links">
+    <a href="#intro">개요</a><a href="#rx">목표별 처방</a><a href="#strength">근력</a>
+    <a href="#hyper">근비대</a><a href="#power">파워</a><a href="#shift">2009 vs 2026</a><a href="#sum">요약</a>
+  </span>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero"><div class="wrap">
+  <span class="eyebrow">◆ Evidence-Based · Position Stand 2026</span>
+  <h1 class="title">17년 만에 바뀐<br><b>저항성 운동의 정답</b></h1>
+  <p class="lede">미국스포츠의학회(ACSM)가 2026년에 발표한 저항성 운동 공식 권고를, 임상 가이드라인을 읽듯 정리했습니다. 137편의 체계적 문헌고찰을 다시 종합한 <b>개관 리뷰(umbrella review)</b> 기반 — 지금까지의 근거를 한자리에서.</p>
+  <div class="cite">
+    <span class="c">출처 · <b>ACSM Position Stand</b>, Resistance Training</span>
+    <span class="c">Stuart Phillips 교수팀 · <b>맥마스터대</b></span>
+    <span class="c"><b>MSSE</b> 2026년 4월호</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">137편</div><div class="l">종합한 체계적 문헌고찰</div></div>
+    <div class="stat"><div class="n">30,000+</div><div class="l">분석 대상 인원</div></div>
+    <div class="stat"><div class="n">17년</div><div class="l">만의 공식 개정(’09→’26)</div></div>
+    <div class="stat"><div class="n">AMSTAR·GRADE</div><div class="l">방법론·근거수준 평가</div></div>
+  </div>
+  <div class="disc"><span class="i">ℹ️</span><div><b>교육용 요약입니다.</b> 본 페이지는 ACSM 2026 Position Stand를 일반인이 이해하기 쉽게 정리한 자료로, 개인별 의학적 처방이 아닙니다. 인용된 연구는 대부분 <b>운동 경력이 적은 초보자</b>를 대상으로 해 상급자에게는 검증되지 않았습니다. 질환·부상·고령(특히 심혈관 위험)이 있다면 운동 전 전문가와 상담하세요.</div></div>
+</div></header>
+
+<!-- INTRO -->
+<section id="intro"><div class="wrap">
+  <div class="kicker">들어가며</div>
+  <h2>왜 이 권고가 특별한가</h2>
+  <p class="lead"><b>ACSM</b>(미국스포츠의학회)는 운동생리학·운동처방·스포츠의학에서 세계적으로 영향력 있는 학술단체로, “지금까지 과학적으로 밝혀진 것을 종합해 이렇게 권고합니다”라는 공식 성명서 — <b>Position Stand</b> — 를 주기적으로 냅니다. 임상 가이드처럼 현장에서 직접 참조되고, 이후 연구·정책의 기준점이 되죠.</p>
+  <p class="body">저항성 운동 Position Stand는 2002년 첫 발표, 2009년 개정 후 <b>올해 2026년 17년 만에 다시 개정</b>됐습니다. 2009년판은 전문가 합의 방식이라 “자기가 믿는 이론에 유리한 연구를 더 인용”하는 편향과 “증거 기반 엄밀성 부족” 비판을 받았는데, 2026년판은 그 비판을 정면으로 받아들여 <b>개관 리뷰(umbrella review)</b> — 리뷰들의 리뷰 — 방식을 채택했습니다.</p>
+
+  <div class="grid g2" style="margin-top:18px;align-items:center">
+    <div class="card">
+      <h3 style="margin-top:0">📚 근거의 3층 구조</h3>
+      <div class="viz">
+        <svg viewBox="0 0 320 200" width="100%" style="max-width:340px" aria-label="근거 피라미드">
+          <polygon points="160,18 250,68 70,68" fill="#0e7490"/><text x="160" y="50" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">Umbrella</text><text x="160" y="63" text-anchor="middle" fill="#cdeef5" font-size="9">3층 · 리뷰의 리뷰</text>
+          <polygon points="70,72 250,72 290,130 30,130" fill="#0891b2"/><text x="160" y="100" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">체계적 문헌고찰</text><text x="160" y="116" text-anchor="middle" fill="#d7f3fa" font-size="9">2층 · 137편 종합</text>
+          <polygon points="30,134 290,134 320,192 0,192" fill="#22d3ee"/><text x="160" y="162" text-anchor="middle" fill="#06323c" font-size="12" font-weight="800">개별 연구</text><text x="160" y="178" text-anchor="middle" fill="#0a3d49" font-size="9">1층 · 원시 데이터</text>
+        </svg>
+      </div>
+      <p class="small muted">개별 연구(1층)를 모은 체계적 문헌고찰(2층), 그 2층들을 다시 체계적으로 종합한 개관 리뷰(3층). 한 연구의 이상치·결함이 전체 결론을 왜곡할 가능성이 줄어듭니다.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🔬 이번 개정의 규모</h3>
+      <ul class="mlist">
+        <li class="yes"><span class="ic">✓</span><div class="tx"><b>137편 체계적 문헌고찰</b><p>분석 대상 인원 3만 명 이상</p></div></li>
+        <li class="yes"><span class="ic">✓</span><div class="tx"><b>5개 주요 DB 전수 검색</b><p>MEDLINE · Embase · Cochrane · SPORTDiscus · Web of Science (2024년 10월까지)</p></div></li>
+        <li class="yes"><span class="ic">✓</span><div class="tx"><b>AMSTAR + GRADE</b><p>연구 방법론 수준과 결론별 근거 수준을 명시 — “엄밀하지 않다”는 비판을 방법론으로 극복</p></div></li>
+      </ul>
+      <p class="ev">※ 대부분 초보자 대상 연구 → 입문자에게 가장 확실한 과학적 정답. 상급자 적용은 미검증.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- WORKS -->
+<section id="works"><div class="wrap">
+  <div class="kicker">효과 검증</div>
+  <h2>저항성 운동은 효과가 있는가? — 압도적으로, 그렇다</h2>
+  <p class="lead">변수를 따지기 전에 운동 자체의 효과부터 확정해야 “그럼 어떻게 더 효과적인데?”가 의미 있어집니다. 아무것도 안 하는 대조군 대비, 저항성 운동은 아래를 <b>전부 유의미하게</b> 향상시켰습니다.</p>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><b>근력·근비대·파워</b><p class="small muted">스트렝스, 근육량, 순간 출력</p></div>
+    <div class="card"><b>근지구력·수축속도</b><p class="small muted">버티는 힘, 빠르게 힘내기</p></div>
+    <div class="card"><b>보행속도·균형</b><p class="small muted">걷기, 넘어지지 않기</p></div>
+    <div class="card"><b>의자 일어서기 반복</b><p class="small muted">하체 기능 지표</p></div>
+    <div class="card"><b>TUG</b><p class="small muted">일어나 3m 걷고 돌아와 앉기</p></div>
+    <div class="card" style="background:linear-gradient(160deg,#ecfeff,#f0fdfa);border-color:#a5e8e0"><b style="color:var(--teal)">방식에 거의 무관</b><p class="small muted">밴드·덤벨·맨몸·서킷·속도기반 — 다 효과 있음</p></div>
+  </div>
+  <p class="body" style="margin-top:16px">즉 <b>헬스장·바벨·유명 프로그램이 꼭 필요하진 않습니다.</b> 단, 이 비교는 “아무것도 안 하는 것” 대비입니다. 뭐든 안 하는 것보단 낫다는 건 확실하지만, 모든 형태가 똑같이 ‘최적’이라는 뜻은 아닙니다 — 목표(근력/근비대/파워)에 따라 더 효과적인 변수가 갈립니다. ↓</p>
+</div></section>
+
+<!-- RX (interactive) -->
+<section id="rx"><div class="wrap">
+  <div class="kicker">목표별 처방 · Interactive</div>
+  <h2>당신의 목표는?</h2>
+  <p class="lead">목표를 고르면 근거기반 처방 카드가 나옵니다. 핵심 변수만 잡고, 나머지는 과감히 무시하세요.</p>
+  <div class="goals" id="goals">
+    <div class="goal on" data-g="strength"><div class="e">🏋️</div><b>근력</b><span>더 무거운 걸 들기</span></div>
+    <div class="goal" data-g="hyper"><div class="e">💪</div><b>근비대</b><span>근육 키우기</span></div>
+    <div class="goal" data-g="power"><div class="e">⚡</div><b>파워</b><span>빠르게 힘내기</span></div>
+    <div class="goal" data-g="function"><div class="e">🛡️</div><b>기능·낙상예방</b><span>일상·고령자</span></div>
+  </div>
+  <div class="rx" id="rxcard"></div>
+</div></section>
+
+<!-- STRENGTH -->
+<section id="strength"><div class="wrap">
+  <div class="kicker">근력 · Strength</div>
+  <h2>근력 — 무게가 왕이다</h2>
+  <h3>✅ 중요한 것</h3>
+  <ul class="mlist">
+    <li class="yes"><span class="ic">1</span><div class="tx"><b>부하(무게) <span class="badge b-key">가장 중요</span></b><p>1RM의 <b>80% 이상</b>에서 근력이 더 크게 향상. 무거울수록 더 좋은 용량–반응 관계. 무거운 걸 들수록 더 크고 강한 ‘운동단위’까지 동원되기 때문.</p></div></li>
+    <li class="yes"><span class="ic">2</span><div class="tx"><b>빈도 — 주 2회 이상 <span class="badge b-hi">근거 높음</span></b><p>주 2회가 명확한 최소 기준. 3·4·5회로 늘릴 때의 상한선은 이번 분석으로 결론 내기 어려움(솔직히 인정).</p></div></li>
+    <li class="yes"><span class="ic">3</span><div class="tx"><b>볼륨 — 운동당 최소 2세트</b><p>0&lt;1&lt;2~3세트. 다만 운동당 2~3세트를 넘으면 추가 향상 폭이 눈에 띄게 줄어듦(효율 감소).</p></div></li>
+    <li class="yes"><span class="ic">4</span><div class="tx"><b>완전 가동범위 <span class="badge b-lo">근거 낮음</span></b><p>풀 스쿼트 &gt; 하프, 끝까지 내리는 컬 &gt; 반만. 방향성은 명확하나 포함 리뷰 2편·증거 질 낮아 크기는 단정 어려움.</p></div></li>
+    <li class="yes"><span class="ic">5</span><div class="tx"><b>운동 순서 — 키우고 싶은 부위를 앞에</b><p>세션 앞에 둔 운동의 향상이 더 큼. 뒤로 갈수록 피로로 최대 출력·신경 자극이 약해짐. 여러 리뷰에서 일관.</p></div></li>
+  </ul>
+  <h3>🚫 근력에는 딱히 중요하지 않은 것</h3>
+  <div class="grid g3">
+    <div class="card"><span class="badge b-tag">실패 지점까지</span><p class="small muted" style="margin-top:8px">2~3회 여력 남겨도 동등. 끝까지 짜낼 필요 없음(자세 붕괴·부상·회복 부담 ↑, 특히 고령 심혈관 주의).</p></div>
+    <div class="card"><span class="badge b-tag">머신 vs 프리웨이트</span><p class="small muted" style="margin-top:8px">근력 향상 차이 없음. 꾸준히 할 수 있는 쪽으로.</p></div>
+    <div class="card"><span class="badge b-tag">운동 시간대</span><p class="small muted" style="margin-top:8px">아침·저녁 장기 차이 없음.</p></div>
+    <div class="card"><span class="badge b-tag">세트 간 휴식</span><p class="small muted" style="margin-top:8px">1분 미만 vs 이상, 최종 근력 차이 없음.</p></div>
+    <div class="card"><span class="badge b-tag">반복 속도(TUT)</span><p class="small muted" style="margin-top:8px">빠른(2초 이내) vs 느린(2초 이상) 차이 없음.</p></div>
+    <div class="card"><span class="badge b-tag">주기화</span><p class="small muted" style="margin-top:8px">볼륨 통제 시 미세하게만 유리 — 실질 차이는 크지 않음.</p></div>
+  </div>
+</div></section>
+
+<!-- HYPERTROPHY -->
+<section id="hyper"><div class="wrap">
+  <div class="kicker">근비대 · Hypertrophy</div>
+  <h2>근비대 — “8~12회”는 틀렸다</h2>
+  <p class="lead">이 논문에서 가장 눈여겨봐야 할 반전. 2009년판은 근비대를 위해 1RM의 67~85%(약 8~12회)를 권했고 이게 “근비대 반복 범위”라는 교리가 됐지만 — <b>뒤집혔습니다</b> (8편 리뷰, 5,000명 이상).</p>
+
+  <div class="demo">
+    <div class="between" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <b>무게는 근비대를 결정하지 않는다 <span class="badge b-hi">근거 높음</span></b>
+      <span class="small muted">슬라이더: 부하 <b id="loadval" style="color:var(--teal)">70</b>% 1RM</span>
+    </div>
+    <input type="range" id="loadslider" min="30" max="100" value="70" step="5">
+    <div class="bars">
+      <div class="bar"><div class="col str" id="b-str" style="height:48%"></div><div class="cap">근력</div></div>
+      <div class="bar"><div class="col" id="b-hyp" style="height:78%"></div><div class="cap">근비대</div></div>
+    </div>
+    <div class="lab"><span><i class="swatch" style="background:linear-gradient(180deg,#fbbf24,#d97706)"></i> 근력 — 무게 올릴수록 ↑</span><span><i class="swatch" style="background:linear-gradient(180deg,#22d3ee,#0e7490)"></i> 근비대 — 무게와 거의 무관</span></div>
+    <p class="small muted" id="demonote" style="margin-top:10px">30%로 30회, 70%로 12회, 90%로 5회 — <b>충분히 힘들게</b> 하고 주간 세트만 채우면 근육 성장은 비슷합니다.</p>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <h3 style="margin-top:0">🎯 진짜 중요한 건 — 주간 총 세트 수</h3>
+      <p class="small muted">부위별로 일주일에 몇 세트를 자극했는가(가슴이면 벤치·인클라인·딥스 합산). <b>부위당 주 10세트 이상</b>부터 성장 흐름이 뚜렷, 세트를 늘릴수록 커지지만 <b>약 18~20세트부터 효율 급감</b>. 회복 가능 범위를 넘기면 근육은 안 크고 피로만 쌓임.</p>
+      <p class="ev">전제: 어떤 무게든 <b>충분히 힘들게</b>. 가벼우면 횟수를 늘려 그 무게가 피로하게 느껴질 때까지. (1RM 30% 미만은 데이터 없음 — 다른 연구상 15~20% 이하는 횟수가 과해 비효율)</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">↕️ 편심성 수축을 의식하라</h3>
+      <p class="small muted">근육이 <b>늘어나며 버티는 구간</b>(바 내릴 때, 앉을 때, 컬 펴며 내릴 때)에서 자극이 더 큼. 올라갈 때만 힘주고 내릴 때 슥 풀면 효율 저하.</p>
+      <p class="small muted" style="margin-top:8px"><b>편심성 과부하</b>는 근비대를 유의미하게 촉진 — ① 플라이휠 ② 편심성 전용(파트너가 올려주고 혼자 버티며 내림) ③ <b>강제 반복·보조</b>(실패 근처에서 살짝 도와 올리고 내릴 때만 버팀 — 가장 현실적).</p>
+    </div>
+  </div>
+
+  <h3>📅 빈도와 볼륨의 관계</h3>
+  <p class="body">총 세트 수를 같게 맞추면 <b>주 1회와 주 5회 이상의 차이가 없음</b>. 근비대를 가르는 건 빈도 자체가 아니라 한 주 총 세트. 다만 빈도를 늘리는 건 총 세트를 채우는 <b>현실적 수단</b>(주 20세트를 이틀에 10세트씩 등).</p>
+
+  <h3>🚫 근비대에 딱히 중요하지 않은 것</h3>
+  <div class="grid g3">
+    <div class="card"><span class="badge b-tag">실패 지점까지</span><p class="small muted" style="margin-top:8px">불필요. RIR 2~3(여유 2~3회) 근접 실패로 충분.</p></div>
+    <div class="card"><span class="badge b-tag">혈류제한(BFR)</span><p class="small muted" style="margin-top:8px">일반 저항운동보다 우월하다는 독립 증거 부족(무게 조건이 달라 원인 분리 곤란).</p></div>
+    <div class="card"><span class="badge b-tag">주기화</span><p class="small muted" style="margin-top:8px">선형·파동·비주기화 우열 못 가림. <b>점진적 과부하</b>가 핵심.</p></div>
+    <div class="card"><span class="badge b-tag">반복 속도</span><p class="small muted" style="margin-top:8px">0.5~8초 차이 없음. 트리거는 ‘시간’이 아니라 ‘장력(기계적 긴장)’.</p></div>
+    <div class="card"><span class="badge b-tag">가변 부하</span><p class="small muted" style="margin-top:8px">체인·밴드 등 — 근비대·근력 모두 차이 없음.</p></div>
+    <div class="card" style="border-style:dashed"><span class="badge b-mod">데이터 부족</span><p class="small muted" style="margin-top:8px">드롭셋·클러스터·복합세트 — 결과 충돌·볼륨 교란·표본 특수성으로 판단 보류.</p></div>
+  </div>
+</div></section>
+
+<!-- POWER -->
+<section id="power"><div class="wrap">
+  <div class="kicker">파워 · Power</div>
+  <h2>파워 — 힘 × 속도</h2>
+  <p class="lead">파워는 “얼마나 무거운가”가 아니라 “같은 무게를 <b>얼마나 빠르게</b>”입니다. 그래서 근력·근비대와 처방이 다릅니다.</p>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <h3 style="margin-top:0">⚙️ 처방</h3>
+      <ul class="mlist">
+        <li class="yes"><span class="ic">1</span><div class="tx"><b>부하 — 1RM의 30~70%</b><p>너무 가벼우면 저항 부족, 너무 무거우면 속도 저하. 힘×속도를 최대화하는 중간 범위.</p></div></li>
+        <li class="yes"><span class="ic">2</span><div class="tx"><b>세트는 적게 — reps×sets ≤ 24</b><p>근비대와 반대. 세트가 많으면 지쳐서 속도·출력이 떨어짐. “적은 세트, 매 반복 전력투구”.</p></div></li>
+        <li class="yes"><span class="ic">3</span><div class="tx"><b>폭발적 동작 <span class="badge b-hi">가장 확실</span></b><p>미는·올리는·일어서는(단축성) 구간을 의도적으로 최대한 빠르게. 올림픽 역도(클린·저크·스내치)도 좋으나 기술 습득 필요.</p></div></li>
+      </ul>
+    </div>
+    <div class="card" style="background:linear-gradient(160deg,#ecfeff,#f0fdfa);border-color:#a5e8e0">
+      <h3 style="margin-top:0">🛡️ 파워가 일상·낙상예방에 중요한 이유</h3>
+      <p class="small muted">이번 논문의 가장 현실적인 발견 — 파워 훈련이 <b>신체 기능(SPPB·보행속도·의자 일어서기)에서 일반 저항운동보다 우월</b>.</p>
+      <ul class="mlist" style="margin-top:10px">
+        <li class="yes"><span class="ic">!</span><div class="tx"><b>사고 예방</b><p>미끄러질 때 반대 발을 ‘재빨리’ 내딛어 버티기 — 한 박자 늦으면 넘어짐.</p></div></li>
+        <li class="yes"><span class="ic">!</span><div class="tx"><b>이동 능력</b><p>신호 깜빡일 때 건너기 등. 보행속도는 노년 건강의 핵심 지표이며 하체 파워와 직결.</p></div></li>
+        <li class="yes"><span class="ic">!</span><div class="tx"><b>고령자 낙상</b><p>낙상 위험은 단순 근력보다 <b>파워</b>와 더 강하게 연결. 무거운 걸 천천히만 들면 한계.</p></div></li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- SHIFT 2009 vs 2026 -->
+<section id="shift"><div class="wrap">
+  <div class="kicker">패러다임 전환</div>
+  <h2>2009 통설 vs 2026 — 뭐가 뒤집혔나</h2>
+  <table class="vs">
+    <thead><tr><th>주제</th><th>2009 통설</th><th>2026 결론</th></tr></thead>
+    <tbody>
+      <tr><td><b>주기화</b></td><td>오래 운동한 사람엔 필수. “계획 없으면 결과 없다”</td><td>볼륨 통제 시 일관된 차이 없음 — 일반인에겐 필수 아님(선수·피로관리엔 여전히 유용)</td></tr>
+      <tr><td><b>실패 지점</b></td><td>한계까지 짜내야 성장</td><td>근력·근비대·파워 모두 추가효과 없음. RIR 2~3 여유로도 동등(부상↓·회복↑·총세트↑)</td></tr>
+      <tr><td><b>8~12회 반복</b></td><td>근비대 최적 ‘황금 범위’</td><td>사실상 폐기 — 충분히 힘들고 주간 세트만 채우면 30%·70%·90% 무게 무관(8리뷰·5천명)</td></tr>
+      <tr><td><b>가이드 철학</b></td><td>세세한 수치 처방(주 20시간이 되기도)</td><td>“최적” → “<b>실제로 운동하는 사람을 늘리기</b>”. 꾸준히 할 수 있게 자기에게 맞게</td></tr>
+    </tbody>
+  </table>
+  <p class="body" style="margin-top:14px">복잡한 수치 처방이 오히려 “이것저것 다 갖춰야 하니 그냥 안 하지”라는 장벽이 됐고, 실제로 미국 성인 약 <b>70%가 근력운동을 전혀 안 함</b>. 그래서 2026판은 완벽한 최적화보다 <b>일단 시작해 꾸준히 잇는 것</b>을 먼저 둡니다.</p>
+</div></section>
+
+<!-- SUMMARY -->
+<section id="sum"><div class="wrap">
+  <div class="kicker">결론</div>
+  <h2>실전 6원칙</h2>
+  <ol class="num">
+    <li><div><b>방식에 얽매이지 마라</b><p>바벨·밴드·맨몸·서킷 다 효과 있음. 꾸준히 할 수 있는 쪽으로. “제대로 된 운동” 강박이 시작을 막는다.</p></div></li>
+    <li><div><b>주 2회는 해야 한다</b><p>근력·근비대 모두 명확한 최솟값. 주요 근육 부위를 골고루.</p></div></li>
+    <li><div><b>근력이 목표라면</b><p>무거운 무게(≥80% 1RM)로 운동당 최소 2세트, 완전 가동범위, 키우고 싶은 동작을 세션 초반에. 실패까지 짜낼 필요 없음.</p></div></li>
+    <li><div><b>근비대가 목표라면</b><p>무게 범위보다 <b>주간 총 세트(근육군당 10세트 이상)</b>. 어떤 무게든 충분한 노력이면 자극 발생. 편심성 수축 의식.</p></div></li>
+    <li><div><b>기능·낙상예방이 목표라면(특히 고령)</b><p>폭발적 동작 훈련을 꼭. 미는·올리는·일어서는 동작을 최대한 빠르게 — 일상기능·낙상예방에 가장 직접 연결.</p></div></li>
+    <li><div><b>크게 신경 쓸 필요 없는 것</b><p>실패까지 짜내기, 아침vs저녁, 머신vs프리웨이트, 반복 속도, 세트 간 휴식, 복잡한 주기화, 드롭셋·클러스터 같은 특수 세트.</p></div></li>
+  </ol>
+  <div class="tldr">
+    <div class="q">과학적으로 완벽한 루틴을 찾다 지쳐 안 하느니,<br><b>주 2회 이상 꾸준히</b> 하면서 목표에 맞는 변수<br>(근력=무게 · 근비대=주간 세트 · 기능=파워)를 잡고<br><b>조금씩 자극을 늘려가는 것</b>이 가장 현실적인 정답.</div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div><b>FitRx</b> · ACSM 2026 저항성 운동 Position Stand 교육용 요약 (가칭 — 정식 명칭 미정)</div>
+  <div style="margin-top:8px">
+    <span class="pill">출처: ACSM Position Stand · MSSE 2026.04 · Stuart Phillips et al., McMaster Univ.</span>
+    <span class="pill">방법: umbrella review · 137 SRs · 30,000+ · AMSTAR·GRADE</span>
+  </div>
+  <p style="margin-top:12px;max-width:760px">본 자료는 일반 건강·체력 향상을 위한 <b>교육 목적</b>이며 개인 의학적 처방이 아닙니다. 인용 근거 대부분이 초보자 대상이라 상급자엔 미검증입니다. 질환·부상·고령(특히 심혈관 위험)·임신 등이 있다면 운동 시작·강도 변경 전 의사·운동전문가와 상담하세요. 통증·어지럼·흉부 불편감이 있으면 즉시 중단하세요.</p>
+  <p style="margin-top:10px">© 2026 G.M.PARK · Project Dashboard #10 · Healthcare</p>
+</div></footer>
+
+<script>
+/* ---------- 목표별 처방 ---------- */
+const RX = {
+  strength:{ g:"근력 (Strength)", rows:[
+    ["핵심 변수","<b>무게(부하)</b>가 가장 중요","무거울수록 더 큰 향상"],
+    ["부하","<b>1RM의 80% 이상</b>","무거운 운동단위까지 동원"],
+    ["빈도","<b>주 2회 이상</b>","명확한 최소 기준"],
+    ["볼륨","운동당 <b>최소 2세트</b>","2~3세트 넘으면 효율 감소"],
+    ["가동범위","<b>완전</b> 가동범위","풀 스쿼트 > 하프 (근거 낮음)"],
+    ["순서","키우고 싶은 동작을 <b>세션 초반</b>","피로 전에 최대 출력"],
+  ], skip:"실패 지점까지 · 머신vs프리 · 시간대 · 휴식시간 · 반복속도 · 복잡한 주기화" },
+  hyper:{ g:"근비대 (Hypertrophy)", rows:[
+    ["핵심 변수","<b>주간 총 세트 수</b>","무게·반복범위보다 훨씬 중요"],
+    ["볼륨","근육군당 <b>주 10세트 이상</b>","18~20세트부터 효율 급감"],
+    ["부하","<b>무게 무관</b> (30~100% 1RM)","단, <b>충분히 힘들게</b>가 전제"],
+    ["가벼우면","<b>횟수</b>를 늘려 피로하게","피로하게 느껴질 때까지"],
+    ["편심성","내리는 구간 <b>힘주며 버티기</b>","편심성 과부하면 더 촉진"],
+    ["빈도","총 세트 같으면 빈도 무관","빈도는 볼륨 채우는 수단"],
+  ], skip:"실패 지점까지 · BFR · 주기화 종류 · 반복속도 · 가변부하 (드롭/클러스터는 데이터 부족)" },
+  power:{ g:"파워 (Power)", rows:[
+    ["핵심 변수","<b>빠르게</b> = 힘 × 속도","무게가 아니라 속도"],
+    ["부하","<b>1RM의 30~70%</b>","중간 범위가 최적"],
+    ["볼륨","<b>적게</b> (reps×sets ≤ 24)","근비대와 반대"],
+    ["수행","단축성 구간을 <b>폭발적으로</b>","미는·올리는 동작 최대한 빠르게"],
+    ["옵션","올림픽 역도(클린·저크·스내치)","효과적이나 기술 습득 필요"],
+  ], skip:"천천히 무겁게만 드는 훈련(파워·일상기능 향상엔 한계)" },
+  function:{ g:"기능·낙상예방 (Function)", rows:[
+    ["핵심","<b>파워 훈련</b>을 꼭 포함","SPPB·보행속도·의자일어서기에서 일반 운동보다 우월"],
+    ["부하","1RM의 <b>30~70%</b>","파워 처방과 동일"],
+    ["수행","일어서는·미는 동작 <b>빠르게</b>","낙상은 근력보다 파워와 연결"],
+    ["기초","주 2회 + 완전 가동범위","근력 기반 위에 파워를 얹기"],
+    ["고령자 주의","실패까지 짜내기 <b>금지</b>","복압·혈압 급상승 → 심혈관 부담"],
+  ], skip:"무거운 중량을 천천히만 — 낙상예방엔 부족" },
+};
+function renderRx(k){
+  const r = RX[k];
+  document.getElementById('rxcard').innerHTML =
+    `<div class="hd"><div class="t">근거기반 처방 · ACSM 2026</div><div class="g">${r.g}</div></div>
+     <div class="bd">${r.rows.map(row=>`<div class="rxrow"><div class="k">${row[0]}</div><div class="v">${row[1]}<small>${row[2]}</small></div></div>`).join("")}
+     <div class="skip"><b>이건 신경 안 써도 됨:</b> ${r.skip}</div></div>`;
+}
+document.getElementById('goals').addEventListener('click',e=>{
+  const el=e.target.closest('.goal'); if(!el) return;
+  document.querySelectorAll('.goal').forEach(g=>g.classList.remove('on'));
+  el.classList.add('on'); renderRx(el.dataset.g);
+});
+renderRx('strength');
+
+/* ---------- 무게-근비대 슬라이더 데모 ---------- */
+const slider=document.getElementById('loadslider');
+slider.addEventListener('input',()=>{
+  const v=+slider.value;
+  document.getElementById('loadval').textContent=v;
+  // 근력: 무게에 비례(30→40%, 100→95%). 근비대: 거의 일정(74~82%) — 무게 무관.
+  document.getElementById('b-str').style.height=(38+(v-30)*0.8)+'%';
+  document.getElementById('b-hyp').style.height=(78+Math.sin(v/12)*4)+'%';
+  const reps = v<=40?'25~30회': v<=60?'15~20회': v<=80?'8~12회':'3~6회';
+  document.getElementById('demonote').innerHTML=`${v}% 1RM이면 대략 <b>${reps}</b> — <b>충분히 힘들게</b> 하고 주간 세트만 채우면 근비대는 비슷합니다. (근력은 무게가 올라야 ↑)`;
+});
+</script>
+</body>
+</html>
