@@ -90,6 +90,7 @@
 | [codex/README.md](codex/README.md) | **Codex Antithesis R1** — 아키텍처·오픈질문 답변·OpenAPI·Schema·라우팅 config | Codex 구현/검증 진입점 |
 | [mock-app/index.html](mock-app/index.html) | **Codex mock vertical slice** — 정적 페이지에서 mock API·잡 상태·실패/재시도/렌더 플로우 구현 | MVP 구현 착수 |
 | [studio-app/](studio-app/) | **Next.js studio app** — 실제 앱 골격, API route, TypeScript mock provider, contract/test scripts | 실제 앱화 1단계 |
+| [codex/06-r3-qa-integration-report.md](codex/06-r3-qa-integration-report.md) | **Codex R3 QA 통합** — Claude R3 P0/P1 UX 이슈를 Next.js 앱에 반영하고 검증 | QA 반영 |
 
 ### Codex R1 핵심 보강
 

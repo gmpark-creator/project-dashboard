@@ -167,11 +167,14 @@ function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "asp
 
 export function createProject(input: { title?: string; idea: string; intent: Intent; advanced?: { aspect?: Aspect; durationSec?: number; tier?: Tier } }) {
   const current = state();
+  const idea = input.idea.trim();
+  const title = input.title?.trim();
+  if (!idea) throw new Error("아이디어를 입력해 주세요.");
   const template = INTENT_TEMPLATES[input.intent];
   const project: Project = {
     id: uid("prj"),
-    title: input.title || input.idea.slice(0, 20) || "새 영상",
-    idea: input.idea,
+    title: title || idea.slice(0, 20),
+    idea,
     intent: input.intent,
     status: "storyboarded",
     aspect: input.advanced?.aspect || template.defaults.aspect,
@@ -183,7 +186,7 @@ export function createProject(input: { title?: string; idea: string; intent: Int
     createdAt: now(),
     updatedAt: now()
   };
-  const storyboard = buildStoryboard(project, input.idea);
+  const storyboard = buildStoryboard(project, idea);
   project.progress = { shotsDone: 0, shotsTotal: storyboard.shots.length };
   current.projects.unshift(project);
   current.scenes.push(...storyboard.scenes);
@@ -304,7 +307,7 @@ function failTake(take: Take) {
   take.status = "failed";
   take.videoUrl = null;
   take.posterUrl = null;
-  take.metrics = { overall: 1 };
+  take.metrics = {};
 }
 
 export function generateShot(shotId: string, options: { tier?: Tier; takeCount?: number } = {}) {
@@ -415,6 +418,13 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
   if (!project) throw new Error("Project not found");
+  const activeSpecs = new Set(
+    current.renderJobs
+      .filter((job) => job.projectId === projectId && (job.status === "queued" || job.status === "running"))
+      .map((job) => `${job.spec.resolution}:${job.spec.cut}:${job.spec.aspect}:${job.spec.caption}`)
+  );
+  const nextSpecs = specs.filter((spec) => !activeSpecs.has(`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`));
+  if (!nextSpecs.length) throw new Error("이미 같은 내보내기 작업이 진행 중입니다.");
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   for (const shot of shots) {
     if (!shot.selectedTakeId) {
@@ -424,7 +434,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
       if (best) shot.selectedTakeId = best.id;
     }
   }
-  const jobs: RenderJob[] = specs.map((spec, index) => ({
+  const jobs: RenderJob[] = nextSpecs.map((spec, index) => ({
     id: uid("rnd"),
     projectId,
     spec,
@@ -441,7 +451,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   }));
   current.renderJobs.push(...jobs);
   project.status = "rendering";
-  current.credits.reserved += 48;
+  current.credits.reserved += jobs.length * 16;
   write(current);
   return { jobs };
 }

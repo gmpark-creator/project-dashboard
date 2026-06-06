@@ -593,17 +593,17 @@ const PROJECTS = [
     ]},
     summary: '지식 대시보드 시리즈 11번 — Runway·Luma·Veo 등 영상 생성 엔진을 *직접 고르는 앱이 아니라*, 요구(의도·티어·샷 조건)를 받아 가능한 엔진을 자동 선택하는 오케스트레이션 레이어를 올려 비전문가가 "아이디어→완성 영상"을 끝까지 만들게 하는 앱.\n'
            + '사용자는 모델명을 모른 채 「빠른 미리보기 / 게시용 품질 / 저비용」 티어와 목적만 고르고, 컷별 후보를 비교·선택하며, 실패/불만 컷만 다시 시도(이전 후보 보존)한다.\n'
-           + '클로드(UX/제품·프론트엔드 방향) ↔ 코덱스(아키텍처·백엔드·모델 어댑터·렌더/큐·검증) 변증법으로 진행: R1 설계·프로토타입 → Codex R1 계약(OpenAPI·schema·routing) → R2 UX보정 → Codex R2 mock vertical slice → R3 QA(23건) → Codex Next.js 앱화(진행 중). 설계·계약 산출물은 ai-video-studio/.',
+           + '클로드(UX/제품·프론트엔드 방향) ↔ 코덱스(아키텍처·백엔드·모델 어댑터·렌더/큐·검증) 변증법으로 진행: R1 설계·프로토타입 → Codex R1 계약(OpenAPI·schema·routing) → R2 UX보정 → Codex R2 mock vertical slice → R3 QA(23건) → Codex Next.js 앱화 + R3 UX 통합. 설계·계약 산출물은 ai-video-studio/.',
     method: '프론트는 엔진을 모른 채 (의도+티어+샷 요구플래그)만 보내고, 백엔드 라우팅 테이블(데이터)이 입력타입·길이·비율·지역·가용성 필터로 엔진을 결정. engineUsed는 디버그 전용·UI 비노출. 컷 단위 독립 잡(부분 실패 격리), 이전 Take 보존, 자막/BGM/보이스는 라이선스 확인 소스만. Next.js+TS 앱화 + mock provider→실 provider 단계 적용.',
     stack: ['Next.js', 'TypeScript', 'HTML5', 'Vanilla JS', 'Remotion', 'FFmpeg'],
     stackDetail: [
       { area: '사용자 경험·화면 흐름 (Claude)', tech: 'UX 설계', how: '아이디어→목적→스토리보드 자동분해→컷별 후보 비교/선택→대화형 다듬기→내보내기 7단계. 모델명 숨김·드래프트 후 「게시용 품질로 다듬기」·실패 컷만 재생성·버튼 위 ⚡비용. 6화면 클릭형 프로토타입.' },
       { area: '엔진 라우팅 (요구사항)', tech: 'routing config(데이터)', how: '(intent+tier+requirements)→provider 후보. 입력타입/길이/비율/지역/장애 필터, 폴백, 비교용 Take 분산은 예산 정책에 묶음. 엔진 스펙 변동은 config 교체.' },
       { area: 'mock vertical slice (Codex)', tech: 'Vanilla JS, localStorage', how: '실 provider 없이 전체 경로 통과 — Project/Shot/Take/Job 상태머신, 2/10컷 실패 주입으로 부분 격리 검증, 렌더 잡 6/15/30s.' },
-      { area: '앱화·렌더 (Codex)', tech: 'Next.js, TypeScript, Remotion, FFmpeg', how: 'Next.js 앱(studio-app) + provider adapter + 렌더(자막 번인·오디오 믹스·다중 길이컷). 진행 중.' },
+      { area: '앱화·렌더 (Codex)', tech: 'Next.js, TypeScript, Remotion, FFmpeg', how: 'Next.js 앱(studio-app) + API route + TypeScript mock provider + R3 UX 통합 완료. 다음 단계는 provider adapter와 렌더(영상 자막 삽입·오디오 믹스·다중 길이컷) PoC.' },
     ],
     issues: [
-      { type:'핵심', title:'Codex — Next.js 앱화 진행 중 (현재)', desc:'studio-app(Next.js+TS) scaffold 착수. R3 QA(23건)를 반영하며 앱화+테스트+렌더 PoC. Claude R3 산출물을 앱에 병합 중. Claude는 그 위에서 문구/상태 합동 QA 예정.' },
+      { type:'핵심', title:'Codex — Next.js 앱화 + R3 UX 통합 완료', desc:'studio-app(Next.js+TS)에 API route, TypeScript mock provider, 상태머신, 비용/렌더/재시도 UX를 통합. Claude R3 QA 중 P0/P1 핵심 항목을 반영하고 검증 완료. 다음은 렌더 PoC와 첫 provider adapter 연결.' },
       { type:'완료', title:'R1 — UX/제품 설계 + 클릭형 프로토타입 (Claude)', desc:'핵심 플로우·6화면 구성안·UX 규칙·프롬프트/스토리보드 템플릿 6종·품질 평가 기준·프론트↔백 계약(요구사항). 모델명 비노출·티어 추상화·완성본 우선·대화형 편집·실패컷만 재생성. ai-video-studio/design/ + prototype/.' },
       { type:'완료', title:'Codex R1 — 아키텍처 반박·계약 (OpenAPI·Schema·routing config)', desc:'벤더 기능 직접 약속 금지, capability snapshot+routing config로 "가능한 때만 실행". 열린질문 10개 1차 결정.' },
       { type:'완료', title:'R2 — Codex 피드백 반영 UX 보정 (Claude)', desc:'Veo 4K=내보내기/업스케일 옵션(보장X), Gen-4 Turbo=I2V 후보(text-fast 기본 아님), 부분재생성 capability-gated, 「게시용 품질로 다듬기」 카피, 품질검사 MVP=경고, 실패폴백 7상황·라이선스 helper.' },
@@ -612,7 +612,7 @@ const PROJECTS = [
     ],
     milestones: [
       { date:'2026-06-06', title:'프로젝트 착수 — 변증법 R1~R3', desc:'Claude R1 설계·프로토타입 → Codex R1 계약 → R2 UX보정 → Codex R2 mock slice → R3 QA. 모델명 비노출·티어 추상화·오케스트레이션 방향 확립.' },
-      { date:'2026-06-07', title:'대시보드 #11 등록 + Next.js 앱화 진행', desc:'박사 지시로 AI 영상 제작 앱(가칭 Cutpilot)을 프로젝트 11번으로 대시보드 등록(라이브 mock-app·프로토타입 프리뷰). Codex가 Next.js 앱(studio-app) 병합·앱화 진행 중. rose 테마·film 아이콘 등록.' }
+      { date:'2026-06-07', title:'대시보드 #11 등록 + Next.js 앱화/R3 통합', desc:'박사 지시로 AI 영상 제작 앱(가칭 Cutpilot)을 프로젝트 11번으로 대시보드 등록(라이브 mock-app·프로토타입 프리뷰). Codex가 Next.js 앱(studio-app)에 Claude R3 QA 핵심 항목을 반영. rose 테마·film 아이콘 등록.' }
     ]
   }
 ];

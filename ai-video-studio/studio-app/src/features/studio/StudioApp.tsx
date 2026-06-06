@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Intent, Project, ProjectBundle, Shot, Take } from "@/domain/types";
+import type { Intent, Project, ProjectBundle, RenderJob, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -22,8 +22,8 @@ function statusLabel(status: string) {
       draft: "초안",
       storyboarded: "스토리보드",
       generating: "생성중",
-      reviewing: "검토중",
-      edited: "다듬기",
+      reviewing: "선택 필요",
+      edited: "다듬기 완료",
       rendering: "렌더중",
       done: "완료",
       failed: "실패",
@@ -39,9 +39,47 @@ function tierLabel(tier: string) {
   return tier === "final" ? "게시용 품질" : tier === "economy" ? "저비용" : "빠른 미리보기";
 }
 
+function shotStatusLabel(shot: Shot) {
+  if (shot.selectedTakeId) return "선택됨";
+  return statusLabel(shot.status);
+}
+
+function qualityLabel(take: Take) {
+  if (take.status === "failed") return "다시 시도 필요";
+  if (take.status !== "done") return "확인 중";
+  const score = take.metrics.overall || 0;
+  if (score >= 4.5) return "추천";
+  if (score >= 4) return "안정적";
+  if (score >= 3) return "확인 필요";
+  return "재시도 권장";
+}
+
+function renderStageLabel(job: RenderJob) {
+  if (job.status === "queued") return "대기 중";
+  if (job.status === "failed") return "내보내기 실패";
+  if (job.status === "done") return "";
+  const stages: Record<RenderJob["stage"], string> = {
+    assemble: "컷 합치는 중",
+    audio_mix: "소리 입히는 중",
+    caption_burn: "자막 입히는 중",
+    encode: "마무리 인코딩 중",
+    upscale: "고해상도 처리 중",
+    done: ""
+  };
+  return stages[job.stage] || "진행 중";
+}
+
 function progress(project: Project) {
   if (!project.progress.shotsTotal) return 0;
   return Math.round((project.progress.shotsDone / project.progress.shotsTotal) * 100);
+}
+
+function nextViewForBundle(nextBundle: ProjectBundle) {
+  if (nextBundle.project.status === "rendering" || nextBundle.project.status === "done" || nextBundle.renderJobs.length) return "export";
+  const selectedCount = nextBundle.shots.filter((shot) => shot.selectedTakeId).length;
+  if (selectedCount && selectedCount === nextBundle.shots.length) return "edit";
+  if (nextBundle.takes.length || nextBundle.shots.some((shot) => shot.status === "failed" || shot.status === "reviewing" || shot.status === "generating")) return "compare";
+  return "storyboard";
 }
 
 export function StudioApp() {
@@ -52,6 +90,7 @@ export function StudioApp() {
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
   const [intent, setIntent] = useState<Intent>("shorts");
   const [toast, setToast] = useState("");
+  const toastTimer = useRef<number | null>(null);
 
   const selectedShot = useMemo(() => {
     if (!bundle?.shots.length) return null;
@@ -70,9 +109,26 @@ export function StudioApp() {
     setBundle(await studioApi.getBundle(id));
   }
 
+  function clearToast() {
+    if (toastTimer.current) {
+      window.clearTimeout(toastTimer.current);
+      toastTimer.current = null;
+    }
+    setToast("");
+  }
+
   function notify(message: string) {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
     setToast(message);
-    window.setTimeout(() => setToast(""), 3000);
+    toastTimer.current = window.setTimeout(() => {
+      setToast("");
+      toastTimer.current = null;
+    }, 2600);
+  }
+
+  function goToView(nextView: View) {
+    clearToast();
+    setView(nextView);
   }
 
   useEffect(() => {
@@ -81,9 +137,17 @@ export function StudioApp() {
       await studioApi.tick();
       await refresh();
     }, 1200);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const projectTitle = bundle?.project.title ? ` · ${bundle.project.title}` : "";
+    document.title = `${titles[view][0]}${projectTitle} | Cutpilot`;
+  }, [bundle?.project.title, view]);
 
   async function run(action: () => Promise<unknown>, message: string) {
     try {
@@ -105,12 +169,12 @@ export function StudioApp() {
           <span className="mark">CP</span>
           <span>
             <strong>Cutpilot</strong>
-            <small>Next mock app</small>
+            <small>AI 영상 제작 스튜디오</small>
           </span>
         </div>
         <nav className="nav" aria-label="제작 흐름">
           {(Object.keys(titles) as View[]).map((key) => (
-            <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => setView(key)}>
+            <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => goToView(key)}>
               {titles[key][0]}
             </button>
           ))}
@@ -129,18 +193,25 @@ export function StudioApp() {
             <h1>{titles[view][0]}</h1>
             <p>{titles[view][1]}</p>
           </div>
-          <span className="hint">자동 저장됨</span>
+          <div className="topbar-actions">
+            <span className="credit-pill">{creditBalance} ⚡</span>
+            <span className="hint">자동 저장됨</span>
+          </div>
         </header>
         <section className="view">
           {view === "dashboard" ? (
             <Dashboard
               projects={projects}
-              onNew={() => setView("new")}
+              onNew={() => goToView("new")}
               onOpen={async (projectId) => {
                 setSelectedProjectId(projectId);
                 setSelectedShotId(null);
-                setBundle(await studioApi.getBundle(projectId));
-                setView("storyboard");
+                const nextBundle = await studioApi.getBundle(projectId);
+                setBundle(nextBundle);
+                if (nextBundle) {
+                  setSelectedShotId(nextBundle.shots.find((shot) => shot.status === "failed")?.id || nextBundle.shots[0]?.id || null);
+                  goToView(nextViewForBundle(nextBundle));
+                }
               }}
             />
           ) : null}
@@ -154,7 +225,7 @@ export function StudioApp() {
                   setSelectedProjectId(project.id);
                   setSelectedShotId(null);
                   setBundle(await studioApi.getBundle(project.id));
-                  setView("storyboard");
+                  goToView("storyboard");
                 }, "스토리보드를 만들었습니다.")
               }
             />
@@ -163,7 +234,7 @@ export function StudioApp() {
             <Storyboard
               bundle={bundle}
               onGenerate={() => bundle && run(() => studioApi.generateAll(bundle.project.id), "전체 컷 생성을 시작했습니다.")}
-              onCompare={() => setView("compare")}
+              onCompare={() => goToView("compare")}
             />
           ) : null}
           {view === "compare" ? (
@@ -176,25 +247,26 @@ export function StudioApp() {
               onRegenerate={(shotId, scope) => run(() => studioApi.regenerate(shotId, scope), "이전 후보를 보존하고 새 후보를 생성합니다.")}
               onSelect={(shotId, takeId) => run(() => studioApi.selectTake(shotId, takeId), "선택한 후보를 저장했습니다.")}
               onUpgrade={(takeId) => run(() => studioApi.upgradeTake(takeId), "게시용 품질로 다시 다듬는 잡을 시작했습니다.")}
-              onEdit={() => setView("edit")}
+              onEdit={() => goToView("edit")}
             />
           ) : null}
-          {view === "edit" ? <Edit bundle={bundle} onExport={() => setView("export")} /> : null}
+          {view === "edit" ? <Edit bundle={bundle} onExport={() => goToView("export")} /> : null}
           {view === "export" ? (
             <ExportView
               bundle={bundle}
-              onRender={(resolution) =>
+              onRender={(resolution, caption) =>
                 bundle &&
                 run(
                   () =>
                     studioApi.startRender(bundle.project.id, [
-                      { resolution, cut: "6s", aspect: bundle.project.aspect, caption: "burn-in" },
-                      { resolution, cut: "15s", aspect: bundle.project.aspect, caption: "burn-in" },
-                      { resolution, cut: "30s", aspect: bundle.project.aspect, caption: "burn-in" }
+                      { resolution, cut: "6s", aspect: bundle.project.aspect, caption },
+                      { resolution, cut: "15s", aspect: bundle.project.aspect, caption },
+                      { resolution, cut: "30s", aspect: bundle.project.aspect, caption }
                     ]),
                   "렌더 잡 3개를 시작했습니다."
                 )
               }
+              onRenderAction={notify}
             />
           ) : null}
         </section>
@@ -209,7 +281,7 @@ function Dashboard({ projects, onNew, onOpen }: { projects: Project[]; onNew: ()
       <div className="empty">
         <div>
           <h2>아직 영상 프로젝트가 없습니다</h2>
-          <p>새 영상을 만들면 mock API가 스토리보드와 잡 상태를 생성합니다.</p>
+          <p>새 영상을 만들면 스토리보드와 생성 상태가 준비됩니다.</p>
           <button type="button" className="primary" onClick={onNew}>
             새 영상 만들기
           </button>
@@ -222,7 +294,7 @@ function Dashboard({ projects, onNew, onOpen }: { projects: Project[]; onNew: ()
       <div className="head">
         <div>
           <h2>이어서 작업하기</h2>
-          <p className="hint">Next API route와 mock service가 상태를 관리합니다.</p>
+          <p className="hint">프로젝트 상태와 렌더 진행률을 확인합니다.</p>
         </div>
         <button type="button" className="primary" onClick={onNew}>
           새 영상 만들기
@@ -265,6 +337,18 @@ function NewProject({
 }) {
   const [title, setTitle] = useState("딸기라떼 쇼츠");
   const [idea, setIdea] = useState("신메뉴 딸기라떼를 소개하는 15초 세로 쇼츠. 밝고 산뜻하며 첫 2초에 시선을 잡아야 한다.");
+  const [error, setError] = useState("");
+
+  function submit() {
+    const trimmedIdea = idea.trim();
+    if (!trimmedIdea) {
+      setError("아이디어를 입력해 주세요.");
+      return;
+    }
+    setError("");
+    onCreate({ title: title.trim(), idea: trimmedIdea, intent });
+  }
+
   return (
     <div className="panel">
       <h2>무엇을 만들까요?</h2>
@@ -272,7 +356,15 @@ function NewProject({
       <div className="grid" style={{ marginTop: 16 }}>
         <label>
           아이디어
-          <textarea value={idea} onChange={(event) => setIdea(event.target.value)} />
+          <textarea
+            value={idea}
+            aria-invalid={error ? "true" : "false"}
+            onChange={(event) => {
+              setIdea(event.target.value);
+              if (error && event.target.value.trim()) setError("");
+            }}
+          />
+          {error ? <span className="field-error">{error}</span> : null}
         </label>
         <label>
           제목
@@ -291,7 +383,7 @@ function NewProject({
         ))}
       </div>
       <div className="actions">
-        <button type="button" className="primary" onClick={() => onCreate({ title, idea, intent })}>
+        <button type="button" className="primary" onClick={submit}>
           스토리보드 만들기
         </button>
       </div>
@@ -301,6 +393,12 @@ function NewProject({
 
 function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle | null; onGenerate: () => void; onCompare: () => void }) {
   if (!bundle) return <NoProject />;
+  const activeGeneration = bundle.generationJobs.some((job) => job.status === "queued" || job.status === "running");
+  const generatableShots = bundle.shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
+  const hasGeneratedTakes = bundle.takes.length > 0;
+  const canGenerate = !activeGeneration && generatableShots.length > 0;
+  const generateCost = hasGeneratedTakes ? Math.max(12, generatableShots.length * 18) : 96;
+  const generateLabel = activeGeneration ? "생성 중" : canGenerate ? (hasGeneratedTakes ? "남은 컷 생성" : "전체 생성") : "전체 생성 완료";
   return (
     <>
       <div className="head">
@@ -311,8 +409,8 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
           </p>
         </div>
         <div className="actions" style={{ marginTop: 0 }}>
-          <button type="button" className="primary" onClick={onGenerate}>
-            전체 생성 <span className="cost">96⚡</span>
+          <button type="button" className="primary" disabled={!canGenerate} onClick={onGenerate}>
+            {generateLabel} {canGenerate ? <span className="cost">{generateCost}⚡</span> : null}
           </button>
           <button type="button" className="secondary" onClick={onCompare}>
             비교 화면
@@ -333,7 +431,7 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
                   <div className="shot-thumb">{shot.saec.framing}</div>
                   <strong>{shot.title}</strong>
                   <div className="meta">
-                    <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{statusLabel(shot.status)}</span>
+                    <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(shot)}</span>
                     <span>{tierLabel(shot.requirements.tier)}</span>
                   </div>
                   <p className="hint">{shot.saec.action}</p>
@@ -369,6 +467,9 @@ function Compare({
 }) {
   if (!bundle || !selectedShot) return <NoProject />;
   const takes = bundle.takes.filter((take) => take.shotId === selectedShot.id);
+  const hasTakes = takes.length > 0;
+  const isFailed = selectedShot.status === "failed";
+  const isGenerating = selectedShot.status === "generating" || takes.some((take) => take.status === "queued" || take.status === "running");
   return (
     <div className="grid two">
       <aside className="panel">
@@ -379,7 +480,7 @@ function Compare({
               <span>
                 {shot.order + 1}. {shot.title}
               </span>
-              <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{statusLabel(shot.status)}</span>
+              <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(shot)}</span>
             </button>
           ))}
         </div>
@@ -390,7 +491,7 @@ function Compare({
             <h2>컷 {selectedShot.order + 1} · {selectedShot.title}</h2>
             <p className="hint">{selectedShot.saec.action}</p>
           </div>
-          <span className={`badge ${selectedShot.status === "failed" ? "warn" : "fast"}`}>{statusLabel(selectedShot.status)}</span>
+          <span className={`badge ${selectedShot.status === "failed" ? "warn" : selectedShot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(selectedShot)}</span>
         </div>
         <div className="grid take-grid">
           {takes.map((take) => (
@@ -400,17 +501,27 @@ function Compare({
         {!takes.length ? <div className="empty">아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다.</div> : null}
         {selectedShot.qualityFlags[0] ? <div className="notice">{selectedShot.qualityFlags[0].hint}</div> : null}
         <div className="actions">
-          <button type="button" className="secondary" onClick={() => onGenerate(selectedShot.id)}>
-            이 컷 생성 <span className="cost">18⚡</span>
-          </button>
-          <button type="button" className="secondary" onClick={() => onRegenerate(selectedShot.id, "shot")}>
-            이 컷만 다시 <span className="cost">12⚡</span>
-          </button>
-          <button type="button" className="secondary" onClick={() => onRegenerate(selectedShot.id, "segment")}>
-            가능한 좁은 범위로 다시
-          </button>
+          {!hasTakes ? (
+            <button type="button" className="primary" disabled={isGenerating} onClick={() => onGenerate(selectedShot.id)}>
+              이 컷 생성 <span className="cost">18⚡</span>
+            </button>
+          ) : (
+            <button type="button" className={isFailed ? "primary" : "secondary"} disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "shot")}>
+              이 컷만 다시 <span className="cost">12⚡</span>
+            </button>
+          )}
+          {hasTakes ? (
+            <button type="button" className="secondary" disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "segment")}>
+              가능한 좁은 범위로 다시 <span className="cost">~12⚡</span>
+            </button>
+          ) : null}
           {selectedShot.selectedTakeId ? (
-            <button type="button" className="primary" onClick={() => onUpgrade(selectedShot.selectedTakeId as string)}>
+            <button
+              type="button"
+              className="primary"
+              title="선택한 컷을 게시용 고품질로 다시 다듬어요. 크레딧이 사용돼요."
+              onClick={() => onUpgrade(selectedShot.selectedTakeId as string)}
+            >
               게시용 품질로 다듬기 <span className="cost">22⚡</span>
             </button>
           ) : null}
@@ -428,7 +539,10 @@ function TakeCard({ shot, take, onSelect }: { shot: Shot; take: Take; onSelect: 
   return (
     <article className={`take ${selected ? "selected" : ""} ${take.status === "failed" ? "failed" : ""}`}>
       <button type="button" disabled={take.status !== "done"} onClick={() => onSelect(shot.id, take.id)}>
-        <div className="video">{take.label}</div>
+        <div className="video">
+          <strong>{take.label}</strong>
+          <span>{take.status === "done" ? "미리보기 준비 중" : take.status === "failed" ? "다시 시도 필요" : "생성 중"}</span>
+        </div>
         <div className="take-footer">
           <strong>{take.label}</strong>
           <span className={`badge ${take.status === "failed" ? "warn" : selected ? "ok" : "fast"}`}>{take.status === "done" ? (selected ? "선택됨" : "이걸로") : statusLabel(take.status)}</span>
@@ -439,7 +553,7 @@ function TakeCard({ shot, take, onSelect }: { shot: Shot; take: Take; onSelect: 
           </div>
           <div className="meta">
             <span>{tierLabel(take.tier)}</span>
-            <span>품질 {take.metrics.overall || "-"}</span>
+            <span>{qualityLabel(take)}</span>
           </div>
         </div>
       </button>
@@ -480,9 +594,20 @@ function Edit({ bundle, onExport }: { bundle: ProjectBundle | null; onExport: ()
   );
 }
 
-function ExportView({ bundle, onRender }: { bundle: ProjectBundle | null; onRender: (resolution: "720p" | "1080p" | "4k") => void }) {
+function ExportView({
+  bundle,
+  onRender,
+  onRenderAction
+}: {
+  bundle: ProjectBundle | null;
+  onRender: (resolution: "720p" | "1080p" | "4k", caption: "none" | "burn-in" | "srt" | "both") => void;
+  onRenderAction: (message: string) => void;
+}) {
   const [resolution, setResolution] = useState<"720p" | "1080p" | "4k">("1080p");
+  const [caption, setCaption] = useState<"none" | "burn-in" | "srt" | "both">("burn-in");
   if (!bundle) return <NoProject />;
+  const activeRender = bundle.renderJobs.some((job) => job.status === "queued" || job.status === "running");
+  const hasRendered = bundle.renderJobs.some((job) => job.status === "done");
   return (
     <div className="grid export-grid">
       <section className="panel">
@@ -496,9 +621,19 @@ function ExportView({ bundle, onRender }: { bundle: ProjectBundle | null; onRend
             <option value="4k">4K 내보내기 옵션</option>
           </select>
         </label>
+        <label style={{ marginTop: 16 }}>
+          자막
+          <select value={caption} onChange={(event) => setCaption(event.target.value as "none" | "burn-in" | "srt" | "both")}>
+            <option value="burn-in">자막을 영상에 새기기</option>
+            <option value="srt">자막 파일만 따로 받기</option>
+            <option value="both">영상 자막 + 자막 파일</option>
+            <option value="none">자막 없음</option>
+          </select>
+        </label>
+        <div className="notice">내보내기 시작 전 예상 비용은 48⚡, 예상 시간은 약 90초입니다. 선택한 컷과 편집 설정은 그대로 보존됩니다.</div>
         <div className="actions">
-          <button type="button" className="primary" onClick={() => onRender(resolution)}>
-            렌더 시작 <span className="cost">48⚡</span>
+          <button type="button" className="primary" disabled={activeRender} onClick={() => onRender(resolution, caption)}>
+            {activeRender ? "내보내는 중" : hasRendered ? "다시 내보내기" : "렌더 시작"} {!activeRender ? <span className="cost">48⚡</span> : null}
           </button>
         </div>
       </section>
@@ -516,10 +651,24 @@ function ExportView({ bundle, onRender }: { bundle: ProjectBundle | null; onRend
                 </div>
                 <div className="meta">
                   <span>{statusLabel(job.status)}</span>
-                  <span>{job.stage}</span>
+                  {renderStageLabel(job) ? <span>{renderStageLabel(job)}</span> : null}
                 </div>
               </div>
-              <span className={`badge ${job.status === "done" ? "ok" : "fast"}`}>{job.status === "done" ? "다운로드 준비" : "진행"}</span>
+              {job.status === "done" ? (
+                <div className="render-actions">
+                  <button type="button" className="secondary" onClick={() => onRenderAction("미리보기 화면을 준비했습니다.")}>
+                    미리보기
+                  </button>
+                  <button type="button" className="secondary" onClick={() => onRenderAction("다운로드 링크를 준비했습니다.")}>
+                    다운로드
+                  </button>
+                  <button type="button" className="secondary" onClick={() => onRenderAction("공유 링크를 클립보드에 복사할 수 있습니다.")}>
+                    공유
+                  </button>
+                </div>
+              ) : (
+                <span className="badge fast">진행</span>
+              )}
             </div>
           ))}
           {!bundle.renderJobs.length ? <div className="empty">아직 렌더 잡이 없습니다.</div> : null}

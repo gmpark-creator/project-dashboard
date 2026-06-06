@@ -14,6 +14,17 @@ import {
 
 resetMockState();
 
+assert.throws(
+  () =>
+    createProject({
+      title: "빈 입력",
+      idea: "   ",
+      intent: "shorts"
+    }),
+  /아이디어/,
+  "blank ideas should be rejected before storyboard generation"
+);
+
 const project = createProject({
   title: "테스트 쇼츠",
   idea: "딸기라떼 쇼츠",
