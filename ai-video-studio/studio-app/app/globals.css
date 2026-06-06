@@ -617,7 +617,7 @@ label {
 
 @media (max-width: 980px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .rail {
@@ -626,6 +626,7 @@ label {
     z-index: 4;
     height: auto;
     padding: 12px;
+    min-width: 0;
   }
 
   .rail::after {
@@ -649,6 +650,7 @@ label {
     overflow-x: auto;
     padding-right: 30px;
     scrollbar-width: thin;
+    min-width: 0;
   }
 
   .nav button {

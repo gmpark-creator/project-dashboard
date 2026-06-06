@@ -520,7 +520,7 @@ function AssetLibrary({
     <div className="grid image-grid">
       <section className="panel">
         <h2>외부 이미지 등록</h2>
-        <p className="hint">나노바나나, 다른 이미지 툴, 직접 촬영 사진을 등록해 Video Maker의 참조 이미지로 사용할 수 있습니다.</p>
+        <p className="hint">다른 툴에서 만든 이미지나 직접 촬영한 사진을 등록해 Video Maker의 참조 이미지로 사용할 수 있습니다.</p>
         <div className="grid" style={{ marginTop: 16 }}>
           <label>
             이미지 이름
@@ -564,6 +564,17 @@ function AssetLibrary({
   );
 }
 
+const referenceModeByRole: Partial<Record<ImageAssetRole, AssetUsage["mode"]>> = {
+  character: "character_reference",
+  product: "product_reference",
+  background: "background_reference",
+  location: "background_reference"
+};
+
+function referenceModeForRole(role: ImageAssetRole): AssetUsage["mode"] {
+  return referenceModeByRole[role] ?? "style_reference";
+}
+
 function AssetGrid({ assets, onUseAsset }: { assets: ImageAsset[]; onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void }) {
   if (!assets.length) return <div className="empty compact-empty">아직 저장된 이미지 재료가 없습니다.</div>;
   return (
@@ -584,7 +595,7 @@ function AssetGrid({ assets, onUseAsset }: { assets: ImageAsset[]; onUseAsset: (
               <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, "first_frame")}>
                 첫 프레임
               </button>
-              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, asset.role === "character" ? "character_reference" : asset.role === "product" ? "product_reference" : "style_reference")}>
+              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, referenceModeForRole(asset.role))}>
                 참조로 사용
               </button>
             </div>
