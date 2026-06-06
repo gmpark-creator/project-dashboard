@@ -335,9 +335,26 @@ export type ErrorResponse = {
   fallbackSuggested: boolean;
 };
 
+export type CreditTransaction = {
+  id: string;
+  projectId: string;
+  jobId: string | null;
+  kind: "reserve" | "capture" | "refund";
+  action: "generateImages" | "generateShot" | "upgradeTake" | "startRender";
+  credits: number;
+  balanceAfter: {
+    spent: number;
+    reserved: number;
+    available: number;
+  };
+  note: string;
+  createdAt: string;
+};
+
 export type StudioState = {
   version: number;
   credits: { balance: number; spent: number; reserved: number };
+  creditTransactions: CreditTransaction[];
   projects: Project[];
   scenes: Scene[];
   shots: Shot[];
@@ -363,5 +380,6 @@ export type ProjectBundle = {
   referenceBoard: ReferenceBoard;
   editState: EditState;
   credits: StudioState["credits"];
+  creditTransactions: CreditTransaction[];
   renderSourceHash: string;
 };

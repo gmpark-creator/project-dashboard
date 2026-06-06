@@ -260,6 +260,20 @@ const fifteenSecondRender = bundle.renderJobs.find((job) => job.spec.cut === "15
 assert.ok(fifteenSecondRender, "15s render should exist for default version selection");
 bundle = setDefaultRender(project.id, fifteenSecondRender.id) || bundle;
 assert.equal(bundle.project.defaultRenderJobId, fifteenSecondRender.id, "setDefaultRender should persist the selected render version");
+assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "reserve" && transaction.action === "generateImages"), "credit ledger should record image generation reservations");
+assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "refund" && transaction.action === "generateShot"), "credit ledger should refund failed video generations");
+assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "upgradeTake"), "credit ledger should capture publishing upgrades");
+assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "startRender"), "credit ledger should capture completed renders");
+const capturedCredits = bundle.creditTransactions
+  .filter((transaction) => transaction.kind === "capture")
+  .reduce((total, transaction) => total + transaction.credits, 0);
+const openReservedCredits = bundle.creditTransactions.reduce((total, transaction) => {
+  if (transaction.kind === "reserve") return total + transaction.credits;
+  if (transaction.kind === "capture" || transaction.kind === "refund") return total - transaction.credits;
+  return total;
+}, 0);
+assert.equal(bundle.credits.spent, capturedCredits, "spent credits should match captured ledger entries");
+assert.equal(bundle.credits.reserved, Math.max(0, openReservedCredits), "reserved credits should match open ledger reservations");
 const renderedBundle = bundle;
 assert.ok(
   renderedBundle.renderJobs.every((job) => job.renderPlan.shots.length + job.renderPlan.missingShotIds.length === renderedBundle.shots.length),

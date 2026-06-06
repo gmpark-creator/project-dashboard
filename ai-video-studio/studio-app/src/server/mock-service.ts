@@ -8,6 +8,7 @@ import type {
   AssetDeleteResult,
   AssetUsage,
   AssetUsageMode,
+  CreditTransaction,
   EditState,
   ExportSpec,
   GenerationJob,
@@ -98,6 +99,7 @@ function blankState(): StudioState {
   return {
     version: 1,
     credits: { balance: 1240, spent: 0, reserved: 0 },
+    creditTransactions: [],
     projects: [],
     scenes: [],
     shots: [],
@@ -113,7 +115,8 @@ function blankState(): StudioState {
 }
 
 function normalizeState(current: StudioState): StudioState {
-  const next = current as StudioState & Partial<Pick<StudioState, "imageAssets" | "imageJobs" | "referenceBoards">>;
+  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "imageAssets" | "imageJobs" | "referenceBoards">>;
+  if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
   if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
   if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
   if (!next.referenceBoards) next.referenceBoards = {};
@@ -178,6 +181,44 @@ export function reloadMockStateFromDisk() {
 
 export function getMockState() {
   return tickJobs();
+}
+
+function availableCredits(current: StudioState) {
+  return Math.max(0, current.credits.balance - current.credits.spent - current.credits.reserved);
+}
+
+function addCreditTransaction(
+  current: StudioState,
+  input: Omit<CreditTransaction, "id" | "balanceAfter" | "createdAt">
+) {
+  const transaction: CreditTransaction = {
+    id: uid("ctx"),
+    ...input,
+    balanceAfter: {
+      spent: current.credits.spent,
+      reserved: current.credits.reserved,
+      available: availableCredits(current)
+    },
+    createdAt: now()
+  };
+  current.creditTransactions.push(transaction);
+  return transaction;
+}
+
+function reserveCredits(current: StudioState, input: { projectId: string; jobId: string | null; action: CreditTransaction["action"]; credits: number; note: string }) {
+  current.credits.reserved += input.credits;
+  return addCreditTransaction(current, { ...input, kind: "reserve" });
+}
+
+function captureReservedCredits(current: StudioState, input: { projectId: string; jobId: string | null; action: CreditTransaction["action"]; credits: number; note: string }) {
+  current.credits.reserved = Math.max(0, current.credits.reserved - input.credits);
+  current.credits.spent += input.credits;
+  return addCreditTransaction(current, { ...input, kind: "capture" });
+}
+
+function refundReservedCredits(current: StudioState, input: { projectId: string; jobId: string | null; action: CreditTransaction["action"]; credits: number; note: string }) {
+  current.credits.reserved = Math.max(0, current.credits.reserved - input.credits);
+  return addCreditTransaction(current, { ...input, kind: "refund" });
 }
 
 function defaultEditState(projectId: string): EditState {
@@ -451,6 +492,7 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
     referenceBoard: current.referenceBoards[project.id],
     editState: current.editState[project.id] || defaultEditState(project.id),
     credits: current.credits,
+    creditTransactions: current.creditTransactions.filter((transaction) => transaction.projectId === project.id),
     renderSourceHash: buildRenderSourceHash(current, project.id)
   };
 }
@@ -712,7 +754,7 @@ export function createImageJob(input: {
     error: null
   };
   current.imageJobs.unshift(job);
-  current.credits.reserved += count * 4;
+  reserveCredits(current, { projectId: project.id, jobId: job.id, action: "generateImages", credits: count * 4, note: "Image Maker variants reserved" });
   write(current);
   return { job };
 }
@@ -919,8 +961,8 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
     const job = makeGenerationJob(current, shot, take, shouldFailShot, promptPackage, routing);
     takes.push(take);
     jobs.push(job);
+    reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation reserved" });
   }
-  current.credits.reserved += takeCount * 6;
   refreshProject(current, shot.projectId);
   write(current);
   return { takes, jobs };
@@ -983,7 +1025,7 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   take.upgradeMode = options.mode || "final_regenerate";
   const job = makeGenerationJob(current, shot, take, false, promptPackage, routing);
   shot.status = "generating";
-  current.credits.reserved += 22;
+  reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "upgradeTake", credits: 22, note: "Publishing quality upgrade reserved" });
   refreshProject(current, shot.projectId);
   write(current);
   return { take, job };
@@ -1187,7 +1229,9 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   }));
   current.renderJobs.push(...jobs);
   project.status = "rendering";
-  current.credits.reserved += jobs.length * 16;
+  for (const job of jobs) {
+    reserveCredits(current, { projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render reserved` });
+  }
   write(current);
   return { jobs };
 }
@@ -1262,8 +1306,7 @@ export function tickJobs() {
           scoreLabel: index === 0 ? "추천" : variant.scoreLabel
         };
       });
-      current.credits.reserved = Math.max(0, current.credits.reserved - job.count * 4);
-      current.credits.spent += job.count * 4;
+      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants completed" });
     }
   }
 
@@ -1290,6 +1333,7 @@ export function tickJobs() {
           fallbackSuggested: true
         };
         if (take) failTake(take);
+        refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation failed and was refunded" });
         if (shot) {
           shot.status = "failed";
           shot.qualityFlags = [
@@ -1321,8 +1365,14 @@ export function tickJobs() {
             ];
           }
         }
-        current.credits.reserved = Math.max(0, current.credits.reserved - 6);
-        current.credits.spent += 6;
+        const credits = take?.upgradeSourceTakeId ? 22 : 6;
+        captureReservedCredits(current, {
+          projectId: job.projectId,
+          jobId: job.id,
+          action: take?.upgradeSourceTakeId ? "upgradeTake" : "generateShot",
+          credits,
+          note: take?.upgradeSourceTakeId ? "Publishing quality upgrade completed" : "Video take generation completed"
+        });
       }
       if (shot) refreshProject(current, shot.projectId);
     }
@@ -1343,8 +1393,7 @@ export function tickJobs() {
       job.stage = "done";
       job.outputUrl = mockVideoUrl(job.id);
       job.shareUrl = mockShareUrl(job.id);
-      current.credits.reserved = Math.max(0, current.credits.reserved - 16);
-      current.credits.spent += 16;
+      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed` });
       const project = current.projects.find((item) => item.id === job.projectId);
       if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;
       if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {

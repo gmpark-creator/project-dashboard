@@ -50,6 +50,7 @@ for (const defName of [
   "ImageAsset",
   "ImageJob",
   "AssetUsageMode",
+  "CreditTransaction",
   "DirectionSpec",
   "EditAudioPatch",
   "EditCommandInput",

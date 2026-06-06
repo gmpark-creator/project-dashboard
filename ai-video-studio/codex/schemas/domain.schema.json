@@ -152,6 +152,31 @@
         "reserved": { "type": "number", "minimum": 0 }
       }
     },
+    "CreditTransaction": {
+      "type": "object",
+      "required": ["id", "projectId", "jobId", "kind", "action", "credits", "balanceAfter", "note", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^ctx_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "jobId": { "type": ["string", "null"] },
+        "kind": { "type": "string", "enum": ["reserve", "capture", "refund"] },
+        "action": { "type": "string", "enum": ["generateImages", "generateShot", "upgradeTake", "startRender"] },
+        "credits": { "type": "number", "minimum": 0 },
+        "balanceAfter": {
+          "type": "object",
+          "required": ["spent", "reserved", "available"],
+          "additionalProperties": false,
+          "properties": {
+            "spent": { "type": "number", "minimum": 0 },
+            "reserved": { "type": "number", "minimum": 0 },
+            "available": { "type": "number", "minimum": 0 }
+          }
+        },
+        "note": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "Scene": {
       "type": "object",
       "required": ["id", "projectId", "order", "title"],
@@ -475,6 +500,7 @@
         "referenceBoard",
         "editState",
         "credits",
+        "creditTransactions",
         "renderSourceHash"
       ],
       "additionalProperties": false,
@@ -490,6 +516,7 @@
         "referenceBoard": { "$ref": "#/$defs/ReferenceBoard" },
         "editState": { "$ref": "#/$defs/EditState" },
         "credits": { "$ref": "#/$defs/StudioCredits" },
+        "creditTransactions": { "type": "array", "items": { "$ref": "#/$defs/CreditTransaction" } },
         "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
       }
     },
@@ -741,6 +768,7 @@
   "properties": {
     "project": { "$ref": "#/$defs/Project" },
     "projectBundle": { "$ref": "#/$defs/ProjectBundle" },
+    "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
