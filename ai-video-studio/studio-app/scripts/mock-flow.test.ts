@@ -106,6 +106,10 @@ assert.ok(bundle, "bundle should exist after generation");
 
 const failedShots = bundle.shots.filter((shot) => shot.status === "failed");
 assert.equal(failedShots.length, 2, "mock generation should inject exactly 2 failed shots");
+const doneTakes = bundle.takes.filter((take) => take.status === "done");
+assert.ok(doneTakes.length > 0, "mock generation should produce playable done takes");
+assert.ok(doneTakes.every((take) => take.videoUrl?.startsWith("https://interactive-examples.mdn.mozilla.net/")), "done takes should expose browser-playable video URLs");
+assert.ok(doneTakes.every((take) => take.posterUrl?.startsWith("data:image/svg+xml")), "done takes should expose inline SVG poster URLs");
 const firstShotId = bundle.shots[0].id;
 const secondShotId = bundle.shots[1].id;
 
@@ -203,6 +207,9 @@ bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after render");
 assert.equal(bundle.renderJobs.length, 3, "render should create 3 jobs");
 assert.ok(bundle.renderJobs.every((job) => job.status === "done"), "render jobs should complete when forced due");
+assert.ok(bundle.renderJobs.every((job) => job.outputUrl?.startsWith("https://interactive-examples.mdn.mozilla.net/")), "done render jobs should expose browser-playable output URLs");
+assert.ok(bundle.renderJobs.every((job) => job.shareUrl?.startsWith("https://cutpilot.local/share/")), "done render jobs should expose share URLs");
+assert.ok(bundle.project.thumbUrl?.startsWith("data:image/svg+xml"), "done projects should keep a poster thumbnail");
 const renderedBundle = bundle;
 assert.ok(
   renderedBundle.renderJobs.every((job) => job.renderPlan.shots.length + job.renderPlan.missingShotIds.length === renderedBundle.shots.length),

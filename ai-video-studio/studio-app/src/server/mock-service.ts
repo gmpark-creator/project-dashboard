@@ -44,6 +44,26 @@ function uid(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const PLAYABLE_MOCK_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+
+function mockVideoUrl(id: string) {
+  return `${PLAYABLE_MOCK_VIDEO_URL}#${encodeURIComponent(id)}`;
+}
+
+function mockShareUrl(id: string) {
+  return `https://cutpilot.local/share/${encodeURIComponent(id)}`;
+}
+
+function svgText(input: string) {
+  return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function mockPosterUrl(id: string, label: string) {
+  const hue = [...id].reduce((total, char) => total + char.charCodeAt(0), 0) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="hsl(${hue},70%,26%)"/><stop offset="1" stop-color="hsl(${(hue + 80) % 360},70%,44%)"/></linearGradient></defs><rect width="1080" height="1920" fill="url(#g)"/><circle cx="810" cy="420" r="220" fill="rgba(255,255,255,.14)"/><rect x="104" y="1230" width="872" height="264" rx="36" fill="rgba(0,0,0,.34)"/><text x="140" y="1340" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="white">Cutpilot preview</text><text x="140" y="1438" font-family="Arial, sans-serif" font-size="34" fill="rgba(255,255,255,.82)">${svgText(label)}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 function blankState(): StudioState {
   return {
     version: 1,
@@ -749,8 +769,8 @@ function makeGenerationJob(
 
 function completeTake(take: Take, shot: Shot) {
   take.status = "done";
-  take.videoUrl = `mock://video/${take.id}.mp4`;
-  take.posterUrl = `mock://poster/${take.id}.jpg`;
+  take.videoUrl = mockVideoUrl(take.id);
+  take.posterUrl = mockPosterUrl(take.id, `Shot ${shot.order + 1} option ${take.label}`);
   const motion = shot.order === 4 || shot.order === 8 ? 2 : 4 + ((shot.order + take.label.length) % 2);
   take.metrics = {
     fidelity: 4,
@@ -1202,14 +1222,14 @@ export function tickJobs() {
       job.status = "done";
       job.progress = 1;
       job.stage = "done";
-      job.outputUrl = `mock://render/${job.id}.mp4`;
-      job.shareUrl = `mock://share/${job.id}`;
+      job.outputUrl = mockVideoUrl(job.id);
+      job.shareUrl = mockShareUrl(job.id);
       current.credits.reserved = Math.max(0, current.credits.reserved - 16);
       current.credits.spent += 16;
       const project = current.projects.find((item) => item.id === job.projectId);
       if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {
         project.status = "done";
-        project.thumbUrl = `mock://poster/${job.id}.jpg`;
+        project.thumbUrl = mockPosterUrl(job.id, "Final render");
       }
     }
   }
