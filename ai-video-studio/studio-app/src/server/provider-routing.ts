@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { GenerationPromptPackage, ProviderRouteTarget, ProviderRoutingDecision, Shot, Tier } from "../domain/types";
 
+export type ProviderHealthStatus = "healthy" | "degraded" | "down";
+
 type RoutingRule = {
   id: string;
   when: Partial<Record<"needsLipsyncAudio" | "imageToVideo" | "motionHeavy", boolean> & { tier: Tier }>;
@@ -34,6 +36,27 @@ function readConfig<T>(fileName: string): T {
 
 const routing = readConfig<RoutingConfig>("routing.config.json");
 const capabilities = readConfig<CapabilitiesConfig>("provider-capabilities.json");
+const providerHealthOverrides = new Map<string, { status: ProviderHealthStatus; reason: string | null; checkedAt: string }>();
+
+function routeKey(target: ProviderRouteTarget) {
+  return `${target.provider}:${target.model}`;
+}
+
+export function setProviderHealth(target: ProviderRouteTarget, status: ProviderHealthStatus, reason: string | null = null) {
+  if (status === "healthy") {
+    providerHealthOverrides.delete(routeKey(target));
+    return;
+  }
+  providerHealthOverrides.set(routeKey(target), {
+    status,
+    reason,
+    checkedAt: new Date().toISOString()
+  });
+}
+
+export function resetProviderHealth() {
+  providerHealthOverrides.clear();
+}
 
 function findModel(target: ProviderRouteTarget) {
   const provider = capabilities.providers.find((item) => item.provider === target.provider);
@@ -57,13 +80,20 @@ function canAcceptInput(model: ProviderModel, promptPackage: GenerationPromptPac
   return inputs.some((input) => input === "image" || input === "image_keyframe" || input === "first_last_frames");
 }
 
-function rejectionReason(model: ProviderModel | null, shot: Shot, promptPackage: GenerationPromptPackage) {
+function healthRejectionReason(target: ProviderRouteTarget) {
+  const health = providerHealthOverrides.get(routeKey(target));
+  return health?.status === "down" ? "provider_health" : null;
+}
+
+function rejectionReason(target: ProviderRouteTarget, model: ProviderModel | null, shot: Shot, promptPackage: GenerationPromptPackage) {
   if (!model) return "unknown_model";
   if (!canAcceptInput(model, promptPackage)) return "input_type";
   if (model.aspectRatios && !model.aspectRatios.includes(shot.requirements.aspect)) return "aspect_ratio";
   if (shot.requirements.resolution && model.resolutions && !model.resolutions.includes(shot.requirements.resolution)) return "resolution";
   if (model.durationSec && Math.max(...model.durationSec) < shot.durationSec) return "duration";
   if (shot.requirements.needsLipsyncAudio && model.supportsAudio === false) return "audio_capability";
+  const healthReason = healthRejectionReason(target);
+  if (healthReason) return healthReason;
   return null;
 }
 
@@ -72,7 +102,7 @@ function eligibleTargets(rule: RoutingRule, shot: Shot, promptPackage: Generatio
   const rejected: ProviderRoutingDecision["rejected"] = [];
   for (const target of rule.use) {
     const model = findModel(target);
-    const reason = rejectionReason(model, shot, promptPackage);
+    const reason = rejectionReason(target, model, shot, promptPackage);
     if (reason) {
       rejected.push({ ...target, reason });
     } else {

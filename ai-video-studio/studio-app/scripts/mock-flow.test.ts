@@ -25,6 +25,7 @@ import {
   updateStoryboard,
   upgradeTake
 } from "../src/server/mock-service";
+import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 
 const originalPersist = process.env.CUTPILOT_MOCK_PERSIST;
 const defaultStateFile = join(process.cwd(), "data", "cutpilot-mock-state.json");
@@ -173,6 +174,26 @@ assert.deepEqual(
   ["luma:ray-flash-2", "runway:gen4_turbo", "google-vertex:veo-3.1-fast-generate-001"],
   "fast image-to-video takes should split across configured provider candidates"
 );
+const referencedShot = bundle.shots.find((shot) => shot.id === firstShotId);
+assert.ok(referencedShot, "referenced shot should exist for provider health routing checks");
+setProviderHealth({ provider: "luma", model: "ray-flash-2" }, "down", "synthetic outage");
+const reroutedForHealth = chooseProviderRoute(referencedShot, referencedShotJob.promptPackage, 0);
+assert.equal(reroutedForHealth.selected.provider, "runway", "down provider candidates should be skipped before route selection");
+assert.ok(
+  reroutedForHealth.rejected.some((target) => target.provider === "luma" && target.model === "ray-flash-2" && target.reason === "provider_health"),
+  "provider health exclusions should be recorded in routing rejections"
+);
+setProviderHealth({ provider: "runway", model: "gen4_turbo" }, "down", "synthetic outage");
+setProviderHealth({ provider: "google-vertex", model: "veo-3.1-fast-generate-001" }, "down", "synthetic outage");
+const allDownFallbackRoute = chooseProviderRoute(referencedShot, referencedShotJob.promptPackage, 0);
+assert.equal(allDownFallbackRoute.selected.provider, "mock", "all-down provider sets should fall back to the mock adapter target");
+assert.equal(allDownFallbackRoute.selected.model, "fallback", "all-down provider sets should use the mock fallback model");
+assert.equal(
+  allDownFallbackRoute.rejected.filter((target) => target.reason === "provider_health").length,
+  3,
+  "all configured image-to-video candidates should be rejected for provider health before mock fallback"
+);
+resetProviderHealth();
 assert.deepEqual(
   referencedShotJob.promptPackage.routingHints.characterReferenceAssetIds,
   [externalAsset.id],
