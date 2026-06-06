@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -141,6 +141,38 @@ function renderStageLabel(job: RenderJob) {
 function progress(project: Project) {
   if (!project.progress.shotsTotal) return 0;
   return Math.round((project.progress.shotsDone / project.progress.shotsTotal) * 100);
+}
+
+// 크레딧 거래의 action(서버 내부 식별자)을 운영자용 한국어 작업 이름으로 바꾼다. 사용자에게
+// generateImages/startRender 같은 내부 식별자나 잡/프로바이더/모델 id는 노출하지 않는다.
+const creditActionLabels: Record<CreditTransaction["action"], string> = {
+  generateImages: "이미지 후보 생성",
+  generateShot: "영상 컷 생성",
+  upgradeTake: "게시용 품질 업그레이드",
+  startRender: "영상 내보내기"
+};
+
+// 거래 종류(reserve/capture/refund)별 라벨·배지 톤. 예약=보류(시안), 사용 확정=실제 차감(골드),
+// 환불=되돌려줌(초록). 톤만으로 방향을 읽을 수 있게 해 사인(+/−) 혼동을 피한다.
+const creditKindMeta: Record<CreditTransaction["kind"], { label: string; tone: string }> = {
+  reserve: { label: "예약", tone: "fast" },
+  capture: { label: "사용 확정", tone: "spend" },
+  refund: { label: "환불", tone: "ok" }
+};
+
+// 거래 시각을 "방금 / N분 전 / N시간 전 / N일 전"의 짧은 상대 시간으로 표시한다. 운영 화면에서
+// 빠르게 훑기 좋고, 정확한 타임스탬프(초 단위)는 굳이 노출하지 않는다.
+function formatLedgerTime(iso: string) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diffSec = Math.round((Date.now() - then) / 1000);
+  if (diffSec < 60) return "방금";
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  return `${day}일 전`;
 }
 
 function nextViewForBundle(nextBundle: ProjectBundle) {
@@ -1540,6 +1572,7 @@ function ExportView({
   const staleSource = Boolean(preview && preview.sourceHash !== bundle.renderSourceHash);
   const previewStale = staleSpec || staleSource;
   return (
+    <>
     <div className="grid export-grid">
       <section className="panel">
         <h2>내보내기 형식</h2>
@@ -1606,6 +1639,53 @@ function ExportView({
         )}
       </section>
     </div>
+    <CreditLedger transactions={bundle.creditTransactions} />
+    </>
+  );
+}
+
+// 이 프로젝트의 최근 크레딧 예약·확정·환불을 한눈에 보여주는 운영용 요약. 서버가 주는
+// bundle.creditTransactions는 오래된→최신 순이라 뒤에서 잘라 최신순으로 뒤집어 최근 항목만 노출한다.
+// 잡/프로바이더/모델 id 같은 내부 식별자는 표시하지 않고, 사람이 읽는 작업 이름·종류·남은 크레딧·
+// 상대 시각만 보여준다.
+function CreditLedger({ transactions }: { transactions: CreditTransaction[] }) {
+  const recent = useMemo(() => transactions.slice(-8).reverse(), [transactions]);
+  return (
+    <section className="panel ledger">
+      <div className="head">
+        <div>
+          <h2>크레딧 사용 내역</h2>
+          <p className="hint">이 프로젝트의 최근 크레딧 예약·사용 확정·환불을 보여줍니다.</p>
+        </div>
+        {recent.length ? <span className="badge">최근 {recent.length}건</span> : null}
+      </div>
+      {recent.length ? (
+        <ul className="ledger-list">
+          {recent.map((tx) => {
+            const meta = creditKindMeta[tx.kind];
+            return (
+              <li className="ledger-row" key={tx.id}>
+                <div className="ledger-main">
+                  <span className={`badge ${meta.tone}`}>{meta.label}</span>
+                  <span className="ledger-action">{creditActionLabels[tx.action]}</span>
+                </div>
+                <div className="ledger-side">
+                  <strong className={`ledger-amount${tx.kind === "refund" ? " is-refund" : ""}`}>
+                    {tx.kind === "refund" ? "+" : ""}
+                    {tx.credits}⚡
+                  </strong>
+                  <span className="ledger-meta">
+                    남은 {tx.balanceAfter.available}⚡ · {formatLedgerTime(tx.createdAt)}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="empty" style={{ minHeight: 120 }}>아직 크레딧 사용 내역이 없습니다.</div>
+      )}
+    </section>
   );
 }
 
