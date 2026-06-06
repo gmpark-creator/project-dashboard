@@ -1,0 +1,41 @@
+{
+  "intent": "product_ad",
+  "label": "제품 광고",
+  "defaults": {
+    "aspect": "9:16",
+    "durationSec": 30,
+    "durationCuts": [6, 15, 30],
+    "shotCount": { "min": 6, "max": 12 },
+    "shotDurationSec": { "min": 2, "max": 4 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "auto",
+    "voiceover": "optional"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": true,
+    "characterLock": false
+  },
+  "storyboardSkeleton": [
+    { "role": "product_hero_closeup" },
+    { "role": "usage_or_lifestyle", "count": [2, 4] },
+    { "role": "differentiator", "count": [1, 3] },
+    { "role": "cta" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "",
+    "environment": "",
+    "camera": "부드러운 푸시인 또는 오비트",
+    "framing": "제품이 명확한 클로즈업",
+    "lighting": "깨끗한 키라이트, 제품 표면 강조",
+    "style": "밝고 선명한 광고 톤",
+    "negative": "손 왜곡, 로고 왜곡, 텍스트 깨짐, 플리커, 모핑"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true,
+    "avoidGeneratedText": true
+  }
+}

@@ -249,7 +249,7 @@ const screens = {
   },
 
   compare(){ return `
-    <div class="note">화면 4 · <b>생성 결과 비교·선택</b> (앱의 심장) — 컷마다 후보 A/B/C 나란히. 모델명 대신 「A안」. 실패/불만 컷만 재생성. 만족하면 1클릭 「고품질 승급」.</div>
+    <div class="note">화면 4 · <b>생성 결과 비교·선택</b> (앱의 심장) — 컷마다 후보 A/B/C 나란히. 모델명 대신 「A안」. 실패/불만 컷만 재생성. 만족하면 1클릭 「게시용 품질로 다듬기」.</div>
     <div class="between"><div class="row"><b>봄 신상 광고 · 컷 검토</b><span class="dim small">7/9 생성완료 (부분 진행)</span></div>
       <button class="btn primary" onclick="go('edit')">고품질로 모두 확정 → <span class="cost">+96 ⚡</span></button></div>
     <div class="grid" style="grid-template-columns:200px 1fr;margin-top:14px">
@@ -271,11 +271,14 @@ const screens = {
         </div>
         <div class="row" style="margin-top:14px">
           <button class="btn">↻ 이 컷 다시 <span class="cost">6 ⚡</span></button>
-          <button class="btn">✂ 이 부분만 다시</button>
-          <button class="btn primary">✨ 고품질 승급 <span class="cost" style="color:#06101f;background:rgba(255,255,255,.3);border:0">12 ⚡</span></button>
+          <button class="btn" title="이전 후보는 그대로 보존돼요. 가능한 가장 좁은 범위로 다시 시도하고, 안 되면 컷 전체를 새로 만들어요.">✂ 이 부분만 다시</button>
+          <button class="btn primary" title="선택한 컷을 게시용 고품질로 다시 다듬어요. 크레딧이 사용돼요.">✨ 게시용 품질로 다듬기 <span class="cost" style="color:#06101f;background:rgba(255,255,255,.3);border:0">12 ⚡</span></button>
         </div>
         <div class="card pad" style="margin-top:14px;background:rgba(251,113,133,.07);border-color:rgba(251,113,133,.3)">
           <span class="badge b-warn">⚠ 자동검사</span> <span class="small">컷 2.3 「한 모금 리액션」에서 <b>모션 흔들림</b>이 의심돼요 — 이 컷만 다시 생성할까요?</span>
+        </div>
+        <div class="card pad" style="margin-top:10px;background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.3)">
+          <span class="badge b-fast">↻ 다시 시도 중</span> <span class="small">컷 2.2는 <b>다른 방식으로 다시 시도</b>하고 있어요 — 이전 후보는 보존돼요. (나머지 컷은 그대로 진행)</span>
         </div>
         <div class="small dim" style="margin-top:12px">프롬프트: "딸기라떼 클로즈업, 김이 모락, 빨대가 꽂힌다 …" <span class="chip" style="padding:2px 8px">✎ 손보기</span></div>
       </div>
@@ -296,6 +299,7 @@ const screens = {
           <span class="toggle on" onclick="tg(this)"><span class="sw"></span>내레이션 · 보이스A ▾</span>
           <span class="toggle" onclick="tg(this)"><span class="sw"></span>전환 부드럽게</span>
         </div>
+        <div class="small dim" style="margin-top:8px">🔒 라이선스 확인된 사운드만 제공해요 · 직접 올린 음원·AI 보이스는 본인이 사용 권리를 가진 것만 사용해 주세요.</div>
         <div class="row" style="margin-top:14px"><span class="chip" onclick="this.parentElement.nextElementSibling.classList.toggle('hide')">▾ 타임라인 (고급)</span></div>
         <div class="timeline hide">
           <div class="tl-row"><span class="lab">🎬 컷</span>
@@ -313,7 +317,8 @@ const screens = {
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <div class="card pad">
         <h2 class="sec" style="margin-top:0">형식</h2>
-        <div class="small dim">해상도</div><div class="seg" style="margin:6px 0 12px"><button>720p</button><button class="on">1080p</button><button>4K ✨</button></div>
+        <div class="small dim">해상도</div><div class="seg" style="margin:6px 0 4px"><button>720p</button><button class="on">1080p</button><button>4K</button></div>
+        <div class="small dim" style="margin:0 0 12px;font-size:11px">4K는 고해상도 마무리 옵션 — 지원되면 그대로, 아니면 업스케일로 처리해요.</div>
         <div class="small dim">길이컷 (다중 선택)</div>
         <div class="row" style="margin:6px 0 12px"><span class="toggle on" onclick="tg(this)"><span class="sw"></span>6s 훅</span><span class="toggle on" onclick="tg(this)"><span class="sw"></span>15s 표준</span><span class="toggle on" onclick="tg(this)"><span class="sw"></span>30s 풀</span></div>
         <div class="small dim">비율 파생</div><div class="row" style="margin:6px 0 12px"><span class="chip">9:16 원본</span><span class="chip">16:9</span><span class="chip">1:1</span></div>

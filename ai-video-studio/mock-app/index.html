@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cutpilot Mock App - AI Video Studio</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail" aria-label="주요 화면">
+      <div class="brand">
+        <span class="brand-mark">CP</span>
+        <span>
+          <strong id="brandName">Cutpilot</strong>
+          <small>Mock vertical slice</small>
+        </span>
+      </div>
+      <nav class="nav" id="nav">
+        <button type="button" data-view="dashboard" class="active">프로젝트</button>
+        <button type="button" data-view="new">새 영상</button>
+        <button type="button" data-view="storyboard">스토리보드</button>
+        <button type="button" data-view="compare">비교 선택</button>
+        <button type="button" data-view="edit">다듬기</button>
+        <button type="button" data-view="export">내보내기</button>
+      </nav>
+      <div class="rail-footer">
+        <div class="credit-box">
+          <span>크레딧</span>
+          <strong id="creditBalance">1,240 ⚡</strong>
+        </div>
+        <button type="button" class="subtle-button" data-action="reset-demo">데모 초기화</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">프로젝트</h1>
+          <p id="pageSubtitle">정적 GitHub Pages에서 동작하는 mock backend vertical slice</p>
+        </div>
+        <div class="topbar-meta">
+          <span class="save-dot"></span>
+          <span id="saveState">자동 저장됨</span>
+        </div>
+      </header>
+      <section id="toast" class="toast" hidden></section>
+      <section id="view" class="view" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <script src="./mock-api.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

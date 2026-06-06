@@ -3,6 +3,8 @@
 > **작업명: "Cutpilot"** (가칭 — 아이디어를 넣으면 컷을 알아서 연출·생성·완성하는 AI 영상 제작 앱). 정식 명칭은 디렉터 결정 사항. → [열린 질문](design/06-frontend-backend-contract.md#9-열린-질문-codex디렉터-결정-대기)
 >
 > 🔗 **클릭형 프로토타입(라이브):** https://gmpark-creator.github.io/project-dashboard/ai-video-studio/prototype/ · 로컬: [`prototype/index.html`](prototype/index.html)
+>
+> 🔗 **Codex mock vertical slice:** https://gmpark-creator.github.io/project-dashboard/ai-video-studio/mock-app/ · 로컬: [`mock-app/index.html`](mock-app/index.html)
 
 이 폴더는 **Claude가 맡은 영역의 산출물**입니다: **UX/제품 설계 + 프론트엔드 방향**.
 백엔드·DB·큐·모델 API 어댑터·렌더링 파이프라인·검증은 **Codex 영역**이며, 여기서는 **구현하지 않고 요구사항·인터페이스 계약·UX 기준만** 제안합니다.
@@ -53,14 +55,17 @@
 | 💰 **저비용** | 적당한 품질·최저가 | 대량 생성/예산 모드, 사용자가 명시 선택 시 |
 
 ### 백엔드가 매핑하는 엔진 (2026-06 기준 — 변동성 높음, Codex가 출시 시 재검증)
+
+> **Codex R1 보정:** 아래 표는 Claude Thesis의 제품 가설이며, 실제 구현 기준은 [codex/config/provider-capabilities.json](codex/config/provider-capabilities.json)과 [codex/config/routing.config.json](codex/config/routing.config.json)이다. 공식 문서 확인 결과 `Runway gen4_turbo`는 image-to-video 후보로 취급하고, Vertex Veo 3.1의 4K는 제품 보장 기능이 아니라 export/upscale 옵션으로 분리한다.
+
 | 사용자 의도/요구 | 1차 추천 엔진 | 대안 | 이유 |
 |---|---|---|---|
-| 빠른 드래프트(무음) | **Gen-4 Turbo** / **Ray 2 Flash** | Veo 3.1 Lite | 초당 비용 최저, 반복에 적합 |
+| 빠른 드래프트(무음) | **Veo 3.1 Fast** / **Ray 2 Flash** | Gen-4 Turbo(이미지 입력 시) | 초당 비용과 입력 타입 필터를 함께 고려 |
 | 고품질 최종(시네마틱·캐릭터 일관) | **Runway Gen-4.5** | Veo 3.1 | 리더보드 1위, 멀티샷 일관성 |
 | **대사/립싱크·네이티브 사운드 필요** | **Veo 3.1** | Gen-4.5 | 유일하게 대사 립싱크+SFX 단일 생성 |
 | **이미지→영상 / 제품 / 자연 물리모션**(물·천·머릿결) | **Luma Ray 2** | Gen-4.5 | 모션 코히런스 최상, API 생태계 넓음 |
 | 세로 소셜 + 사운드 | **Veo 3.1**(9:16 네이티브 오디오) | Gen-4.5 | 립싱크 세로 컷 |
-| 4K 필요 | **Veo 3.1** | Gen-4.5(업스케일) | Veo만 네이티브 4K |
+| 4K 필요 | **렌더/업스케일 옵션** | provider 지원 시 직접 생성 | 기본 계약은 720p/1080p, 4K는 capability 확인 후 |
 
 > ⚠️ **엔진 스펙은 빠르게 바뀐다.** Gen-4.5(2025-12-01 출시)·Veo 3.1(2025-10)·Ray 2(2025, 현재 Ray 3가 상위)·각 모델 오디오 지원·API 가용성은 [엔진 리서치 부록](design/07-engine-research-appendix.md)에 출처와 함께 기록. **라우팅 테이블은 "데이터"로 분리**해 Codex가 코드 수정 없이 갱신할 수 있어야 한다(→ 계약 §4).
 
@@ -78,6 +83,15 @@
 | [06-frontend-backend-contract.md](design/06-frontend-backend-contract.md) | 프론트가 기대하는 데이터 모델·잡 추상화·API 표면(요구사항) + 열린 질문 | (Codex 통합용 추가) |
 | [07-engine-research-appendix.md](design/07-engine-research-appendix.md) | 엔진 3종 정밀 비교(출처 포함) — 라우팅 근거 | (그라운딩 근거) |
 | [prototype/index.html](prototype/index.html) | **클릭형 프로토타입** — 6개 화면 실물 목업(목 데이터) | (②③ 시각화) |
+| [codex/README.md](codex/README.md) | **Codex Antithesis R1** — 아키텍처·오픈질문 답변·OpenAPI·Schema·라우팅 config | Codex 구현/검증 진입점 |
+| [mock-app/index.html](mock-app/index.html) | **Codex mock vertical slice** — 정적 페이지에서 mock API·잡 상태·실패/재시도/렌더 플로우 구현 | MVP 구현 착수 |
+
+### Codex R1 핵심 보강
+
+- `Runway/Veo/Luma`는 화면에 노출하지 않고, `provider-capabilities.json`과 `routing.config.json`이 현재 가능한 엔진만 고른다.
+- 공식 문서 기준으로 `Runway gen4_turbo`는 image-to-video 입력으로 취급한다. text-only fast 기본값에 하드코딩하지 않는다.
+- Vertex Veo 3.1은 제품 계약에서 720p/1080p, 4/6/8초 제한을 기본으로 둔다. 4K는 provider 보장 기능이 아니라 export/upscale 옵션으로 분리한다.
+- "부분 재생성"과 "고품질 승급"은 UX 라벨은 유지하되, 내부에서는 provider capability에 따라 `segment retake`, `full shot regenerate`, `final regenerate`, `enhance`, `render upscale`로 분기한다.
 
 ## 3. 용어 (Glossary) — 프론트/백 공통 어휘
 | 용어 | 정의 |

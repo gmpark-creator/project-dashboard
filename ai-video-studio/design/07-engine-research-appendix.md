@@ -2,6 +2,8 @@
 
 라우팅·티어·품질기준의 **근거**. 2026-06 기준 웹 리서치(5 에이전트 병렬, 출처 하단). ⚠ **엔진은 빠르게 바뀐다 — Codex는 출시 직전 재검증할 것.**
 
+> **Codex R1 보정(2026-06-06):** 이 부록은 Claude Thesis의 리서치 원문이다. 실제 구현 기준은 `codex/config/provider-capabilities.json`과 `codex/config/routing.config.json`이다. Codex 공식문서 재확인 기준으로 `Runway gen4_turbo`는 image-to-video 후보로 필터링하고, Vertex Veo 3.1의 4K는 제품 보장 기능이 아니라 export/upscale 옵션으로 분리한다.
+
 ## 비교 표 (의사결정 관련 특성만)
 | 항목 | Runway **Gen-4.5** | Luma **Ray 2** | Google **Veo 3.1** |
 |---|---|---|---|

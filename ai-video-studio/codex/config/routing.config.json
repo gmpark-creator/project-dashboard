@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "0.1.0",
+  "verifiedAt": "2026-06-06",
+  "hideEngineFromUser": true,
+  "defaultTakePolicy": {
+    "economy": { "takeCount": 1, "splitAcrossProviders": false },
+    "fast": { "takeCount": 3, "splitAcrossProviders": "budget_allows" },
+    "final": { "takeCount": 1, "splitAcrossProviders": false }
+  },
+  "filters": [
+    "inputType",
+    "aspectRatio",
+    "durationSec",
+    "resolution",
+    "regionPolicy",
+    "audioCapability",
+    "providerHealth",
+    "budget"
+  ],
+  "fallbackOnError": true,
+  "rules": [
+    {
+      "id": "lipsync-or-native-audio",
+      "when": { "needsLipsyncAudio": true },
+      "use": [
+        { "provider": "google-vertex", "model": "veo-3.1-generate-001" },
+        { "provider": "runway", "model": "veo3.1" }
+      ],
+      "notes": "Audio/lipsync support must be reverified per account. If unavailable, route to silent video + TTS/post audio."
+    },
+    {
+      "id": "image-to-video-fast",
+      "when": { "imageToVideo": true, "tier": "fast" },
+      "use": [
+        { "provider": "luma", "model": "ray-flash-2" },
+        { "provider": "runway", "model": "gen4_turbo" },
+        { "provider": "google-vertex", "model": "veo-3.1-fast-generate-001" }
+      ]
+    },
+    {
+      "id": "image-to-video-final",
+      "when": { "imageToVideo": true, "tier": "final" },
+      "use": [
+        { "provider": "luma", "model": "ray-2" },
+        { "provider": "runway", "model": "gen4.5" },
+        { "provider": "google-vertex", "model": "veo-3.1-generate-001" }
+      ]
+    },
+    {
+      "id": "motion-heavy",
+      "when": { "motionHeavy": true },
+      "use": [
+        { "provider": "luma", "model": "ray-2" },
+        { "provider": "runway", "model": "gen4.5" },
+        { "provider": "google-vertex", "model": "veo-3.1-generate-001" }
+      ]
+    },
+    {
+      "id": "final-cinematic",
+      "when": { "tier": "final" },
+      "use": [
+        { "provider": "runway", "model": "gen4.5" },
+        { "provider": "google-vertex", "model": "veo-3.1-generate-001" },
+        { "provider": "luma", "model": "ray-2" }
+      ]
+    },
+    {
+      "id": "economy",
+      "when": { "tier": "economy" },
+      "use": [
+        { "provider": "luma", "model": "ray-flash-2" },
+        { "provider": "google-vertex", "model": "veo-3.1-fast-generate-001" }
+      ]
+    },
+    {
+      "id": "fast-text-draft",
+      "when": { "tier": "fast" },
+      "use": [
+        { "provider": "google-vertex", "model": "veo-3.1-fast-generate-001" },
+        { "provider": "luma", "model": "ray-flash-2" },
+        { "provider": "runway", "model": "veo3.1_fast" }
+      ],
+      "notes": "Do not use runway gen4_turbo for text-only requests unless a keyframe image has already been generated."
+    }
+  ],
+  "segmentRegeneratePolicy": {
+    "preferred": "provider_segment_retake",
+    "fallbacks": ["provider_video_edit", "full_shot_regenerate"],
+    "preservePreviousTakes": true
+  },
+  "upgradePolicy": {
+    "default": "final_regenerate",
+    "fallbacks": ["enhance", "render_upscale"],
+    "preserveSourceTake": true
+  }
+}

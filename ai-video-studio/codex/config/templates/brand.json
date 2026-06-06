@@ -1,0 +1,42 @@
+{
+  "intent": "brand",
+  "label": "브랜드 캠페인",
+  "defaults": {
+    "aspect": "16:9",
+    "durationSec": 60,
+    "durationCuts": [15, 30, 60],
+    "shotCount": { "min": 15, "max": 30 },
+    "shotDurationSec": { "min": 2, "max": 5 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "auto",
+    "voiceover": "optional"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": false,
+    "characterLock": true
+  },
+  "storyboardSkeleton": [
+    { "role": "emotional_opening" },
+    { "role": "brand_world", "count": [3, 6] },
+    { "role": "product_or_service_integration", "count": [3, 6] },
+    { "role": "aspirational_resolution" },
+    { "role": "logo_tagline_endcard" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "",
+    "environment": "",
+    "camera": "시네마틱 dolly 또는 crane move",
+    "framing": "브랜드 세계관이 느껴지는 구성",
+    "lighting": "일관된 컬러 사이언스와 무드",
+    "style": "프리미엄 브랜드 캠페인",
+    "negative": "브랜드 로고 왜곡, 텍스트 생성 오류, 톤 불일치, 플리커"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true,
+    "lockStyleAcrossShots": true
+  }
+}

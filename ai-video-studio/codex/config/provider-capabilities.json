@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "0.1.0",
+  "verifiedAt": "2026-06-06",
+  "notes": [
+    "Capability snapshot is a routing input, not a product promise.",
+    "Re-verify provider docs and account entitlements before production launch.",
+    "UI must not expose provider or model names to end users."
+  ],
+  "sources": {
+    "runwayModels": "https://docs.dev.runwayml.com/guides/models/",
+    "lumaVideo": "https://docs.lumalabs.ai/docs/video-generation",
+    "googleVeo31": "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/veo/3-1-generate",
+    "adobeFireflyApi": "https://developer.adobe.com/firefly-services/docs/firefly-api/api/"
+  },
+  "providers": [
+    {
+      "provider": "runway",
+      "displayNameInternal": "Runway API",
+      "models": [
+        {
+          "id": "gen4.5",
+          "kind": "video",
+          "input": ["text", "image"],
+          "output": "video",
+          "supportsAudio": "unknown",
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["final", "cinematic", "character_consistency"],
+          "source": "runwayModels"
+        },
+        {
+          "id": "gen4_turbo",
+          "kind": "video",
+          "input": ["image"],
+          "output": "video",
+          "supportsAudio": false,
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["fast", "image_to_video"],
+          "source": "runwayModels"
+        },
+        {
+          "id": "veo3.1",
+          "kind": "video",
+          "input": ["text", "image"],
+          "output": "video",
+          "supportsAudio": "provider_dependent",
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["final", "audio_candidate", "veo_hosted"],
+          "source": "runwayModels"
+        },
+        {
+          "id": "veo3.1_fast",
+          "kind": "video",
+          "input": ["text", "image"],
+          "output": "video",
+          "supportsAudio": "provider_dependent",
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["fast", "audio_candidate", "veo_hosted"],
+          "source": "runwayModels"
+        }
+      ]
+    },
+    {
+      "provider": "luma",
+      "displayNameInternal": "Luma Dream Machine API",
+      "models": [
+        {
+          "id": "ray-2",
+          "kind": "video",
+          "input": ["text", "image"],
+          "output": "video",
+          "modelParam": "ray-2",
+          "resolutions": ["540p", "720p", "1080p", "4k"],
+          "supportsAudio": false,
+          "supportsLoop": true,
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["image_to_video", "motion_heavy", "product", "final"],
+          "source": "lumaVideo"
+        },
+        {
+          "id": "ray-flash-2",
+          "kind": "video",
+          "input": ["text", "image"],
+          "output": "video",
+          "modelParam": "ray-flash-2",
+          "supportsAudio": false,
+          "supportsLoop": true,
+          "supportsSegmentRetake": "unknown",
+          "routingTags": ["fast", "economy", "image_to_video"],
+          "source": "lumaVideo"
+        }
+      ]
+    },
+    {
+      "provider": "google-vertex",
+      "displayNameInternal": "Google Vertex AI Veo",
+      "models": [
+        {
+          "id": "veo-3.1-generate-001",
+          "kind": "video",
+          "input": ["text", "image", "first_last_frames"],
+          "output": "video",
+          "aspectRatios": ["16:9", "9:16"],
+          "resolutions": ["720p", "1080p"],
+          "fps": [24],
+          "durationSec": [4, 6, 8],
+          "maxVideosPerRequest": 4,
+          "maxRequestsPerMinutePerProject": 50,
+          "promptLanguages": ["en"],
+          "supportsPromptRewrite": true,
+          "supportsReferenceImageToVideo": false,
+          "supportsVideoExtension": false,
+          "supportsSegmentRetake": false,
+          "supportsAudio": "provider_dependent",
+          "routingTags": ["final", "audio_candidate", "short_clip"],
+          "source": "googleVeo31"
+        },
+        {
+          "id": "veo-3.1-fast-generate-001",
+          "kind": "video",
+          "input": ["text", "image", "first_last_frames"],
+          "output": "video",
+          "aspectRatios": ["16:9", "9:16"],
+          "resolutions": ["720p", "1080p"],
+          "fps": [24],
+          "durationSec": [4, 6, 8],
+          "maxVideosPerRequest": 4,
+          "maxRequestsPerMinutePerProject": 50,
+          "promptLanguages": ["en"],
+          "supportsPromptRewrite": true,
+          "supportsReferenceImageToVideo": false,
+          "supportsVideoExtension": false,
+          "supportsSegmentRetake": false,
+          "supportsAudio": "provider_dependent",
+          "routingTags": ["fast", "audio_candidate", "short_clip"],
+          "source": "googleVeo31"
+        }
+      ]
+    },
+    {
+      "provider": "adobe-firefly",
+      "displayNameInternal": "Adobe Firefly API",
+      "models": [
+        {
+          "id": "video1_standard",
+          "kind": "video",
+          "input": ["text", "image_keyframe"],
+          "output": "video",
+          "durationSec": [5],
+          "asyncJob": true,
+          "supportsCameraControls": true,
+          "supportsSegmentRetake": false,
+          "supportsAudio": false,
+          "routingTags": ["brand_safe_optional", "licensed_workflow"],
+          "source": "adobeFireflyApi"
+        }
+      ]
+    }
+  ]
+}

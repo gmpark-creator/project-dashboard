@@ -131,19 +131,21 @@ RenderJob = 확정 Take들 + 자막/BGM/보이스 → MP4   GenerationJob = 1 Ta
 | 동시 생성 | Project당 병렬 컷 수 상한(플랜별) |
 | 에러 포맷 | `{code, userMessage(한국어), retryable, fallbackSuggested}` 표준 |
 
-## 9. 열린 질문 (Codex/디렉터 결정 대기)
-| ❓ | 질문 | 영향 |
-|---|---|---|
-| Q1 | **정식 제품명** ("Cutpilot"은 가칭) | 브랜딩·워드마크 |
-| Q2 | 분해(decomposeIdea)에 쓸 **LLM 제공자** | Codex 어댑터, 구조화 출력 |
-| Q3 | 비교용 Take를 **다른 엔진으로 분산**할지 vs 같은 엔진 다른 시드 | 비용·다양성·라우팅 |
-| Q4 | "고품질 승급"은 **재생성**인가 **업스케일**인가(또는 둘 다) | 비용·일관성·품질 |
-| Q5 | 서브클립(2~16s) 부분 재생성의 **엔진 지원 범위** | UX-5.2 실현성 |
-| Q6 | BGM·보이스(TTS) **소스/라이선스** | 음악 라이브러리·음성 제공자 |
-| Q7 | 자막: STT 자동생성 vs 대본 기반 — **기본값** | 화면5 동작 |
-| Q8 | 크레딧↔달러 환산·플랜 구조 | 결제·티어 노출 |
-| Q9 | Veo 얼굴 **지역 제한**(EU/UK/CH/MENA) 처리 정책 | 라우팅 필터·UX 안내 |
-| Q10 | 최종 산출물의 **대시보드 등록 여부**(프로젝트 번호/색) | G.M.PARK 릴레이 번호 체계 |
+## 9. 열린 질문 — **Codex R1에서 1차 해소됨** ([codex/02-decisions-and-open-questions.md](../codex/02-decisions-and-open-questions.md))
+> 권위 계약은 이제 `codex/` 산출물(OpenAPI·domain.schema·routing.config·provider-capabilities). 아래는 Codex 1차 결정 요약. 디렉터 확정 필요 항목은 ❓ 유지.
+
+| Q | Codex 1차 결정 |
+|---|---|
+| Q1 정식명 | ❓ `Cutpilot`은 codename, `PUBLIC_PRODUCT_NAME` 설정값으로. 브랜드 미고정 |
+| Q2 분해 LLM | `StoryDecomposer` 어댑터, 기본 OpenAI Structured Outputs, `DECOMPOSER_PROVIDER`로 분리(mock/anthropic 가능) |
+| Q3 Take 분산 | economy=1 / fast=2primary+1fallback / final=동일ref 1 |
+| Q4 승급 | UX 1버튼, 내부 `final_regenerate`(기본)·`enhance`·`render_upscale` → **R2 카피 "게시용 품질로 다듬기"** |
+| Q5 부분재생성 | `scope=segment` 수신, capability 따라 segment retake / video-to-video / shot 폴백 + 이전 Take 보존 → **R2 UX-5.2 반영** |
+| Q6 BGM/TTS | `AudioProviderAdapter` 별도, asset 단위 license metadata, 스크래핑·클론 금지 → **R2 §12·08§6 반영** |
+| Q7 자막 | script-first, 없으면 STT, 무음은 LLM 초안+사용자 확인 |
+| Q8 크레딧 | 프론트 ⚡만, 내부 ledger(usd·reserve·capture). MVP free sandbox credits |
+| Q9 지역제한 | `provider-capabilities.json.policyConstraints` + 라우터 필터(코드 조건문 아님), 출시 직전 재검증 |
+| Q10 대시보드 등록 | ❓ 보류 — backend MVP+1 provider live 후 카드 등록 권장(번호는 디렉터) |
 
 ## 10. 변증법 핸드오프 (Codex Antithesis 요청 사항)
 Codex가 반박/보강해 주길 바라는 지점:

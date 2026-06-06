@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gmpark-creator.github.io/project-dashboard/ai-video-studio/codex/schemas/domain.schema.json",
+  "title": "AI Video Studio Domain Schema",
+  "type": "object",
+  "$defs": {
+    "Intent": {
+      "type": "string",
+      "enum": ["shorts", "product_ad", "app_intro", "real_estate", "education", "brand"]
+    },
+    "Tier": {
+      "type": "string",
+      "enum": ["fast", "economy", "final"]
+    },
+    "Aspect": {
+      "type": "string",
+      "enum": ["9:16", "16:9", "1:1", "4:5"]
+    },
+    "ProjectStatus": {
+      "type": "string",
+      "enum": ["draft", "storyboarded", "generating", "reviewing", "edited", "rendering", "done", "failed"]
+    },
+    "ShotStatus": {
+      "type": "string",
+      "enum": ["pending", "generating", "reviewing", "selected", "failed"]
+    },
+    "JobStatus": {
+      "type": "string",
+      "enum": ["queued", "running", "done", "failed", "cancelled"]
+    },
+    "SAEC": {
+      "type": "object",
+      "required": ["subject", "action", "environment", "camera", "framing", "lighting", "style", "negative"],
+      "additionalProperties": false,
+      "properties": {
+        "subject": { "type": "string" },
+        "action": { "type": "string" },
+        "environment": { "type": "string" },
+        "camera": { "type": "string" },
+        "framing": { "type": "string" },
+        "lighting": { "type": "string" },
+        "style": { "type": "string" },
+        "negative": { "type": "string" }
+      }
+    },
+    "ShotRequirements": {
+      "type": "object",
+      "required": ["tier", "aspect", "imageToVideo", "needsLipsyncAudio", "motionHeavy", "characterLock"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": { "$ref": "#/$defs/Tier" },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "resolution": { "type": "string", "enum": ["540p", "720p", "1080p", "4k"] },
+        "imageToVideo": { "type": "boolean" },
+        "needsLipsyncAudio": { "type": "boolean" },
+        "motionHeavy": { "type": "boolean" },
+        "characterLock": { "type": "boolean" },
+        "characterId": { "type": ["string", "null"] },
+        "region": { "type": "string" }
+      }
+    },
+    "QualityFlag": {
+      "type": "object",
+      "required": ["axis", "score", "hint"],
+      "additionalProperties": false,
+      "properties": {
+        "axis": {
+          "type": "string",
+          "enum": ["fidelity", "consistency", "motion", "transition", "audio", "completeness"]
+        },
+        "score": { "type": "number", "minimum": 1, "maximum": 5 },
+        "hint": { "type": "string" }
+      }
+    },
+    "Project": {
+      "type": "object",
+      "required": ["id", "title", "intent", "status", "aspect", "targetDurationSec", "progress", "createdAt", "updatedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^prj_" },
+        "title": { "type": "string" },
+        "intent": { "$ref": "#/$defs/Intent" },
+        "status": { "$ref": "#/$defs/ProjectStatus" },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "targetDurationSec": { "type": "integer", "minimum": 1 },
+        "progress": {
+          "type": "object",
+          "required": ["shotsDone", "shotsTotal"],
+          "additionalProperties": false,
+          "properties": {
+            "shotsDone": { "type": "integer", "minimum": 0 },
+            "shotsTotal": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "characters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Character" },
+          "default": []
+        },
+        "thumbUrl": { "type": ["string", "null"], "format": "uri" },
+        "credits": { "$ref": "#/$defs/CreditSummary" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Character": {
+      "type": "object",
+      "required": ["id", "label", "refImageUrls"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^chr_" },
+        "label": { "type": "string" },
+        "refImageUrls": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "CreditSummary": {
+      "type": "object",
+      "required": ["spent", "estimateRemaining"],
+      "additionalProperties": false,
+      "properties": {
+        "spent": { "type": "number", "minimum": 0 },
+        "estimateRemaining": { "type": "number", "minimum": 0 }
+      }
+    },
+    "Scene": {
+      "type": "object",
+      "required": ["id", "projectId", "order", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^scn_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "order": { "type": "integer", "minimum": 0 },
+        "title": { "type": "string" },
+        "setting": { "type": "string" },
+        "timeOfDay": { "type": "string" }
+      }
+    },
+    "Shot": {
+      "type": "object",
+      "required": ["id", "sceneId", "order", "durationSec", "saec", "requirements", "status", "selectedTakeId", "qualityFlags"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^sht_" },
+        "sceneId": { "type": "string", "pattern": "^scn_" },
+        "order": { "type": "integer", "minimum": 0 },
+        "durationSec": { "type": "number", "minimum": 1, "maximum": 16 },
+        "saec": { "$ref": "#/$defs/SAEC" },
+        "requirements": { "$ref": "#/$defs/ShotRequirements" },
+        "status": { "$ref": "#/$defs/ShotStatus" },
+        "selectedTakeId": { "type": ["string", "null"], "pattern": "^tak_" },
+        "qualityFlags": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/QualityFlag" }
+        }
+      }
+    },
+    "Take": {
+      "type": "object",
+      "required": ["id", "shotId", "label", "status", "durationSec", "tier", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^tak_" },
+        "shotId": { "type": "string", "pattern": "^sht_" },
+        "label": { "type": "string" },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "videoUrl": { "type": ["string", "null"], "format": "uri" },
+        "posterUrl": { "type": ["string", "null"], "format": "uri" },
+        "durationSec": { "type": "number", "minimum": 1 },
+        "tier": { "$ref": "#/$defs/Tier" },
+        "engineUsed": { "type": ["string", "null"], "description": "Internal/debug only; never render in user UI." },
+        "metrics": { "$ref": "#/$defs/TakeMetrics" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "TakeMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fidelity": { "type": "number", "minimum": 1, "maximum": 5 },
+        "consistency": { "type": "number", "minimum": 1, "maximum": 5 },
+        "motion": { "type": "number", "minimum": 1, "maximum": 5 },
+        "transition": { "type": "number", "minimum": 1, "maximum": 5 },
+        "audio": { "type": "number", "minimum": 1, "maximum": 5 },
+        "completeness": { "type": "number", "minimum": 1, "maximum": 5 },
+        "overall": { "type": "number", "minimum": 1, "maximum": 5 }
+      }
+    },
+    "GenerationJob": {
+      "type": "object",
+      "required": ["id", "shotId", "takeId", "status", "progress", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^gen_" },
+        "shotId": { "type": "string", "pattern": "^sht_" },
+        "takeId": { "type": "string", "pattern": "^tak_" },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 },
+        "stage": { "type": "string" },
+        "error": { "$ref": "#/$defs/ErrorResponse" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "RenderJob": {
+      "type": "object",
+      "required": ["id", "projectId", "spec", "stage", "progress", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^rnd_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "spec": { "$ref": "#/$defs/ExportSpec" },
+        "stage": {
+          "type": "string",
+          "enum": ["assemble", "audio_mix", "caption_burn", "encode", "upscale", "done"]
+        },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "outputUrl": { "type": ["string", "null"], "format": "uri" },
+        "shareUrl": { "type": ["string", "null"], "format": "uri" },
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "ExportSpec": {
+      "type": "object",
+      "required": ["resolution", "cut", "aspect", "caption"],
+      "additionalProperties": false,
+      "properties": {
+        "resolution": { "type": "string", "enum": ["720p", "1080p", "4k"] },
+        "cut": { "type": "string", "enum": ["6s", "15s", "30s", "full"] },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "caption": { "type": "string", "enum": ["none", "burn-in", "srt", "both"] }
+      }
+    },
+    "CostEstimate": {
+      "type": "object",
+      "required": ["credits", "etaSec"],
+      "additionalProperties": false,
+      "properties": {
+        "credits": { "type": "number", "minimum": 0 },
+        "etaSec": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ErrorResponse": {
+      "type": ["object", "null"],
+      "required": ["code", "userMessage", "retryable", "fallbackSuggested"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "userMessage": { "type": "string" },
+        "retryable": { "type": "boolean" },
+        "fallbackSuggested": { "type": "boolean" }
+      }
+    }
+  },
+  "properties": {
+    "project": { "$ref": "#/$defs/Project" },
+    "scene": { "$ref": "#/$defs/Scene" },
+    "shot": { "$ref": "#/$defs/Shot" },
+    "take": { "$ref": "#/$defs/Take" },
+    "generationJob": { "$ref": "#/$defs/GenerationJob" },
+    "renderJob": { "$ref": "#/$defs/RenderJob" }
+  }
+}

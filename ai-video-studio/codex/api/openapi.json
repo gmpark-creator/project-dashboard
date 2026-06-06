@@ -1,0 +1,447 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Video Studio API",
+    "version": "0.1.0",
+    "description": "Semantic API contract for the Cutpilot/AI Video Studio MVP. Provider/model names are internal only."
+  },
+  "servers": [
+    { "url": "https://api.example.local" }
+  ],
+  "paths": {
+    "/projects": {
+      "get": {
+        "operationId": "listProjects",
+        "responses": {
+          "200": {
+            "description": "Project list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projects": {
+                      "type": "array",
+                      "items": { "$ref": "../schemas/domain.schema.json#/$defs/Project" }
+                    }
+                  },
+                  "required": ["projects"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createProject",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["intent", "idea"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "intent": { "$ref": "../schemas/domain.schema.json#/$defs/Intent" },
+                  "idea": { "type": "string" },
+                  "advanced": {
+                    "type": "object",
+                    "properties": {
+                      "aspect": { "$ref": "../schemas/domain.schema.json#/$defs/Aspect" },
+                      "durationSec": { "type": "integer", "minimum": 1 },
+                      "tier": { "$ref": "../schemas/domain.schema.json#/$defs/Tier" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created project",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Project" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storyboard/decompose": {
+      "post": {
+        "operationId": "decomposeIdea",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["idea", "intent"],
+                "properties": {
+                  "idea": { "type": "string" },
+                  "intent": { "$ref": "../schemas/domain.schema.json#/$defs/Intent" },
+                  "script": { "type": "string" },
+                  "attachments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["url", "kind"],
+                      "properties": {
+                        "url": { "type": "string", "format": "uri" },
+                        "kind": { "type": "string", "enum": ["image", "script", "product_url", "reference"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured storyboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["scenes", "shots"],
+                  "properties": {
+                    "scenes": {
+                      "type": "array",
+                      "items": { "$ref": "../schemas/domain.schema.json#/$defs/Scene" }
+                    },
+                    "shots": {
+                      "type": "array",
+                      "items": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/storyboard": {
+      "put": {
+        "operationId": "updateStoryboard",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scenes": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Scene" } },
+                  "shots": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Storyboard updated" }
+        }
+      }
+    },
+    "/shots/{shotId}/generate": {
+      "post": {
+        "operationId": "generateShot",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tier": { "$ref": "../schemas/domain.schema.json#/$defs/Tier" },
+                  "takeCount": { "type": "integer", "minimum": 1, "maximum": 3 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Generation jobs queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "takes": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Take" } },
+                    "jobs": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" } }
+                  },
+                  "required": ["takes", "jobs"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/generate-all": {
+      "post": {
+        "operationId": "generateAll",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tier": { "$ref": "../schemas/domain.schema.json#/$defs/Tier" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": { "description": "Project generation queued" }
+        }
+      }
+    },
+    "/shots/{shotId}/select-take": {
+      "post": {
+        "operationId": "selectTake",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["takeId"],
+                "properties": {
+                  "takeId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Take selected" }
+        }
+      }
+    },
+    "/shots/{shotId}/regenerate": {
+      "post": {
+        "operationId": "regenerate",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scope"],
+                "properties": {
+                  "scope": { "type": "string", "enum": ["shot", "segment"] },
+                  "range": {
+                    "type": "object",
+                    "properties": {
+                      "startSec": { "type": "number", "minimum": 0 },
+                      "endSec": { "type": "number", "minimum": 0 }
+                    }
+                  },
+                  "tweaks": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": { "description": "Regeneration queued" }
+        }
+      }
+    },
+    "/takes/{takeId}/upgrade": {
+      "post": {
+        "operationId": "upgradeTake",
+        "parameters": [
+          { "name": "takeId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mode": { "type": "string", "enum": ["auto", "final_regenerate", "enhance", "render_upscale"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": { "description": "Upgrade queued" }
+        }
+      }
+    },
+    "/projects/{projectId}/edits": {
+      "post": {
+        "operationId": "applyEdit",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "command": { "type": "string" },
+                  "ops": { "type": "array", "items": { "type": "object" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Edit state updated" }
+        }
+      }
+    },
+    "/projects/{projectId}/audio": {
+      "put": {
+        "operationId": "setAudio",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "captions": { "type": "array", "items": { "type": "object" } },
+                  "bgm": { "type": "object" },
+                  "voiceover": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Audio state updated" }
+        }
+      }
+    },
+    "/cost/estimate": {
+      "post": {
+        "operationId": "estimateCost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action", "params"],
+                "properties": {
+                  "action": { "type": "string" },
+                  "params": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cost estimate",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CostEstimate" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/renders": {
+      "post": {
+        "operationId": "startRender",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["specs"],
+                "properties": {
+                  "specs": {
+                    "type": "array",
+                    "items": { "$ref": "../schemas/domain.schema.json#/$defs/ExportSpec" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Render jobs queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": { "$ref": "../schemas/domain.schema.json#/$defs/RenderJob" }
+                    }
+                  },
+                  "required": ["jobs"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{jobId}": {
+      "get": {
+        "operationId": "getJob",
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" },
+                    { "$ref": "../schemas/domain.schema.json#/$defs/RenderJob" }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

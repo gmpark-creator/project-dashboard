@@ -1,0 +1,40 @@
+{
+  "intent": "shorts",
+  "label": "쇼츠",
+  "defaults": {
+    "aspect": "9:16",
+    "durationSec": 15,
+    "durationCuts": [6, 15, 30],
+    "shotCount": { "min": 4, "max": 10 },
+    "shotDurationSec": { "min": 1, "max": 2 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "auto",
+    "voiceover": "optional"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": false,
+    "characterLock": false
+  },
+  "storyboardSkeleton": [
+    { "role": "hook", "durationSec": 2, "note": "0~2초 내 훅" },
+    { "role": "develop", "count": [3, 6] },
+    { "role": "highlight" },
+    { "role": "cta_or_loop" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "",
+    "environment": "",
+    "camera": "",
+    "framing": "",
+    "lighting": "",
+    "style": "네이티브, 산뜻한 팝",
+    "negative": "흔들림, 플리커, 모핑, 프레임 불일치"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true
+  }
+}

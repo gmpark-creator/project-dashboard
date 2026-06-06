@@ -1,0 +1,41 @@
+{
+  "intent": "app_intro",
+  "label": "앱 소개",
+  "defaults": {
+    "aspect": "16:9",
+    "durationSec": 60,
+    "durationCuts": [15, 30, 60],
+    "shotCount": { "min": 8, "max": 15 },
+    "shotDurationSec": { "min": 3, "max": 6 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "auto",
+    "voiceover": "recommended"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": false,
+    "characterLock": false
+  },
+  "storyboardSkeleton": [
+    { "role": "problem_hook", "durationSec": 6 },
+    { "role": "solution_reveal", "durationSec": 10 },
+    { "role": "feature_walkthrough", "count": [3, 5] },
+    { "role": "cta" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "",
+    "environment": "",
+    "camera": "안정적인 dolly 또는 screen overlay",
+    "framing": "명확한 미디엄 샷",
+    "lighting": "모던하고 신뢰감 있는 조명",
+    "style": "클린 SaaS 소개 영상",
+    "negative": "가짜 UI 생성, 읽기 어려운 텍스트, 흔들림, 플리커"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true,
+    "mustUseRealScreenRecordingForUi": true
+  }
+}

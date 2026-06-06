@@ -1,0 +1,41 @@
+{
+  "intent": "education",
+  "label": "교육",
+  "defaults": {
+    "aspect": "16:9",
+    "durationSec": 60,
+    "durationCuts": [30, 60, 90],
+    "shotCount": { "min": 3, "max": 8 },
+    "shotDurationSec": { "min": 3, "max": 8 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "none",
+    "voiceover": "recommended"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": false,
+    "characterLock": true
+  },
+  "storyboardSkeleton": [
+    { "role": "concept_statement" },
+    { "role": "demonstration", "count": [1, 3] },
+    { "role": "visual_explanation", "count": [1, 3] },
+    { "role": "summary" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "",
+    "environment": "깨끗한 설명 공간",
+    "camera": "안정적인 미디엄 샷",
+    "framing": "개념과 시연이 명확한 구도",
+    "lighting": "밝고 균일한 조명",
+    "style": "명료한 교육 영상",
+    "negative": "불명확한 손동작, 읽기 어려운 텍스트, 과한 시네마틱 효과"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true,
+    "prioritizeClarityOverCinematic": true
+  }
+}

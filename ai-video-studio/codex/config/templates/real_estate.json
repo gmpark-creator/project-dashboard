@@ -1,0 +1,42 @@
+{
+  "intent": "real_estate",
+  "label": "공간 소개",
+  "defaults": {
+    "aspect": "16:9",
+    "durationSec": 90,
+    "durationCuts": [30, 60, 90],
+    "shotCount": { "min": 15, "max": 30 },
+    "shotDurationSec": { "min": 3, "max": 5 },
+    "tier": "fast",
+    "captions": "burn-in",
+    "bgm": "auto",
+    "voiceover": "optional"
+  },
+  "requirementHints": {
+    "needsLipsyncAudio": false,
+    "motionHeavy": true,
+    "characterLock": false
+  },
+  "storyboardSkeleton": [
+    { "role": "exterior_establishing", "durationSec": 6 },
+    { "role": "main_space_tour", "count": [6, 12] },
+    { "role": "room_details", "count": [6, 12] },
+    { "role": "outdoor_or_amenities", "count": [2, 4] },
+    { "role": "contact_cta" }
+  ],
+  "saecFieldDefaults": {
+    "subject": "",
+    "action": "느리고 부드러운 워크스루",
+    "environment": "",
+    "camera": "안정적인 gimbal walk-through",
+    "framing": "공간이 넓게 보이는 와이드",
+    "lighting": "자연광과 실내 조명의 균형",
+    "style": "차분하고 고급스러운 투어 영상",
+    "negative": "빠른 컷, 벽 휘어짐, 공간 왜곡, 플리커"
+  },
+  "promptRules": {
+    "maxWords": 150,
+    "onePrimaryMotionPerShot": true,
+    "avoidImpossibleCameraMoves": true
+  }
+}
