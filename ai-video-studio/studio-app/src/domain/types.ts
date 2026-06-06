@@ -407,6 +407,46 @@ export type RuntimeReadiness = {
   }>;
 };
 
+export type JobStatusCounts = Record<JobStatus, number>;
+
+export type SystemMetrics = {
+  generatedAt: string;
+  projects: {
+    total: number;
+    active: number;
+    done: number;
+    failed: number;
+  };
+  jobs: {
+    generation: JobStatusCounts;
+    image: JobStatusCounts;
+    render: JobStatusCounts;
+  };
+  credits: {
+    balance: number;
+    spent: number;
+    reserved: number;
+    available: number;
+    captured: number;
+    refunded: number;
+  };
+  providerAttempts: {
+    total: number;
+    succeeded: number;
+    failed: number;
+    cancelled: number;
+    retryableFailures: number;
+    fallbackSuggested: number;
+    avgLatencyMs: number | null;
+  };
+  mediaArtifacts: {
+    total: number;
+    images: number;
+    videos: number;
+    external: number;
+  };
+};
+
 export type StudioState = {
   version: number;
   credits: { balance: number; spent: number; reserved: number };

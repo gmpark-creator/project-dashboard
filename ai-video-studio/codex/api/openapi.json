@@ -744,6 +744,21 @@
         }
       }
     },
+    "/system/metrics": {
+      "get": {
+        "operationId": "getSystemMetrics",
+        "responses": {
+          "200": {
+            "description": "Aggregated mock runtime metrics for operations review",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/SystemMetrics" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

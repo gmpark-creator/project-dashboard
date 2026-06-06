@@ -62,6 +62,7 @@ for (const defName of [
   "ProviderRoutingDecision",
   "ProjectBundle",
   "RuntimeReadiness",
+  "SystemMetrics",
   "RenderSourceHash",
   "RenderPreview",
   "RenderPlan",
@@ -88,7 +89,8 @@ const requiredOperations = new Set([
   "updateStoryboard",
   "updateShotDirection",
   "generateShot",
-  "getRuntimeReadiness"
+  "getRuntimeReadiness",
+  "getSystemMetrics"
 ]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {

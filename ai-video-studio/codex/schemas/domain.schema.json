@@ -245,6 +245,85 @@
         }
       }
     },
+    "JobStatusCounts": {
+      "type": "object",
+      "required": ["queued", "running", "done", "failed", "cancelled"],
+      "additionalProperties": false,
+      "properties": {
+        "queued": { "type": "integer", "minimum": 0 },
+        "running": { "type": "integer", "minimum": 0 },
+        "done": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "cancelled": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "SystemMetrics": {
+      "type": "object",
+      "required": ["generatedAt", "projects", "jobs", "credits", "providerAttempts", "mediaArtifacts"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "projects": {
+          "type": "object",
+          "required": ["total", "active", "done", "failed"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "active": { "type": "integer", "minimum": 0 },
+            "done": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "jobs": {
+          "type": "object",
+          "required": ["generation", "image", "render"],
+          "additionalProperties": false,
+          "properties": {
+            "generation": { "$ref": "#/$defs/JobStatusCounts" },
+            "image": { "$ref": "#/$defs/JobStatusCounts" },
+            "render": { "$ref": "#/$defs/JobStatusCounts" }
+          }
+        },
+        "credits": {
+          "type": "object",
+          "required": ["balance", "spent", "reserved", "available", "captured", "refunded"],
+          "additionalProperties": false,
+          "properties": {
+            "balance": { "type": "number", "minimum": 0 },
+            "spent": { "type": "number", "minimum": 0 },
+            "reserved": { "type": "number", "minimum": 0 },
+            "available": { "type": "number", "minimum": 0 },
+            "captured": { "type": "number", "minimum": 0 },
+            "refunded": { "type": "number", "minimum": 0 }
+          }
+        },
+        "providerAttempts": {
+          "type": "object",
+          "required": ["total", "succeeded", "failed", "cancelled", "retryableFailures", "fallbackSuggested", "avgLatencyMs"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "succeeded": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "cancelled": { "type": "integer", "minimum": 0 },
+            "retryableFailures": { "type": "integer", "minimum": 0 },
+            "fallbackSuggested": { "type": "integer", "minimum": 0 },
+            "avgLatencyMs": { "type": ["number", "null"], "minimum": 0 }
+          }
+        },
+        "mediaArtifacts": {
+          "type": "object",
+          "required": ["total", "images", "videos", "external"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "images": { "type": "integer", "minimum": 0 },
+            "videos": { "type": "integer", "minimum": 0 },
+            "external": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
     "Scene": {
       "type": "object",
       "required": ["id", "projectId", "order", "title"],
@@ -865,6 +944,7 @@
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
+    "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },

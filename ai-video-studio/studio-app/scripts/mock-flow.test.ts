@@ -27,6 +27,7 @@ import {
   updateStoryboard,
   upgradeTake
 } from "../src/server/mock-service";
+import { getSystemMetrics } from "../src/server/metrics";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 
@@ -393,6 +394,17 @@ bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after force deleting an asset");
 assert.equal(bundle.shots.some((shot) => shot.referenceImageIds.includes(styleAsset.id)), false, "force delete should remove shot references");
 assert.equal(bundle.mediaArtifacts.some((artifact) => artifact.ownerId === styleAsset.id), false, "force delete should remove image asset artifacts");
+
+const metrics = getSystemMetrics();
+assert.ok(metrics.projects.total >= 2, "system metrics should count all mock projects");
+assert.equal(metrics.jobs.render.done, 3, "system metrics should count completed render jobs");
+assert.ok(metrics.jobs.generation.cancelled >= 1, "system metrics should count cancelled generation jobs");
+assert.ok(metrics.providerAttempts.cancelled >= 1, "system metrics should count cancelled provider attempts");
+assert.ok(metrics.providerAttempts.succeeded > 0, "system metrics should count successful provider attempts");
+assert.ok(metrics.providerAttempts.failed > 0, "system metrics should count failed provider attempts");
+assert.equal(metrics.credits.spent, metrics.credits.captured, "system metrics spent credits should match captured credit ledger");
+assert.ok(metrics.credits.refunded > 0, "system metrics should include refunded credits");
+assert.ok(metrics.mediaArtifacts.videos >= bundle.renderJobs.length, "system metrics should count video artifacts");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,
