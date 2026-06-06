@@ -384,6 +384,15 @@ export function StudioApp() {
                 run(() => studioApi.setDefaultRender(bundle.project.id, renderJobId), "기본 버전으로 설정했습니다.")
               }
               onRenderAction={notify}
+              onFocusMissingShot={(shotId) => {
+                setSelectedShotId(shotId);
+                goToView("compare");
+                notify("비교 화면에서 이 컷의 후보를 선택하면 다음 렌더에 합쳐집니다.");
+              }}
+              onReviewRights={() => {
+                goToView("assets");
+                notify("Asset Library에서 외부 이미지의 사용 권리와 동의를 확인하세요.");
+              }}
             />
           ) : null}
         </section>
@@ -1462,12 +1471,18 @@ function ExportView({
   bundle,
   onRender,
   onSetDefault,
-  onRenderAction
+  onRenderAction,
+  onFocusMissingShot,
+  onReviewRights
 }: {
   bundle: ProjectBundle | null;
   onRender: (resolution: "720p" | "1080p" | "4k", caption: "none" | "burn-in" | "srt" | "both") => void;
   onSetDefault: (renderJobId: string) => void;
   onRenderAction: (message: string) => void;
+  // 점검 경고에서 곧바로 작업 화면으로 이동하기 위한 콜백. 빠진 컷은 비교 화면으로 포커스 이동,
+  // 권리 경고는 Asset Library로 이동한다. 부모의 setView/setSelectedShotId 앱 상태를 재사용한다.
+  onFocusMissingShot: (shotId: string) => void;
+  onReviewRights: () => void;
 }) {
   const [resolution, setResolution] = useState<"720p" | "1080p" | "4k">("1080p");
   const [caption, setCaption] = useState<"none" | "burn-in" | "srt" | "both">("burn-in");
@@ -1555,6 +1570,8 @@ function ExportView({
           staleSource={staleSource}
           shotTitleById={shotTitleById}
           onPreview={() => runPreview(currentSpec, bundle.project.id)}
+          onFocusMissingShot={onFocusMissingShot}
+          onReviewRights={onReviewRights}
         />
         <div className="actions">
           <button type="button" className="primary" disabled={activeRender} onClick={() => onRender(resolution, caption)}>
@@ -1565,7 +1582,14 @@ function ExportView({
       </section>
       <section className="panel">
         <h2>렌더 버전</h2>
-        {latestJob ? <RenderPreflight job={latestJob} shotTitleById={shotTitleById} /> : null}
+        {latestJob ? (
+          <RenderPreflight
+            job={latestJob}
+            shotTitleById={shotTitleById}
+            onFocusMissingShot={onFocusMissingShot}
+            onReviewRights={onReviewRights}
+          />
+        ) : null}
         {bundle.renderJobs.length ? (
           <RenderVersions
             jobs={bundle.renderJobs}
@@ -1747,7 +1771,17 @@ function RenderVersions({
 }
 
 // 잡 스냅샷(startRender 결과) 기반 점검. 이미 확정된 렌더 잡의 plan/rights를 그대로 보여준다.
-function RenderPreflight({ job, shotTitleById }: { job: RenderJob; shotTitleById: Map<string, string> }) {
+function RenderPreflight({
+  job,
+  shotTitleById,
+  onFocusMissingShot,
+  onReviewRights
+}: {
+  job: RenderJob;
+  shotTitleById: Map<string, string>;
+  onFocusMissingShot: (shotId: string) => void;
+  onReviewRights: () => void;
+}) {
   return (
     <div className="preflight" aria-label="렌더 잡 점검">
       <div className="preflight-row">
@@ -1756,7 +1790,13 @@ function RenderPreflight({ job, shotTitleById }: { job: RenderJob; shotTitleById
           <strong>{job.renderPlan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(job.renderPlan.totalDurationSec)}
         </span>
       </div>
-      <PreflightFlags plan={job.renderPlan} rights={job.rightsReview} shotTitleById={shotTitleById} />
+      <PreflightFlags
+        plan={job.renderPlan}
+        rights={job.rightsReview}
+        shotTitleById={shotTitleById}
+        onFocusMissingShot={onFocusMissingShot}
+        onReviewRights={onReviewRights}
+      />
     </div>
   );
 }
@@ -1771,7 +1811,9 @@ function RenderPreviewBlock({
   staleSpec,
   staleSource,
   shotTitleById,
-  onPreview
+  onPreview,
+  onFocusMissingShot,
+  onReviewRights
 }: {
   preview: RenderPreview | null;
   previewing: boolean;
@@ -1781,6 +1823,8 @@ function RenderPreviewBlock({
   staleSource: boolean;
   shotTitleById: Map<string, string>;
   onPreview: () => void;
+  onFocusMissingShot: (shotId: string) => void;
+  onReviewRights: () => void;
 }) {
   const blocking = preview ? preview.renderPlan.missingShotIds.length > 0 || preview.rightsReview.required : false;
   return (
@@ -1822,7 +1866,13 @@ function RenderPreviewBlock({
               <strong>{preview.renderPlan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(preview.renderPlan.totalDurationSec)}
             </span>
           </div>
-          <PreflightFlags plan={preview.renderPlan} rights={preview.rightsReview} shotTitleById={shotTitleById} />
+          <PreflightFlags
+            plan={preview.renderPlan}
+            rights={preview.rightsReview}
+            shotTitleById={shotTitleById}
+            onFocusMissingShot={onFocusMissingShot}
+            onReviewRights={onReviewRights}
+          />
           <div className={`preflight-flag ${blocking ? "warn-flag" : "ok-flag"} render-preview-tip`}>
             {blocking
               ? "지금도 부분 내보내기는 가능합니다. 다만 빠진 컷을 선택하고 권리를 확인한 뒤 내보내면 더 완성도 높은 결과를 받습니다."
@@ -1838,13 +1888,20 @@ function RenderPreviewBlock({
 function PreflightFlags({
   plan,
   rights,
-  shotTitleById
+  shotTitleById,
+  onFocusMissingShot,
+  onReviewRights
 }: {
   plan: RenderPlan;
   rights: RenderRightsReview;
   shotTitleById: Map<string, string>;
+  onFocusMissingShot: (shotId: string) => void;
+  onReviewRights: () => void;
 }) {
   const missing = plan.missingShotIds;
+  // 빠진 컷이 여러 개면 비교 화면에 모든 컷이 있으므로, 액션은 첫 컷으로 포커스만 옮기고 안내로 나머지를 보완한다.
+  const firstMissing = missing[0] ?? null;
+  const firstMissingTitle = firstMissing ? shotTitleById.get(firstMissing) || null : null;
   return (
     <>
       {missing.length ? (
@@ -1856,6 +1913,16 @@ function PreflightFlags({
               <li key={shotId}>{shotTitleById.get(shotId) || shotId}</li>
             ))}
           </ul>
+          {firstMissing ? (
+            <div className="preflight-actions">
+              <button type="button" className="secondary preflight-action" onClick={() => onFocusMissingShot(firstMissing)}>
+                {missing.length > 1 ? "비교 화면에서 첫 컷 채우기" : "비교 화면에서 채우기"}
+              </button>
+              {missing.length > 1 ? (
+                <p className="preflight-action-note">{firstMissingTitle ? `“${firstMissingTitle}”로 이동합니다. ` : ""}비교 화면에 빠진 컷이 모두 있습니다.</p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="preflight-flag ok-flag">선택된 컷이 빠짐없이 이번 렌더에 포함되었습니다.</div>
@@ -1875,6 +1942,11 @@ function PreflightFlags({
               </li>
             ))}
           </ul>
+          <div className="preflight-actions">
+            <button type="button" className="secondary preflight-action" onClick={onReviewRights}>
+              Asset Library에서 확인
+            </button>
+          </div>
         </div>
       ) : (
         <div className="preflight-flag ok-flag">권리 확인 완료 · 별도 점검이 필요한 외부 이미지가 없습니다.</div>

@@ -1009,6 +1009,30 @@ label {
   white-space: nowrap;
 }
 
+/* 점검 경고를 바로 처리하기 위한 컴팩트 액션. 모바일(390px)에서 줄바꿈되며 가로 넘침이 없어야 한다. */
+.preflight-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.preflight-action {
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  max-width: 100%;
+}
+
+.preflight-action-note {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+
 /* 렌더 시작 전 read-only 미리 점검 블록. 잡 스냅샷(.preflight)과 구분되는 "예상" 컨테이너. */
 .render-preview {
   margin-top: 16px;
