@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { AssetUsage, DirectionSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, Shot, Take } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -1017,7 +1017,43 @@ function ExportView({
 }) {
   const [resolution, setResolution] = useState<"720p" | "1080p" | "4k">("1080p");
   const [caption, setCaption] = useState<"none" | "burn-in" | "srt" | "both">("burn-in");
-  if (!bundle) return <NoProject />;
+  // preview는 read-only 사전 점검이다. 렌더 잡을 만들지 않고 현재 spec 기준의 예상 비용/시간·빠지는
+  // 컷·권리 경고를 미리 보여준다. 잡 스냅샷(RenderPreflight)과 달리 "예상"으로 명확히 구분한다.
+  const [preview, setPreview] = useState<RenderPreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const projectId = bundle?.project.id ?? null;
+  const aspect = bundle?.project.aspect ?? null;
+  // preview는 전체 타임라인 점검이라 길이별(6s/15s/30s)로 갈리지 않는다. cut은 "full"로 고정하고
+  // 사용자가 고르는 해상도·자막·프로젝트 비율만 반영한다.
+  const currentSpec: ExportSpec | null =
+    aspect && bundle ? { resolution, cut: "full", aspect, caption } : null;
+
+  async function runPreview(spec: ExportSpec, id: string) {
+    setPreviewing(true);
+    setPreviewError(null);
+    try {
+      const result = await studioApi.previewRender(id, spec);
+      setPreview(result);
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : "미리 점검 중 오류가 발생했습니다.");
+    } finally {
+      setPreviewing(false);
+    }
+  }
+
+  // 내보내기 화면을 열면(또는 프로젝트가 바뀌면) 현재 설정으로 한 번 미리 점검한다. 이후 설정을
+  // 바꾸면 stale 배지가 떠 "다시 점검"을 유도한다(아래 staleSpec 비교).
+  useEffect(() => {
+    setPreview(null);
+    setPreviewError(null);
+    if (!projectId || !aspect) return;
+    void runPreview({ resolution, cut: "full", aspect, caption }, projectId);
+    // 의도적으로 projectId에만 반응. 설정 변경은 stale 처리 + 수동 재점검으로 흐른다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  if (!bundle || !currentSpec) return <NoProject />;
   const activeRender = bundle.renderJobs.some((job) => job.status === "queued" || job.status === "running");
   const hasRendered = bundle.renderJobs.some((job) => job.status === "done");
   // rightsReview/renderPlan은 startRender 시점 스냅샷이라 렌더 잡에만 존재한다. 가장 최근 잡을
@@ -1025,6 +1061,11 @@ function ExportView({
   // missingShotId를 사람이 읽는 컷 이름으로 바꾼다.
   const latestJob = bundle.renderJobs.length ? bundle.renderJobs[bundle.renderJobs.length - 1] : null;
   const shotTitleById = new Map(bundle.shots.map((shot) => [shot.id, shot.title] as const));
+  // 마지막으로 점검한 spec과 현재 설정이 다르면 예상이 stale이다(해상도·자막·비율 기준).
+  const previewStale = Boolean(
+    preview &&
+      (preview.spec.resolution !== resolution || preview.spec.caption !== caption || preview.spec.aspect !== aspect)
+  );
   return (
     <div className="grid export-grid">
       <section className="panel">
@@ -1047,10 +1088,18 @@ function ExportView({
             <option value="none">자막 없음</option>
           </select>
         </label>
-        <div className="notice">내보내기 시작 전 예상 비용은 48⚡, 예상 시간은 약 90초입니다. 선택한 컷과 편집 설정은 그대로 보존됩니다.</div>
+        <RenderPreviewBlock
+          preview={preview}
+          previewing={previewing}
+          previewError={previewError}
+          stale={previewStale}
+          shotTitleById={shotTitleById}
+          onPreview={() => runPreview(currentSpec, bundle.project.id)}
+        />
         <div className="actions">
           <button type="button" className="primary" disabled={activeRender} onClick={() => onRender(resolution, caption)}>
-            {activeRender ? "내보내는 중" : hasRendered ? "다시 내보내기" : "렌더 시작"} {!activeRender ? <span className="cost">48⚡</span> : null}
+            {activeRender ? "내보내는 중" : hasRendered ? "다시 내보내기" : "렌더 시작"}{" "}
+            {!activeRender ? <span className="cost">{preview && !previewStale ? `${preview.estimate.credits}⚡` : "48⚡"}</span> : null}
           </button>
         </div>
       </section>
@@ -1096,18 +1145,97 @@ function ExportView({
   );
 }
 
+// 잡 스냅샷(startRender 결과) 기반 점검. 이미 확정된 렌더 잡의 plan/rights를 그대로 보여준다.
 function RenderPreflight({ job, shotTitleById }: { job: RenderJob; shotTitleById: Map<string, string> }) {
-  const plan = job.renderPlan;
-  const rights = job.rightsReview;
-  const missing = plan.missingShotIds;
   return (
-    <div className="preflight" aria-label="내보내기 점검">
+    <div className="preflight" aria-label="렌더 잡 점검">
       <div className="preflight-row">
         <span className="preflight-key">렌더 구성</span>
         <span className="preflight-val">
-          <strong>{plan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(plan.totalDurationSec)}
+          <strong>{job.renderPlan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(job.renderPlan.totalDurationSec)}
         </span>
       </div>
+      <PreflightFlags plan={job.renderPlan} rights={job.rightsReview} shotTitleById={shotTitleById} />
+    </div>
+  );
+}
+
+// 렌더 시작 전 read-only 미리 점검. studioApi.previewRender 결과(예상 비용/시간·빠지는 컷·권리)를
+// "예상"으로 명확히 구분해 보여주고, 설정이 바뀌면 stale 배지로 재점검을 유도한다.
+function RenderPreviewBlock({
+  preview,
+  previewing,
+  previewError,
+  stale,
+  shotTitleById,
+  onPreview
+}: {
+  preview: RenderPreview | null;
+  previewing: boolean;
+  previewError: string | null;
+  stale: boolean;
+  shotTitleById: Map<string, string>;
+  onPreview: () => void;
+}) {
+  const blocking = preview ? preview.renderPlan.missingShotIds.length > 0 || preview.rightsReview.required : false;
+  return (
+    <div className={`render-preview${stale ? " is-stale" : ""}`} aria-label="내보내기 미리 점검">
+      <div className="render-preview-head">
+        <span className="badge preview-badge">예상</span>
+        <span className="render-preview-title">렌더 시작 전 미리 점검</span>
+        <button type="button" className="secondary preview-refresh" onClick={onPreview} disabled={previewing}>
+          {previewing ? "점검 중" : preview ? "다시 점검" : "미리 점검"}
+        </button>
+      </div>
+      {previewError ? <div className="preflight-flag warn-flag">{previewError}</div> : null}
+      {!preview && !previewError ? (
+        <p className="render-preview-empty">{previewing ? "현재 설정으로 예상을 계산하는 중입니다…" : "현재 설정의 예상 비용·시간과 빠지는 컷·권리 경고를 확인하세요."}</p>
+      ) : null}
+      {preview ? (
+        <div className="preflight">
+          {stale ? (
+            <div className="preflight-flag stale-flag">
+              <strong>설정이 바뀌었습니다</strong>
+              <p>아래 예상은 직전 설정 기준입니다. “다시 점검”을 누르면 지금 설정으로 다시 계산합니다.</p>
+            </div>
+          ) : null}
+          <div className="preflight-row">
+            <span className="preflight-key">예상 비용 · 시간</span>
+            <span className="preflight-val">
+              <strong>{preview.estimate.credits}⚡</strong> · 약 {formatSeconds(preview.estimate.etaSec)}
+            </span>
+          </div>
+          <div className="preflight-row">
+            <span className="preflight-key">예상 결과</span>
+            <span className="preflight-val">
+              <strong>{preview.renderPlan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(preview.renderPlan.totalDurationSec)}
+            </span>
+          </div>
+          <PreflightFlags plan={preview.renderPlan} rights={preview.rightsReview} shotTitleById={shotTitleById} />
+          <div className={`preflight-flag ${blocking ? "warn-flag" : "ok-flag"} render-preview-tip`}>
+            {blocking
+              ? "지금도 부분 내보내기는 가능합니다. 다만 빠진 컷을 선택하고 권리를 확인한 뒤 내보내면 더 완성도 높은 결과를 받습니다."
+              : "지금 설정으로 내보내도 좋은 상태입니다. 선택된 컷이 모두 포함되고 별도 권리 확인도 필요 없습니다."}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// missing 컷 / 권리 경고 플래그. 잡 점검과 미리 점검이 같은 표현을 공유한다.
+function PreflightFlags({
+  plan,
+  rights,
+  shotTitleById
+}: {
+  plan: RenderPlan;
+  rights: RenderRightsReview;
+  shotTitleById: Map<string, string>;
+}) {
+  const missing = plan.missingShotIds;
+  return (
+    <>
       {missing.length ? (
         <div className="preflight-flag warn-flag">
           <strong>빠지는 컷 {missing.length}개</strong>
@@ -1140,7 +1268,7 @@ function RenderPreflight({ job, shotTitleById }: { job: RenderJob; shotTitleById
       ) : (
         <div className="preflight-flag ok-flag">권리 확인 완료 · 별도 점검이 필요한 외부 이미지가 없습니다.</div>
       )}
-    </div>
+    </>
   );
 }
 

@@ -697,6 +697,71 @@ label {
   white-space: nowrap;
 }
 
+/* 렌더 시작 전 read-only 미리 점검 블록. 잡 스냅샷(.preflight)과 구분되는 "예상" 컨테이너. */
+.render-preview {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(80, 200, 232, .05);
+}
+
+.render-preview.is-stale {
+  border-color: rgba(244, 201, 93, .5);
+  background: rgba(244, 201, 93, .06);
+}
+
+.render-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preview-badge {
+  border-color: rgba(80, 200, 232, .42);
+  color: #9de5f6;
+}
+
+.render-preview-title {
+  min-width: 0;
+  font-weight: 750;
+  font-size: 14px;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.preview-refresh {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.render-preview-empty {
+  margin: 10px 0 2px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.render-preview .preflight {
+  margin: 12px 0 0;
+}
+
+.render-preview-tip {
+  font-size: 12px;
+}
+
+.stale-flag {
+  border: 1px solid rgba(244, 201, 93, .5);
+  background: rgba(244, 201, 93, .1);
+  color: #ffe5a8;
+}
+
+.stale-flag strong {
+  color: #fff0c9;
+}
+
 .warn-flag {
   border: 1px solid rgba(239, 111, 122, .48);
   background: rgba(239, 111, 122, .1);
