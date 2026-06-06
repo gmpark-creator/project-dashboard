@@ -450,21 +450,21 @@ const PROJECTS = [
   {
     id: 'tradelogix',
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해)',
+    subtitle: '무역과 물류 — 3개 카테고리 통합 허브 · ① 통관절차(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증) ② 선사업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해) ③ 미래 기술스택(스택 분해·대체 시뮬·미래 조합 아키텍처 허브 + 실험 데모)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
-    latest: '2026-06-04',
+    latest: '2026-06-06',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 선사업무는 다시 MAGE/증서 서브허브로 분기' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증) · 「선사업무」(MAGE 프로젝트 supply DB + 선박증서 31종, 다시 MAGE/증서 서브허브로 분기) · 「미래 기술스택」(8개 프로젝트 스택 분해·대체 시뮬·미래 조합 아키텍처 허브 + 실험 데모)을 한 화면에서 선택·전환' }
     ]},
-    summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
-           + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
-           + '변증법 협업(Claude 제안 ↔ Codex 반박·검수) R1~R3 수렴 후 Codex 사후검수 PASS — Part 1 통관 마스터 구현 완료(라이브 프리뷰).\n'
-           + '또한 #9의 또 다른 축인 「선사 업무」 자료로, 국제항해 컨테이너선의 선박 증서 31종을 8개 기능분류로 정리한 도해(종류·용도·근거협약)를 별도 단일 HTML로 추가했다 — 식별·상업·개인정보를 제거한 공개 마스킹본.',
+    summary: '지식 대시보드 시리즈 9번 — 무역·물류를 「통관절차 · 선사업무 · 미래 기술스택」 세 카테고리로 인터랙티브하게 다루는 통합 허브(tradelogix-hub 한 화면에서 카테고리 선택·전환).\n'
+           + '① 통관절차 — 부산항 북항/신항 기준 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 탐색. 변증법 협업(Claude 제안 ↔ Codex 반박·검수) R1~R3 수렴 후 Codex 사후검수 PASS — Part 1 통관 마스터 구현 완료(라이브 프리뷰).\n'
+           + '② 선사업무 — 국제항해 컨테이너선의 선박 증서 31종을 8개 기능분류로 정리한 도해(종류·용도·근거협약, 식별·상업·개인정보 제거 공개 마스킹본) + MAGE 프로젝트 supply 조달 DB를 ship-ops 서브허브로 묶음.\n'
+           + '③ 미래 기술스택 — 대시보드 8개 프로젝트의 화면별 사용 기술을 분해하고(현재 스택 정밀 분해), 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며(대체 시뮬레이션), 아직 안 쓴 기술로 만들 미래 조합을 제안하는(미래 조합 엔진) 아키텍처 허브 + 「아직 안 써본 스택」으로 실제 구현한 실험 데모. 별도 프로젝트(구 #10)가 아니라 #9 안의 카테고리로 통합 — 대시보드 「프로젝트는 1개로」 원칙.',
     method: '단일 HTML5 + Tailwind(Play CDN) + Vanilla JS + FontAwesome로 구현. 중앙 상태머신(통관유형·항만·Incoterm·활성필드)을 '
           + '단방향 setState→render 루프로 돌리고, 인라인 SVG로 보세창고 플로우차트와 비용/위험 분기점 게이지를 그린다. 모든 텍스트 한국어, 실무급 통관·관세 콘텐츠.',
     stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS', 'FontAwesome', 'SVG'],
@@ -474,8 +474,11 @@ const PROJECTS = [
       { area: 'Incoterms 2020 매트릭스·분기점 게이지', tech: 'SVG, Vanilla JS', how: '11규칙(Multimodal 7 + Maritime 4)을 그리드로 배치하고, 클릭 시 매도인→매수인 축에 비용 분기점·위험 분기점을 마커로 표시하는 게이지를 그린다(C-텀 비용≠위험 분리 강조).' },
       { area: '수입신고필증 인스펙터', tech: 'Tailwind, Vanilla JS', how: '한국 수입신고필증 레이아웃을 Tailwind grid로 재현하고 10개 핵심 항목(신고번호·납세의무자·HS세번·과세가격·세액 등)을 핫스팟으로, 클릭 시 의미+실무 리스크 모달을 띄운다.' },
       { area: '디자인 시스템', tech: 'Tailwind CSS, FontAwesome', how: '다크 엔터프라이즈 SaaS(베이스 #0F172A, slate 컨테이너) + 재무/리스크 경계 그라데이션(비용 emerald·위험 rose·세액 violet). FontAwesome 아이콘.' },
+      { area: '미래 기술스택 — 아키텍처 & 진화 허브 (카테고리 3)', tech: 'Vanilla JS, Tailwind CSS', how: 'projects-data.js의 PROJECTS·STACK_ATLAS를 단일 소스로 읽어(스냅샷 복사 없이 드리프트 0) 8개 프로젝트의 화면별 사용 기술을 정밀 분해하고, UI·스타일·시각화·데이터·배포 계층 대체안을 4지표(렌더링효율·구조복잡도·유지보수성·초기가벼움) 게이지로 시뮬레이션하며, STACK_ATLAS.unused 기반 미래 조합을 제안한다. normalize(seed+보강)→상태머신 3탭(lazy), 6게이트 자동검수 PASS.' },
+      { area: '미래 기술스택 — 실험 데모 (카테고리 3)', tech: 'Vanilla JS, Tailwind CSS', how: '「아직 안 써본 스택」을 실제로 써서 만든 정적 교육용 데모(가상 데이터·투자자문 아님): 프리마켓 콕핏(ECharts 매크로 히트맵·시그널 타임라인·WebSocket 푸시 시뮬), 프로젝트별 도입(StackForge), 노리지 그래프 비서(D3 force·WebGPU 감지), 스택 사용 지도. 아키텍처 허브 헤더에서 링크로 연결.' },
     ],
     issues: [
+      { type:'핵심', title:'미래 기술스택 — #9 카테고리 3으로 통합 (별도 #10 폐지) (2026-06-06)', desc:'박사 지시 「산출물을 따로 빼지 말고 9번 프로젝트 안 3번 카테고리에서 보이게」 — 별도 프로젝트로 분리돼 있던 #10 Tech Stack Collection을 폐지하고, 그 산출물(기술 스택 아키텍처 & 진화 허브 + 미래 스택 실험 데모)을 TradeLogix Nexus(#9)의 세 번째 카테고리 「미래 기술스택」으로 환원. tradelogix-hub 카테고리 선택 화면을 2개(통관/선사) → 3개(통관/선사/미래 기술스택)로 확장하고, 아키텍처 허브 헤더에 실험 데모 링크를 연결. 두 산출물 모두 헤더에 원래 "Project #9"로 자기표기돼 있어 정합. projects-data.js의 #10 블록·index.html 컬러맵에서 tech-stack 제거(대시보드 「프로젝트는 1개로 통합」 원칙).' },
       { type:'완료', title:'#9 워크스페이스·레포 신설 (변증법 협업 베이스 적용)', desc:'기존 프로젝트와 분리된 독립 레포 gmpark-creator/tradelogix-nexus(private) 생성 — master(박사 베이스라인)/newton(Claude)/codex(Codex) 3 worktree 물리 격리. AGENTS.md·CODEX_SYNC.md 변증법 규약 + Part 1 R1 Thesis 영속화.' },
       { type:'완료', title:'Part 1 통관 마스터 구현 완료 — 변증법 R1~R3 + Codex 검수 PASS', desc:'Claude 제안 ↔ Codex 반박 3라운드(R1·R2 BLOCK → R3 PASS·IMPLEMENTATION GO) 후 Claude 단독 구현(index.html 52KB): 상태머신 v2, 통관 3유형 동등 플로우(수입9/수출6/반송5), Incoterms 11 8필드 구조체+비용/위험 게이지, 수입신고필증 10필드 인스펙터+세액 read-only 카드(부가세 과표=과세가격+관세+내국세), desktop/mobile 이중렌더+lazy+접근성+fallback. Codex 사후검수 PASS(데이터계약 55 + Playwright headless + 390px overflow0 + 모달 생성/제거 + CDN fallback smoke). 라이브 프리뷰 배포.' },
       { type:'완료', title:'선사 업무 — 선박 증서 31종 도해 추가 (2026-06-05)', desc:'#9의 두 축(통관 / 선사 업무) 중 「선사 업무」 자료. 국제항해 컨테이너선 증서철 31종 PDF를 Claude 워크플로(32 에이전트 병렬)로 명칭·근거협약·용도·유효기간을 추출·교차감사해 8개 기능분류(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 인터랙티브 도해(자급식 단일 HTML)로 작성. 각 증서의 정의·「선사 업무 용도」·미보유 시 결과·근거협약을 카드+분류 필터+검색으로 제공. 공개 게시 위해 선명·IMO·소유/관리회사·보험·선원·증서번호 등 식별·상업·개인정보를 마스킹(상세본은 로컬 비공개). Part 1 통관 마스터와 별개의 독립 단일 HTML로 previews/ship-certs/에 배치.' },
@@ -488,43 +491,8 @@ const PROJECTS = [
       { date:'2026-06-04', title:'Part 1 구현 완료 + Codex 검수 PASS (변증법 1사이클 종료)', desc:'설계 변증법 R1~R3(R1·R2 Codex BLOCK → R3 PASS·IMPLEMENTATION GO) → Claude 단독 구현(index.html) → Codex 사후검수 PASS(데이터계약 55·Playwright headless·390px·fallback). 라이브 프리뷰 대시보드 임베드. master 통합은 박사 디렉팅 대기.' },
       { date:'2026-06-05', title:'「선사 업무」 선박 증서 31종 도해 추가 + 대시보드 #9 임베드', desc:'#9의 선사 업무 축으로 선박 증서 31종(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 도해를 마스킹 공개본으로 작성해 previews/ship-certs/에 배치. 증서철 31종 PDF를 워크플로(32 에이전트)로 추출·교차감사. Edge 헤드리스 렌더 검증(데스크탑·모바일 리플로우 정상).' },
       { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' },
-      { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' }
-    ]
-  },
-  {
-    id: 'tech-stack',
-    name: 'Tech Stack Collection',
-    subtitle: '기술 스택 모음 — 대시보드 8개 프로젝트가 각 화면·기능에 어떤 기술을 쓰는지 분해하고, 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 미래 프로젝트를 제안하는 3탭 아키텍처 진화 허브',
-    icon: 'stack',
-    platform: '웹 · 참고 시각화 (자급식 단일 페이지 + Tailwind)',
-    status: 'completed',
-    start: '2026-06-05',
-    latest: '2026-06-05',
-    progress: 100,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/',
-    preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tech-stack-architecture-hub/', label:'기술 스택 아키텍처 & 진화 허브 — ①현재 스택 정밀 분해(8개 프로젝트 × 화면영역별 사용기술 인스펙터, 95개 스택을 역할·한마디·없으면·예시 5필드로 설명) ②기술 대체 시뮬레이션(22개 시나리오: UI·스타일·시각화·데이터·배포 계층 대체안 → 렌더링효율·구조복잡도·유지보수성·초기가벼움 4지표 + 트레이드오프) ③미래 스택 조합 엔진(미사용 88후보 기반 5종 조합)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/future-stack-demos/', label:'미래 스택 데모 (프리마켓 콕핏) — ①프리마켓 콕핏: ECharts 매크로 히트맵·시그널 타임라인·Transformers 감성 시뮬·4시나리오·WebSocket 푸시 시뮬 ②프로젝트별 도입: StackForge 통합 — 8개 프로젝트별 미사용 스택 도입 우선순위·커버리지·시너지(ECharts 게이지) ③노리지 그래프 비서: D3 force·WebGPU 감지 ④스택 사용 지도. 「이때까지 안 쓴 스택」을 실제로 사용해 만든 정적 교육용 데모(가상 데이터·투자자문 아님)' }
-    ]},
-    summary: '대시보드의 8개 프로젝트가 각각 어느 화면·기능에 어떤 기술을 쓰는지 비개발자도 알 수 있게 분해하고, 그 스택을 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 수 있는 미래 프로젝트를 제안한다.\n'
-           + '데이터는 projects-data.js의 각 프로젝트 stackDetail(seed)을 단일 소스로 읽고, 모듈 내부 보강 레이어(역할·한마디·없으면·예시)를 normalize로 합쳐 화면에 띄운다 — 별도 카탈로그 중복 없음.\n'
-           + '①현재 스택 정밀 분해(8프로젝트·95스택) ②기술 대체 시뮬레이션(22시나리오) ③미래 스택 조합 엔진(미사용 핵심 기반 5조합)의 3탭 구성.',
-    method: 'HTML5 + Tailwind CSS(Play CDN) + Vanilla JS 자급식 단일 페이지(index.html + tech-hub.js + tech-hub-data.js). '
-          + 'normalize(seed+enrichment)로 PROJECTS.filter(id!=="tech-stack") 8개를 정규화 → 7필드(tech/role/what/withoutIt/example/sourceArea/sourceHow) 빈값 0. '
-          + '상태머신(setTab→renderS1/S2/S3, lazy 활성탭만 DOM). #9 변증법 규약: Codex R2 IMPLEMENTATION GO 후 Claude 구현, node --check·6게이트(정규화·S2≥16·S3 unused≥2·언어·위치·렌더) 자동검수 PASS.',
-    stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS'],
-    stackDetail: [
-      { area: '데이터 소스 (단일 진실)', tech: 'Vanilla JS', how: 'projects-data.js의 window.PROJECTS(각 프로젝트 stackDetail)와 window.STACK_ATLAS를 읽어 단일 소스로 삼는다. 스냅샷 복사 없이 대시보드와 동일 데이터를 공유해 drift 0.' },
-      { area: '정규화 레이어 (seed+보강)', tech: 'Vanilla JS', how: 'stackDetail(area/tech/how) seed에 보강 데이터(role/what/withoutIt/example)를 area 키로 합쳐 7필드로 normalize한다. 빈 문자열 0을 게이트로 검증.' },
-      { area: '3탭 렌더·상태머신', tech: 'Vanilla JS', how: 'setTab→renderS1/S2/S3 상태머신으로 활성 탭만 렌더(lazy). S1 화면청사진·인스펙터, S2 대체 게이지·before/after, S3 조합 아키텍처·데이터흐름.' },
-      { area: '스타일·반응형', tech: 'Tailwind CSS', how: 'Tailwind Play CDN + 커스텀 색 토큰(다크). lg 브레이크포인트로 390px 모바일에서 단일 컬럼 — 수평 오버플로 0.' },
-    ],
-    issues: [
-      { type:'완료', title:'전면 재구축 — 「하나도 안 맞음」 폐기 후 변증법 재설계 (2026-06-05)', desc:'박사 피드백 「결과물이 처음 요구와 하나도 맞지 않는다」 → 기존 tech-stack-collection 폐기. Codex가 프롬프트(R2 계약)부터 재작성, Claude Thesis→Codex Antithesis R1 BLOCK 6→R2 GO. 핵심 정정: 분석 대상을 TradeLogix 단일이 아니라 PROJECTS.filter(id!=="tech-stack") 8개 전체로, stackDetail 3필드를 seed로 두고 보강 5필드를 normalize, S2 시나리오 프로젝트별≥2·전체≥16, S3 미사용은 STACK_ATLAS.unused 기준. previews/tech-stack-architecture-hub/에 구현, tech-stack-collection 삭제.' },
-      { type:'완료', title:'6게이트 자동검수 PASS (2026-06-05)', desc:'정규화 8/8·스택 95개 빈필드 0·시나리오 22(≥16)·프로젝트별≥2·affectedComponents≥2·metrics 4수치·combos 5(≥4)·unused핵심 전부 STACK_ATLAS.unused 대조 통과·렌더 카피 한글 게이트 0·node --check PASS.' }
-    ],
-    milestones: [
-      { date:'2026-06-05', title:'기술 스택 아키텍처 & 진화 허브 — 재구축 완료', desc:'8개 프로젝트 × 화면영역별 사용기술 정밀 분해(95스택 5필드 설명) + 22개 대체 시뮬레이션(4지표 게이지+트레이드오프) + 미사용 88후보 기반 5종 미래 조합 엔진. HTML5+Tailwind+Vanilla JS, normalize(seed+보강), 6게이트 PASS.' }
+      { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' },
+      { date:'2026-06-06', title:'미래 기술스택 — #9 카테고리 3으로 통합 (별도 #10 폐지)', desc:'박사 지시로 별도 분리됐던 #10 Tech Stack Collection을 폐지하고 그 산출물(기술 스택 아키텍처 & 진화 허브 + 미래 스택 실험 데모)을 #9 세 번째 카테고리 「미래 기술스택」으로 환원. 카테고리 선택 허브를 통관/선사 2개 → 통관/선사/미래 기술스택 3개로 확장, 아키텍처 허브 ↔ 실험 데모 링크 연결. 대시보드 「프로젝트는 1개로 통합」 원칙 적용(컬러맵·#10 블록 제거).' }
     ]
   }
 ];

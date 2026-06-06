@@ -8,7 +8,7 @@
   :root{
     --bg:#0F172A; --bg2:#111e36; --panel:#1e293b; --line:#334155;
     --ink:#e2e8f0; --muted:#94a3b8; --cyan:#38bdf8; --teal:#2dd4cf; --gold:#fbbf24;
-    --customs:#38bdf8; --carrier:#2dd4cf;
+    --customs:#38bdf8; --carrier:#2dd4cf; --tech:#a78bfa;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -34,7 +34,7 @@
   .brand .tagline{margin-top:10px;color:var(--muted);font-size:15px}
   .brand .tagline b{color:#bfe9f5}
 
-  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;width:min(880px,100%);position:relative;z-index:1}
+  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;width:min(1140px,100%);position:relative;z-index:1}
   .cat{
     position:relative;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;
     background:linear-gradient(180deg,rgba(19,40,58,.92),rgba(12,28,42,.92));
@@ -58,6 +58,7 @@
   .cat:hover .open .arr{transform:translateX(4px)}
   .cat[data-cat="customs"]{--accent:var(--customs)}
   .cat[data-cat="carrier"]{--accent:var(--carrier)}
+  .cat[data-cat="tech"]{--accent:var(--tech)}
 
   .foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;position:relative;z-index:1;line-height:1.7}
   .foot b{color:#9fc2d2}
@@ -79,9 +80,11 @@
   #frame{flex:1;width:100%;border:0;background:#0F172A}
   .loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--muted);font-size:14px}
 
-  @media (max-width:680px){
-    .cards{grid-template-columns:1fr}
+  @media (max-width:900px){
+    .cards{grid-template-columns:1fr;width:min(560px,100%)}
     .cat{min-height:auto}
+  }
+  @media (max-width:680px){
     .vtitle .vsub{display:none}
   }
 </style>
@@ -93,7 +96,7 @@
   <div class="brand">
     <div class="eyebrow">TradeLogix Nexus · 무역과 물류</div>
     <h1>카테고리를 선택하세요</h1>
-    <p class="tagline">하나의 무역·물류 허브에서 <b>통관절차</b>와 <b>선사업무</b>를 함께 다룹니다. 보고 싶은 영역을 고르세요.</p>
+    <p class="tagline">하나의 무역·물류 허브에서 <b>통관절차</b>·<b>선사업무</b>·<b>미래 기술스택</b> 세 영역을 함께 다룹니다. 보고 싶은 영역을 고르세요.</p>
   </div>
 
   <div class="cards">
@@ -130,11 +133,28 @@
       </div>
       <span class="open">열기 <span class="arr">→</span></span>
     </button>
+
+    <button class="cat" data-cat="tech" data-url="../tech-stack-architecture-hub/index.html"
+            data-title="미래 기술스택" data-sub="Future Tech Stack Lab · 스택 분해·대체 시뮬·미래 조합 + 실험 데모">
+      <span class="num">CATEGORY 03</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/>
+        </svg>
+      </span>
+      <h2>미래 기술스택</h2>
+      <div class="en">Future Tech Stack Lab — 아키텍처 &amp; 진화 허브 + 실험 데모</div>
+      <p>대시보드 프로젝트들이 <b>어느 화면에 어떤 기술</b>을 쓰는지 분해하고, 다른 기술로 <b>바꾸면 무엇이 달라지는지</b> 시뮬레이션하며, 아직 안 쓴 기술로 만들 <b>미래 조합·실험 데모</b>를 제안·구현합니다.</p>
+      <div class="meta">
+        <span class="chip">현재 스택 분해</span><span class="chip">대체 시뮬레이션</span><span class="chip">미래 조합 엔진</span><span class="chip">실험 데모</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
   </div>
 
   <div class="foot">
-    <b>TradeLogix Nexus</b> — 무역과 물류 통합 허브 · 통관절차(Part 1) + 선사업무(MAGE 프로젝트 · 선박증서)<br>
-    프로젝트 9번 · 카테고리는 한 화면에서 전환됩니다
+    <b>TradeLogix Nexus</b> — 무역과 물류 통합 허브 · 통관절차 + 선사업무(MAGE 프로젝트 · 선박증서) + 미래 기술스택(아키텍처 허브 · 실험 데모)<br>
+    프로젝트 9번 · 세 카테고리는 한 화면에서 전환됩니다
   </div>
 </div>
 
@@ -157,7 +177,7 @@
   var vsub     = document.getElementById('vsub');
   var vdot     = document.getElementById('vdot');
   var newtab   = document.getElementById('newtab');
-  var ACCENT   = { customs:'#22d3ee', carrier:'#2dd4cf' };
+  var ACCENT   = { customs:'#22d3ee', carrier:'#2dd4cf', tech:'#a78bfa' };
 
   function openCat(cat, url, title, sub){
     frame.src = url;
@@ -185,10 +205,10 @@
   });
   document.getElementById('back').addEventListener('click', closeCat);
 
-  // 딥링크: #customs / #carrier 로 진입 시 해당 카테고리 바로 열기
+  // 딥링크: #customs / #carrier / #tech 로 진입 시 해당 카테고리 바로 열기
   (function(){
     var h = (location.hash || '').replace('#','');
-    if (h === 'customs' || h === 'carrier') {
+    if (h === 'customs' || h === 'carrier' || h === 'tech') {
       var b = document.querySelector('.cat[data-cat="'+h+'"]');
       if (b) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
     }
