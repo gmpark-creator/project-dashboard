@@ -711,6 +711,51 @@ label {
   font-size: 12px;
 }
 
+/* 진행 중 잡 취소(R17): 운영자용 컴팩트 취소 어포던스. 실패(빨강)와 톤을 구분해 중립(고스트)으로
+   두고, 좁은 폭(≈390px)에서도 줄바꿈 없이 패널 안에 머물게 한다. */
+.row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.row-card > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-card-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cancel-job {
+  min-height: 32px;
+  padding: 6px 11px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.take-cancel {
+  margin-top: 10px;
+}
+
+.take-cancel .cancel-job {
+  width: 100%;
+}
+
+.render-version-cancel {
+  display: flex;
+}
+
+.render-version-cancel .cancel-job {
+  min-height: 34px;
+}
+
 .edit-preview {
   display: grid;
   gap: 12px;

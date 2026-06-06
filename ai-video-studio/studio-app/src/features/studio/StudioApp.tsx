@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -32,8 +32,46 @@ function statusLabel(status: string) {
       pending: "대기",
       selected: "선택됨",
       queued: "대기",
-      running: "진행중"
+      running: "진행중",
+      cancelled: "취소됨"
     }[status] || status
+  );
+}
+
+// 잡 상태별 배지 톤. 취소됨은 실패(빨강)와 구분해 중립(기본 회색) 배지로 보여준다 — 운영자가
+// "사용자/시스템이 멈춘 작업"과 "엔진 오류로 실패한 작업"을 한눈에 구분할 수 있어야 한다.
+function jobBadgeTone(status: JobStatus) {
+  if (status === "done") return "ok";
+  if (status === "failed") return "warn";
+  if (status === "cancelled") return "";
+  return "fast";
+}
+
+// 진행 중(대기/진행)인 잡을 취소하는 공통 버튼. 요청이 떠 있는 동안에는 전체 취소 버튼을 잠가
+// 중복 취소를 막고(busy), 누른 버튼만 "취소 중…"으로 바꾼다. 내부 잡 id·모델명은 노출하지 않는다.
+function CancelJobButton({
+  jobId,
+  canceling,
+  busy,
+  onCancel,
+  className = "ghost"
+}: {
+  jobId: string;
+  canceling: boolean;
+  busy: boolean;
+  onCancel: (jobId: string) => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={`${className} cancel-job`}
+      disabled={busy}
+      title="진행 중인 작업을 멈추고 예약한 크레딧을 돌려받습니다."
+      onClick={() => onCancel(jobId)}
+    >
+      {canceling ? "취소 중…" : "작업 취소"}
+    </button>
   );
 }
 
@@ -191,6 +229,9 @@ export function StudioApp() {
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
   const [intent, setIntent] = useState<Intent>("shorts");
   const [toast, setToast] = useState("");
+  // 취소 요청이 떠 있는 동안의 잡 id(또는 배치 취소 시 첫 잡 id). 값이 있으면 모든 취소 버튼을 잠가
+  // 중복 취소를 막고, 해당 버튼만 "취소 중…"으로 표시한다.
+  const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
   const selectedShot = useMemo(() => {
@@ -260,6 +301,57 @@ export function StudioApp() {
     }
   }
 
+  // 진행 중인 잡 하나를 취소한다. 요청 중에는 cancelingJobId로 버튼을 잠그고, 성공/실패와 무관하게
+  // 끝나면 번들을 새로고침해 화면이 실제 상태(취소됨/이미 완료)를 반영하게 한다. 환불 크레딧이 있으면
+  // 토스트로 함께 안내한다. 이미 끝난 잡(409)·없는 잡(404)은 친절한 한국어 안내로 흡수한다.
+  async function cancelJob(jobId: string) {
+    if (cancelingJobId) return;
+    setCancelingJobId(jobId);
+    try {
+      const result = await studioApi.cancelJob(jobId);
+      if (result.cancelled) {
+        notify(result.refundedCredits > 0 ? `작업을 취소하고 예약한 ${result.refundedCredits}⚡를 돌려드렸습니다.` : "작업을 취소했습니다.");
+      } else {
+        notify("이미 끝난 작업이라 취소할 수 없습니다.");
+      }
+    } catch {
+      notify("작업을 취소하지 못했습니다. 이미 끝났을 수 있어 화면을 새로고침합니다.");
+    } finally {
+      await refresh().catch(() => {});
+      setCancelingJobId(null);
+    }
+  }
+
+  // 진행 중인 잡 여러 개를 한 번에 취소한다(스토리보드 전체 생성 중 일괄 취소). 개별 실패는 건너뛰고
+  // 취소 건수·환불 합계를 모아 한 번만 안내한다. 첫 잡 id로 busy 상태를 잡아 다른 취소 버튼도 잠근다.
+  async function cancelActiveJobs(jobIds: string[]) {
+    if (!jobIds.length || cancelingJobId) return;
+    setCancelingJobId(jobIds[0]);
+    let cancelledCount = 0;
+    let refunded = 0;
+    try {
+      for (const id of jobIds) {
+        try {
+          const result = await studioApi.cancelJob(id);
+          if (result.cancelled) {
+            cancelledCount += 1;
+            refunded += result.refundedCredits;
+          }
+        } catch {
+          // 이미 끝난 잡은 건너뛴다.
+        }
+      }
+      if (cancelledCount) {
+        notify(refunded > 0 ? `생성 작업 ${cancelledCount}건을 취소하고 ${refunded}⚡를 돌려드렸습니다.` : `생성 작업 ${cancelledCount}건을 취소했습니다.`);
+      } else {
+        notify("취소할 진행 중 작업이 없습니다.");
+      }
+    } finally {
+      await refresh().catch(() => {});
+      setCancelingJobId(null);
+    }
+  }
+
   function targetShotId() {
     return selectedShot?.id || bundle?.shots[0]?.id || null;
   }
@@ -324,6 +416,8 @@ export function StudioApp() {
           {view === "images" ? (
             <ImageMaker
               bundle={bundle}
+              cancelingJobId={cancelingJobId}
+              onCancelJob={cancelJob}
               onGenerate={(input) => bundle && run(() => studioApi.createImageJob(bundle.project.id, input), "이미지 후보 생성을 시작했습니다.")}
               onUseAsset={(assetId, mode) => {
                 const shotId = targetShotId();
@@ -369,6 +463,13 @@ export function StudioApp() {
               bundle={bundle}
               selectedShotId={selectedShotId}
               setSelectedShotId={setSelectedShotId}
+              canceling={cancelingJobId !== null}
+              onCancelGeneration={() =>
+                bundle &&
+                cancelActiveJobs(
+                  bundle.generationJobs.filter((job) => job.status === "queued" || job.status === "running").map((job) => job.id)
+                )
+              }
               onGenerate={() => bundle && run(() => studioApi.generateAll(bundle.project.id), "전체 컷 생성을 시작했습니다.")}
               onSaveShot={(patch) => bundle && run(() => studioApi.updateStoryboard(bundle.project.id, { shots: [patch] }), "컷 내용을 저장했습니다.")}
               onCompare={() => goToView("compare")}
@@ -380,6 +481,8 @@ export function StudioApp() {
               selectedShot={selectedShot}
               selectedShotId={selectedShotId}
               setSelectedShotId={setSelectedShotId}
+              cancelingJobId={cancelingJobId}
+              onCancelJob={cancelJob}
               onGenerate={(shotId) => run(() => studioApi.generateShot(shotId), "이 컷 생성 잡을 시작했습니다.")}
               onRegenerate={(shotId, scope) => run(() => studioApi.regenerate(shotId, scope), "이전 후보를 보존하고 새 후보를 생성합니다.")}
               onSelect={(shotId, takeId) => run(() => studioApi.selectTake(shotId, takeId), "선택한 후보를 저장했습니다.")}
@@ -399,6 +502,8 @@ export function StudioApp() {
           {view === "export" ? (
             <ExportView
               bundle={bundle}
+              cancelingJobId={cancelingJobId}
+              onCancelJob={cancelJob}
               onRender={(resolution, caption) =>
                 bundle &&
                 run(
@@ -506,10 +611,14 @@ function Dashboard({
 
 function ImageMaker({
   bundle,
+  cancelingJobId,
+  onCancelJob,
   onGenerate,
   onUseAsset
 }: {
   bundle: ProjectBundle | null;
+  cancelingJobId: string | null;
+  onCancelJob: (jobId: string) => void;
   onGenerate: (input: { prompt: string; purpose: ImageMakerPurpose; role: ImageAssetRole; aspect: Project["aspect"]; style?: string; count?: number }) => void;
   onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
 }) {
@@ -596,15 +705,23 @@ function ImageMaker({
       <section className="panel">
         <h2>이미지 후보와 저장된 재료</h2>
         <div className="grid" style={{ marginTop: 12 }}>
-          {bundle.imageJobs.map((job) => (
-            <div className="row-card" key={job.id}>
-              <div>
-                <strong>{purposeLabels[job.purpose]}</strong>
-                <p className="hint">{imageJobStageLabel(job.stage)} · {Math.round(job.progress * 100)}%</p>
+          {bundle.imageJobs.map((job) => {
+            const active = job.status === "queued" || job.status === "running";
+            return (
+              <div className="row-card" key={job.id}>
+                <div>
+                  <strong>{purposeLabels[job.purpose]}</strong>
+                  <p className="hint">{imageJobStageLabel(job.stage)} · {Math.round(job.progress * 100)}%</p>
+                </div>
+                <div className="row-card-side">
+                  <span className={`badge ${jobBadgeTone(job.status)}`}>{statusLabel(job.status)}</span>
+                  {active ? (
+                    <CancelJobButton jobId={job.id} canceling={cancelingJobId === job.id} busy={cancelingJobId !== null} onCancel={onCancelJob} />
+                  ) : null}
+                </div>
               </div>
-              <span className={`badge ${job.status === "done" ? "ok" : "fast"}`}>{statusLabel(job.status)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <AssetGrid assets={imageMakerAssets} onUseAsset={onUseAsset} scoreByAssetId={scoreByAssetId} />
       </section>
@@ -809,6 +926,8 @@ function Storyboard({
   bundle,
   selectedShotId,
   setSelectedShotId,
+  canceling,
+  onCancelGeneration,
   onGenerate,
   onSaveShot,
   onCompare
@@ -816,6 +935,8 @@ function Storyboard({
   bundle: ProjectBundle | null;
   selectedShotId: string | null;
   setSelectedShotId: (shotId: string | null) => void;
+  canceling: boolean;
+  onCancelGeneration: () => void;
   onGenerate: () => void;
   onSaveShot: (patch: ShotEditPatch) => void;
   onCompare: () => void;
@@ -843,6 +964,17 @@ function Storyboard({
           <button type="button" className="primary" disabled={!canGenerate} onClick={onGenerate}>
             {generateLabel} {canGenerate ? <span className="cost">{generateCost}⚡</span> : null}
           </button>
+          {activeGeneration ? (
+            <button
+              type="button"
+              className="ghost cancel-job"
+              disabled={canceling}
+              title="진행 중인 컷 생성을 모두 멈추고 예약한 크레딧을 돌려받습니다."
+              onClick={onCancelGeneration}
+            >
+              {canceling ? "취소 중…" : "생성 취소"}
+            </button>
+          ) : null}
           <button type="button" className="secondary" onClick={onCompare}>
             비교 화면
           </button>
@@ -1021,6 +1153,8 @@ function Compare({
   selectedShot,
   selectedShotId,
   setSelectedShotId,
+  cancelingJobId,
+  onCancelJob,
   onGenerate,
   onRegenerate,
   onSelect,
@@ -1032,6 +1166,8 @@ function Compare({
   selectedShot: Shot | null;
   selectedShotId: string | null;
   setSelectedShotId: (shotId: string) => void;
+  cancelingJobId: string | null;
+  onCancelJob: (jobId: string) => void;
   onGenerate: (shotId: string) => void;
   onRegenerate: (shotId: string, scope: "shot" | "segment") => void;
   onSelect: (shotId: string, takeId: string) => void;
@@ -1041,6 +1177,12 @@ function Compare({
 }) {
   if (!bundle || !selectedShot) return <NoProject />;
   const takes = bundle.takes.filter((take) => take.shotId === selectedShot.id);
+  // 후보(take)별로 아직 진행 중인 생성 잡을 찾아 둔다. 후보 카드에서 곧바로 해당 컷의 생성 잡을
+  // 취소할 수 있게 매핑한다(컷 단위 활성 잡 취소). 내부 잡 id는 노출하지 않고 버튼 동작에만 쓴다.
+  const activeJobByTakeId = new Map<string, string>();
+  for (const job of bundle.generationJobs) {
+    if (job.status === "queued" || job.status === "running") activeJobByTakeId.set(job.takeId, job.id);
+  }
   const referenceAssets = bundle.imageAssets.filter((asset) => selectedShot.referenceImageIds.includes(asset.id));
   const hasTakes = takes.length > 0;
   const isFailed = selectedShot.status === "failed";
@@ -1070,7 +1212,17 @@ function Compare({
         </div>
         <div className="grid take-grid">
           {takes.map((take) => (
-            <TakeCard key={take.id} shot={selectedShot} take={take} aspect={bundle.project.aspect} onSelect={onSelect} />
+            <TakeCard
+              key={take.id}
+              shot={selectedShot}
+              take={take}
+              aspect={bundle.project.aspect}
+              cancelJobId={activeJobByTakeId.get(take.id) ?? null}
+              canceling={Boolean(activeJobByTakeId.get(take.id)) && cancelingJobId === activeJobByTakeId.get(take.id)}
+              busy={cancelingJobId !== null}
+              onCancel={onCancelJob}
+              onSelect={onSelect}
+            />
           ))}
         </div>
         {!takes.length ? <div className="empty">아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다.</div> : null}
@@ -1166,11 +1318,30 @@ function DirectionPanel({
   );
 }
 
-function TakeCard({ shot, take, aspect, onSelect }: { shot: Shot; take: Take; aspect: Aspect; onSelect: (shotId: string, takeId: string) => void }) {
+function TakeCard({
+  shot,
+  take,
+  aspect,
+  cancelJobId,
+  canceling,
+  busy,
+  onCancel,
+  onSelect
+}: {
+  shot: Shot;
+  take: Take;
+  aspect: Aspect;
+  cancelJobId?: string | null;
+  canceling?: boolean;
+  busy?: boolean;
+  onCancel?: (jobId: string) => void;
+  onSelect: (shotId: string, takeId: string) => void;
+}) {
   const selected = shot.selectedTakeId === take.id;
-  // done + videoUrl만 실제 재생 가능. 실패/생성중은 한국어 상태 라벨로 비재생 상태를 명확히 한다.
+  // done + videoUrl만 실제 재생 가능. 실패/생성중/취소됨은 한국어 상태 라벨로 비재생 상태를 명확히 한다.
   const playable = take.status === "done" && Boolean(take.videoUrl);
   const pending = take.status === "queued" || take.status === "running";
+  const fallbackLabel = take.status === "failed" ? "다시 시도 필요" : take.status === "cancelled" ? "취소됨" : "생성 중";
   return (
     <article className={`take ${selected ? "selected" : ""} ${take.status === "failed" ? "failed" : ""}`}>
       <div className="take-media" style={{ aspectRatio: aspectRatioCss(aspect) }}>
@@ -1187,7 +1358,7 @@ function TakeCard({ shot, take, aspect, onSelect }: { shot: Shot; take: Take; as
         ) : (
           <div className="media-fallback">
             <strong>{take.label}</strong>
-            <span>{take.status === "failed" ? "다시 시도 필요" : "생성 중"}</span>
+            <span>{fallbackLabel}</span>
           </div>
         )}
       </div>
@@ -1212,6 +1383,11 @@ function TakeCard({ shot, take, aspect, onSelect }: { shot: Shot; take: Take; as
           <span>{tierLabel(take.tier)}</span>
           <span>{qualityLabel(take)}</span>
         </div>
+        {pending && cancelJobId && onCancel ? (
+          <div className="take-cancel">
+            <CancelJobButton jobId={cancelJobId} canceling={Boolean(canceling)} busy={Boolean(busy)} onCancel={onCancel} />
+          </div>
+        ) : null}
       </div>
     </article>
   );
@@ -1501,6 +1677,8 @@ function Edit({
 
 function ExportView({
   bundle,
+  cancelingJobId,
+  onCancelJob,
   onRender,
   onSetDefault,
   onRenderAction,
@@ -1508,6 +1686,8 @@ function ExportView({
   onReviewRights
 }: {
   bundle: ProjectBundle | null;
+  cancelingJobId: string | null;
+  onCancelJob: (jobId: string) => void;
   onRender: (resolution: "720p" | "1080p" | "4k", caption: "none" | "burn-in" | "srt" | "both") => void;
   onSetDefault: (renderJobId: string) => void;
   onRenderAction: (message: string) => void;
@@ -1629,6 +1809,8 @@ function ExportView({
             defaultRenderJobId={bundle.project.defaultRenderJobId}
             aspect={bundle.project.aspect}
             posterUrl={bundle.project.thumbUrl}
+            cancelingJobId={cancelingJobId}
+            onCancelJob={onCancelJob}
             onSetDefault={onSetDefault}
             onRenderAction={onRenderAction}
           />
@@ -1704,6 +1886,8 @@ function RenderVersions({
   defaultRenderJobId,
   aspect,
   posterUrl,
+  cancelingJobId,
+  onCancelJob,
   onSetDefault,
   onRenderAction
 }: {
@@ -1711,6 +1895,8 @@ function RenderVersions({
   defaultRenderJobId: string | null;
   aspect: Aspect;
   posterUrl: string | null;
+  cancelingJobId: string | null;
+  onCancelJob: (jobId: string) => void;
   onSetDefault: (renderJobId: string) => void;
   onRenderAction: (message: string) => void;
 }) {
@@ -1780,7 +1966,7 @@ function RenderVersions({
             >
               <span className="seg-tab-label">{renderCutLabels[cut]}</span>
               {rep.id === defaultRenderJobId ? <span className="seg-tab-default">기본</span> : null}
-              {rep.status !== "done" ? <span className="seg-tab-dot" aria-hidden="true" /> : null}
+              {rep.status === "queued" || rep.status === "running" ? <span className="seg-tab-dot" aria-hidden="true" /> : null}
             </button>
           );
         })}
@@ -1836,13 +2022,26 @@ function RenderVersions({
           </>
         ) : (
           <div className="render-version-progress">
-            <div className="progress">
-              <i style={{ width: `${Math.round(activeJob.progress * 100)}%` }} />
-            </div>
+            {activeJob.status === "cancelled" ? null : (
+              <div className="progress">
+                <i style={{ width: `${Math.round(activeJob.progress * 100)}%` }} />
+              </div>
+            )}
             <div className="meta">
               <span>{statusLabel(activeJob.status)}</span>
-              {renderStageLabel(activeJob) ? <span>{renderStageLabel(activeJob)}</span> : null}
+              {activeJob.status !== "cancelled" && renderStageLabel(activeJob) ? <span>{renderStageLabel(activeJob)}</span> : null}
             </div>
+            {activeJob.status === "queued" || activeJob.status === "running" ? (
+              <div className="render-version-cancel">
+                <CancelJobButton
+                  jobId={activeJob.id}
+                  canceling={cancelingJobId === activeJob.id}
+                  busy={cancelingJobId !== null}
+                  onCancel={onCancelJob}
+                  className="secondary"
+                />
+              </div>
+            ) : null}
           </div>
         )}
       </div>
