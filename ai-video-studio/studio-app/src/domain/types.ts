@@ -137,6 +137,20 @@ export type RenderJob = {
   createdAt: string;
   updatedAt: string;
   error: ErrorResponse | null;
+  rightsReview: RenderRightsReview;
+};
+
+export type RenderRightsReview = {
+  required: boolean;
+  assetIds: string[];
+  items: Array<{
+    assetId: string;
+    label: string;
+    role: ImageAssetRole;
+    rightsStatus: ImageAsset["rights"]["status"];
+    note: string;
+    targetShotIds: string[];
+  }>;
 };
 
 export type DirectionSpec = {
@@ -207,6 +221,14 @@ export type AssetUsage = {
   targetId: string;
   mode: AssetUsageMode;
   createdAt: string;
+};
+
+export type AssetDeleteResult = {
+  deleted: boolean;
+  assetId: string;
+  blockedByUsage: boolean;
+  usageCount: number;
+  remainingAssets: number;
 };
 
 export type GenerationReference = {

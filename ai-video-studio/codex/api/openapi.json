@@ -212,6 +212,34 @@
         }
       }
     },
+    "/projects/{projectId}/assets/{assetId}": {
+      "delete": {
+        "operationId": "deleteImageAsset",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "assetId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^img_" } },
+          { "name": "force", "in": "query", "required": false, "schema": { "type": "boolean", "default": false } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image asset deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/AssetDeleteResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Image asset is still referenced",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/AssetDeleteResult" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/projects/{projectId}/image-jobs": {
       "post": {
         "operationId": "createImageJob",
@@ -318,6 +346,25 @@
         "responses": {
           "202": {
             "description": "Reference image attached to shot",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shots/{shotId}/references/{assetId}": {
+      "delete": {
+        "operationId": "detachImageFromShot",
+        "parameters": [
+          { "name": "shotId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^sht_" } },
+          { "name": "assetId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^img_" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference image detached from shot",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }

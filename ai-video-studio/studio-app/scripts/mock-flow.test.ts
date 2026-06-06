@@ -3,6 +3,8 @@ import {
   attachImageToShot,
   createImageJob,
   createProject,
+  deleteImageAsset,
+  detachImageFromShot,
   forceDueJobs,
   generateAll,
   getProjectBundle,
@@ -70,6 +72,13 @@ const styleAsset = registerExternalImage({
   url: "https://example.com/mood.png",
   rightsConfirmed: false
 });
+const unusedAsset = registerExternalImage({
+  projectId: project.id,
+  label: "미사용 로고",
+  role: "logo",
+  url: "https://example.com/logo.png",
+  rightsConfirmed: true
+});
 const productAsset = bundle.imageAssets.find((asset) => asset.role === "product");
 assert.ok(productAsset, "generated product asset should exist");
 attachImageToShot(bundle.shots[0].id, { assetId: productAsset.id, mode: "first_frame" });
@@ -114,6 +123,18 @@ assert.deepEqual(styleShotJob.promptPackage.routingHints.styleReferenceAssetIds,
 assert.equal(styleShotJob.promptPackage.requirements.imageToVideo, false, "style-only generation package should not request image-to-video");
 assert.equal(styleShotJob.promptPackage.routingHints.rightsReviewRequired, true, "unconfirmed reference rights should be visible to the adapter package");
 
+const blockedDelete = deleteImageAsset(project.id, styleAsset.id);
+assert.equal(blockedDelete.deleted, false, "used assets should not be deleted without force");
+assert.equal(blockedDelete.blockedByUsage, true, "used asset delete should be blocked by usage");
+
+const deletedUnused = deleteImageAsset(project.id, unusedAsset.id);
+assert.equal(deletedUnused.deleted, true, "unused assets should be deletable");
+assert.equal(deletedUnused.blockedByUsage, false, "unused asset delete should not be blocked");
+
+const shotAfterDetach = detachImageFromShot(firstShotId, externalAsset.id);
+assert.equal(shotAfterDetach.referenceImageIds.includes(externalAsset.id), false, "detaching should remove an asset from shot references");
+assert.equal(shotAfterDetach.requirements.characterLock, false, "detaching the only character reference should clear character lock for non-character-lock intents");
+
 const failedShot = failedShots[0];
 const beforeTakes = bundle.takes.filter((take) => take.shotId === failedShot.id).length;
 regenerate(failedShot.id, { scope: "segment" });
@@ -145,6 +166,17 @@ bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after render");
 assert.equal(bundle.renderJobs.length, 3, "render should create 3 jobs");
 assert.ok(bundle.renderJobs.every((job) => job.status === "done"), "render jobs should complete when forced due");
+assert.ok(bundle.renderJobs.every((job) => job.rightsReview.required), "render jobs should snapshot rights review when selected shots use unconfirmed references");
+assert.ok(
+  bundle.renderJobs.every((job) => job.rightsReview.assetIds.includes(styleAsset.id)),
+  "render rights review should include the unconfirmed style reference"
+);
+
+const forcedDelete = deleteImageAsset(project.id, styleAsset.id, { force: true });
+assert.equal(forcedDelete.deleted, true, "force delete should remove a used asset and its references");
+bundle = getProjectBundle(project.id);
+assert.ok(bundle, "bundle should exist after force deleting an asset");
+assert.equal(bundle.shots.some((shot) => shot.referenceImageIds.includes(styleAsset.id)), false, "force delete should remove shot references");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,

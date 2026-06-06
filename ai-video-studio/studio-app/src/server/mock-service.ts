@@ -1,6 +1,7 @@
 import { INTENT_TEMPLATES } from "../domain/templates";
 import type {
   Aspect,
+  AssetDeleteResult,
   AssetUsage,
   AssetUsageMode,
   EditState,
@@ -16,7 +17,9 @@ import type {
   JobStatus,
   Project,
   ProjectBundle,
+  ReferenceBoard,
   RenderJob,
+  RenderRightsReview,
   Scene,
   Shot,
   StudioState,
@@ -73,6 +76,10 @@ function normalizeState(current: StudioState): StudioState {
     if (!shot.directionSpec) shot.directionSpec = defaultDirectionSpec();
   }
 
+  for (const job of next.renderJobs) {
+    if (!job.rightsReview) job.rightsReview = defaultRenderRightsReview();
+  }
+
   return next as StudioState;
 }
 
@@ -122,7 +129,7 @@ function defaultDirectionSpec() {
   };
 }
 
-function defaultReferenceBoard(projectId: string) {
+function defaultReferenceBoard(projectId: string): ReferenceBoard {
   return {
     projectId,
     productImages: [],
@@ -134,6 +141,14 @@ function defaultReferenceBoard(projectId: string) {
     logos: [],
     backgrounds: [],
     usages: [] as AssetUsage[]
+  };
+}
+
+function defaultRenderRightsReview(): RenderRightsReview {
+  return {
+    required: false,
+    assetIds: [],
+    items: []
   };
 }
 
@@ -354,6 +369,29 @@ function addAssetToBoard(current: StudioState, asset: ImageAsset, usage?: Omit<A
   }
 }
 
+const boardImageBuckets = [
+  "productImages",
+  "characterImages",
+  "locationImages",
+  "styleImages",
+  "keyframes",
+  "thumbnails",
+  "logos",
+  "backgrounds"
+] as const;
+
+function removeAssetFromBoard(board: ReturnType<typeof defaultReferenceBoard>, assetId: string) {
+  for (const bucket of boardImageBuckets) {
+    board[bucket] = board[bucket].filter((id) => id !== assetId);
+  }
+  board.usages = board.usages.filter((usage) => usage.assetId !== assetId);
+}
+
+function assetUsages(current: StudioState, projectId: string, assetId: string) {
+  const board = current.referenceBoards[projectId];
+  return board ? board.usages.filter((usage) => usage.assetId === assetId) : [];
+}
+
 function shotUsages(current: StudioState, shot: Shot) {
   const board = current.referenceBoards[shot.projectId];
   if (!board) return [];
@@ -385,17 +423,29 @@ function ensureCharacterFromAsset(current: StudioState, shot: Shot, asset: Image
 
 function applyReferenceRequirements(current: StudioState, shot: Shot) {
   const usages = shotUsages(current, shot);
-  for (const usage of usages) {
-    const asset = current.imageAssets.find((item) => item.id === usage.assetId);
-    if (!asset) continue;
-    if (usage.mode === "first_frame" || usage.mode === "last_frame") {
-      shot.requirements.imageToVideo = true;
-    }
-    if (usage.mode === "character_reference") {
-      shot.requirements.characterLock = true;
-      ensureCharacterFromAsset(current, shot, asset);
-    }
+  const frameUsages = usages.filter((usage) => usage.mode === "first_frame" || usage.mode === "last_frame");
+  const characterUsages = usages.filter((usage) => usage.mode === "character_reference");
+  const project = current.projects.find((item) => item.id === shot.projectId);
+  const baselineCharacterLock = project?.intent === "education" || project?.intent === "brand";
+
+  shot.requirements.imageToVideo = frameUsages.length > 0;
+  if (characterUsages.length) {
+    const asset = current.imageAssets.find((item) => item.id === characterUsages[0].assetId);
+    shot.requirements.characterLock = true;
+    if (asset) ensureCharacterFromAsset(current, shot, asset);
+  } else if (!baselineCharacterLock) {
+    shot.requirements.characterLock = false;
+    shot.requirements.characterId = null;
   }
+}
+
+function detachAssetFromShot(current: StudioState, shot: Shot, assetId: string) {
+  shot.referenceImageIds = shot.referenceImageIds.filter((id) => id !== assetId);
+  const board = current.referenceBoards[shot.projectId];
+  if (board) {
+    board.usages = board.usages.filter((usage) => !(usage.target === "shot" && usage.targetId === shot.id && usage.assetId === assetId));
+  }
+  applyReferenceRequirements(current, shot);
 }
 
 function buildGenerationPromptPackage(current: StudioState, shot: Shot): GenerationPromptPackage {
@@ -575,6 +625,51 @@ export function attachImageToShot(shotId: string, input: { assetId: string; mode
   applyReferenceRequirements(current, shot);
   write(current);
   return shot;
+}
+
+export function detachImageFromShot(shotId: string, assetId: string) {
+  const current = state();
+  const shot = current.shots.find((item) => item.id === shotId);
+  const asset = current.imageAssets.find((item) => item.id === assetId);
+  if (!shot || !asset || shot.projectId !== asset.projectId) throw new Error("Shot or image asset not found");
+  detachAssetFromShot(current, shot, asset.id);
+  write(current);
+  return shot;
+}
+
+export function deleteImageAsset(projectId: string, assetId: string, options: { force?: boolean } = {}): AssetDeleteResult {
+  const current = state();
+  const asset = current.imageAssets.find((item) => item.id === assetId && item.projectId === projectId);
+  if (!asset) throw new Error("Image asset not found");
+  const usages = assetUsages(current, projectId, assetId);
+  if (usages.length && !options.force) {
+    return {
+      deleted: false,
+      assetId,
+      blockedByUsage: true,
+      usageCount: usages.length,
+      remainingAssets: current.imageAssets.filter((item) => item.projectId === projectId).length
+    };
+  }
+
+  for (const shot of current.shots.filter((item) => item.projectId === projectId && item.referenceImageIds.includes(assetId))) {
+    detachAssetFromShot(current, shot, assetId);
+  }
+  const board = current.referenceBoards[projectId];
+  if (board) removeAssetFromBoard(board, assetId);
+  current.imageJobs = current.imageJobs.map((job) => ({
+    ...job,
+    variants: job.variants.map((variant) => (variant.assetId === assetId ? { ...variant, assetId: null } : variant))
+  }));
+  current.imageAssets = current.imageAssets.filter((item) => item.id !== assetId);
+  write(current);
+  return {
+    deleted: true,
+    assetId,
+    blockedByUsage: false,
+    usageCount: usages.length,
+    remainingAssets: current.imageAssets.filter((item) => item.projectId === projectId).length
+  };
 }
 
 export function updateShotDirection(shotId: string, patch: Partial<Shot["directionSpec"]>) {
@@ -759,6 +854,33 @@ export function setAudio(projectId: string, patch: Partial<EditState>) {
   return current.editState[projectId];
 }
 
+function buildRenderRightsReview(current: StudioState, projectId: string): RenderRightsReview {
+  const selectedShots = current.shots.filter((shot) => shot.projectId === projectId && shot.selectedTakeId);
+  const items = new Map<string, RenderRightsReview["items"][number]>();
+  for (const shot of selectedShots) {
+    for (const assetId of shot.referenceImageIds) {
+      const asset = current.imageAssets.find((item) => item.id === assetId && item.projectId === projectId);
+      if (!asset || asset.rights.status !== "needs_review") continue;
+      const item = items.get(asset.id) || {
+        assetId: asset.id,
+        label: asset.label,
+        role: asset.role,
+        rightsStatus: asset.rights.status,
+        note: asset.rights.note,
+        targetShotIds: []
+      };
+      if (!item.targetShotIds.includes(shot.id)) item.targetShotIds.push(shot.id);
+      items.set(asset.id, item);
+    }
+  }
+  const list = [...items.values()];
+  return {
+    required: list.length > 0,
+    assetIds: list.map((item) => item.assetId),
+    items: list
+  };
+}
+
 export function startRender(projectId: string, specs: ExportSpec[]) {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
@@ -779,6 +901,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
       if (best) shot.selectedTakeId = best.id;
     }
   }
+  const rightsReview = buildRenderRightsReview(current, projectId);
   const jobs: RenderJob[] = nextSpecs.map((spec, index) => ({
     id: uid("rnd"),
     projectId,
@@ -792,7 +915,8 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
     dueAt: Date.now() + 4200 + index * 1200,
     createdAt: now(),
     updatedAt: now(),
-    error: null
+    error: null,
+    rightsReview
   }));
   current.renderJobs.push(...jobs);
   project.status = "rendering";

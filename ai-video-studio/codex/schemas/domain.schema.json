@@ -379,7 +379,22 @@
     },
     "RenderJob": {
       "type": "object",
-      "required": ["id", "projectId", "spec", "stage", "progress", "status"],
+      "required": [
+        "id",
+        "projectId",
+        "spec",
+        "stage",
+        "progress",
+        "status",
+        "outputUrl",
+        "shareUrl",
+        "etaSec",
+        "dueAt",
+        "createdAt",
+        "updatedAt",
+        "error",
+        "rightsReview"
+      ],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^rnd_" },
@@ -393,7 +408,55 @@
         "status": { "$ref": "#/$defs/JobStatus" },
         "outputUrl": { "type": ["string", "null"], "format": "uri" },
         "shareUrl": { "type": ["string", "null"], "format": "uri" },
-        "etaSec": { "type": ["integer", "null"], "minimum": 0 }
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 },
+        "dueAt": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "error": { "$ref": "#/$defs/ErrorResponse" },
+        "rightsReview": { "$ref": "#/$defs/RenderRightsReview" }
+      }
+    },
+    "RenderRightsReview": {
+      "type": "object",
+      "required": ["required", "assetIds", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "assetIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^img_" }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["assetId", "label", "role", "rightsStatus", "note", "targetShotIds"],
+            "additionalProperties": false,
+            "properties": {
+              "assetId": { "type": "string", "pattern": "^img_" },
+              "label": { "type": "string" },
+              "role": { "$ref": "#/$defs/ImageAssetRole" },
+              "rightsStatus": { "type": "string", "enum": ["user_confirmed", "generated", "needs_review"] },
+              "note": { "type": "string" },
+              "targetShotIds": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^sht_" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "AssetDeleteResult": {
+      "type": "object",
+      "required": ["deleted", "assetId", "blockedByUsage", "usageCount", "remainingAssets"],
+      "additionalProperties": false,
+      "properties": {
+        "deleted": { "type": "boolean" },
+        "assetId": { "type": "string", "pattern": "^img_" },
+        "blockedByUsage": { "type": "boolean" },
+        "usageCount": { "type": "integer", "minimum": 0 },
+        "remainingAssets": { "type": "integer", "minimum": 0 }
       }
     },
     "ExportSpec": {
