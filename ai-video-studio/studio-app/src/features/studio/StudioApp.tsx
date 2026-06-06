@@ -109,6 +109,14 @@ function qualityLabel(take: Take) {
   return "재시도 권장";
 }
 
+function formatSeconds(sec: number) {
+  const rounded = Math.round(sec);
+  if (rounded < 60) return `${rounded}초`;
+  const minutes = Math.floor(rounded / 60);
+  const seconds = rounded % 60;
+  return seconds ? `${minutes}분 ${seconds}초` : `${minutes}분`;
+}
+
 function renderStageLabel(job: RenderJob) {
   if (job.status === "queued") return "대기 중";
   if (job.status === "failed") return "내보내기 실패";
@@ -1012,6 +1020,11 @@ function ExportView({
   if (!bundle) return <NoProject />;
   const activeRender = bundle.renderJobs.some((job) => job.status === "queued" || job.status === "running");
   const hasRendered = bundle.renderJobs.some((job) => job.status === "done");
+  // rightsReview/renderPlan은 startRender 시점 스냅샷이라 렌더 잡에만 존재한다. 가장 최근 잡을
+  // 내보내기 점검 요약으로 삼는다(같은 배치의 잡들은 동일 스냅샷을 공유). 컷 제목 역참조 맵으로
+  // missingShotId를 사람이 읽는 컷 이름으로 바꾼다.
+  const latestJob = bundle.renderJobs.length ? bundle.renderJobs[bundle.renderJobs.length - 1] : null;
+  const shotTitleById = new Map(bundle.shots.map((shot) => [shot.id, shot.title] as const));
   return (
     <div className="grid export-grid">
       <section className="panel">
@@ -1043,6 +1056,7 @@ function ExportView({
       </section>
       <section className="panel">
         <h2>렌더 잡</h2>
+        {latestJob ? <RenderPreflight job={latestJob} shotTitleById={shotTitleById} /> : null}
         <div className="grid" style={{ marginTop: 12 }}>
           {bundle.renderJobs.map((job) => (
             <div className="row-card render-row" key={job.id}>
@@ -1078,6 +1092,54 @@ function ExportView({
           {!bundle.renderJobs.length ? <div className="empty">아직 렌더 잡이 없습니다.</div> : null}
         </div>
       </section>
+    </div>
+  );
+}
+
+function RenderPreflight({ job, shotTitleById }: { job: RenderJob; shotTitleById: Map<string, string> }) {
+  const plan = job.renderPlan;
+  const rights = job.rightsReview;
+  const missing = plan.missingShotIds;
+  return (
+    <div className="preflight" aria-label="내보내기 점검">
+      <div className="preflight-row">
+        <span className="preflight-key">렌더 구성</span>
+        <span className="preflight-val">
+          <strong>{plan.shots.length}컷</strong> 연결 · 전체 약 {formatSeconds(plan.totalDurationSec)}
+        </span>
+      </div>
+      {missing.length ? (
+        <div className="preflight-flag warn-flag">
+          <strong>빠지는 컷 {missing.length}개</strong>
+          <p>아직 선택된 결과가 없어 이번 내보내기에는 포함되지 않습니다. 비교 화면에서 후보를 선택하면 다음 렌더에 합쳐집니다.</p>
+          <ul>
+            {missing.map((shotId) => (
+              <li key={shotId}>{shotTitleById.get(shotId) || shotId}</li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="preflight-flag ok-flag">선택된 컷이 빠짐없이 이번 렌더에 포함되었습니다.</div>
+      )}
+      {rights.required ? (
+        <div className="preflight-flag warn-flag">
+          <strong>권리 확인 필요 {rights.items.length}건</strong>
+          <p>아래 이미지의 사용 권리와 인물 동의를 확인한 뒤 게시하세요. 외부 등록 이미지는 직접 확인이 필요합니다.</p>
+          <ul>
+            {rights.items.map((item) => (
+              <li key={item.assetId}>
+                <span className="preflight-item-head">
+                  {roleLabels[item.role]} · {item.label}
+                  <span className="preflight-shotcount">{item.targetShotIds.length}개 컷에 사용</span>
+                </span>
+                {item.note ? <small>{item.note}</small> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="preflight-flag ok-flag">권리 확인 완료 · 별도 점검이 필요한 외부 이미지가 없습니다.</div>
+      )}
     </div>
   );
 }

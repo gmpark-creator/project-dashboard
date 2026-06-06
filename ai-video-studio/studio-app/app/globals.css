@@ -620,6 +620,99 @@ label {
   font-size: 13px;
 }
 
+.preflight {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #151922;
+}
+
+.preflight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+}
+
+.preflight-key {
+  color: var(--dim);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.preflight-val {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.preflight-val strong {
+  color: var(--text);
+}
+
+.preflight-flag {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.preflight-flag p {
+  margin: 5px 0 0;
+}
+
+.preflight-flag ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+}
+
+.preflight-flag li {
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.preflight-flag li small {
+  display: block;
+  margin-top: 2px;
+  color: var(--dim);
+  font-weight: 600;
+}
+
+.preflight-item-head {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+
+.preflight-shotcount {
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.warn-flag {
+  border: 1px solid rgba(239, 111, 122, .48);
+  background: rgba(239, 111, 122, .1);
+  color: #ffb4ba;
+}
+
+.warn-flag strong {
+  color: #ffd0d4;
+}
+
+.ok-flag {
+  border: 1px solid rgba(123, 217, 121, .4);
+  background: rgba(123, 217, 121, .08);
+  color: #b6f0b5;
+}
+
 .player {
   display: grid;
   place-items: center;
