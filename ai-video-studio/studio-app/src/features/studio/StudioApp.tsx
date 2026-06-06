@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { AssetUsage, DirectionSpec, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -347,7 +347,14 @@ export function StudioApp() {
               onEdit={() => goToView("edit")}
             />
           ) : null}
-          {view === "edit" ? <Edit bundle={bundle} onExport={() => goToView("export")} /> : null}
+          {view === "edit" ? (
+            <Edit
+              bundle={bundle}
+              onExport={() => goToView("export")}
+              onApplyCommand={(command) => bundle && run(() => studioApi.applyEdit(bundle.project.id, { command }), "편집 명령을 저장했습니다.")}
+              onSetAudio={(patch) => bundle && run(() => studioApi.setAudio(bundle.project.id, patch), "다듬기 설정을 저장했습니다.")}
+            />
+          ) : null}
           {view === "export" ? (
             <ExportView
               bundle={bundle}
@@ -973,9 +980,59 @@ function TakeCard({ shot, take, onSelect }: { shot: Shot; take: Take; onSelect: 
   );
 }
 
-function Edit({ bundle, onExport }: { bundle: ProjectBundle | null; onExport: () => void }) {
+const captionModeLabels: Record<EditState["captions"]["mode"], string> = {
+  "burn-in": "영상에 새기기",
+  srt: "파일로 따로 받기",
+  both: "새기기 + 파일"
+};
+
+const captionSourceLabels: Record<EditState["captions"]["source"], string> = {
+  "script-first": "대본 기준",
+  stt: "음성 인식 기준"
+};
+
+const voiceSourceLabels: Record<EditState["voiceover"]["source"], string> = {
+  licensed_tts: "기본 제공 보이스",
+  user_upload: "직접 업로드"
+};
+
+// track/voice는 자유 문자열이라 저장값이 프리셋에 없을 수 있다. 항상 현재 값을 선택지에 포함시킨다.
+const BGM_TRACKS = ["라이선스 확인 사운드", "잔잔한 배경음", "밝은 배경음", "감성 배경음"];
+const VOICE_OPTIONS = ["보이스 A", "보이스 B", "보이스 C"];
+
+function withCurrent(options: string[], current: string) {
+  return options.includes(current) ? options : [current, ...options];
+}
+
+function Edit({
+  bundle,
+  onExport,
+  onApplyCommand,
+  onSetAudio
+}: {
+  bundle: ProjectBundle | null;
+  onExport: () => void;
+  onApplyCommand: (command: string) => void;
+  onSetAudio: (patch: Partial<EditState>) => void;
+}) {
+  const [command, setCommand] = useState("");
   if (!bundle) return <NoProject />;
   const selectedCount = bundle.shots.filter((shot) => shot.selectedTakeId).length;
+  // 컨트롤은 모두 저장된 bundle.editState를 직접 반영한다(로컬 사본 없이). 변경 즉시 저장 후
+  // 부모 run()이 bundle을 새로고침하므로 editState·renderSourceHash가 항상 최신이고,
+  // 그 덕분에 내보내기 화면의 "프로젝트가 바뀌었습니다" stale 안내도 정상 동작한다.
+  const { captions, bgm, voiceover, transitions } = bundle.editState;
+  const bgmTracks = withCurrent(BGM_TRACKS, bgm.track);
+  const voiceOptions = withCurrent(VOICE_OPTIONS, voiceover.voice);
+  const recentCommands = [...bundle.editState.commands].slice(-3).reverse();
+
+  function submitCommand() {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+    onApplyCommand(trimmed);
+    setCommand("");
+  }
+
   return (
     <div className="grid edit-grid">
       <div className="panel">
@@ -997,10 +1054,135 @@ function Edit({ bundle, onExport }: { bundle: ProjectBundle | null; onExport: ()
           </button>
         </div>
         <label>
-          대화형 편집 명령
-          <input placeholder="예) 마지막 컷에 CTA를 2초 더 길게 보여줘" />
+          편집 명령
+          <div className="command-row">
+            <input
+              value={command}
+              placeholder="예) 마지막 컷에 CTA를 2초 더 길게 보여줘"
+              onChange={(event) => setCommand(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  submitCommand();
+                }
+              }}
+            />
+            <button type="button" className="secondary" disabled={!command.trim()} onClick={submitCommand}>
+              명령 저장
+            </button>
+          </div>
         </label>
-        <div className="notice">라이선스 확인된 사운드만 기본 제공됩니다. 사용자 업로드 파일은 사용자가 권리를 확인해야 합니다.</div>
+        {recentCommands.length ? (
+          <ul className="command-log">
+            {recentCommands.map((item, index) => (
+              <li key={`${item.createdAt}-${index}`}>{item.command}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="edit-controls">
+          <div className="edit-control">
+            <label className="check-row">
+              <input type="checkbox" checked={captions.enabled} onChange={(event) => onSetAudio({ captions: { ...captions, enabled: event.target.checked } })} />
+              자막 넣기
+            </label>
+            <div className="grid two-compact">
+              <label>
+                자막 형식
+                <select
+                  value={captions.mode}
+                  disabled={!captions.enabled}
+                  onChange={(event) => onSetAudio({ captions: { ...captions, mode: event.target.value as EditState["captions"]["mode"] } })}
+                >
+                  {Object.entries(captionModeLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                자막 기준
+                <select
+                  value={captions.source}
+                  disabled={!captions.enabled}
+                  onChange={(event) => onSetAudio({ captions: { ...captions, source: event.target.value as EditState["captions"]["source"] } })}
+                >
+                  {Object.entries(captionSourceLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="edit-control">
+            <label className="check-row">
+              <input type="checkbox" checked={bgm.enabled} onChange={(event) => onSetAudio({ bgm: { ...bgm, enabled: event.target.checked } })} />
+              배경 음악
+            </label>
+            <div className="grid two-compact">
+              <label>
+                음악 선택
+                <select value={bgm.track} disabled={!bgm.enabled} onChange={(event) => onSetAudio({ bgm: { ...bgm, track: event.target.value } })}>
+                  {bgmTracks.map((track) => (
+                    <option key={track} value={track}>
+                      {track}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="check-row check-inline">
+                <input type="checkbox" checked={bgm.ducking} disabled={!bgm.enabled} onChange={(event) => onSetAudio({ bgm: { ...bgm, ducking: event.target.checked } })} />
+                말할 때 음악 줄이기
+              </label>
+            </div>
+          </div>
+
+          <div className="edit-control">
+            <label className="check-row">
+              <input type="checkbox" checked={voiceover.enabled} onChange={(event) => onSetAudio({ voiceover: { ...voiceover, enabled: event.target.checked } })} />
+              보이스(내레이션)
+            </label>
+            <div className="grid two-compact">
+              <label>
+                보이스 선택
+                <select value={voiceover.voice} disabled={!voiceover.enabled} onChange={(event) => onSetAudio({ voiceover: { ...voiceover, voice: event.target.value } })}>
+                  {voiceOptions.map((voice) => (
+                    <option key={voice} value={voice}>
+                      {voice}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                보이스 소스
+                <select
+                  value={voiceover.source}
+                  disabled={!voiceover.enabled}
+                  onChange={(event) => onSetAudio({ voiceover: { ...voiceover, source: event.target.value as EditState["voiceover"]["source"] } })}
+                >
+                  {Object.entries(voiceSourceLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="edit-control">
+            <label className="check-row">
+              <input type="checkbox" checked={transitions === "soft"} onChange={(event) => onSetAudio({ transitions: event.target.checked ? "soft" : "none" })} />
+              컷 전환 부드럽게
+            </label>
+          </div>
+        </div>
+
+        <div className="notice">라이선스 확인된 사운드만 기본 제공됩니다. 직접 업로드한 파일은 사용자가 권리를 확인해야 합니다.</div>
       </section>
     </div>
   );

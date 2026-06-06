@@ -620,6 +620,59 @@ label {
   font-size: 13px;
 }
 
+.command-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.command-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.command-row .secondary {
+  white-space: nowrap;
+}
+
+.command-log {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.command-log li {
+  overflow-wrap: anywhere;
+}
+
+.edit-controls {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* 다듬기 컨트롤은 카드 중첩 대신 얇은 구분선으로만 묶는다(조작 위주, 마케팅 X). */
+.edit-control {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.edit-control:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* two-compact 안에서 토글이 셀렉트와 같은 줄 높이로 보이도록 위쪽 여백을 맞춘다. */
+.check-inline {
+  align-self: end;
+  min-height: 44px;
+}
+
 .preflight {
   display: grid;
   gap: 10px;
