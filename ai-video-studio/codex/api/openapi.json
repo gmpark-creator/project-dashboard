@@ -70,6 +70,25 @@
         }
       }
     },
+    "/projects/{projectId}": {
+      "get": {
+        "operationId": "getProjectBundle",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project bundle with render source hash",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ProjectBundle" }
+              }
+            }
+          },
+          "404": { "description": "Project not found" }
+        }
+      }
+    },
     "/storyboard/decompose": {
       "post": {
         "operationId": "decomposeIdea",

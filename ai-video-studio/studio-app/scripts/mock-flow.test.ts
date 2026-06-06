@@ -169,13 +169,21 @@ upgradeTake(doneTake.id, { mode: "final_regenerate" });
 forceDueJobs("generationJobs");
 tickJobs();
 
+const beforeEditBundle = getProjectBundle(project.id);
+assert.ok(beforeEditBundle, "bundle should exist before render source hash check");
+const beforeEditSourceHash = beforeEditBundle.renderSourceHash;
 applyEdit(project.id, "마지막 컷 CTA를 2초 더 길게 보여줘");
+const afterEditBundle = getProjectBundle(project.id);
+assert.ok(afterEditBundle, "bundle should exist after render source hash check");
+assert.notEqual(afterEditBundle.renderSourceHash, beforeEditSourceHash, "render source hash should change when edit commands change");
 const renderSpecs = [
   { resolution: "1080p", cut: "6s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "30s", aspect: "9:16", caption: "burn-in" }
 ] as const;
 const renderPreview = previewRender(project.id, renderSpecs[0]);
+assert.equal(renderPreview.sourceHash, afterEditBundle.renderSourceHash, "render preview should match the current bundle render source hash");
+assert.equal(renderPreview.renderPlan.sourceHash, renderPreview.sourceHash, "render plan should carry the same source hash as its preview");
 assert.equal(renderPreview.rightsReview.required, true, "render preview should expose rights review before creating render jobs");
 assert.equal(renderPreview.renderPlan.missingShotIds.length, 1, "render preview should expose missing shots before creating render jobs");
 assert.equal(renderPreview.renderPlan.edit.commands.some((command) => command.command.includes("CTA")), true, "render preview should snapshot edit commands");
@@ -195,6 +203,10 @@ assert.ok(
 );
 assert.ok(renderedBundle.renderJobs.every((job) => job.renderPlan.missingShotIds.length === 1), "render plan should preserve known missing failed shots");
 assert.ok(bundle.renderJobs.every((job) => job.renderPlan.totalDurationSec > 0), "render plan should include total duration");
+assert.ok(
+  bundle.renderJobs.every((job) => job.renderPlan.sourceHash === renderPreview.sourceHash),
+  "render jobs should snapshot the same render source hash used by the preview"
+);
 assert.ok(
   bundle.renderJobs.every((job) => job.renderPlan.edit.commands.some((command) => command.command.includes("CTA"))),
   "render plan should snapshot edit commands"

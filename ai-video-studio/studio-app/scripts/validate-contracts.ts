@@ -53,6 +53,8 @@ for (const defName of [
   "DirectionSpec",
   "GenerationPromptPackage",
   "ProviderRoutingDecision",
+  "ProjectBundle",
+  "RenderSourceHash",
   "RenderPreview",
   "RenderPlan",
   "RenderRightsReview",
@@ -62,6 +64,7 @@ for (const defName of [
 }
 
 const requiredOperations = new Set([
+  "getProjectBundle",
   "listImageAssets",
   "registerExternalImage",
   "createImageJob",

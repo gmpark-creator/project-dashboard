@@ -145,6 +145,7 @@ export type RenderJob = {
 export type RenderPreview = {
   projectId: string;
   spec: ExportSpec;
+  sourceHash: string;
   rightsReview: RenderRightsReview;
   renderPlan: RenderPlan;
   estimate: {
@@ -156,6 +157,7 @@ export type RenderPreview = {
 export type RenderPlan = {
   projectId: string;
   spec: ExportSpec;
+  sourceHash: string;
   totalDurationSec: number;
   missingShotIds: string[];
   shots: Array<{
@@ -360,4 +362,5 @@ export type ProjectBundle = {
   referenceBoard: ReferenceBoard;
   editState: EditState;
   credits: StudioState["credits"];
+  renderSourceHash: string;
 };

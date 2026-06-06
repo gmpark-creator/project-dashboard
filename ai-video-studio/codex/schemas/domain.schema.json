@@ -28,6 +28,10 @@
       "type": "string",
       "enum": ["queued", "running", "done", "failed", "cancelled"]
     },
+    "RenderSourceHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "AssetUsageMode": {
       "type": "string",
       "enum": ["first_frame", "last_frame", "style_reference", "character_reference", "product_reference", "background_reference"]
@@ -135,6 +139,16 @@
       "properties": {
         "spent": { "type": "number", "minimum": 0 },
         "estimateRemaining": { "type": "number", "minimum": 0 }
+      }
+    },
+    "StudioCredits": {
+      "type": "object",
+      "required": ["balance", "spent", "reserved"],
+      "additionalProperties": false,
+      "properties": {
+        "balance": { "type": "number", "minimum": 0 },
+        "spent": { "type": "number", "minimum": 0 },
+        "reserved": { "type": "number", "minimum": 0 }
       }
     },
     "Scene": {
@@ -416,6 +430,68 @@
         "error": { "$ref": "#/$defs/ErrorResponse" }
       }
     },
+    "AssetUsage": {
+      "type": "object",
+      "required": ["assetId", "role", "target", "targetId", "mode", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "assetId": { "type": "string", "pattern": "^img_" },
+        "role": { "$ref": "#/$defs/ImageAssetRole" },
+        "target": { "type": "string", "enum": ["project", "shot"] },
+        "targetId": { "type": "string" },
+        "mode": { "$ref": "#/$defs/AssetUsageMode" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ReferenceBoard": {
+      "type": "object",
+      "required": ["projectId", "productImages", "characterImages", "locationImages", "styleImages", "keyframes", "thumbnails", "logos", "backgrounds", "usages"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "productImages": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "characterImages": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "locationImages": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "styleImages": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "keyframes": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "thumbnails": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "logos": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "backgrounds": { "type": "array", "items": { "type": "string", "pattern": "^img_" } },
+        "usages": { "type": "array", "items": { "$ref": "#/$defs/AssetUsage" } }
+      }
+    },
+    "ProjectBundle": {
+      "type": "object",
+      "required": [
+        "project",
+        "scenes",
+        "shots",
+        "takes",
+        "generationJobs",
+        "renderJobs",
+        "imageAssets",
+        "imageJobs",
+        "referenceBoard",
+        "editState",
+        "credits",
+        "renderSourceHash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "project": { "$ref": "#/$defs/Project" },
+        "scenes": { "type": "array", "items": { "$ref": "#/$defs/Scene" } },
+        "shots": { "type": "array", "items": { "$ref": "#/$defs/Shot" } },
+        "takes": { "type": "array", "items": { "$ref": "#/$defs/Take" } },
+        "generationJobs": { "type": "array", "items": { "$ref": "#/$defs/GenerationJob" } },
+        "renderJobs": { "type": "array", "items": { "$ref": "#/$defs/RenderJob" } },
+        "imageAssets": { "type": "array", "items": { "$ref": "#/$defs/ImageAsset" } },
+        "imageJobs": { "type": "array", "items": { "$ref": "#/$defs/ImageJob" } },
+        "referenceBoard": { "$ref": "#/$defs/ReferenceBoard" },
+        "editState": { "$ref": "#/$defs/EditState" },
+        "credits": { "$ref": "#/$defs/StudioCredits" },
+        "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
+      }
+    },
     "RenderJob": {
       "type": "object",
       "required": [
@@ -459,11 +535,12 @@
     },
     "RenderPreview": {
       "type": "object",
-      "required": ["projectId", "spec", "rightsReview", "renderPlan", "estimate"],
+      "required": ["projectId", "spec", "sourceHash", "rightsReview", "renderPlan", "estimate"],
       "additionalProperties": false,
       "properties": {
         "projectId": { "type": "string", "pattern": "^prj_" },
         "spec": { "$ref": "#/$defs/ExportSpec" },
+        "sourceHash": { "$ref": "#/$defs/RenderSourceHash" },
         "rightsReview": { "$ref": "#/$defs/RenderRightsReview" },
         "renderPlan": { "$ref": "#/$defs/RenderPlan" },
         "estimate": { "$ref": "#/$defs/CostEstimate" }
@@ -471,11 +548,12 @@
     },
     "RenderPlan": {
       "type": "object",
-      "required": ["projectId", "spec", "totalDurationSec", "missingShotIds", "shots", "edit"],
+      "required": ["projectId", "spec", "sourceHash", "totalDurationSec", "missingShotIds", "shots", "edit"],
       "additionalProperties": false,
       "properties": {
         "projectId": { "type": "string", "pattern": "^prj_" },
         "spec": { "$ref": "#/$defs/ExportSpec" },
+        "sourceHash": { "$ref": "#/$defs/RenderSourceHash" },
         "totalDurationSec": { "type": "number", "minimum": 0 },
         "missingShotIds": {
           "type": "array",
@@ -630,6 +708,7 @@
   },
   "properties": {
     "project": { "$ref": "#/$defs/Project" },
+    "projectBundle": { "$ref": "#/$defs/ProjectBundle" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },

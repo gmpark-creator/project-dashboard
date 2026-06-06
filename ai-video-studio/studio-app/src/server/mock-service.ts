@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { INTENT_TEMPLATES } from "../domain/templates";
 import { chooseProviderRoute } from "./provider-routing";
 import type {
@@ -89,7 +90,7 @@ function normalizeState(current: StudioState): StudioState {
 
   for (const job of next.renderJobs) {
     if (!job.rightsReview) job.rightsReview = defaultRenderRightsReview();
-    if (!job.renderPlan) job.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
+    if (!job.renderPlan || !(job.renderPlan as Partial<RenderPlan>).sourceHash) job.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
   }
 
   return next as StudioState;
@@ -323,7 +324,8 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
     imageJobs: current.imageJobs.filter((job) => job.projectId === project.id),
     referenceBoard: current.referenceBoards[project.id],
     editState: current.editState[project.id] || defaultEditState(project.id),
-    credits: current.credits
+    credits: current.credits,
+    renderSourceHash: buildRenderSourceHash(current, project.id)
   };
 }
 
@@ -889,6 +891,52 @@ function selectedOrBestTake(current: StudioState, shot: Shot) {
   return current.takes.find((take) => take.id === shot.selectedTakeId && take.shotId === shot.id) || bestDoneTake(current, shot);
 }
 
+function buildRenderSourceHash(current: StudioState, projectId: string) {
+  const shots = current.shots.filter((shot) => shot.projectId === projectId).sort((a, b) => a.order - b.order);
+  const payload = {
+    projectId,
+    shots: shots.map((shot) => {
+      const take = selectedOrBestTake(current, shot);
+      const referenceImageIds = [...shot.referenceImageIds].sort();
+      return {
+        id: shot.id,
+        sceneId: shot.sceneId,
+        order: shot.order,
+        title: shot.title,
+        durationSec: shot.durationSec,
+        status: shot.status,
+        effectiveTake: take
+          ? {
+              id: take.id,
+              status: take.status,
+              videoUrl: take.videoUrl,
+              posterUrl: take.posterUrl,
+              durationSec: take.durationSec,
+              tier: take.tier,
+              metrics: take.metrics,
+              upgradeSourceTakeId: take.upgradeSourceTakeId || null,
+              upgradeMode: take.upgradeMode || null
+            }
+          : null,
+        references: referenceImageIds.map((assetId) => {
+          const asset = current.imageAssets.find((item) => item.id === assetId && item.projectId === projectId);
+          return asset
+            ? {
+                assetId: asset.id,
+                label: asset.label,
+                role: asset.role,
+                rightsStatus: asset.rights.status,
+                rightsNote: asset.rights.note
+              }
+            : { assetId, missing: true };
+        })
+      };
+    }),
+    edit: cloneEditState(current.editState[projectId] || defaultEditState(projectId))
+  };
+  return `sha256:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`;
+}
+
 function buildRenderRightsReview(current: StudioState, projectId: string): RenderRightsReview {
   const selectedShots = current.shots.filter((shot) => shot.projectId === projectId && selectedOrBestTake(current, shot));
   const items = new Map<string, RenderRightsReview["items"][number]>();
@@ -951,6 +999,7 @@ function buildRenderPlan(current: StudioState, projectId: string, spec: ExportSp
   return {
     projectId,
     spec,
+    sourceHash: buildRenderSourceHash(current, projectId),
     totalDurationSec: planShots.reduce((total, shot) => total + shot.durationSec, 0),
     missingShotIds,
     shots: planShots,
@@ -962,11 +1011,13 @@ export function previewRender(projectId: string, spec: ExportSpec): RenderPrevie
   const current = tickJobs();
   const project = current.projects.find((item) => item.id === projectId);
   if (!project) throw new Error("Project not found");
+  const renderPlan = buildRenderPlan(current, projectId, spec);
   return {
     projectId,
     spec,
+    sourceHash: renderPlan.sourceHash,
     rightsReview: buildRenderRightsReview(current, projectId),
-    renderPlan: buildRenderPlan(current, projectId, spec),
+    renderPlan,
     estimate: estimateCost("startRender")
   };
 }
