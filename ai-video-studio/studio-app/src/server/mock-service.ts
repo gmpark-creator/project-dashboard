@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { INTENT_TEMPLATES } from "../domain/templates";
 import { chooseProviderRoute } from "./provider-routing";
 import type {
@@ -64,6 +66,34 @@ function mockPosterUrl(id: string, label: string) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+function shouldPersistMockState() {
+  return process.env.CUTPILOT_MOCK_PERSIST !== "0";
+}
+
+function mockStateFilePath() {
+  return join(/*turbopackIgnore: true*/ process.cwd(), "data", "cutpilot-mock-state.json");
+}
+
+function loadMockStateFromDisk(): StudioState | null {
+  if (!shouldPersistMockState()) return null;
+  const filePath = mockStateFilePath();
+  if (!existsSync(filePath)) return null;
+  try {
+    return JSON.parse(readFileSync(filePath, "utf8")) as StudioState;
+  } catch {
+    return null;
+  }
+}
+
+function persistMockStateToDisk(nextState: StudioState) {
+  if (!shouldPersistMockState()) return;
+  const filePath = mockStateFilePath();
+  mkdirSync(dirname(filePath), { recursive: true });
+  const tempPath = `${filePath}.${process.pid}.tmp`;
+  writeFileSync(tempPath, JSON.stringify(nextState, null, 2), "utf8");
+  renameSync(tempPath, filePath);
+}
+
 function blankState(): StudioState {
   return {
     version: 1,
@@ -123,7 +153,7 @@ function normalizeState(current: StudioState): StudioState {
 
 function state(): StudioState {
   if (!globalStore.__aiVideoStudioMockState) {
-    globalStore.__aiVideoStudioMockState = blankState();
+    globalStore.__aiVideoStudioMockState = loadMockStateFromDisk() || blankState();
   }
   globalStore.__aiVideoStudioMockState = normalizeState(globalStore.__aiVideoStudioMockState);
   return globalStore.__aiVideoStudioMockState;
@@ -132,11 +162,17 @@ function state(): StudioState {
 function write(nextState = state()) {
   nextState.updatedAt = now();
   globalStore.__aiVideoStudioMockState = nextState;
+  persistMockStateToDisk(nextState);
   return nextState;
 }
 
 export function resetMockState() {
   globalStore.__aiVideoStudioMockState = blankState();
+  return write(globalStore.__aiVideoStudioMockState);
+}
+
+export function reloadMockStateFromDisk() {
+  globalStore.__aiVideoStudioMockState = undefined;
   return state();
 }
 

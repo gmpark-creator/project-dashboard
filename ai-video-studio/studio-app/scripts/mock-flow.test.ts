@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   applyEdit,
   attachImageToShot,
@@ -12,6 +14,7 @@ import {
   previewRender,
   registerExternalImage,
   regenerate,
+  reloadMockStateFromDisk,
   resetMockState,
   selectTake,
   setAudio,
@@ -22,6 +25,28 @@ import {
   updateStoryboard,
   upgradeTake
 } from "../src/server/mock-service";
+
+const originalPersist = process.env.CUTPILOT_MOCK_PERSIST;
+const defaultStateFile = join(process.cwd(), "data", "cutpilot-mock-state.json");
+const originalStateFile = existsSync(defaultStateFile) ? readFileSync(defaultStateFile, "utf8") : null;
+process.env.CUTPILOT_MOCK_PERSIST = "1";
+const persistedProject = createProject({
+  title: "Persisted project",
+  idea: "A short product reveal that survives restart",
+  intent: "product_ad"
+});
+assert.ok(getProjectBundle(persistedProject.id), "persisted project should exist before reload");
+reloadMockStateFromDisk();
+assert.ok(getProjectBundle(persistedProject.id), "mock state should reload projects from the persisted state file");
+if (originalStateFile === null) {
+  rmSync(defaultStateFile, { force: true });
+} else {
+  mkdirSync(join(process.cwd(), "data"), { recursive: true });
+  writeFileSync(defaultStateFile, originalStateFile, "utf8");
+}
+if (typeof originalPersist === "undefined") delete process.env.CUTPILOT_MOCK_PERSIST;
+else process.env.CUTPILOT_MOCK_PERSIST = originalPersist;
+process.env.CUTPILOT_MOCK_PERSIST = "0";
 
 resetMockState();
 
