@@ -432,7 +432,8 @@
         "createdAt",
         "updatedAt",
         "error",
-        "rightsReview"
+        "rightsReview",
+        "renderPlan"
       ],
       "additionalProperties": false,
       "properties": {
@@ -452,7 +453,92 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "error": { "$ref": "#/$defs/ErrorResponse" },
-        "rightsReview": { "$ref": "#/$defs/RenderRightsReview" }
+        "rightsReview": { "$ref": "#/$defs/RenderRightsReview" },
+        "renderPlan": { "$ref": "#/$defs/RenderPlan" }
+      }
+    },
+    "RenderPlan": {
+      "type": "object",
+      "required": ["projectId", "spec", "totalDurationSec", "missingShotIds", "shots", "edit"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "spec": { "$ref": "#/$defs/ExportSpec" },
+        "totalDurationSec": { "type": "number", "minimum": 0 },
+        "missingShotIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^sht_" }
+        },
+        "shots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["shotId", "takeId", "order", "title", "durationSec", "videoUrl", "posterUrl", "tier"],
+            "additionalProperties": false,
+            "properties": {
+              "shotId": { "type": "string", "pattern": "^sht_" },
+              "takeId": { "type": "string", "pattern": "^tak_" },
+              "order": { "type": "integer", "minimum": 0 },
+              "title": { "type": "string" },
+              "durationSec": { "type": "number", "minimum": 1 },
+              "videoUrl": { "type": ["string", "null"] },
+              "posterUrl": { "type": ["string", "null"] },
+              "tier": { "$ref": "#/$defs/Tier" }
+            }
+          }
+        },
+        "edit": { "$ref": "#/$defs/EditState" }
+      }
+    },
+    "EditState": {
+      "type": "object",
+      "required": ["projectId", "captions", "bgm", "voiceover", "transitions", "commands"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "captions": {
+          "type": "object",
+          "required": ["enabled", "mode", "source"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "mode": { "type": "string", "enum": ["burn-in", "srt", "both"] },
+            "source": { "type": "string", "enum": ["script-first", "stt"] }
+          }
+        },
+        "bgm": {
+          "type": "object",
+          "required": ["enabled", "track", "ducking"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "track": { "type": "string" },
+            "ducking": { "type": "boolean" }
+          }
+        },
+        "voiceover": {
+          "type": "object",
+          "required": ["enabled", "voice", "source"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "voice": { "type": "string" },
+            "source": { "type": "string", "enum": ["licensed_tts", "user_upload"] }
+          }
+        },
+        "transitions": { "type": "string", "enum": ["none", "soft"] },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["command", "createdAt"],
+            "additionalProperties": false,
+            "properties": {
+              "command": { "type": "string" },
+              "createdAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
       }
     },
     "RenderRightsReview": {

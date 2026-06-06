@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  applyEdit,
   attachImageToShot,
   createImageJob,
   createProject,
@@ -167,6 +168,7 @@ upgradeTake(doneTake.id, { mode: "final_regenerate" });
 forceDueJobs("generationJobs");
 tickJobs();
 
+applyEdit(project.id, "마지막 컷 CTA를 2초 더 길게 보여줘");
 startRender(project.id, [
   { resolution: "1080p", cut: "6s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in" },
@@ -179,6 +181,22 @@ bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist after render");
 assert.equal(bundle.renderJobs.length, 3, "render should create 3 jobs");
 assert.ok(bundle.renderJobs.every((job) => job.status === "done"), "render jobs should complete when forced due");
+const renderedBundle = bundle;
+assert.ok(
+  renderedBundle.renderJobs.every((job) => job.renderPlan.shots.length + job.renderPlan.missingShotIds.length === renderedBundle.shots.length),
+  "render plan should account for selected and missing storyboard shots"
+);
+assert.ok(renderedBundle.renderJobs.every((job) => job.renderPlan.missingShotIds.length === 1), "render plan should preserve known missing failed shots");
+assert.ok(bundle.renderJobs.every((job) => job.renderPlan.totalDurationSec > 0), "render plan should include total duration");
+assert.ok(
+  bundle.renderJobs.every((job) => job.renderPlan.edit.commands.some((command) => command.command.includes("CTA"))),
+  "render plan should snapshot edit commands"
+);
+assert.deepEqual(
+  renderedBundle.renderJobs[0].renderPlan.shots.map((shot) => shot.order),
+  renderedBundle.renderJobs[0].renderPlan.shots.map((shot) => shot.order).sort((a, b) => a - b),
+  "render plan selected shots should preserve storyboard order"
+);
 assert.ok(bundle.renderJobs.every((job) => job.rightsReview.required), "render jobs should snapshot rights review when selected shots use unconfirmed references");
 assert.ok(
   bundle.renderJobs.every((job) => job.rightsReview.assetIds.includes(styleAsset.id)),

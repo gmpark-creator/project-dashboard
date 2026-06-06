@@ -139,6 +139,25 @@ export type RenderJob = {
   updatedAt: string;
   error: ErrorResponse | null;
   rightsReview: RenderRightsReview;
+  renderPlan: RenderPlan;
+};
+
+export type RenderPlan = {
+  projectId: string;
+  spec: ExportSpec;
+  totalDurationSec: number;
+  missingShotIds: string[];
+  shots: Array<{
+    shotId: string;
+    takeId: string;
+    order: number;
+    title: string;
+    durationSec: number;
+    videoUrl: string | null;
+    posterUrl: string | null;
+    tier: Tier;
+  }>;
+  edit: EditState;
 };
 
 export type RenderRightsReview = {

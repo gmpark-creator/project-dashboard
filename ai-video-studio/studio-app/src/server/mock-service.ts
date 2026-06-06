@@ -21,6 +21,7 @@ import type {
   ProviderRoutingDecision,
   ReferenceBoard,
   RenderJob,
+  RenderPlan,
   RenderRightsReview,
   Scene,
   Shot,
@@ -87,6 +88,7 @@ function normalizeState(current: StudioState): StudioState {
 
   for (const job of next.renderJobs) {
     if (!job.rightsReview) job.rightsReview = defaultRenderRightsReview();
+    if (!job.renderPlan) job.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
   }
 
   return next as StudioState;
@@ -903,6 +905,52 @@ function buildRenderRightsReview(current: StudioState, projectId: string): Rende
   };
 }
 
+function cloneEditState(edit: EditState): EditState {
+  return {
+    projectId: edit.projectId,
+    captions: { ...edit.captions },
+    bgm: { ...edit.bgm },
+    voiceover: { ...edit.voiceover },
+    transitions: edit.transitions,
+    commands: edit.commands.map((command) => ({ ...command }))
+  };
+}
+
+function buildRenderPlan(current: StudioState, projectId: string, spec: ExportSpec): RenderPlan {
+  const shots = current.shots.filter((shot) => shot.projectId === projectId).sort((a, b) => a.order - b.order);
+  const planShots: RenderPlan["shots"] = [];
+  const missingShotIds: string[] = [];
+  for (const shot of shots) {
+    if (!shot.selectedTakeId) {
+      missingShotIds.push(shot.id);
+      continue;
+    }
+    const take = current.takes.find((item) => item.id === shot.selectedTakeId && item.shotId === shot.id);
+    if (!take) {
+      missingShotIds.push(shot.id);
+      continue;
+    }
+    planShots.push({
+      shotId: shot.id,
+      takeId: take.id,
+      order: shot.order,
+      title: shot.title,
+      durationSec: take.durationSec,
+      videoUrl: take.videoUrl,
+      posterUrl: take.posterUrl,
+      tier: take.tier
+    });
+  }
+  return {
+    projectId,
+    spec,
+    totalDurationSec: planShots.reduce((total, shot) => total + shot.durationSec, 0),
+    missingShotIds,
+    shots: planShots,
+    edit: cloneEditState(current.editState[projectId] || defaultEditState(projectId))
+  };
+}
+
 export function startRender(projectId: string, specs: ExportSpec[]) {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
@@ -924,6 +972,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
     }
   }
   const rightsReview = buildRenderRightsReview(current, projectId);
+  const renderPlans = new Map(nextSpecs.map((spec) => [`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`, buildRenderPlan(current, projectId, spec)]));
   const jobs: RenderJob[] = nextSpecs.map((spec, index) => ({
     id: uid("rnd"),
     projectId,
@@ -938,7 +987,8 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
     createdAt: now(),
     updatedAt: now(),
     error: null,
-    rightsReview
+    rightsReview,
+    renderPlan: renderPlans.get(`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`) || buildRenderPlan(current, projectId, spec)
   }));
   current.renderJobs.push(...jobs);
   project.status = "rendering";

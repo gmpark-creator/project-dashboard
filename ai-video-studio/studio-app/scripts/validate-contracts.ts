@@ -53,6 +53,7 @@ for (const defName of [
   "DirectionSpec",
   "GenerationPromptPackage",
   "ProviderRoutingDecision",
+  "RenderPlan",
   "RenderRightsReview",
   "AssetDeleteResult"
 ]) {
