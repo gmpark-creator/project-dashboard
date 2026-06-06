@@ -14,6 +14,7 @@ import {
   regenerate,
   resetMockState,
   selectTake,
+  setAudio,
   startRender,
   tickJobs,
   updateShotDirection,
@@ -176,13 +177,19 @@ applyEdit(project.id, "마지막 컷 CTA를 2초 더 길게 보여줘");
 const afterEditBundle = getProjectBundle(project.id);
 assert.ok(afterEditBundle, "bundle should exist after render source hash check");
 assert.notEqual(afterEditBundle.renderSourceHash, beforeEditSourceHash, "render source hash should change when edit commands change");
+const audioState = setAudio(project.id, { captions: { ...afterEditBundle.editState.captions, enabled: false, mode: "srt" } });
+assert.equal(audioState.captions.enabled, false, "setAudio should persist caption enabled state");
+assert.equal(audioState.captions.mode, "srt", "setAudio should persist caption mode");
+const afterAudioBundle = getProjectBundle(project.id);
+assert.ok(afterAudioBundle, "bundle should exist after audio state update");
+assert.notEqual(afterAudioBundle.renderSourceHash, afterEditBundle.renderSourceHash, "render source hash should change when audio state changes");
 const renderSpecs = [
   { resolution: "1080p", cut: "6s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "30s", aspect: "9:16", caption: "burn-in" }
 ] as const;
 const renderPreview = previewRender(project.id, renderSpecs[0]);
-assert.equal(renderPreview.sourceHash, afterEditBundle.renderSourceHash, "render preview should match the current bundle render source hash");
+assert.equal(renderPreview.sourceHash, afterAudioBundle.renderSourceHash, "render preview should match the current bundle render source hash");
 assert.equal(renderPreview.renderPlan.sourceHash, renderPreview.sourceHash, "render plan should carry the same source hash as its preview");
 assert.equal(renderPreview.rightsReview.required, true, "render preview should expose rights review before creating render jobs");
 assert.equal(renderPreview.renderPlan.missingShotIds.length, 1, "render preview should expose missing shots before creating render jobs");

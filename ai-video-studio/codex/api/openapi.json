@@ -546,18 +546,19 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "command": { "type": "string" },
-                  "ops": { "type": "array", "items": { "type": "object" } }
-                }
-              }
+              "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditCommandInput" }
             }
           }
         },
         "responses": {
-          "200": { "description": "Edit state updated" }
+          "200": {
+            "description": "Edit state updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditState" }
+              }
+            }
+          }
         }
       }
     },
@@ -571,19 +572,19 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "captions": { "type": "array", "items": { "type": "object" } },
-                  "bgm": { "type": "object" },
-                  "voiceover": { "type": "object" }
-                }
-              }
+              "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditAudioPatch" }
             }
           }
         },
         "responses": {
-          "200": { "description": "Audio state updated" }
+          "200": {
+            "description": "Audio state updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditState" }
+              }
+            }
+          }
         }
       }
     },

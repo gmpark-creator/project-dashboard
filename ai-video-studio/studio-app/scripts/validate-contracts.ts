@@ -26,7 +26,7 @@ type Routing = {
 const capabilities = readJson<Capabilities>(join(codexDir, "config", "provider-capabilities.json"));
 const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"));
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
-const openApi = readJson<{ paths: Record<string, { get?: { operationId?: string }; post?: { operationId?: string }; patch?: { operationId?: string }; delete?: { operationId?: string } }> }>(
+const openApi = readJson<{ paths: Record<string, { get?: { operationId?: string }; post?: { operationId?: string }; put?: { operationId?: string }; patch?: { operationId?: string }; delete?: { operationId?: string } }> }>(
   join(codexDir, "api", "openapi.json")
 );
 
@@ -51,6 +51,8 @@ for (const defName of [
   "ImageJob",
   "AssetUsageMode",
   "DirectionSpec",
+  "EditAudioPatch",
+  "EditCommandInput",
   "GenerationPromptPackage",
   "ProviderRoutingDecision",
   "ProjectBundle",
@@ -64,6 +66,7 @@ for (const defName of [
 }
 
 const requiredOperations = new Set([
+  "applyEdit",
   "getProjectBundle",
   "listImageAssets",
   "registerExternalImage",
@@ -72,12 +75,13 @@ const requiredOperations = new Set([
   "detachImageFromShot",
   "deleteImageAsset",
   "previewRender",
+  "setAudio",
   "updateShotDirection",
   "generateShot"
 ]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {
-  for (const method of [path.get, path.post, path.patch, path.delete]) {
+  for (const method of [path.get, path.post, path.put, path.patch, path.delete]) {
     if (method?.operationId) operationIds.add(method.operationId);
   }
 }

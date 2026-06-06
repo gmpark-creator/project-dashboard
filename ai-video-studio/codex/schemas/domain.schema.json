@@ -631,6 +631,23 @@
         }
       }
     },
+    "EditCommandInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": { "type": "string" }
+      }
+    },
+    "EditAudioPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "captions": { "$ref": "#/$defs/EditState/properties/captions" },
+        "bgm": { "$ref": "#/$defs/EditState/properties/bgm" },
+        "voiceover": { "$ref": "#/$defs/EditState/properties/voiceover" },
+        "transitions": { "$ref": "#/$defs/EditState/properties/transitions" }
+      }
+    },
     "RenderRightsReview": {
       "type": "object",
       "required": ["required", "assetIds", "items"],

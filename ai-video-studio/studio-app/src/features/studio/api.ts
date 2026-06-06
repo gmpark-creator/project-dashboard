@@ -40,7 +40,10 @@ export const studioApi = {
     json(`/api/shots/${shotId}/regenerate`, { method: "POST", body: JSON.stringify({ scope }) }),
   upgradeTake: (takeId: string) =>
     json(`/api/takes/${takeId}/upgrade`, { method: "POST", body: JSON.stringify({ mode: "final_regenerate" }) }),
-  setAudio: (_projectId: string, _patch: Partial<EditState>) => Promise.resolve(),
+  applyEdit: (projectId: string, input: { command?: string }) =>
+    json<EditState>(`/api/projects/${projectId}/edits`, { method: "POST", body: JSON.stringify(input) }),
+  setAudio: (projectId: string, patch: Partial<EditState>) =>
+    json<EditState>(`/api/projects/${projectId}/audio`, { method: "PUT", body: JSON.stringify(patch) }),
   previewRender: (projectId: string, spec: ExportSpec) =>
     json<RenderPreview>(`/api/projects/${projectId}/render-preview`, { method: "POST", body: JSON.stringify({ spec }) }),
   startRender: (projectId: string, specs: ExportSpec[]) =>
