@@ -114,6 +114,7 @@ export type GenerationJob = {
   updatedAt: string;
   error: ErrorResponse | null;
   promptPackage: GenerationPromptPackage;
+  routing: ProviderRoutingDecision;
 };
 
 export type ExportSpec = {
@@ -255,6 +256,21 @@ export type GenerationPromptPackage = {
     backgroundReferenceAssetIds: string[];
     rightsReviewRequired: boolean;
   };
+};
+
+export type ProviderRouteTarget = {
+  provider: string;
+  model: string;
+};
+
+export type ProviderRoutingDecision = {
+  ruleId: string;
+  selected: ProviderRouteTarget;
+  candidates: ProviderRouteTarget[];
+  rejected: Array<ProviderRouteTarget & { reason: string }>;
+  splitTakeIndex: number;
+  fallbackEnabled: boolean;
+  hiddenFromUser: boolean;
 };
 
 export type ReferenceBoard = {

@@ -240,7 +240,7 @@
     },
     "GenerationJob": {
       "type": "object",
-      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage"],
+      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage", "routing"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^gen_" },
@@ -256,7 +256,46 @@
         "error": { "$ref": "#/$defs/ErrorResponse" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
-        "promptPackage": { "$ref": "#/$defs/GenerationPromptPackage" }
+        "promptPackage": { "$ref": "#/$defs/GenerationPromptPackage" },
+        "routing": { "$ref": "#/$defs/ProviderRoutingDecision" }
+      }
+    },
+    "ProviderRouteTarget": {
+      "type": "object",
+      "required": ["provider", "model"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "model": { "type": "string" }
+      }
+    },
+    "ProviderRoutingDecision": {
+      "type": "object",
+      "required": ["ruleId", "selected", "candidates", "rejected", "splitTakeIndex", "fallbackEnabled", "hiddenFromUser"],
+      "additionalProperties": false,
+      "properties": {
+        "ruleId": { "type": "string" },
+        "selected": { "$ref": "#/$defs/ProviderRouteTarget" },
+        "candidates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ProviderRouteTarget" }
+        },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["provider", "model", "reason"],
+            "additionalProperties": false,
+            "properties": {
+              "provider": { "type": "string" },
+              "model": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "splitTakeIndex": { "type": "integer", "minimum": 0 },
+        "fallbackEnabled": { "type": "boolean" },
+        "hiddenFromUser": { "type": "boolean" }
       }
     },
     "GenerationReference": {

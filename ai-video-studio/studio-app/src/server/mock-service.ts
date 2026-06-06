@@ -1,4 +1,5 @@
 import { INTENT_TEMPLATES } from "../domain/templates";
+import { chooseProviderRoute } from "./provider-routing";
 import type {
   Aspect,
   AssetDeleteResult,
@@ -17,6 +18,7 @@ import type {
   JobStatus,
   Project,
   ProjectBundle,
+  ProviderRoutingDecision,
   ReferenceBoard,
   RenderJob,
   RenderRightsReview,
@@ -26,8 +28,6 @@ import type {
   Take,
   Tier
 } from "../domain/types";
-
-const INTERNAL_ENGINES = ["mock.fast.primary", "mock.fast.alt", "mock.final.primary", "mock.fallback"] as const;
 
 const globalStore = globalThis as typeof globalThis & {
   __aiVideoStudioMockState?: StudioState;
@@ -74,6 +74,15 @@ function normalizeState(current: StudioState): StudioState {
   for (const shot of next.shots) {
     if (!Array.isArray(shot.referenceImageIds)) shot.referenceImageIds = [];
     if (!shot.directionSpec) shot.directionSpec = defaultDirectionSpec();
+  }
+
+  for (const job of next.generationJobs) {
+    const mutableJob = job as GenerationJob & Partial<GenerationJob>;
+    const shot = next.shots.find((item) => item.id === job.shotId);
+    if (shot && !mutableJob.promptPackage) mutableJob.promptPackage = buildGenerationPromptPackage(next as StudioState, shot);
+    if (shot && mutableJob.promptPackage && !mutableJob.routing) {
+      mutableJob.routing = chooseProviderRoute(shot, mutableJob.promptPackage, 0);
+    }
   }
 
   for (const job of next.renderJobs) {
@@ -685,7 +694,7 @@ export function updateShotDirection(shotId: string, patch: Partial<Shot["directi
   return shot;
 }
 
-function makeTake(current: StudioState, shot: Shot, tier: Tier, index: number, status: JobStatus = "queued") {
+function makeTake(current: StudioState, shot: Shot, tier: Tier, index: number, engineUsed: string | null, status: JobStatus = "queued") {
   const take: Take = {
     id: uid("tak"),
     shotId: shot.id,
@@ -696,7 +705,7 @@ function makeTake(current: StudioState, shot: Shot, tier: Tier, index: number, s
     posterUrl: null,
     durationSec: shot.durationSec,
     tier,
-    engineUsed: INTERNAL_ENGINES[(shot.order + index) % INTERNAL_ENGINES.length],
+    engineUsed,
     metrics: {},
     createdAt: now()
   };
@@ -704,7 +713,14 @@ function makeTake(current: StudioState, shot: Shot, tier: Tier, index: number, s
   return take;
 }
 
-function makeGenerationJob(current: StudioState, shot: Shot, take: Take, shouldFail: boolean) {
+function makeGenerationJob(
+  current: StudioState,
+  shot: Shot,
+  take: Take,
+  shouldFail: boolean,
+  promptPackage: GenerationPromptPackage,
+  routing: ProviderRoutingDecision
+) {
   const job: GenerationJob = {
     id: uid("gen"),
     shotId: shot.id,
@@ -719,7 +735,8 @@ function makeGenerationJob(current: StudioState, shot: Shot, take: Take, shouldF
     createdAt: now(),
     updatedAt: now(),
     error: null,
-    promptPackage: buildGenerationPromptPackage(current, shot)
+    promptPackage,
+    routing
   };
   current.generationJobs.push(job);
   return job;
@@ -765,8 +782,10 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
   shot.qualityFlags = [];
 
   for (let index = 0; index < takeCount; index += 1) {
-    const take = makeTake(current, shot, tier, index);
-    const job = makeGenerationJob(current, shot, take, shouldFailShot);
+    const promptPackage = buildGenerationPromptPackage(current, shot);
+    const routing = chooseProviderRoute(shot, promptPackage, index);
+    const take = makeTake(current, shot, tier, index, `${routing.selected.provider}:${routing.selected.model}`);
+    const job = makeGenerationJob(current, shot, take, shouldFailShot, promptPackage, routing);
     takes.push(take);
     jobs.push(job);
   }
@@ -824,11 +843,14 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   const shot = current.shots.find((item) => item.id === source.shotId);
   if (!shot) throw new Error("Source shot not found");
   applyReferenceRequirements(current, shot);
-  const take = makeTake(current, shot, "final", current.takes.filter((item) => item.shotId === shot.id).length);
+  shot.requirements.tier = "final";
+  const promptPackage = buildGenerationPromptPackage(current, shot);
+  const routing = chooseProviderRoute(shot, promptPackage, 0);
+  const take = makeTake(current, shot, "final", current.takes.filter((item) => item.shotId === shot.id).length, `${routing.selected.provider}:${routing.selected.model}`);
   take.label = "게시용";
   take.upgradeSourceTakeId = source.id;
   take.upgradeMode = options.mode || "final_regenerate";
-  const job = makeGenerationJob(current, shot, take, false);
+  const job = makeGenerationJob(current, shot, take, false, promptPackage, routing);
   shot.status = "generating";
   current.credits.reserved += 22;
   refreshProject(current, shot.projectId);

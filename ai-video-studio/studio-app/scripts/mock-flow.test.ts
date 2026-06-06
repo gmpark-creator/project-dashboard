@@ -109,6 +109,18 @@ const secondShotId = bundle.shots[1].id;
 const referencedShotJob = bundle.generationJobs.find((job) => job.shotId === firstShotId);
 assert.ok(referencedShotJob, "referenced shot should create a generation job");
 assert.equal(referencedShotJob.promptPackage.routingHints.startFrameAssetId, productAsset.id, "first-frame asset should be in generation prompt package");
+assert.equal(referencedShotJob.routing.ruleId, "image-to-video-fast", "first-frame fast shots should use image-to-video fast routing");
+assert.equal(referencedShotJob.routing.hiddenFromUser, true, "provider routing must remain hidden from user UI");
+assert.equal(referencedShotJob.routing.selected.provider, "luma", "first image-to-video fast candidate should be Luma");
+assert.equal(referencedShotJob.routing.selected.model, "ray-flash-2", "first image-to-video fast model should be ray-flash-2");
+const referencedShotRoutes = bundle.generationJobs
+  .filter((job) => job.shotId === firstShotId)
+  .map((job) => `${job.routing.selected.provider}:${job.routing.selected.model}`);
+assert.deepEqual(
+  referencedShotRoutes,
+  ["luma:ray-flash-2", "runway:gen4_turbo", "google-vertex:veo-3.1-fast-generate-001"],
+  "fast image-to-video takes should split across configured provider candidates"
+);
 assert.deepEqual(
   referencedShotJob.promptPackage.routingHints.characterReferenceAssetIds,
   [externalAsset.id],
@@ -119,6 +131,7 @@ assert.equal(referencedShotJob.promptPackage.directionSpec.motion, "느린 푸�
 
 const styleShotJob = bundle.generationJobs.find((job) => job.shotId === secondShotId);
 assert.ok(styleShotJob, "style-referenced shot should create a generation job");
+assert.equal(styleShotJob.routing.ruleId, "fast-text-draft", "style-only fast shots should stay on text-draft routing");
 assert.deepEqual(styleShotJob.promptPackage.routingHints.styleReferenceAssetIds, [styleAsset.id], "style reference should be routed as style only");
 assert.equal(styleShotJob.promptPackage.requirements.imageToVideo, false, "style-only generation package should not request image-to-video");
 assert.equal(styleShotJob.promptPackage.routingHints.rightsReviewRequired, true, "unconfirmed reference rights should be visible to the adapter package");

@@ -46,7 +46,16 @@ for (const rule of routing.rules) {
   }
 }
 
-for (const defName of ["ImageAsset", "ImageJob", "AssetUsageMode", "DirectionSpec", "GenerationPromptPackage", "RenderRightsReview", "AssetDeleteResult"]) {
+for (const defName of [
+  "ImageAsset",
+  "ImageJob",
+  "AssetUsageMode",
+  "DirectionSpec",
+  "GenerationPromptPackage",
+  "ProviderRoutingDecision",
+  "RenderRightsReview",
+  "AssetDeleteResult"
+]) {
   assert.ok(domainSchema.$defs[defName], `domain schema missing ${defName}`);
 }
 
