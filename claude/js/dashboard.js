@@ -45,6 +45,12 @@
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<path d="M2 12h4l2.5-6 4 13 2.5-7H22"/>' +
       '</svg>',
+    // AI 영상 제작 — 비디오 프레임 + 재생 (11 · Cutpilot, currentColor=rose 자동)
+    'film':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="3" y="5" width="18" height="14" rx="3"/>' +
+        '<path d="M10 8.5l5 3.5-5 3.5z"/>' +
+      '</svg>',
     // 컨테이너선 측면 — 박사 지적 "선박 모양으로 명확히"
     // hull(사다리꼴) + 컨테이너 3 stack + 후미 bridge + 물결
     'ship':
