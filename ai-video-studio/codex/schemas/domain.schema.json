@@ -492,6 +492,20 @@
         "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
       }
     },
+    "StoryboardUpdateInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scenes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Scene" }
+        },
+        "shots": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Shot" }
+        }
+      }
+    },
     "RenderJob": {
       "type": "object",
       "required": [

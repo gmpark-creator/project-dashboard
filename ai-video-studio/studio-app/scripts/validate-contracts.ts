@@ -60,6 +60,7 @@ for (const defName of [
   "RenderPreview",
   "RenderPlan",
   "RenderRightsReview",
+  "StoryboardUpdateInput",
   "AssetDeleteResult"
 ]) {
   assert.ok(domainSchema.$defs[defName], `domain schema missing ${defName}`);
@@ -76,6 +77,7 @@ const requiredOperations = new Set([
   "deleteImageAsset",
   "previewRender",
   "setAudio",
+  "updateStoryboard",
   "updateShotDirection",
   "generateShot"
 ]);

@@ -154,18 +154,19 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "scenes": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Scene" } },
-                  "shots": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" } }
-                }
-              }
+              "schema": { "$ref": "../schemas/domain.schema.json#/$defs/StoryboardUpdateInput" }
             }
           }
         },
         "responses": {
-          "200": { "description": "Storyboard updated" }
+          "200": {
+            "description": "Storyboard updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ProjectBundle" }
+              }
+            }
+          }
         }
       }
     },

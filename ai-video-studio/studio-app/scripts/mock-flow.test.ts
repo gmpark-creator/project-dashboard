@@ -18,6 +18,7 @@ import {
   startRender,
   tickJobs,
   updateShotDirection,
+  updateStoryboard,
   upgradeTake
 } from "../src/server/mock-service";
 
@@ -43,6 +44,24 @@ const project = createProject({
 let bundle = getProjectBundle(project.id);
 assert.ok(bundle, "bundle should exist");
 assert.equal(bundle.shots.length, 10, "mock storyboard should create 10 shots");
+const initialRenderSourceHash = bundle.renderSourceHash;
+const storyboardBundle = updateStoryboard(project.id, {
+  scenes: [{ ...bundle.scenes[0], title: "Opening product beat" }],
+  shots: [
+    {
+      ...bundle.shots[0],
+      title: "Hero product push-in",
+      saec: { ...bundle.shots[0].saec, action: "Slow push toward the product hero angle" },
+      directionSpec: { ...bundle.shots[0].directionSpec, motion: "Slow controlled push-in" }
+    }
+  ]
+});
+assert.ok(storyboardBundle, "storyboard update should return a project bundle");
+bundle = storyboardBundle;
+assert.equal(bundle.scenes[0].title, "Opening product beat", "storyboard update should persist scene changes");
+assert.equal(bundle.shots[0].title, "Hero product push-in", "storyboard update should persist shot title changes");
+assert.equal(bundle.shots[0].saec.action, "Slow push toward the product hero angle", "storyboard update should persist SAEC changes");
+assert.notEqual(bundle.renderSourceHash, initialRenderSourceHash, "storyboard edits should change render source hash");
 
 createImageJob({
   projectId: project.id,

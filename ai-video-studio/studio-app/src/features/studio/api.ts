@@ -1,4 +1,4 @@
-import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, Tier } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, Scene, Shot, Tier } from "@/domain/types";
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -18,6 +18,8 @@ export const studioApi = {
   createProject: (input: { title?: string; idea: string; intent: Intent }) =>
     json<Project>("/api/projects", { method: "POST", body: JSON.stringify(input) }),
   getBundle: (projectId: string) => json<ProjectBundle>(`/api/projects/${projectId}`),
+  updateStoryboard: (projectId: string, input: { scenes?: Array<Partial<Scene> & { id?: string }>; shots?: Array<Partial<Shot> & { id?: string }> }) =>
+    json<ProjectBundle>(`/api/projects/${projectId}/storyboard`, { method: "PUT", body: JSON.stringify(input) }),
   generateAll: (projectId: string, tier: Tier = "fast") =>
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/generate-all`, { method: "POST", body: JSON.stringify({ tier }) }),
   generateShot: (shotId: string) =>

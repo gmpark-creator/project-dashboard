@@ -319,6 +319,70 @@ export function decomposeIdea(input: { projectId?: string; idea: string; intent:
   );
 }
 
+export function updateStoryboard(projectId: string, input: { scenes?: Array<Partial<Scene> & { id?: string }>; shots?: Array<Partial<Shot> & { id?: string }> }): ProjectBundle | null {
+  const current = state();
+  const project = current.projects.find((item) => item.id === projectId);
+  if (!project) throw new Error("Project not found");
+
+  for (const patch of input.scenes || []) {
+    if (!patch.id) continue;
+    const scene = current.scenes.find((item) => item.id === patch.id && item.projectId === projectId);
+    if (!scene) continue;
+    if (typeof patch.order === "number") scene.order = patch.order;
+    if (typeof patch.title === "string" && patch.title.trim()) scene.title = patch.title.trim();
+    if (typeof patch.setting === "string") scene.setting = patch.setting;
+    if (typeof patch.timeOfDay === "string") scene.timeOfDay = patch.timeOfDay;
+  }
+
+  for (const patch of input.shots || []) {
+    if (!patch.id) continue;
+    const shot = current.shots.find((item) => item.id === patch.id && item.projectId === projectId);
+    if (!shot) continue;
+    const before = JSON.stringify({
+      sceneId: shot.sceneId,
+      order: shot.order,
+      title: shot.title,
+      durationSec: shot.durationSec,
+      saec: shot.saec,
+      requirements: shot.requirements,
+      directionSpec: shot.directionSpec
+    });
+
+    if (typeof patch.order === "number") shot.order = patch.order;
+    if (typeof patch.sceneId === "string" && current.scenes.some((scene) => scene.id === patch.sceneId && scene.projectId === projectId)) shot.sceneId = patch.sceneId;
+    if (typeof patch.title === "string" && patch.title.trim()) shot.title = patch.title.trim();
+    if (typeof patch.durationSec === "number") shot.durationSec = Math.max(1, Math.min(16, patch.durationSec));
+    if (patch.saec) shot.saec = { ...shot.saec, ...patch.saec };
+    if (patch.requirements) shot.requirements = { ...shot.requirements, ...patch.requirements };
+    if (patch.directionSpec) {
+      shot.directionSpec = {
+        ...shot.directionSpec,
+        ...patch.directionSpec,
+        avoid: patch.directionSpec.avoid ? patch.directionSpec.avoid.map((item) => item.trim()).filter(Boolean) : shot.directionSpec.avoid
+      };
+    }
+
+    const after = JSON.stringify({
+      sceneId: shot.sceneId,
+      order: shot.order,
+      title: shot.title,
+      durationSec: shot.durationSec,
+      saec: shot.saec,
+      requirements: shot.requirements,
+      directionSpec: shot.directionSpec
+    });
+    if (before !== after) {
+      shot.selectedTakeId = null;
+      shot.qualityFlags = [];
+      if (shot.status === "selected" || shot.status === "reviewing" || shot.status === "failed") shot.status = "pending";
+    }
+  }
+
+  refreshProject(current, projectId);
+  write(current);
+  return getProjectBundle(projectId);
+}
+
 export function listProjects() {
   const current = tickJobs();
   current.projects.forEach((project) => refreshProject(current, project.id));
