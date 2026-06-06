@@ -457,6 +457,18 @@
         "renderPlan": { "$ref": "#/$defs/RenderPlan" }
       }
     },
+    "RenderPreview": {
+      "type": "object",
+      "required": ["projectId", "spec", "rightsReview", "renderPlan", "estimate"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "spec": { "$ref": "#/$defs/ExportSpec" },
+        "rightsReview": { "$ref": "#/$defs/RenderRightsReview" },
+        "renderPlan": { "$ref": "#/$defs/RenderPlan" },
+        "estimate": { "$ref": "#/$defs/CostEstimate" }
+      }
+    },
     "RenderPlan": {
       "type": "object",
       "required": ["projectId", "spec", "totalDurationSec", "missingShotIds", "shots", "edit"],

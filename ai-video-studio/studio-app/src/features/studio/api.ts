@@ -1,4 +1,4 @@
-import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, Tier } from "@/domain/types";
+import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, Tier } from "@/domain/types";
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -41,6 +41,8 @@ export const studioApi = {
   upgradeTake: (takeId: string) =>
     json(`/api/takes/${takeId}/upgrade`, { method: "POST", body: JSON.stringify({ mode: "final_regenerate" }) }),
   setAudio: (_projectId: string, _patch: Partial<EditState>) => Promise.resolve(),
+  previewRender: (projectId: string, spec: ExportSpec) =>
+    json<RenderPreview>(`/api/projects/${projectId}/render-preview`, { method: "POST", body: JSON.stringify({ spec }) }),
   startRender: (projectId: string, specs: ExportSpec[]) =>
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/renders`, { method: "POST", body: JSON.stringify({ specs }) }),
   tick: () => json("/api/jobs/tick", { method: "POST", body: "{}" })

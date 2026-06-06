@@ -22,6 +22,7 @@ import type {
   ReferenceBoard,
   RenderJob,
   RenderPlan,
+  RenderPreview,
   RenderRightsReview,
   Scene,
   Shot,
@@ -878,8 +879,18 @@ export function setAudio(projectId: string, patch: Partial<EditState>) {
   return current.editState[projectId];
 }
 
+function bestDoneTake(current: StudioState, shot: Shot) {
+  return current.takes
+    .filter((take) => take.shotId === shot.id && take.status === "done")
+    .sort((a, b) => (b.metrics.overall || 0) - (a.metrics.overall || 0))[0] || null;
+}
+
+function selectedOrBestTake(current: StudioState, shot: Shot) {
+  return current.takes.find((take) => take.id === shot.selectedTakeId && take.shotId === shot.id) || bestDoneTake(current, shot);
+}
+
 function buildRenderRightsReview(current: StudioState, projectId: string): RenderRightsReview {
-  const selectedShots = current.shots.filter((shot) => shot.projectId === projectId && shot.selectedTakeId);
+  const selectedShots = current.shots.filter((shot) => shot.projectId === projectId && selectedOrBestTake(current, shot));
   const items = new Map<string, RenderRightsReview["items"][number]>();
   for (const shot of selectedShots) {
     for (const assetId of shot.referenceImageIds) {
@@ -921,11 +932,7 @@ function buildRenderPlan(current: StudioState, projectId: string, spec: ExportSp
   const planShots: RenderPlan["shots"] = [];
   const missingShotIds: string[] = [];
   for (const shot of shots) {
-    if (!shot.selectedTakeId) {
-      missingShotIds.push(shot.id);
-      continue;
-    }
-    const take = current.takes.find((item) => item.id === shot.selectedTakeId && item.shotId === shot.id);
+    const take = selectedOrBestTake(current, shot);
     if (!take) {
       missingShotIds.push(shot.id);
       continue;
@@ -951,6 +958,19 @@ function buildRenderPlan(current: StudioState, projectId: string, spec: ExportSp
   };
 }
 
+export function previewRender(projectId: string, spec: ExportSpec): RenderPreview {
+  const current = tickJobs();
+  const project = current.projects.find((item) => item.id === projectId);
+  if (!project) throw new Error("Project not found");
+  return {
+    projectId,
+    spec,
+    rightsReview: buildRenderRightsReview(current, projectId),
+    renderPlan: buildRenderPlan(current, projectId, spec),
+    estimate: estimateCost("startRender")
+  };
+}
+
 export function startRender(projectId: string, specs: ExportSpec[]) {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
@@ -965,9 +985,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   for (const shot of shots) {
     if (!shot.selectedTakeId) {
-      const best = current.takes
-        .filter((take) => take.shotId === shot.id && take.status === "done")
-        .sort((a, b) => (b.metrics.overall || 0) - (a.metrics.overall || 0))[0];
+      const best = bestDoneTake(current, shot);
       if (best) shot.selectedTakeId = best.id;
     }
   }

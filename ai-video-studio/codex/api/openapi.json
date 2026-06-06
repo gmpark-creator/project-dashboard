@@ -642,6 +642,39 @@
         }
       }
     },
+    "/projects/{projectId}/render-preview": {
+      "post": {
+        "operationId": "previewRender",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["spec"],
+                "properties": {
+                  "spec": { "$ref": "../schemas/domain.schema.json#/$defs/ExportSpec" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Read-only render plan and rights preview",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/RenderPreview" }
+              }
+            }
+          },
+          "400": { "description": "Missing render spec" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

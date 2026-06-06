@@ -142,6 +142,17 @@ export type RenderJob = {
   renderPlan: RenderPlan;
 };
 
+export type RenderPreview = {
+  projectId: string;
+  spec: ExportSpec;
+  rightsReview: RenderRightsReview;
+  renderPlan: RenderPlan;
+  estimate: {
+    credits: number;
+    etaSec: number;
+  };
+};
+
 export type RenderPlan = {
   projectId: string;
   spec: ExportSpec;

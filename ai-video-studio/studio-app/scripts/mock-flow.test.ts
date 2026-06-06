@@ -9,6 +9,7 @@ import {
   forceDueJobs,
   generateAll,
   getProjectBundle,
+  previewRender,
   registerExternalImage,
   regenerate,
   resetMockState,
@@ -169,11 +170,17 @@ forceDueJobs("generationJobs");
 tickJobs();
 
 applyEdit(project.id, "마지막 컷 CTA를 2초 더 길게 보여줘");
-startRender(project.id, [
+const renderSpecs = [
   { resolution: "1080p", cut: "6s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in" },
   { resolution: "1080p", cut: "30s", aspect: "9:16", caption: "burn-in" }
-]);
+] as const;
+const renderPreview = previewRender(project.id, renderSpecs[0]);
+assert.equal(renderPreview.rightsReview.required, true, "render preview should expose rights review before creating render jobs");
+assert.equal(renderPreview.renderPlan.missingShotIds.length, 1, "render preview should expose missing shots before creating render jobs");
+assert.equal(renderPreview.renderPlan.edit.commands.some((command) => command.command.includes("CTA")), true, "render preview should snapshot edit commands");
+assert.equal(renderPreview.estimate.credits, 48, "render preview should expose render cost estimate");
+startRender(project.id, [...renderSpecs]);
 forceDueJobs("renderJobs");
 tickJobs();
 

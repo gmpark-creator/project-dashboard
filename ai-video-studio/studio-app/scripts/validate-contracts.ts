@@ -53,6 +53,7 @@ for (const defName of [
   "DirectionSpec",
   "GenerationPromptPackage",
   "ProviderRoutingDecision",
+  "RenderPreview",
   "RenderPlan",
   "RenderRightsReview",
   "AssetDeleteResult"
@@ -67,6 +68,7 @@ const requiredOperations = new Set([
   "attachImageToShot",
   "detachImageFromShot",
   "deleteImageAsset",
+  "previewRender",
   "updateShotDirection",
   "generateShot"
 ]);
