@@ -471,7 +471,36 @@ label {
 }
 
 .shot {
+  padding: 0;
+}
+
+.shot.editing {
+  border-color: var(--cyan);
+}
+
+/* 컷 카드 전체를 누르면 편집기가 열리도록, 카드 내부를 버튼으로 감싸고 버튼 기본 스타일을 제거한다. */
+.shot-open {
+  display: block;
+  width: 100%;
   padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shot-open:hover {
+  background: rgba(80, 200, 232, .06);
+}
+
+.shot-edit-cue {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .shot-thumb {
@@ -483,6 +512,20 @@ label {
   border-radius: 8px;
   background: var(--panel-2);
   color: var(--dim);
+}
+
+/* 스토리보드 인라인 컷 편집기. 강조 테두리로 편집 맥락을 분명히 하고, 좁은 폭에서도 한 컬럼으로 안전히 접힌다. */
+.shot-editor {
+  margin-bottom: 18px;
+  border-color: var(--cyan);
+}
+
+.shot-editor .span-2 {
+  grid-column: 1 / -1;
+}
+
+.shot-editor textarea {
+  min-height: 64px;
 }
 
 .shot-list {

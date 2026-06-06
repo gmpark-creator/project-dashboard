@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -335,7 +335,10 @@ export function StudioApp() {
           {view === "storyboard" ? (
             <Storyboard
               bundle={bundle}
+              selectedShotId={selectedShotId}
+              setSelectedShotId={setSelectedShotId}
               onGenerate={() => bundle && run(() => studioApi.generateAll(bundle.project.id), "전체 컷 생성을 시작했습니다.")}
+              onSaveShot={(patch) => bundle && run(() => studioApi.updateStoryboard(bundle.project.id, { shots: [patch] }), "컷 내용을 저장했습니다.")}
               onCompare={() => goToView("compare")}
             />
           ) : null}
@@ -755,7 +758,23 @@ function NewProject({
   );
 }
 
-function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle | null; onGenerate: () => void; onCompare: () => void }) {
+type ShotEditPatch = Partial<Shot> & { id: string };
+
+function Storyboard({
+  bundle,
+  selectedShotId,
+  setSelectedShotId,
+  onGenerate,
+  onSaveShot,
+  onCompare
+}: {
+  bundle: ProjectBundle | null;
+  selectedShotId: string | null;
+  setSelectedShotId: (shotId: string | null) => void;
+  onGenerate: () => void;
+  onSaveShot: (patch: ShotEditPatch) => void;
+  onCompare: () => void;
+}) {
   if (!bundle) return <NoProject />;
   const activeGeneration = bundle.generationJobs.some((job) => job.status === "queued" || job.status === "running");
   const generatableShots = bundle.shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
@@ -763,13 +782,16 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
   const canGenerate = !activeGeneration && generatableShots.length > 0;
   const generateCost = hasGeneratedTakes ? Math.max(12, generatableShots.length * 18) : 96;
   const generateLabel = activeGeneration ? "생성 중" : canGenerate ? (hasGeneratedTakes ? "남은 컷 생성" : "전체 생성") : "전체 생성 완료";
+  const editingShot = selectedShotId ? bundle.shots.find((shot) => shot.id === selectedShotId) ?? null : null;
+  // 편집 중인 컷에 이미 생성/선택 결과가 있으면, 내용을 바꿀 때 다시 생성이 필요할 수 있음을 부드럽게 안내한다.
+  const editingShotHasResult = editingShot ? Boolean(editingShot.selectedTakeId) || bundle.takes.some((take) => take.shotId === editingShot.id) : false;
   return (
     <>
       <div className="head">
         <div>
           <h2>{bundle.project.title} · 스토리보드</h2>
           <p className="hint">
-            {bundle.scenes.length}씬 · {bundle.shots.length}컷 · {bundle.project.targetDurationSec}s 목표
+            {bundle.scenes.length}씬 · {bundle.shots.length}컷 · {bundle.project.targetDurationSec}s 목표 · 컷을 누르면 내용을 다듬을 수 있습니다.
           </p>
         </div>
         <div className="actions" style={{ marginTop: 0 }}>
@@ -781,6 +803,15 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
           </button>
         </div>
       </div>
+      {editingShot ? (
+        <ShotEditor
+          key={editingShot.id}
+          shot={editingShot}
+          hasResult={editingShotHasResult}
+          onClose={() => setSelectedShotId(null)}
+          onSave={onSaveShot}
+        />
+      ) : null}
       {bundle.scenes.map((scene) => (
         <section className="scene" key={scene.id}>
           <div className="head">
@@ -790,22 +821,153 @@ function Storyboard({ bundle, onGenerate, onCompare }: { bundle: ProjectBundle |
           <div className="grid shot-grid">
             {bundle.shots
               .filter((shot) => shot.sceneId === scene.id)
-              .map((shot) => (
-                <article className="panel shot" key={shot.id}>
-                  <div className="shot-thumb">{shot.saec.framing}</div>
-                  <strong>{shot.title}</strong>
-                  <div className="meta">
-                    <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(shot)}</span>
-                    <span>{tierLabel(shot.requirements.tier)}</span>
-                    {shot.referenceImageIds.length ? <span>{shot.referenceImageIds.length}개 이미지 참조</span> : null}
-                  </div>
-                  <p className="hint">{shot.saec.action}</p>
-                </article>
-              ))}
+              .map((shot) => {
+                const isEditing = shot.id === selectedShotId;
+                return (
+                  <article className={`panel shot${isEditing ? " editing" : ""}`} key={shot.id}>
+                    <button
+                      type="button"
+                      className="shot-open"
+                      aria-pressed={isEditing}
+                      title="이 컷의 내용을 다듬습니다."
+                      onClick={() => setSelectedShotId(isEditing ? null : shot.id)}
+                    >
+                      <div className="shot-thumb">{shot.saec.framing}</div>
+                      <strong>{shot.title}</strong>
+                      <div className="meta">
+                        <span className={`badge ${shot.status === "failed" ? "warn" : shot.selectedTakeId ? "ok" : "fast"}`}>{shotStatusLabel(shot)}</span>
+                        <span>{tierLabel(shot.requirements.tier)}</span>
+                        {shot.referenceImageIds.length ? <span>{shot.referenceImageIds.length}개 이미지 참조</span> : null}
+                      </div>
+                      <p className="hint">{shot.saec.action}</p>
+                      <span className="shot-edit-cue">{isEditing ? "편집 중" : "다듬기"}</span>
+                    </button>
+                  </article>
+                );
+              })}
           </div>
         </section>
       ))}
     </>
+  );
+}
+
+// 스토리보드 컷의 실무 필드를 한 곳에서 다듬는 컴팩트 인라인 에디터. 제목·길이·장면 묘사·연출을
+// 저장하면 studioApi.updateStoryboard로 반영된다. 모델명·내부 계약명은 노출하지 않는다.
+function ShotEditor({
+  shot,
+  hasResult,
+  onClose,
+  onSave
+}: {
+  shot: Shot;
+  hasResult: boolean;
+  onClose: () => void;
+  onSave: (patch: ShotEditPatch) => void;
+}) {
+  const [title, setTitle] = useState(shot.title);
+  const [durationSec, setDurationSec] = useState(String(shot.durationSec));
+  const [saec, setSaec] = useState<Saec>(shot.saec);
+  const [motion, setMotion] = useState(shot.directionSpec.motion);
+  const [notes, setNotes] = useState(shot.directionSpec.notes);
+
+  // 다른 컷으로 바뀌면(또는 부모 새로고침으로 값이 갱신되면) 입력값을 현재 컷 기준으로 다시 맞춘다.
+  useEffect(() => {
+    setTitle(shot.title);
+    setDurationSec(String(shot.durationSec));
+    setSaec(shot.saec);
+    setMotion(shot.directionSpec.motion);
+    setNotes(shot.directionSpec.notes);
+  }, [shot.id, shot.title, shot.durationSec, shot.saec, shot.directionSpec.motion, shot.directionSpec.notes]);
+
+  function setSaecField(field: keyof Saec, value: string) {
+    setSaec((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function save() {
+    const trimmedTitle = title.trim();
+    const parsedDuration = Number(durationSec);
+    const nextDuration = Number.isFinite(parsedDuration) ? Math.max(1, Math.min(16, Math.round(parsedDuration))) : shot.durationSec;
+    onSave({
+      id: shot.id,
+      title: trimmedTitle || shot.title,
+      durationSec: nextDuration,
+      saec,
+      directionSpec: { ...shot.directionSpec, motion, notes }
+    });
+  }
+
+  const saecFields: Array<{ field: keyof Saec; label: string; placeholder: string; multiline?: boolean }> = [
+    { field: "action", label: "동작·연기", placeholder: "예) 컵을 들어 카메라 쪽으로 천천히 기울인다", multiline: true },
+    { field: "environment", label: "배경·환경", placeholder: "예) 밝은 카페 창가, 아침 햇살" },
+    { field: "camera", label: "카메라", placeholder: "예) 천천히 다가가는 클로즈업" },
+    { field: "framing", label: "구도", placeholder: "예) 제품 중심 정면 클로즈업" },
+    { field: "lighting", label: "조명", placeholder: "예) 부드러운 자연광" },
+    { field: "style", label: "스타일", placeholder: "예) 밝고 산뜻한 광고 톤" },
+    { field: "negative", label: "피할 요소", placeholder: "예) 손, 글자, 흐릿한 배경", multiline: true }
+  ];
+
+  return (
+    <section className="panel shot-editor" aria-label={`${shot.title} 컷 다듬기`}>
+      <div className="head">
+        <div>
+          <h2>컷 {shot.order + 1} · 내용 다듬기</h2>
+          <p className="hint">제목, 길이, 장면 묘사, 연출을 바꾼 뒤 저장하면 스토리보드에 반영됩니다.</p>
+        </div>
+        <button type="button" className="ghost" onClick={onClose}>
+          닫기
+        </button>
+      </div>
+      <div className="grid two-compact" style={{ marginTop: 12 }}>
+        <label>
+          제목
+          <input value={title} onChange={(event) => setTitle(event.target.value)} />
+        </label>
+        <label>
+          길이(초)
+          <input
+            type="number"
+            min={1}
+            max={16}
+            value={durationSec}
+            onChange={(event) => setDurationSec(event.target.value)}
+          />
+        </label>
+      </div>
+      <div className="grid two-compact" style={{ marginTop: 12 }}>
+        {saecFields.map(({ field, label, placeholder, multiline }) => (
+          <label key={field} className={multiline ? "span-2" : undefined}>
+            {label}
+            {multiline ? (
+              <textarea value={saec[field]} placeholder={placeholder} onChange={(event) => setSaecField(field, event.target.value)} />
+            ) : (
+              <input value={saec[field]} placeholder={placeholder} onChange={(event) => setSaecField(field, event.target.value)} />
+            )}
+          </label>
+        ))}
+      </div>
+      <div className="grid two-compact" style={{ marginTop: 12 }}>
+        <label>
+          움직임
+          <input value={motion} placeholder="예) 카메라가 천천히 다가간다" onChange={(event) => setMotion(event.target.value)} />
+        </label>
+        <label>
+          연출 메모
+          <input value={notes} placeholder="예) 컵 표면 물방울을 강조" onChange={(event) => setNotes(event.target.value)} />
+        </label>
+      </div>
+      {hasResult ? (
+        <div className="notice">이 컷은 이미 생성한 결과가 있어요. 내용을 바꾸면 결과와 달라질 수 있어, 저장 뒤 이 컷만 다시 생성하면 됩니다.</div>
+      ) : null}
+      <div className="actions">
+        <button type="button" className="primary" onClick={save}>
+          컷 내용 저장
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          취소
+        </button>
+      </div>
+    </section>
   );
 }
 
