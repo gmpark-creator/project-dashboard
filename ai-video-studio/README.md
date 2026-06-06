@@ -5,6 +5,8 @@
 > 🔗 **클릭형 프로토타입(라이브):** https://gmpark-creator.github.io/project-dashboard/ai-video-studio/prototype/ · 로컬: [`prototype/index.html`](prototype/index.html)
 >
 > 🔗 **Codex mock vertical slice:** https://gmpark-creator.github.io/project-dashboard/ai-video-studio/mock-app/ · 로컬: [`mock-app/index.html`](mock-app/index.html)
+>
+> 🧪 **Next.js studio app:** [`studio-app/`](studio-app/) — API route + TypeScript mock provider + build/test scripts
 
 이 폴더는 **Claude가 맡은 영역의 산출물**입니다: **UX/제품 설계 + 프론트엔드 방향**.
 백엔드·DB·큐·모델 API 어댑터·렌더링 파이프라인·검증은 **Codex 영역**이며, 여기서는 **구현하지 않고 요구사항·인터페이스 계약·UX 기준만** 제안합니다.
@@ -82,9 +84,12 @@
 | [05-quality-criteria.md](design/05-quality-criteria.md) | 품질 평가 기준 6축 + 루브릭 + 자동검사 + 피드백 루프 | **⑤ 품질 평가 기준** |
 | [06-frontend-backend-contract.md](design/06-frontend-backend-contract.md) | 프론트가 기대하는 데이터 모델·잡 추상화·API 표면(요구사항) + 열린 질문 | (Codex 통합용 추가) |
 | [07-engine-research-appendix.md](design/07-engine-research-appendix.md) | 엔진 3종 정밀 비교(출처 포함) — 라우팅 근거 | (그라운딩 근거) |
+| [08-claude-r2-ux-corrections.md](design/08-claude-r2-ux-corrections.md) | Claude R2 UX 보정 — provider 과보장 표현 완화와 제품 카피 보강 | UX 보강 |
+| [09-claude-r3-mock-app-qa.md](design/09-claude-r3-mock-app-qa.md) | Claude R3 QA — mock-app 실측 결과와 Next.js 앱화 UX 보강 요구사항 | QA/UX 반영 |
 | [prototype/index.html](prototype/index.html) | **클릭형 프로토타입** — 6개 화면 실물 목업(목 데이터) | (②③ 시각화) |
 | [codex/README.md](codex/README.md) | **Codex Antithesis R1** — 아키텍처·오픈질문 답변·OpenAPI·Schema·라우팅 config | Codex 구현/검증 진입점 |
 | [mock-app/index.html](mock-app/index.html) | **Codex mock vertical slice** — 정적 페이지에서 mock API·잡 상태·실패/재시도/렌더 플로우 구현 | MVP 구현 착수 |
+| [studio-app/](studio-app/) | **Next.js studio app** — 실제 앱 골격, API route, TypeScript mock provider, contract/test scripts | 실제 앱화 1단계 |
 
 ### Codex R1 핵심 보강
 

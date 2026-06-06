@@ -13,3 +13,11 @@ _chk*.js
 _*.cjs
 _*.mjs
 *.log
+*.pid
+*.tsbuildinfo
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
