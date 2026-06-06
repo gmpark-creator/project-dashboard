@@ -1062,10 +1062,14 @@ function ExportView({
   const latestJob = bundle.renderJobs.length ? bundle.renderJobs[bundle.renderJobs.length - 1] : null;
   const shotTitleById = new Map(bundle.shots.map((shot) => [shot.id, shot.title] as const));
   // 마지막으로 점검한 spec과 현재 설정이 다르면 예상이 stale이다(해상도·자막·비율 기준).
-  const previewStale = Boolean(
+  const staleSpec = Boolean(
     preview &&
       (preview.spec.resolution !== resolution || preview.spec.caption !== caption || preview.spec.aspect !== aspect)
   );
+  // preview 계산 이후 프로젝트 소스(편집/선택 take/권리 등)가 바뀌면 서버가 준 renderSourceHash가
+  // 달라진다. 해시 값 자체는 사용자에게 노출하지 않고 "프로젝트가 바뀌었다"는 신호로만 쓴다.
+  const staleSource = Boolean(preview && preview.sourceHash !== bundle.renderSourceHash);
+  const previewStale = staleSpec || staleSource;
   return (
     <div className="grid export-grid">
       <section className="panel">
@@ -1093,6 +1097,8 @@ function ExportView({
           previewing={previewing}
           previewError={previewError}
           stale={previewStale}
+          staleSpec={staleSpec}
+          staleSource={staleSource}
           shotTitleById={shotTitleById}
           onPreview={() => runPreview(currentSpec, bundle.project.id)}
         />
@@ -1167,6 +1173,8 @@ function RenderPreviewBlock({
   previewing,
   previewError,
   stale,
+  staleSpec,
+  staleSource,
   shotTitleById,
   onPreview
 }: {
@@ -1174,6 +1182,8 @@ function RenderPreviewBlock({
   previewing: boolean;
   previewError: string | null;
   stale: boolean;
+  staleSpec: boolean;
+  staleSource: boolean;
   shotTitleById: Map<string, string>;
   onPreview: () => void;
 }) {
@@ -1193,7 +1203,13 @@ function RenderPreviewBlock({
       ) : null}
       {preview ? (
         <div className="preflight">
-          {stale ? (
+          {staleSource ? (
+            <div className="preflight-flag stale-flag">
+              <strong>프로젝트가 바뀌었습니다</strong>
+              <p>미리 점검한 뒤 컷·편집·권리 등 프로젝트 내용이 바뀌었습니다. “다시 점검”을 눌러 지금 상태로 다시 확인하세요.</p>
+            </div>
+          ) : null}
+          {staleSpec ? (
             <div className="preflight-flag stale-flag">
               <strong>설정이 바뀌었습니다</strong>
               <p>아래 예상은 직전 설정 기준입니다. “다시 점검”을 누르면 지금 설정으로 다시 계산합니다.</p>
