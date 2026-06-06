@@ -403,6 +403,42 @@ label {
   font-weight: 750;
 }
 
+.role-auto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 750;
+}
+
+.role-auto > span:first-child {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+
+.role-auto select {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-auto small {
+  color: var(--dim);
+  font-weight: 700;
+}
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--cyan, #50c8e8);
+  font-weight: 850;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
 .intent-grid {
   grid-template-columns: repeat(6, minmax(120px, 1fr));
 }

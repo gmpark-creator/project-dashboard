@@ -63,6 +63,24 @@ const purposeLabels: Record<ImageMakerPurpose, string> = {
   transparent: "투명 이미지"
 };
 
+// 용도(purpose)별 기본 보관 분류(role). 사용자가 직접 바꾸지 않으면 용도에 맞춰 자동 지정.
+const purposeToRole: Record<ImageMakerPurpose, ImageAssetRole> = {
+  photoreal: "product",
+  product: "product",
+  character: "character",
+  background: "background",
+  style: "style",
+  poster: "logo",
+  thumbnail: "thumbnail",
+  transparent: "product"
+};
+
+type ScoreLabel = "추천" | "안정적" | "확인 필요";
+
+function scoreBadgeClass(score: ScoreLabel) {
+  return score === "추천" ? "ok" : score === "안정적" ? "fast" : "warn";
+}
+
 function imageJobStageLabel(stage: string) {
   return (
     {
@@ -428,8 +446,10 @@ function ImageMaker({
 }) {
   const [prompt, setPrompt] = useState("투명 컵의 딸기라떼 제품 이미지. 밝은 카페 배경, 딸기 과육과 얼음이 잘 보이게, 손은 나오지 않게.");
   const [purpose, setPurpose] = useState<ImageMakerPurpose>("product");
-  const [role, setRole] = useState<ImageAssetRole>("product");
+  const [roleOverride, setRoleOverride] = useState<ImageAssetRole | null>(null);
   const [style, setStyle] = useState("밝고 깨끗한 프리미엄 광고 사진");
+  // 보관 분류는 용도에서 자동 파생하되, 사용자가 직접 지정하면 그 값을 우선한다. 제출에는 항상 유효한 role이 들어간다.
+  const role = roleOverride ?? purposeToRole[purpose];
   if (!bundle) {
     return (
       <div className="empty">
@@ -441,6 +461,13 @@ function ImageMaker({
     );
   }
   const imageMakerAssets = bundle.imageAssets.filter((asset) => asset.source === "image_maker");
+  // 승격된 후보 자산에 원본 변형의 체감 라벨(추천/안정적/확인 필요)을 연결해 카드에 노출한다.
+  const scoreByAssetId: Record<string, ScoreLabel> = {};
+  for (const job of bundle.imageJobs) {
+    for (const variant of job.variants) {
+      if (variant.assetId) scoreByAssetId[variant.assetId] = variant.scoreLabel;
+    }
+  }
   return (
     <div className="grid image-grid">
       <section className="panel">
@@ -463,13 +490,27 @@ function ImageMaker({
           </label>
           <label>
             보관 분류
-            <select value={role} onChange={(event) => setRole(event.target.value as ImageAssetRole)}>
-              {Object.entries(roleLabels).map(([key, label]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            {roleOverride === null ? (
+              <span className="role-auto">
+                <span>{roleLabels[role]} <small>· 용도에 맞춰 자동</small></span>
+                <button type="button" className="linklike" onClick={() => setRoleOverride(role)}>
+                  직접 지정
+                </button>
+              </span>
+            ) : (
+              <span className="role-auto">
+                <select value={role} onChange={(event) => setRoleOverride(event.target.value as ImageAssetRole)}>
+                  {Object.entries(roleLabels).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="linklike" onClick={() => setRoleOverride(null)}>
+                  자동으로
+                </button>
+              </span>
+            )}
           </label>
         </div>
         <label style={{ marginTop: 12 }}>
@@ -496,7 +537,7 @@ function ImageMaker({
             </div>
           ))}
         </div>
-        <AssetGrid assets={imageMakerAssets} onUseAsset={onUseAsset} />
+        <AssetGrid assets={imageMakerAssets} onUseAsset={onUseAsset} scoreByAssetId={scoreByAssetId} />
       </section>
     </div>
   );
@@ -575,33 +616,55 @@ function referenceModeForRole(role: ImageAssetRole): AssetUsage["mode"] {
   return referenceModeByRole[role] ?? "style_reference";
 }
 
-function AssetGrid({ assets, onUseAsset }: { assets: ImageAsset[]; onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void }) {
+// 실제 전송되는 참조 mode 기준의 사람이 읽는 라벨. tooltip이 동작과 어긋나지 않도록 mode로 산출한다.
+const referenceModeLabel: Record<AssetUsage["mode"], string> = {
+  first_frame: "시작 화면(첫 프레임)",
+  last_frame: "마지막 화면",
+  style_reference: "스타일",
+  character_reference: "인물",
+  product_reference: "제품",
+  background_reference: "배경"
+};
+
+function AssetGrid({
+  assets,
+  onUseAsset,
+  scoreByAssetId
+}: {
+  assets: ImageAsset[];
+  onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
+  scoreByAssetId?: Record<string, ScoreLabel>;
+}) {
   if (!assets.length) return <div className="empty compact-empty">아직 저장된 이미지 재료가 없습니다.</div>;
   return (
     <div className="grid asset-grid" style={{ marginTop: 12 }}>
-      {assets.map((asset) => (
-        <article className="asset-card" key={asset.id}>
-          <div className="asset-thumb">
-            <strong>{roleLabels[asset.role]}</strong>
-            <span>{asset.aspect}</span>
-          </div>
-          <div className="body">
-            <strong>{asset.label}</strong>
-            <div className="meta">
-              <span className="badge fast">{asset.source === "image_maker" ? "Image Maker" : "외부 이미지"}</span>
-              <span>{asset.rights.status === "needs_review" ? "권리 확인 필요" : "사용 가능"}</span>
+      {assets.map((asset) => {
+        const score = scoreByAssetId?.[asset.id];
+        return (
+          <article className="asset-card" key={asset.id}>
+            <div className="asset-thumb">
+              <strong>{roleLabels[asset.role]}</strong>
+              <span>{asset.aspect}</span>
             </div>
-            <div className="actions">
-              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, "first_frame")}>
-                첫 프레임
-              </button>
-              <button type="button" className="secondary" onClick={() => onUseAsset(asset.id, referenceModeForRole(asset.role))}>
-                참조로 사용
-              </button>
+            <div className="body">
+              <strong>{asset.label}</strong>
+              <div className="meta">
+                {score ? <span className={`badge ${scoreBadgeClass(score)}`}>{score}</span> : null}
+                <span className="badge fast">{asset.source === "image_maker" ? "Image Maker" : "외부 이미지"}</span>
+                <span>{asset.rights.status === "needs_review" ? "권리 확인 필요" : "사용 가능"}</span>
+              </div>
+              <div className="actions">
+                <button type="button" className="secondary" title="이 이미지를 영상 컷의 시작 화면(첫 프레임)으로 사용합니다." onClick={() => onUseAsset(asset.id, "first_frame")}>
+                  첫 프레임
+                </button>
+                <button type="button" className="secondary" title={`이 이미지를 영상 컷의 ${referenceModeLabel[referenceModeForRole(asset.role)]} 참조로 연결합니다.`} onClick={() => onUseAsset(asset.id, referenceModeForRole(asset.role))}>
+                  참조로 사용
+                </button>
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }
@@ -841,7 +904,7 @@ function DirectionPanel({
       <div className="head">
         <div>
           <h2>컷별 연출 지시</h2>
-          <p className="hint">이미지 참조와 카메라 움직임을 함께 저장해 image-to-video 생성에 사용합니다.</p>
+          <p className="hint">이미지 참조와 카메라 움직임을 함께 저장해, 이 이미지를 바탕으로 영상 컷을 만듭니다.</p>
         </div>
         <span className="badge">{referenceAssets.length}개 참조</span>
       </div>
