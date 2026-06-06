@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Saec, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -221,6 +221,92 @@ function nextViewForBundle(nextBundle: ProjectBundle) {
   return "storyboard";
 }
 
+// 운영자용 런타임 점검 라벨. 백엔드가 주는 영어 label/detail 대신 check.id로 한국어 라벨을 직접 매핑해
+// 화면을 한국어로 유지한다. 미정의 id는 백엔드 label로 폴백한다(영문이라도 빈 칸보다 낫다).
+const readinessCheckLabels: Record<string, string> = {
+  runtime_mode: "런타임 모드",
+  mock_persistence: "목업 저장소",
+  provider_credentials: "프로바이더 키",
+  object_storage: "오브젝트 스토리지",
+  queue_worker: "큐 워커"
+};
+
+const readinessStatusText: Record<RuntimeReadiness["checks"][number]["status"], string> = {
+  pass: "정상",
+  warn: "주의",
+  fail: "실패"
+};
+
+function readinessTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+// 상단 바에 항상 떠 있는 컴팩트한 런타임 상태 배지. 모바일(레일 푸터가 숨는 ≤980px)에서도 보이도록
+// topbar-actions에 둔다. 배지를 누르면 점검 항목과 누락 환경변수 이름을 펼친다. 환경변수 값은 절대
+// 노출하지 않고 이름만 칩으로 보여준다.
+function RuntimeReadinessBadge({ readiness }: { readiness: RuntimeReadiness | null }) {
+  const [open, setOpen] = useState(false);
+  if (!readiness) return null;
+
+  const production = readiness.mode === "production";
+  const worst = readiness.checks.some((item) => item.status === "fail")
+    ? "fail"
+    : readiness.checks.some((item) => item.status === "warn")
+      ? "warn"
+      : "pass";
+  // 운영 모드는 ready 여부로, 목업 모드는 점검 결과로 톤을 정한다(목업은 항상 ready=true).
+  const tone = production ? (readiness.ready ? "pass" : "fail") : worst === "fail" ? "fail" : worst === "warn" ? "warn" : "pass";
+  const attention = readiness.checks.filter((item) => item.status === "warn" || item.status === "fail").length;
+  const modeLabel = production ? "운영 모드" : "목업 모드";
+  const stateLabel = production ? (readiness.ready ? "준비됨" : "점검 필요") : attention ? "확인 권장" : "정상";
+
+  return (
+    <div className={`readiness ${open ? "is-open" : ""}`}>
+      <button
+        type="button"
+        className={`readiness-badge tone-${tone}`}
+        aria-expanded={open}
+        aria-controls="readiness-panel"
+        onClick={() => setOpen((value) => !value)}
+        title={`런타임 상태 · ${modeLabel} · ${stateLabel}`}
+      >
+        <span className="readiness-dot" aria-hidden="true" />
+        <span className="readiness-mode">{modeLabel}</span>
+        {attention ? <span className="readiness-count">{attention}</span> : null}
+      </button>
+      {open ? (
+        <div id="readiness-panel" className="readiness-panel" role="region" aria-label="런타임 점검 상세">
+          <div className="readiness-head">
+            <strong>{modeLabel} · {stateLabel}</strong>
+            {readinessTime(readiness.generatedAt) ? <span className="readiness-time">{readinessTime(readiness.generatedAt)} 점검</span> : null}
+          </div>
+          <ul className="readiness-list">
+            {readiness.checks.map((item) => (
+              <li key={item.id} className={`readiness-item status-${item.status}`}>
+                <span className="readiness-item-dot" aria-hidden="true" />
+                <span className="readiness-item-label">{readinessCheckLabels[item.id] || item.label}</span>
+                <span className="readiness-item-status">{readinessStatusText[item.status]}</span>
+              </li>
+            ))}
+          </ul>
+          {readiness.missingEnv.length ? (
+            <div className="readiness-env">
+              <span className="readiness-env-title">누락 환경변수</span>
+              <div className="readiness-env-chips">
+                {readiness.missingEnv.map((name) => (
+                  <code key={name} className="readiness-env-chip">{name}</code>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -232,6 +318,7 @@ export function StudioApp() {
   // 취소 요청이 떠 있는 동안의 잡 id(또는 배치 취소 시 첫 잡 id). 값이 있으면 모든 취소 버튼을 잠가
   // 중복 취소를 막고, 해당 버튼만 "취소 중…"으로 표시한다.
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
+  const [readiness, setReadiness] = useState<RuntimeReadiness | null>(null);
   const toastTimer = useRef<number | null>(null);
 
   const selectedShot = useMemo(() => {
@@ -284,6 +371,12 @@ export function StudioApp() {
       if (toastTimer.current) window.clearTimeout(toastTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 런타임 점검은 환경변수 기반이라 거의 변하지 않으므로 마운트 시 1회만 조회한다. 실패해도 배지를
+  // 숨기고 본 작업 흐름을 막지 않는다.
+  useEffect(() => {
+    studioApi.getReadiness().then(setReadiness).catch(() => setReadiness(null));
   }, []);
 
   useEffect(() => {
@@ -391,6 +484,7 @@ export function StudioApp() {
             <p>{titles[view][1]}</p>
           </div>
           <div className="topbar-actions">
+            <RuntimeReadinessBadge readiness={readiness} />
             <span className="credit-pill">{creditBalance} ⚡</span>
             <span className="hint">자동 저장됨</span>
           </div>
