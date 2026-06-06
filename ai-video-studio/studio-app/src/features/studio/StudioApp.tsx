@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -107,6 +107,12 @@ function qualityLabel(take: Take) {
   if (score >= 4) return "안정적";
   if (score >= 3) return "확인 필요";
   return "재시도 권장";
+}
+
+// 프로젝트 비율(9:16 등)을 CSS aspect-ratio 값("9 / 16")으로 변환한다. 미리보기 프레임이 컷의
+// 실제 비율을 따르도록 해, 세로 영상이 모바일에서 과도하게 길어지지 않게 max-height와 함께 쓴다.
+function aspectRatioCss(aspect: Aspect) {
+  return aspect.replace(":", " / ");
 }
 
 function formatSeconds(sec: number) {
@@ -857,7 +863,7 @@ function Compare({
         </div>
         <div className="grid take-grid">
           {takes.map((take) => (
-            <TakeCard key={take.id} shot={selectedShot} take={take} onSelect={onSelect} />
+            <TakeCard key={take.id} shot={selectedShot} take={take} aspect={bundle.project.aspect} onSelect={onSelect} />
           ))}
         </div>
         {!takes.length ? <div className="empty">아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다.</div> : null}
@@ -953,29 +959,53 @@ function DirectionPanel({
   );
 }
 
-function TakeCard({ shot, take, onSelect }: { shot: Shot; take: Take; onSelect: (shotId: string, takeId: string) => void }) {
+function TakeCard({ shot, take, aspect, onSelect }: { shot: Shot; take: Take; aspect: Aspect; onSelect: (shotId: string, takeId: string) => void }) {
   const selected = shot.selectedTakeId === take.id;
+  // done + videoUrl만 실제 재생 가능. 실패/생성중은 한국어 상태 라벨로 비재생 상태를 명확히 한다.
+  const playable = take.status === "done" && Boolean(take.videoUrl);
+  const pending = take.status === "queued" || take.status === "running";
   return (
     <article className={`take ${selected ? "selected" : ""} ${take.status === "failed" ? "failed" : ""}`}>
-      <button type="button" disabled={take.status !== "done"} onClick={() => onSelect(shot.id, take.id)}>
-        <div className="video">
-          <strong>{take.label}</strong>
-          <span>{take.status === "done" ? "미리보기 준비 중" : take.status === "failed" ? "다시 시도 필요" : "생성 중"}</span>
-        </div>
-        <div className="take-footer">
-          <strong>{take.label}</strong>
-          <span className={`badge ${take.status === "failed" ? "warn" : selected ? "ok" : "fast"}`}>{take.status === "done" ? (selected ? "선택됨" : "이걸로") : statusLabel(take.status)}</span>
-        </div>
-        <div className="body" style={{ paddingTop: 0 }}>
+      <div className="take-media" style={{ aspectRatio: aspectRatioCss(aspect) }}>
+        {playable ? (
+          <video
+            className="take-video"
+            controls
+            playsInline
+            muted
+            preload="metadata"
+            poster={take.posterUrl ?? undefined}
+            src={take.videoUrl ?? undefined}
+          />
+        ) : (
+          <div className="media-fallback">
+            <strong>{take.label}</strong>
+            <span>{take.status === "failed" ? "다시 시도 필요" : "생성 중"}</span>
+          </div>
+        )}
+      </div>
+      <div className="take-footer">
+        <strong>{take.label}</strong>
+        <button
+          type="button"
+          className={`mini ${selected ? "primary" : "secondary"}`}
+          disabled={take.status !== "done"}
+          onClick={() => onSelect(shot.id, take.id)}
+        >
+          {take.status === "done" ? (selected ? "선택됨" : "이걸로 선택") : statusLabel(take.status)}
+        </button>
+      </div>
+      <div className="body" style={{ paddingTop: 0 }}>
+        {pending ? (
           <div className="progress">
-            <i style={{ width: take.status === "done" || take.status === "failed" ? "100%" : "48%" }} />
+            <i style={{ width: "48%" }} />
           </div>
-          <div className="meta">
-            <span>{tierLabel(take.tier)}</span>
-            <span>{qualityLabel(take)}</span>
-          </div>
+        ) : null}
+        <div className="meta">
+          <span>{tierLabel(take.tier)}</span>
+          <span>{qualityLabel(take)}</span>
         </div>
-      </button>
+      </div>
     </article>
   );
 }
@@ -1004,6 +1034,71 @@ function withCurrent(options: string[], current: string) {
   return options.includes(current) ? options : [current, ...options];
 }
 
+type PreviewSegment = { shot: Shot; take: Take };
+
+// 선택된 컷을 이어보는 컴팩트한 플레이리스트 미리보기. 현재 컷 플레이어 + 세그먼트 목록만 제공하고
+// 복잡한 편집기는 만들지 않는다. 한 컷이 끝나면 다음 컷으로 자동 진행한다(음소거 자동재생).
+function EditPreview({ segments, aspect }: { segments: PreviewSegment[]; aspect: Aspect }) {
+  const [index, setIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const firstRender = useRef(true);
+  const safeIndex = segments.length ? Math.min(index, segments.length - 1) : 0;
+  const current = segments[safeIndex] ?? null;
+  const currentTakeId = current?.take.id;
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.load();
+    // 첫 마운트에서는 자동재생하지 않는다. 사용자가 세그먼트를 고르거나 자동 진행될 때만 이어 재생.
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    el.play().catch(() => {});
+  }, [currentTakeId]);
+
+  if (!segments.length) {
+    return (
+      <div className="player">
+        <div>
+          <strong>선택된 컷이 없습니다</strong>
+          <p className="hint">비교 화면에서 컷을 선택하면 여기서 순서대로 이어볼 수 있습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="edit-preview">
+      <div className="edit-preview-stage" style={{ aspectRatio: aspectRatioCss(aspect) }}>
+        <video
+          ref={videoRef}
+          className="take-video"
+          controls
+          playsInline
+          muted
+          preload="metadata"
+          poster={current?.take.posterUrl ?? undefined}
+          src={current?.take.videoUrl ?? undefined}
+          onEnded={() => setIndex((value) => Math.min(value + 1, segments.length - 1))}
+        />
+      </div>
+      <ol className="segment-list">
+        {segments.map((segment, order) => (
+          <li key={segment.shot.id}>
+            <button type="button" className={order === safeIndex ? "active" : ""} onClick={() => setIndex(order)}>
+              <span className="segment-index">{order + 1}</span>
+              <span className="segment-title">{segment.shot.title}</span>
+              <span className="segment-dur">{formatSeconds(segment.take.durationSec)}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function Edit({
   bundle,
   onExport,
@@ -1018,6 +1113,14 @@ function Edit({
   const [command, setCommand] = useState("");
   if (!bundle) return <NoProject />;
   const selectedCount = bundle.shots.filter((shot) => shot.selectedTakeId).length;
+  // 선택된 컷을 순서대로 모아 이어보기 세그먼트를 만든다. 선택 take의 재생 URL이 있어야 미리보기가 가능.
+  const previewSegments: PreviewSegment[] = bundle.shots
+    .filter((shot) => shot.selectedTakeId)
+    .map((shot) => {
+      const take = bundle.takes.find((item) => item.id === shot.selectedTakeId);
+      return take ? { shot, take } : null;
+    })
+    .filter((segment): segment is PreviewSegment => segment !== null && Boolean(segment.take.videoUrl));
   // 컨트롤은 모두 저장된 bundle.editState를 직접 반영한다(로컬 사본 없이). 변경 즉시 저장 후
   // 부모 run()이 bundle을 새로고침하므로 editState·renderSourceHash가 항상 최신이고,
   // 그 덕분에 내보내기 화면의 "프로젝트가 바뀌었습니다" stale 안내도 정상 동작한다.
@@ -1036,12 +1139,13 @@ function Edit({
   return (
     <div className="grid edit-grid">
       <div className="panel">
-        <div className="player">
+        <div className="head">
           <div>
             <strong>{selectedCount}컷 연결 미리보기</strong>
-            <p className="hint">실제 렌더는 내보내기에서 생성됩니다.</p>
+            <p className="hint">선택된 컷을 순서대로 이어봅니다. 실제 렌더는 내보내기에서 생성됩니다.</p>
           </div>
         </div>
+        <EditPreview segments={previewSegments} aspect={bundle.project.aspect} />
       </div>
       <section className="panel">
         <div className="head">
@@ -1204,6 +1308,8 @@ function ExportView({
   const [preview, setPreview] = useState<RenderPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  // 완료된 렌더 잡 중 인라인 플레이어를 펼친 잡 id. 한 번에 하나만 펼친다.
+  const [playerJobId, setPlayerJobId] = useState<string | null>(null);
   const projectId = bundle?.project.id ?? null;
   const aspect = bundle?.project.aspect ?? null;
   // preview는 전체 타임라인 점검이라 길이별(6s/15s/30s)로 갈리지 않는다. cut은 "full"로 고정하고
@@ -1222,6 +1328,20 @@ function ExportView({
     } finally {
       setPreviewing(false);
     }
+  }
+
+  // 공유 링크는 토스트로만 끝내지 않고 실제 URL을 클립보드에 복사하고, 행에도 링크를 노출한다.
+  async function copyShare(url: string) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        onRenderAction("공유 링크를 클립보드에 복사했습니다.");
+        return;
+      }
+    } catch {
+      // 권한 거부 등으로 복사가 막히면 아래 안내로 떨어진다.
+    }
+    onRenderAction("공유 링크를 복사할 수 없어 링크를 표시합니다. 직접 복사해 주세요.");
   }
 
   // 내보내기 화면을 열면(또는 프로젝트가 바뀌면) 현재 설정으로 한 번 미리 점검한다. 이후 설정을
@@ -1295,37 +1415,73 @@ function ExportView({
         <h2>렌더 잡</h2>
         {latestJob ? <RenderPreflight job={latestJob} shotTitleById={shotTitleById} /> : null}
         <div className="grid" style={{ marginTop: 12 }}>
-          {bundle.renderJobs.map((job) => (
-            <div className="row-card render-row" key={job.id}>
-              <strong>
-                {job.spec.resolution} · {job.spec.cut}
-              </strong>
-              <div style={{ flex: 1 }}>
-                <div className="progress">
-                  <i style={{ width: `${Math.round(job.progress * 100)}%` }} />
+          {bundle.renderJobs.map((job) => {
+            const open = playerJobId === job.id;
+            return (
+              <div className="row-card render-row" key={job.id}>
+                <strong>
+                  {job.spec.resolution} · {job.spec.cut}
+                </strong>
+                <div style={{ flex: 1 }}>
+                  <div className="progress">
+                    <i style={{ width: `${Math.round(job.progress * 100)}%` }} />
+                  </div>
+                  <div className="meta">
+                    <span>{statusLabel(job.status)}</span>
+                    {renderStageLabel(job) ? <span>{renderStageLabel(job)}</span> : null}
+                  </div>
                 </div>
-                <div className="meta">
-                  <span>{statusLabel(job.status)}</span>
-                  {renderStageLabel(job) ? <span>{renderStageLabel(job)}</span> : null}
-                </div>
+                {job.status === "done" ? (
+                  <div className="render-actions">
+                    {job.outputUrl ? (
+                      <button type="button" className="secondary" onClick={() => setPlayerJobId(open ? null : job.id)}>
+                        {open ? "미리보기 닫기" : "미리보기"}
+                      </button>
+                    ) : null}
+                    {job.outputUrl ? (
+                      <a
+                        className="secondary"
+                        href={job.outputUrl}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => onRenderAction("다운로드를 시작합니다.")}
+                      >
+                        다운로드
+                      </a>
+                    ) : null}
+                    {job.shareUrl ? (
+                      <button type="button" className="secondary" onClick={() => copyShare(job.shareUrl as string)}>
+                        공유 링크 복사
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <span className="badge fast">진행</span>
+                )}
+                {open && job.outputUrl ? (
+                  <div className="render-player">
+                    <div className="edit-preview-stage" style={{ aspectRatio: aspectRatioCss(bundle.project.aspect) }}>
+                      <video
+                        className="take-video"
+                        controls
+                        playsInline
+                        muted
+                        preload="metadata"
+                        poster={bundle.project.thumbUrl ?? undefined}
+                        src={job.outputUrl}
+                      />
+                    </div>
+                    {job.shareUrl ? (
+                      <a className="share-link" href={job.shareUrl} target="_blank" rel="noreferrer">
+                        공유 링크: {job.shareUrl}
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-              {job.status === "done" ? (
-                <div className="render-actions">
-                  <button type="button" className="secondary" onClick={() => onRenderAction("미리보기 화면을 준비했습니다.")}>
-                    미리보기
-                  </button>
-                  <button type="button" className="secondary" onClick={() => onRenderAction("다운로드 링크를 준비했습니다.")}>
-                    다운로드
-                  </button>
-                  <button type="button" className="secondary" onClick={() => onRenderAction("공유 링크를 클립보드에 복사할 수 있습니다.")}>
-                    공유
-                  </button>
-                </div>
-              ) : (
-                <span className="badge fast">진행</span>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {!bundle.renderJobs.length ? <div className="empty">아직 렌더 잡이 없습니다.</div> : null}
         </div>
       </section>
