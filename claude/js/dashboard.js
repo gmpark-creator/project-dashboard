@@ -529,7 +529,7 @@
 
     list.innerHTML = projects.map((p, i) => `
       <a class="sidebar-link" data-id="${escapeHtml(p.id)}" href="#/p/${escapeHtml(p.id)}">
-        <span class="num">${pad2(i+1)}</span>
+        <span class="num">${pad2(p.no || (i+1))}</span>
         <span class="emblem">${emblem(p.icon)}</span>
         <span class="name">${escapeHtml(p.name)}</span>
         <span class="dot" data-st="${escapeHtml(p.status)}" title="${statusLabel(p.status)}"></span>
@@ -599,7 +599,7 @@
      RENDER — single project detail page
      ============================================================ */
   function renderProjectDetail(p, idx) {
-    const num = pad2(idx + 1);
+    const num = pad2(p.no || (idx + 1));
     const meta = `
       <div class="proj-metarow">
         <div class="proj-meta-cell">
@@ -885,7 +885,7 @@
       <a class="home-card" href="#/p/${escapeHtml(p.id)}">
         <span class="card-emblem">${emblem(p.icon)}</span>
         <div class="card-row">
-          <span class="card-num">+ ${pad2(i+1)} · ${escapeHtml(p.id.toUpperCase())}</span>
+          <span class="card-num">+ ${pad2(p.no || (i+1))} · ${escapeHtml(p.id.toUpperCase())}</span>
           <span class="card-status" data-st="${escapeHtml(p.status)}">${statusLabel(p.status)}</span>
         </div>
         <h4 class="card-name">${escapeHtml(p.name)}</h4>

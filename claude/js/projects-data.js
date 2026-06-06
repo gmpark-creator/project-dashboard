@@ -5,6 +5,7 @@
 const PROJECTS = [
   {
     id: 'ais',
+    no: 1,
     name: 'AIS Ship Tracker',
     subtitle: '실시간 선박 위치 추적 웹 앱',
     icon: 'ship',
@@ -51,6 +52,7 @@ const PROJECTS = [
   },
   {
     id: 'sports',
+    no: 2,
     name: 'DDUIM',
     subtitle: '뜀 — 스포츠 하이라이트 자동 생성 엔진 · 트래킹 데이터 기반 2D 매치 시각화',
     icon: 'trophy',
@@ -106,6 +108,7 @@ const PROJECTS = [
   },
   {
     id: 'solar',
+    no: 3,
     name: 'Solar System Simulator',
     subtitle: '3D 실시간 태양계 시뮬레이터',
     icon: 'orbit',
@@ -186,6 +189,7 @@ const PROJECTS = [
   },
   {
     id: 'inst',
+    no: 4,
     name: 'INST EXTRACTOR',
     subtitle: '고음질 반주(Inst) 추출기 · 음원 보컬 제거',
     icon: 'music',
@@ -239,6 +243,7 @@ const PROJECTS = [
   },
   {
     id: 'jpglobal-web',
+    no: 6,
     name: 'Frontend & Tone Atelier',
     subtitle: '프론트엔드 웹디자인 + 색감 톤 시범 워크숍 · 부산 거점 글로벌 해운 기업 JP GLOBAL 사이트로 테스트',
     icon: 'building',
@@ -296,6 +301,7 @@ const PROJECTS = [
   },
   {
     id: 'us-kr-premarket',
+    no: 7,
     name: 'US-KR Premarket Signal',
     subtitle: '증권 — 미국 시장 종가가 한국 프리마켓에 미치는 영향 신호 대시보드',
     icon: 'trending-up',
@@ -348,6 +354,7 @@ const PROJECTS = [
   },
   {
     id: 'knowledge',
+    no: 8,
     name: 'Knowledgeverse',
     subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력·2차전지·디스플레이·철강·제련 3D / ② 기초이론: 학교 과학) · A Curated Universe of Interactive Knowledge',
     icon: 'book',
@@ -449,6 +456,7 @@ const PROJECTS = [
   },
   {
     id: 'tradelogix',
+    no: 9,
     name: 'TradeLogix Nexus',
     subtitle: '무역과 물류 — 3개 카테고리 통합 허브 · ① 통관절차(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증) ② 선사업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해) ③ 미래 기술스택(스택 분해·대체 시뮬·미래 조합 아키텍처 허브 + 실험 데모)',
     icon: 'trade-globe',
@@ -497,6 +505,7 @@ const PROJECTS = [
   },
   {
     id: 'health',
+    no: 10,
     name: 'FitRx',
     subtitle: '헬스케어 · 근거기반 건강 도움 — ACSM 2026 저항성 운동 Position Stand(17년 만의 개정, 137편 체계적 문헌고찰·3만 명 종합)를 임상 가이드 톤으로 정리한 인터랙티브 운동 가이드. 목표별 근거기반 처방 + 신화 검증.',
     icon: 'vitality',
