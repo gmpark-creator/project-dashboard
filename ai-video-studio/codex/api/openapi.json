@@ -538,7 +538,20 @@
           }
         },
         "responses": {
-          "202": { "description": "Project generation queued" },
+          "202": {
+            "description": "Project generation queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" } }
+                  },
+                  "required": ["jobs"]
+                }
+              }
+            }
+          },
           "400": {
             "description": "Invalid project generation request",
             "content": {
@@ -579,7 +592,14 @@
           }
         },
         "responses": {
-          "200": { "description": "Take selected" },
+          "200": {
+            "description": "Take selected",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+              }
+            }
+          },
           "400": {
             "description": "Missing or invalid take id",
             "content": {
@@ -620,7 +640,21 @@
           }
         },
         "responses": {
-          "202": { "description": "Regeneration queued" },
+          "202": {
+            "description": "Regeneration queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "takes": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/Take" } },
+                    "jobs": { "type": "array", "items": { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" } }
+                  },
+                  "required": ["takes", "jobs"]
+                }
+              }
+            }
+          },
           "400": {
             "description": "Invalid regeneration request",
             "content": {
@@ -660,7 +694,21 @@
           }
         },
         "responses": {
-          "202": { "description": "Upgrade queued" },
+          "202": {
+            "description": "Upgrade queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "take": { "$ref": "../schemas/domain.schema.json#/$defs/Take" },
+                    "job": { "$ref": "../schemas/domain.schema.json#/$defs/GenerationJob" }
+                  },
+                  "required": ["take", "job"]
+                }
+              }
+            }
+          },
           "400": {
             "description": "Invalid upgrade request",
             "content": {

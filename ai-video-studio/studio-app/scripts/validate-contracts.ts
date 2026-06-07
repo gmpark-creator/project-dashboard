@@ -281,6 +281,7 @@ const requiredOperations = new Set([
   "executeWorkerRetry"
 ]);
 const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
+const documentedJsonSuccessStatuses = new Set(["200", "201", "202"]);
 const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", "422", "503"]);
 const resultShapedErrorResponses = new Map([
   ["cancelJob:404", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
@@ -338,8 +339,8 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     }
     if (operation.operationId) {
       for (const [code, response] of Object.entries(operation.responses || {})) {
-        if (documentedJsonErrorStatuses.has(code)) {
-          assert.ok(jsonSchema(response), `${operation.operationId} ${code} error response must declare an application/json schema`);
+        if (documentedJsonSuccessStatuses.has(code) || documentedJsonErrorStatuses.has(code)) {
+          assert.ok(jsonSchema(response), `${operation.operationId} ${code} response must declare an application/json schema`);
         }
         const expectedRef = resultShapedErrorResponses.get(`${operation.operationId}:${code}`);
         if (expectedRef) {

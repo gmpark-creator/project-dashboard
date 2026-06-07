@@ -1009,11 +1009,12 @@
     },
     "Take": {
       "type": "object",
-      "required": ["id", "shotId", "label", "status", "durationSec", "tier", "createdAt"],
+      "required": ["id", "shotId", "projectId", "label", "status", "durationSec", "tier", "createdAt"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^tak_" },
         "shotId": { "type": "string", "pattern": "^sht_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
         "label": { "type": "string" },
         "status": { "$ref": "#/$defs/JobStatus" },
         "videoUrl": { "type": ["string", "null"], "format": "uri" },
@@ -1022,7 +1023,9 @@
         "tier": { "$ref": "#/$defs/Tier" },
         "engineUsed": { "type": ["string", "null"], "description": "Internal/debug only; never render in user UI." },
         "metrics": { "$ref": "#/$defs/TakeMetrics" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "upgradeSourceTakeId": { "type": "string", "pattern": "^tak_" },
+        "upgradeMode": { "type": "string", "enum": ["final_regenerate", "enhance", "render_upscale"] }
       }
     },
     "TakeMetrics": {
