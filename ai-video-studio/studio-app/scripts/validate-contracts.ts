@@ -7,6 +7,7 @@ const codexDir = join(root, "codex");
 const appApiDir = join(process.cwd(), "app", "api");
 const appDir = join(process.cwd(), "app");
 const featureDir = join(process.cwd(), "src", "features");
+const domainTypesPath = join(process.cwd(), "src", "domain", "types.ts");
 const scriptsDir = join(process.cwd(), "scripts");
 const httpMethods = ["get", "post", "put", "patch", "delete"] as const;
 
@@ -176,7 +177,11 @@ function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[
   if (!schema || typeof schema !== "object") return;
   const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; required?: unknown; items?: unknown };
   if (objectSchema.type === "object") {
-    assert.equal(objectSchema.additionalProperties, false, `${owner} object schema ${path.join(".") || "<root>"} must set additionalProperties false`);
+    const typedMap = !objectSchema.properties && objectSchema.additionalProperties && typeof objectSchema.additionalProperties === "object";
+    assert.ok(
+      typedMap || objectSchema.additionalProperties === false,
+      `${owner} object schema ${path.join(".") || "<root>"} must set additionalProperties false or a typed map schema`
+    );
     if (typeof objectSchema.required !== "undefined") {
       assert.ok(Array.isArray(objectSchema.required), `${owner} object schema ${path.join(".") || "<root>"} required must be an array`);
       const requiredProperties = new Set<string>();
@@ -194,6 +199,9 @@ function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[
     }
   }
   if (objectSchema.items) assertClosedObjectSchemas(objectSchema.items, owner, [...path, "[]"]);
+  if (objectSchema.additionalProperties && typeof objectSchema.additionalProperties === "object") {
+    assertClosedObjectSchemas(objectSchema.additionalProperties, owner, [...path, "*"]);
+  }
 }
 
 function assertUniqueEnumValues(value: unknown, owner: string, path: string[] = []) {
@@ -211,6 +219,14 @@ function assertUniqueEnumValues(value: unknown, owner: string, path: string[] = 
   }
   for (const [key, child] of Object.entries(value)) {
     assertUniqueEnumValues(child, owner, [...path, key]);
+  }
+}
+
+function assertExportedDomainTypesHaveSchemas() {
+  const source = readFileSync(domainTypesPath, "utf8");
+  const exportedTypes = [...source.matchAll(/^export type (\w+)/gm)].map((match) => match[1]);
+  for (const typeName of exportedTypes) {
+    assert.ok(domainSchema.$defs[typeName], `domain schema missing exported TypeScript type ${typeName}`);
   }
 }
 
@@ -256,6 +272,7 @@ function assertKnownLocalSchemaRefs(value: unknown, root: unknown, path: string[
 assertKnownLocalSchemaRefs(domainSchema, domainSchema, ["domainSchema"]);
 assertUniqueEnumValues(domainSchema, "domain schema", ["domainSchema"]);
 assertUniqueEnumValues(openApi, "openapi", ["openapi"]);
+assertExportedDomainTypesHaveSchemas();
 
 for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
   assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
@@ -301,6 +318,7 @@ for (const defName of [
   "ImageAsset",
   "ImageJob",
   "AssetKind",
+  "AssetSource",
   "AssetUsageMode",
   "CancelJobResult",
   "CreditTransaction",
@@ -353,6 +371,7 @@ for (const defName of [
   "ProviderAttempt",
   "ProviderRoutingDecision",
   "ProjectBundle",
+  "StudioState",
   "RuntimeReadiness",
   "SystemMetrics",
   "RenderSourceHash",

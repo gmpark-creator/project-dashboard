@@ -44,6 +44,10 @@
       "type": "string",
       "enum": ["product", "character", "location", "style", "keyframe", "thumbnail", "logo", "background"]
     },
+    "AssetSource": {
+      "type": "string",
+      "enum": ["image_maker", "upload", "external"]
+    },
     "ImageMakerPurpose": {
       "type": "string",
       "enum": ["photoreal", "product", "character", "background", "style", "poster", "thumbnail", "transparent"]
@@ -1307,7 +1311,7 @@
         "projectId": { "type": "string", "pattern": "^prj_" },
         "kind": { "type": "string", "const": "image" },
         "role": { "$ref": "#/$defs/ImageAssetRole" },
-        "source": { "type": "string", "enum": ["image_maker", "upload", "external"] },
+        "source": { "$ref": "#/$defs/AssetSource" },
         "label": { "type": "string" },
         "prompt": { "type": "string" },
         "url": { "type": "string" },
@@ -1490,6 +1494,56 @@
         "creditTransactions": { "type": "array", "items": { "$ref": "#/$defs/CreditTransaction" } },
         "mediaArtifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifact" } },
         "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
+      }
+    },
+    "StudioState": {
+      "type": "object",
+      "required": [
+        "version",
+        "credits",
+        "creditTransactions",
+        "mediaArtifacts",
+        "storageCleanupRecords",
+        "projects",
+        "scenes",
+        "shots",
+        "takes",
+        "generationJobs",
+        "renderJobs",
+        "imageAssets",
+        "imageJobs",
+        "workerLeases",
+        "workerRetryRecords",
+        "referenceBoards",
+        "editState",
+        "updatedAt"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "credits": { "$ref": "#/$defs/StudioCredits" },
+        "creditTransactions": { "type": "array", "items": { "$ref": "#/$defs/CreditTransaction" } },
+        "mediaArtifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifact" } },
+        "storageCleanupRecords": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupExecutionRecord" } },
+        "projects": { "type": "array", "items": { "$ref": "#/$defs/Project" } },
+        "scenes": { "type": "array", "items": { "$ref": "#/$defs/Scene" } },
+        "shots": { "type": "array", "items": { "$ref": "#/$defs/Shot" } },
+        "takes": { "type": "array", "items": { "$ref": "#/$defs/Take" } },
+        "generationJobs": { "type": "array", "items": { "$ref": "#/$defs/GenerationJob" } },
+        "renderJobs": { "type": "array", "items": { "$ref": "#/$defs/RenderJob" } },
+        "imageAssets": { "type": "array", "items": { "$ref": "#/$defs/ImageAsset" } },
+        "imageJobs": { "type": "array", "items": { "$ref": "#/$defs/ImageJob" } },
+        "workerLeases": { "type": "array", "items": { "$ref": "#/$defs/WorkerLease" } },
+        "workerRetryRecords": { "type": "array", "items": { "$ref": "#/$defs/WorkerRetryRecord" } },
+        "referenceBoards": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/ReferenceBoard" }
+        },
+        "editState": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/EditState" }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
     "StoryboardScenePatch": {
@@ -1900,6 +1954,7 @@
     "workerRetryExecutionSnapshot": { "$ref": "#/$defs/WorkerRetryExecutionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
+    "studioState": { "$ref": "#/$defs/StudioState" },
     "scene": { "$ref": "#/$defs/Scene" },
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
