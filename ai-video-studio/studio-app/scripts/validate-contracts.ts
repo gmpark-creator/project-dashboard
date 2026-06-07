@@ -196,6 +196,10 @@ function assertKnownLocalSchemaRefs(value: unknown, root: unknown, path: string[
 
 assertKnownLocalSchemaRefs(domainSchema, domainSchema, ["domainSchema"]);
 
+for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
+  assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
+}
+
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
   assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
