@@ -83,6 +83,8 @@ for (const defName of [
   "WorkerRetryPlan",
   "WorkerRetryRecord",
   "WorkerRetryExecutionResult",
+  "WorkerRetryExecutionSnapshotItem",
+  "WorkerRetryExecutionSnapshot",
   "ImageWorkerInvocation",
   "DirectionSpec",
   "EditAudioPatch",
@@ -139,6 +141,7 @@ const requiredOperations = new Set([
   "completeWorkerLease",
   "getWorkerCompletionSnapshot",
   "getWorkerRetryPlan",
+  "getWorkerRetryExecutionSnapshot",
   "executeWorkerRetry"
 ]);
 const operationIds = new Set<string>();

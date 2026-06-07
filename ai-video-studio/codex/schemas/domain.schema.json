@@ -697,6 +697,49 @@
         "reason": { "type": "string", "enum": ["executed", "already_executed", "not_found", "not_retryable", "unsupported_action", "retry_failed", "replacement_missing"] }
       }
     },
+    "WorkerRetryExecutionSnapshotItem": {
+      "type": "object",
+      "required": ["record", "sourceReceipt", "replacement", "replacementMissing"],
+      "additionalProperties": false,
+      "properties": {
+        "record": { "$ref": "#/$defs/WorkerRetryRecord" },
+        "sourceReceipt": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerCompletionReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "replacement": {
+          "anyOf": [
+            { "$ref": "#/$defs/QueueJobSnapshot" },
+            { "type": "null" }
+          ]
+        },
+        "replacementMissing": { "type": "boolean" }
+      }
+    },
+    "WorkerRetryExecutionSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "providerGeneration", "imageGeneration", "render", "withReplacement", "missingReplacement"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "providerGeneration": { "type": "integer", "minimum": 0 },
+            "imageGeneration": { "type": "integer", "minimum": 0 },
+            "render": { "type": "integer", "minimum": 0 },
+            "withReplacement": { "type": "integer", "minimum": 0 },
+            "missingReplacement": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerRetryExecutionSnapshotItem" } }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -1643,6 +1686,7 @@
     "workerRetryPlan": { "$ref": "#/$defs/WorkerRetryPlan" },
     "workerRetryRecord": { "$ref": "#/$defs/WorkerRetryRecord" },
     "workerRetryExecutionResult": { "$ref": "#/$defs/WorkerRetryExecutionResult" },
+    "workerRetryExecutionSnapshot": { "$ref": "#/$defs/WorkerRetryExecutionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },

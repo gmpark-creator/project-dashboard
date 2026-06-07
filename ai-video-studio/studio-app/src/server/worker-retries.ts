@@ -7,6 +7,7 @@ import type {
   StudioState,
   WorkerCompletionReceipt,
   WorkerRetryAction,
+  WorkerRetryExecutionSnapshot,
   WorkerRetryExecutionResult,
   WorkerRetryPlan,
   WorkerRetryPlanItem,
@@ -161,6 +162,35 @@ function recordRetry(sourceJobId: string, action: WorkerRetryAction, replacement
   current.workerRetryRecords.unshift(record);
   saveMockState(current);
   return record;
+}
+
+export function getWorkerRetryExecutionSnapshot(): WorkerRetryExecutionSnapshot {
+  const current = getMockState();
+  const completionSnapshot = buildWorkerCompletionSnapshot(current);
+  const items = [...current.workerRetryRecords]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map((record) => {
+      const replacement = replacementSnapshot(current, record.replacementKind, record.replacementJobId);
+      return {
+        record,
+        sourceReceipt: completionSnapshot.receipts.find((receipt) => receipt.jobId === record.sourceJobId) || null,
+        replacement,
+        replacementMissing: !replacement
+      };
+    });
+
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      total: items.length,
+      providerGeneration: items.filter((item) => item.record.action === "retry_provider_generation").length,
+      imageGeneration: items.filter((item) => item.record.action === "retry_image_generation").length,
+      render: items.filter((item) => item.record.action === "retry_render").length,
+      withReplacement: items.filter((item) => item.replacement).length,
+      missingReplacement: items.filter((item) => item.replacementMissing).length
+    },
+    items
+  };
 }
 
 export function executeWorkerRetry(sourceJobId: string): WorkerRetryExecutionResult {

@@ -1035,6 +1035,23 @@
         }
       }
     },
+    "/system/worker-retries/executions": {
+      "get": {
+        "operationId": "getWorkerRetryExecutionSnapshot",
+        "responses": {
+          "200": {
+            "description": "Executed worker retry records with source receipts and replacement queue status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/worker-retries/{jobId}/execute": {
       "post": {
         "operationId": "executeWorkerRetry",

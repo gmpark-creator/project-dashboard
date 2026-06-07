@@ -784,6 +784,26 @@ export type WorkerRetryExecutionResult = {
   reason: "executed" | "already_executed" | "not_found" | "not_retryable" | "unsupported_action" | "retry_failed" | "replacement_missing";
 };
 
+export type WorkerRetryExecutionSnapshotItem = {
+  record: WorkerRetryRecord;
+  sourceReceipt: WorkerCompletionReceipt | null;
+  replacement: QueueJobSnapshot | null;
+  replacementMissing: boolean;
+};
+
+export type WorkerRetryExecutionSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    providerGeneration: number;
+    imageGeneration: number;
+    render: number;
+    withReplacement: number;
+    missingReplacement: number;
+  };
+  items: WorkerRetryExecutionSnapshotItem[];
+};
+
 export type RuntimeReadiness = {
   mode: "mock" | "production";
   generatedAt: string;

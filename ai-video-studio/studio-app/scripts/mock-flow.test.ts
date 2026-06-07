@@ -37,7 +37,7 @@ import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocat
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
-import { executeWorkerRetry, getWorkerRetryPlan } from "../src/server/worker-retries";
+import { executeWorkerRetry, getWorkerRetryExecutionSnapshot, getWorkerRetryPlan } from "../src/server/worker-retries";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -216,6 +216,13 @@ assert.equal(repeatedRetryExecution.reason, "already_executed", "worker retry ex
 assert.equal(repeatedRetryExecution.replacement?.id, retryExecution.replacement?.id, "idempotent retry execution should return the original replacement job");
 assert.equal(getMockState().imageJobs.length, imageJobCountAfterRetry, "idempotent retry execution should not create duplicate replacement jobs");
 assert.equal(getMockState().workerRetryRecords.filter((record) => record.sourceJobId === retryImageJob.job.id).length, 1, "worker retry execution should keep one retry record per source job");
+const retryExecutionSnapshot = getWorkerRetryExecutionSnapshot();
+const retryExecutionItem = retryExecutionSnapshot.items.find((item) => item.record.sourceJobId === retryImageJob.job.id);
+assert.ok(retryExecutionItem, "worker retry execution snapshot should include retry records");
+assert.equal(retryExecutionItem?.sourceReceipt?.status, "failed", "worker retry execution snapshot should attach the failed source receipt");
+assert.equal(retryExecutionItem?.replacement?.id, retryExecution.replacement?.id, "worker retry execution snapshot should attach the replacement queue job");
+assert.equal(retryExecutionItem?.replacementMissing, false, "worker retry execution snapshot should flag existing replacements as present");
+assert.ok(retryExecutionSnapshot.summary.withReplacement >= 1, "worker retry execution snapshot should count records with replacement jobs");
 forceDueJobs("imageJobs");
 tickJobs();
 assert.equal(getMockState().imageJobs.find((job) => job.id === retryExecution.replacement?.id)?.status, "done", "replacement image jobs should complete through the normal image job flow");
