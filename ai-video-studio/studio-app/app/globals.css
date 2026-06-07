@@ -1655,6 +1655,64 @@ label {
   overflow-wrap: anywhere;
 }
 
+/* 운영 콘솔 상단 건강 요약 스트립. 누르면 해당 패널로 스크롤하는 triage 타일. 좁은 폭(390px)에서
+   auto-fit minmax로 자동 줄바꿈되며 가로 넘침이 없어야 한다. tone으로만(초록/빨강) 방향을 읽게 한다. */
+.ops-summary {
+  margin-bottom: 16px;
+}
+
+.ops-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.ops-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  text-align: left;
+}
+
+.ops-tile:hover {
+  border-color: var(--line-strong);
+}
+
+.ops-tile.tone-ok {
+  border-color: rgba(123, 217, 121, .4);
+}
+
+.ops-tile.tone-warn {
+  border-color: rgba(239, 111, 122, .48);
+}
+
+.ops-tile-value {
+  font-size: 20px;
+  font-weight: 850;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.ops-tile.tone-ok .ops-tile-value {
+  color: #b6f0b5;
+}
+
+.ops-tile.tone-warn .ops-tile-value {
+  color: #ffb4ba;
+}
+
+.ops-tile-label {
+  font-size: 12px;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);

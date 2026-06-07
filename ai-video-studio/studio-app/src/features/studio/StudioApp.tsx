@@ -1300,6 +1300,83 @@ function StorageCleanupExecutionPanel({ executions }: { executions: StorageClean
   );
 }
 
+// 운영 콘솔 상단 건강 요약 스트립. 12개 패널을 스크롤하지 않고 이상 징후(점검 필요·실패·재시도·엔진·삭제
+// 후보)를 한눈에 triage하고, 타일을 누르면 해당 패널로 부드럽게 스크롤한다. 소스 스냅샷이 로드된 타일만
+// 노출하며, 표시할 게 없으면 아무것도 렌더하지 않는다. 집계 수치만 다루고 raw 식별자는 노출하지 않는다.
+function OpsSummaryStrip({
+  readiness,
+  queue,
+  retryPlan,
+  providerHealth,
+  cleanupPlan
+}: {
+  readiness: RuntimeReadiness | null;
+  queue: JobQueueSnapshot | null;
+  retryPlan: WorkerRetryPlan | null;
+  providerHealth: ProviderHealthSnapshot | null;
+  cleanupPlan: StorageCleanupPlan | null;
+}) {
+  const tiles: Array<{ label: string; value: string | number; tone: "ok" | "warn" | ""; target: string }> = [];
+  if (readiness) {
+    const attention = readiness.checks.filter((item) => item.status === "warn" || item.status === "fail").length;
+    const production = readiness.mode === "production";
+    tiles.push({
+      label: production ? "운영 모드" : "목업 모드",
+      value: attention ? `점검 ${attention}` : "정상",
+      tone: attention ? "warn" : "ok",
+      target: "런타임 점검"
+    });
+  }
+  if (queue) {
+    tiles.push({ label: "진행 중 작업", value: queue.summary.active, tone: "", target: "작업 큐 스냅샷" });
+    if (queue.summary.failed) tiles.push({ label: "실패 작업", value: queue.summary.failed, tone: "warn", target: "작업 큐 스냅샷" });
+  }
+  if (retryPlan && retryPlan.summary.totalFailed) {
+    tiles.push({
+      label: "재시도 가능",
+      value: `${retryPlan.summary.retryable}/${retryPlan.summary.totalFailed}`,
+      tone: retryPlan.summary.retryable ? "ok" : "warn",
+      target: "재시도 계획"
+    });
+  }
+  if (providerHealth) {
+    const down = providerHealth.summary.degraded + providerHealth.summary.down;
+    tiles.push({ label: "엔진 점검", value: down ? down : "정상", tone: down ? "warn" : "ok", target: "엔진 상태" });
+  }
+  if (cleanupPlan && cleanupPlan.summary.deleteCandidates) {
+    tiles.push({ label: "삭제 후보", value: cleanupPlan.summary.deleteCandidates, tone: "warn", target: "스토리지 정리 계획" });
+  }
+  if (!tiles.length) return null;
+  const scrollTo = (label: string) => {
+    const el = document.querySelector(`section[aria-label="${label}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  return (
+    <section className="panel ops-summary" aria-label="운영 요약">
+      <div className="head">
+        <div>
+          <h2>운영 요약</h2>
+          <p className="hint">이상 징후를 한눈에 확인하고, 타일을 누르면 해당 패널로 이동합니다.</p>
+        </div>
+      </div>
+      <div className="ops-summary-grid">
+        {tiles.map((tile, index) => (
+          <button
+            key={`${tile.target}-${index}`}
+            type="button"
+            className={`ops-tile${tile.tone ? ` tone-${tile.tone}` : ""}`}
+            onClick={() => scrollTo(tile.target)}
+            title={`${tile.label} · ${tile.target}로 이동`}
+          >
+            <span className="ops-tile-value">{tile.value}</span>
+            <span className="ops-tile-label">{tile.label}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // 운영 콘솔. 워커·큐·엔진·런타임·스토리지 상태를 한 화면에 모은 읽기 전용 운영자 surface. 로드된 패널만
 // 렌더하고 권한/네트워크로 모두 실패하면 안내를 보여준다. 이 화면은 어떤 작업도 변경·중단하지 않는다.
 function OperationsConsole({
@@ -1339,6 +1416,7 @@ function OperationsConsole({
           <p className="hint">워커·큐·엔진·런타임·스토리지 상태를 한곳에서 읽기 전용으로 점검합니다. 이 화면에서는 어떤 작업도 멈추거나 변경하지 않습니다.</p>
         </div>
       </div>
+      <OpsSummaryStrip readiness={readiness} queue={queue} retryPlan={retryPlan} providerHealth={providerHealth} cleanupPlan={cleanupPlan} />
       {readiness ? <ReadinessConsolePanel readiness={readiness} /> : null}
       {metrics ? <SystemMetricsPanel metrics={metrics} /> : null}
       {queue ? <JobQueueSnapshotPanel queue={queue} /> : null}
