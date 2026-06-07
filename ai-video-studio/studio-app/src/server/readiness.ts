@@ -129,7 +129,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const liveDecomposerImplemented = false;
   const liveProviderExecutionImplemented = false;
   const livePersistenceImplemented = false;
-  const liveObjectStorageDeleteImplemented = false;
+  const liveObjectStorageDeleteImplemented = true;
   const liveObjectStorageIngestImplemented = false;
   const liveQueueWorkerImplemented = false;
   const decomposerConfigured = isStoryDecomposerProvider(decomposerProvider) && decomposerProvider !== "mock";
@@ -171,7 +171,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     storageBaseStatus !== "pass"
       ? envDetail("storage", missingStorageEnv, invalidStorageEnv, "Object storage env is present and format-checked.")
       : production && (!liveObjectStorageDeleteImplemented || !liveObjectStorageIngestImplemented)
-        ? `Object storage provider ${objectStorageProvider} is configured, but live object ingest/delete adapters are not yet implemented.`
+        ? `Object storage provider ${objectStorageProvider} is configured, but the live object ingest adapter is not yet implemented.`
         : "Mock object storage is active for local cleanup.";
   const mockPersistenceDisabled = process.env.CUTPILOT_MOCK_PERSIST === "0";
   const mockPersistenceStatus: RuntimeReadiness["checks"][number]["status"] = production ? "pass" : mockPersistenceDisabled ? "warn" : "pass";

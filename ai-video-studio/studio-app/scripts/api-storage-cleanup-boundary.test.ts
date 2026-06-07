@@ -24,10 +24,6 @@ function request(body: unknown) {
   });
 }
 
-async function json(response: Response) {
-  return response.json() as Promise<{ code?: string }>;
-}
-
 function restoreEnv(originalEnv: Map<string, string | undefined>) {
   for (const name of managedEnvNames) {
     const value = originalEnv.get(name);
@@ -82,6 +78,7 @@ function createOrphanedStoredArtifact() {
 
 async function main() {
   const originalEnv = new Map(managedEnvNames.map((name) => [name, process.env[name]] as const));
+  const originalFetch = globalThis.fetch;
   try {
     process.env.CUTPILOT_MOCK_PERSIST = "0";
     resetMockState();
@@ -97,18 +94,30 @@ async function main() {
 
     const readiness = getRuntimeReadiness();
     const objectStorageCheck = readiness.checks.find((check) => check.id === "object_storage");
-    assert.equal(objectStorageCheck?.status, "fail", "production readiness should fail until live object deletion is implemented");
+    assert.equal(objectStorageCheck?.status, "fail", "production readiness should fail until live object ingest is implemented");
+    assert.ok(objectStorageCheck?.detail.includes("live object ingest adapter"), "production readiness should describe the remaining live ingest adapter gap");
 
+    let deleteCalls = 0;
+    globalThis.fetch = (async (url, init) => {
+      deleteCalls += 1;
+      assert.equal(init?.method, "DELETE", "production cleanup should delete objects through the object storage adapter");
+      assert.ok(String(url).includes("https://account123456.r2.cloudflarestorage.com/cutpilot-prod-media/"), "production cleanup should target the configured R2 bucket");
+      return new Response(null, { status: 204 });
+    }) as typeof fetch;
     const response = await executeStorageCleanup(request({ limit: 1 }));
-    assert.equal(response.status, 503, "production cleanup execution should fail closed without a live object storage delete adapter");
-    assert.equal((await json(response)).code, "OBJECT_STORAGE_UNAVAILABLE", "cleanup boundary should expose a stable storage unavailable code");
+    assert.equal(response.status, 200, "production cleanup execution should succeed when R2 deletion succeeds");
+    const result = (await response.json()) as { summary?: { deleted?: number; recordsCreated?: number } };
+    assert.equal(result.summary?.deleted, 1, "production cleanup should delete the selected safe object");
+    assert.equal(result.summary?.recordsCreated, 1, "production cleanup should create an audit record after deletion");
+    assert.equal(deleteCalls, 1, "production cleanup should call R2 delete once for a one-item limit");
     assert.equal(
       getMockState().mediaArtifacts.some((artifact) => artifact.id === orphanedArtifactId),
-      true,
-      "failed production cleanup should preserve media artifact metadata"
+      false,
+      "successful production cleanup should remove media artifact metadata after object deletion"
     );
-    assert.equal(getMockState().storageCleanupRecords.length, 0, "failed production cleanup should not create deletion records");
+    assert.equal(getMockState().storageCleanupRecords.length, 1, "successful production cleanup should create deletion records");
   } finally {
+    globalThis.fetch = originalFetch;
     resetMockState();
     restoreEnv(originalEnv);
   }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  deleteStoredObject,
   ingestStoredObject,
   ObjectStorageUnavailableError,
   type StoredObjectIngestInput
@@ -20,9 +21,13 @@ async function main() {
   const originalR2Access = process.env.R2_ACCESS_KEY_ID;
   const originalR2Secret = process.env.R2_SECRET_ACCESS_KEY;
   const originalR2Bucket = process.env.R2_BUCKET;
+  const originalFetch = globalThis.fetch;
   try {
     delete process.env.CUTPILOT_RUNTIME_MODE;
     delete process.env.OBJECT_STORAGE_PROVIDER;
+    const mockDelete = await deleteStoredObject(input.storageKey);
+    assert.equal(mockDelete.provider, "mock", "mock mode should use the mock storage provider for deletes");
+    assert.equal(mockDelete.storageKey, input.storageKey, "mock delete should preserve the production-shaped storage key");
     const mockResult = ingestStoredObject(input);
     assert.equal(mockResult.provider, "mock", "mock mode should use the mock storage provider");
     assert.equal(mockResult.url, input.sourceUrl, "mock ingest should preserve the source URL for local preview");
@@ -31,24 +36,39 @@ async function main() {
 
     process.env.CUTPILOT_RUNTIME_MODE = "production";
     process.env.OBJECT_STORAGE_PROVIDER = "r2";
+    process.env.R2_ACCOUNT_ID = "account123";
+    process.env.R2_ACCESS_KEY_ID = "accesskey123";
+    process.env.R2_SECRET_ACCESS_KEY = "secretkey1234";
+    process.env.R2_BUCKET = "cutpilot-prod";
+    let capturedUrl = "";
+    let capturedHeaders: Record<string, string> = {};
+    globalThis.fetch = (async (url, init) => {
+      capturedUrl = String(url);
+      capturedHeaders = init?.headers as Record<string, string>;
+      return new Response(null, { status: 204 });
+    }) as typeof fetch;
+    const r2Delete = await deleteStoredObject(input.storageKey);
+    assert.equal(r2Delete.provider, "r2", "production R2 delete should use the live R2 provider");
+    assert.equal(r2Delete.storageKey, input.storageKey, "production R2 delete should preserve the storage key");
+    assert.ok(capturedUrl.includes("https://account123.r2.cloudflarestorage.com/cutpilot-prod/projects/prj_test/take/take_test/take_video"), "production R2 delete should use path-style R2 object URLs");
+    assert.equal(capturedHeaders["x-amz-content-sha256"], "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "production R2 delete should sign the empty payload hash");
+    assert.ok(capturedHeaders.Authorization.startsWith("AWS4-HMAC-SHA256 "), "production R2 delete should attach SigV4 authorization");
+
     assert.throws(
       () => ingestStoredObject(input),
       (error) => error instanceof ObjectStorageUnavailableError && error.message.includes("ingest"),
       "production R2 ingest should fail closed until the live ingest adapter is implemented"
     );
 
-    process.env.R2_ACCOUNT_ID = "account123";
-    process.env.R2_ACCESS_KEY_ID = "accesskey123";
-    process.env.R2_SECRET_ACCESS_KEY = "secretkey1234";
-    process.env.R2_BUCKET = "cutpilot-prod";
     const readiness = getRuntimeReadiness();
     assert.ok(
       readiness.checks.some(
-        (check) => check.id === "object_storage" && check.status === "fail" && check.detail.includes("ingest/delete adapters")
+        (check) => check.id === "object_storage" && check.status === "fail" && check.detail.includes("live object ingest adapter")
       ),
-      "production readiness should fail object storage until live ingest/delete adapters exist"
+      "production readiness should fail object storage until the live ingest adapter exists"
     );
   } finally {
+    globalThis.fetch = originalFetch;
     if (typeof originalRuntimeMode === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
     else process.env.CUTPILOT_RUNTIME_MODE = originalRuntimeMode;
     if (typeof originalProvider === "undefined") delete process.env.OBJECT_STORAGE_PROVIDER;

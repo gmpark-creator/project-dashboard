@@ -1066,21 +1066,26 @@ executableCleanupState.imageAssets = executableCleanupState.imageAssets.filter((
 saveMockState(executableCleanupState);
 const executableCleanupPlan = getStorageCleanupPlan();
 assert.ok(executableCleanupPlan.summary.deleteCandidates > 0, "orphaned artifacts should become executable cleanup candidates in mock state");
-const cleanupExecution = executeStorageCleanup({ limit: 1 });
-assert.equal(cleanupExecution.summary.deleted, 1, "storage cleanup execution should delete one safe candidate when limited to one");
-assert.equal(cleanupExecution.summary.recordsCreated, 1, "storage cleanup execution should create one audit record per deleted artifact");
-assert.equal(cleanupExecution.records.length, 1, "storage cleanup execution should return created records");
-assert.equal(getMockState().mediaArtifacts.some((artifact) => artifact.id === cleanupExecution.records[0]?.artifactId), false, "deleted cleanup artifacts should be removed from mock state");
-assert.equal(getMockState().storageCleanupRecords.some((record) => record.id === cleanupExecution.records[0]?.id), true, "storage cleanup execution records should persist in mock state");
-const cleanupExecutionSnapshot = getStorageCleanupExecutionSnapshot();
-assert.ok(cleanupExecutionSnapshot.records.some((record) => record.id === cleanupExecution.records[0]?.id), "storage cleanup execution snapshot should include persisted records");
-assert.equal(cleanupExecutionSnapshot.summary.total, getMockState().storageCleanupRecords.length, "storage cleanup execution snapshot should summarize persisted cleanup records");
-assert.equal(cleanupExecutionSnapshot.summary.deleted, cleanupExecutionSnapshot.records.length, "storage cleanup execution snapshot should count deleted records");
+void (async () => {
+  const cleanupExecution = await executeStorageCleanup({ limit: 1 });
+  assert.equal(cleanupExecution.summary.deleted, 1, "storage cleanup execution should delete one safe candidate when limited to one");
+  assert.equal(cleanupExecution.summary.recordsCreated, 1, "storage cleanup execution should create one audit record per deleted artifact");
+  assert.equal(cleanupExecution.records.length, 1, "storage cleanup execution should return created records");
+  assert.equal(getMockState().mediaArtifacts.some((artifact) => artifact.id === cleanupExecution.records[0]?.artifactId), false, "deleted cleanup artifacts should be removed from mock state");
+  assert.equal(getMockState().storageCleanupRecords.some((record) => record.id === cleanupExecution.records[0]?.id), true, "storage cleanup execution records should persist in mock state");
+  const cleanupExecutionSnapshot = getStorageCleanupExecutionSnapshot();
+  assert.ok(cleanupExecutionSnapshot.records.some((record) => record.id === cleanupExecution.records[0]?.id), "storage cleanup execution snapshot should include persisted records");
+  assert.equal(cleanupExecutionSnapshot.summary.total, getMockState().storageCleanupRecords.length, "storage cleanup execution snapshot should summarize persisted cleanup records");
+  assert.equal(cleanupExecutionSnapshot.summary.deleted, cleanupExecutionSnapshot.records.length, "storage cleanup execution snapshot should count deleted records");
 
-console.log("mock-flow.test OK", {
-  shots: bundle.shots.length,
-  failed: failedShots.length,
-  takes: bundle.takes.length,
-  imageAssets: bundle.imageAssets.length,
-  renderJobs: bundle.renderJobs.length
+  console.log("mock-flow.test OK", {
+    shots: bundle.shots.length,
+    failed: failedShots.length,
+    takes: bundle.takes.length,
+    imageAssets: bundle.imageAssets.length,
+    renderJobs: bundle.renderJobs.length
+  });
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
 });

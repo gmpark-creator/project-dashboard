@@ -79,7 +79,7 @@ function cleanupRecordId() {
   return `scln_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function executeStorageCleanup(input: { limit?: number } = {}): StorageCleanupExecutionResult {
+export async function executeStorageCleanup(input: { limit?: number } = {}): Promise<StorageCleanupExecutionResult> {
   const current = getMutableMockState();
   const plan = buildStorageCleanupPlan(current);
   const candidates = plan.items.filter((item) => item.safeToDelete);
@@ -89,7 +89,7 @@ export function executeStorageCleanup(input: { limit?: number } = {}): StorageCl
   const timestamp = new Date().toISOString();
 
   for (const item of selected) {
-    deleteStoredObject(item.storageKey);
+    await deleteStoredObject(item.storageKey);
   }
 
   const records: StorageCleanupExecutionRecord[] = selected.map((item) => ({
