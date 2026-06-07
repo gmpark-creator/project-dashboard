@@ -1163,7 +1163,7 @@
     },
     "ProviderInvocation": {
       "type": "object",
-      "required": ["jobId", "takeId", "projectId", "shotId", "provider", "model", "routingRuleId", "inputKind", "request", "policy", "responseContract"],
+      "required": ["jobId", "takeId", "projectId", "shotId", "provider", "model", "routingRuleId", "inputKind", "request", "outputs", "policy", "responseContract"],
       "additionalProperties": false,
       "properties": {
         "jobId": { "type": "string", "pattern": "^gen_" },
@@ -1187,6 +1187,34 @@
             "references": { "type": "array", "items": { "$ref": "#/$defs/GenerationReference" } },
             "startFrameUrl": { "type": ["string", "null"] },
             "lastFrameUrl": { "type": ["string", "null"] }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "required": ["video", "poster"],
+          "additionalProperties": false,
+          "properties": {
+            "video": {
+              "type": "object",
+              "required": ["role", "container", "storageKey"],
+              "additionalProperties": false,
+              "properties": {
+                "role": { "type": "string", "const": "take_video" },
+                "container": { "type": "string", "const": "mp4" },
+                "storageKey": { "type": "string" }
+              }
+            },
+            "poster": {
+              "type": "object",
+              "required": ["role", "contentType", "storageKey", "required"],
+              "additionalProperties": false,
+              "properties": {
+                "role": { "type": "string", "const": "take_poster" },
+                "contentType": { "type": "string", "const": "image/jpeg" },
+                "storageKey": { "type": "string" },
+                "required": { "type": "boolean" }
+              }
+            }
           }
         },
         "policy": {

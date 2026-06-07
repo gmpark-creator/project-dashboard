@@ -586,6 +586,17 @@ assert.equal(referencedInvocation.model, referencedShotJob.routing.selected.mode
 assert.equal(referencedInvocation.inputKind, "image", "first-frame jobs should become image provider invocations");
 assert.equal(referencedInvocation.request.startFrameUrl, productAsset.url, "provider invocation should carry the first-frame URL");
 assert.equal(referencedInvocation.request.durationSec, referencedShot?.durationSec, "provider invocation should carry snapped shot duration");
+assert.equal(
+  referencedInvocation.outputs.video.storageKey,
+  `projects/${referencedShotJob.projectId}/take/${referencedShotJob.takeId}/take_video`,
+  "provider invocation should expose production-shaped take video storage keys"
+);
+assert.equal(
+  referencedInvocation.outputs.poster.storageKey,
+  `projects/${referencedShotJob.projectId}/take/${referencedShotJob.takeId}/take_poster`,
+  "provider invocation should expose production-shaped take poster storage keys"
+);
+assert.equal(referencedInvocation.outputs.poster.required, false, "provider invocation should mark poster output as optional");
 assert.equal(referencedInvocation.policy.hiddenFromUser, true, "provider invocation should preserve hidden-from-user policy");
 assert.equal(referencedInvocation.policy.storageIngestRequired, true, "provider invocation should require output ingest to storage");
 assert.equal(referencedInvocation.responseContract.ingest, "copy_to_storage", "provider invocation should require storage ingest");

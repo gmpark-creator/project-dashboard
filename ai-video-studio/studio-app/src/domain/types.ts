@@ -435,6 +435,19 @@ export type ProviderInvocation = {
     startFrameUrl: string | null;
     lastFrameUrl: string | null;
   };
+  outputs: {
+    video: {
+      role: "take_video";
+      container: "mp4";
+      storageKey: string;
+    };
+    poster: {
+      role: "take_poster";
+      contentType: "image/jpeg";
+      storageKey: string;
+      required: boolean;
+    };
+  };
   policy: {
     hiddenFromUser: boolean;
     fallbackEnabled: boolean;

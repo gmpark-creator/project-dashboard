@@ -36,6 +36,10 @@ function negativePrompt(promptPackage: GenerationPromptPackage) {
   return compact([promptPackage.saec.negative, ...promptPackage.directionSpec.avoid]);
 }
 
+function outputStorageKey(job: GenerationJob, role: "take_video" | "take_poster") {
+  return `projects/${job.projectId}/take/${job.takeId}/${role}`;
+}
+
 export function buildProviderInvocation(job: GenerationJob): ProviderInvocation {
   const promptPackage = job.promptPackage;
   return {
@@ -56,6 +60,19 @@ export function buildProviderInvocation(job: GenerationJob): ProviderInvocation 
       references: promptPackage.references.map((reference) => ({ ...reference })),
       startFrameUrl: referenceUrl(promptPackage.references, promptPackage.routingHints.startFrameAssetId),
       lastFrameUrl: referenceUrl(promptPackage.references, promptPackage.routingHints.lastFrameAssetId)
+    },
+    outputs: {
+      video: {
+        role: "take_video",
+        container: "mp4",
+        storageKey: outputStorageKey(job, "take_video")
+      },
+      poster: {
+        role: "take_poster",
+        contentType: "image/jpeg",
+        storageKey: outputStorageKey(job, "take_poster"),
+        required: false
+      }
     },
     policy: {
       hiddenFromUser: job.routing.hiddenFromUser,
