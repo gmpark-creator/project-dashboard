@@ -8,12 +8,20 @@ This is not connected to real video providers yet. It ports the static `mock-app
 
 ```bash
 npm install
+npm run verify
+npm run dev
+```
+
+Individual verification commands:
+
+```bash
 npm run validate:contracts
 npm run test:mock
 npm run typecheck
 npm run build
-npm run dev
 ```
+
+`npm run verify` is also run by the repository GitHub Actions workflow for `ai-video-studio/**` changes.
 
 ## Scope
 
