@@ -797,6 +797,23 @@
         }
       }
     },
+    "/system/worker-dispatch": {
+      "get": {
+        "operationId": "getWorkerDispatchSnapshot",
+        "responses": {
+          "200": {
+            "description": "Read-only active worker dispatch snapshot with typed invocation payloads",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerDispatchSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

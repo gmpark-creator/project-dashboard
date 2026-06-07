@@ -522,6 +522,7 @@ export type CancelJobResult = {
 };
 
 export type QueueJobKind = "generation" | "image" | "render";
+export type WorkerDispatchKind = "provider_generation" | "image_generation" | "render";
 
 export type QueueJobSnapshot = {
   id: string;
@@ -552,6 +553,37 @@ export type JobQueueSnapshot = {
     nextDueAt: number | null;
   };
   jobs: QueueJobSnapshot[];
+};
+
+export type WorkerDispatchItem = {
+  dispatchKey: string;
+  kind: WorkerDispatchKind;
+  jobId: string;
+  projectId: string;
+  status: "queued" | "running";
+  stage: string;
+  etaSec: number | null;
+  queuedAt: string;
+  updatedAt: string;
+  dueAt: number;
+  priority: number;
+  cancelable: boolean;
+  invocation: ProviderInvocation | ImageWorkerInvocation | RenderWorkerInvocation;
+};
+
+export type WorkerDispatchSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    providerGeneration: number;
+    imageGeneration: number;
+    render: number;
+    queued: number;
+    running: number;
+    overdue: number;
+    nextDueAt: number | null;
+  };
+  items: WorkerDispatchItem[];
 };
 
 export type RuntimeReadiness = {

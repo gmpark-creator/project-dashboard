@@ -310,6 +310,60 @@
         "jobs": { "type": "array", "items": { "$ref": "#/$defs/QueueJobSnapshot" } }
       }
     },
+    "WorkerDispatchKind": {
+      "type": "string",
+      "enum": ["provider_generation", "image_generation", "render"]
+    },
+    "WorkerDispatchItem": {
+      "type": "object",
+      "required": ["dispatchKey", "kind", "jobId", "projectId", "status", "stage", "etaSec", "queuedAt", "updatedAt", "dueAt", "priority", "cancelable", "invocation"],
+      "additionalProperties": false,
+      "properties": {
+        "dispatchKey": { "type": "string" },
+        "kind": { "$ref": "#/$defs/WorkerDispatchKind" },
+        "jobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "status": { "type": "string", "enum": ["queued", "running"] },
+        "stage": { "type": "string" },
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 },
+        "queuedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "dueAt": { "type": "integer" },
+        "priority": { "type": "integer", "minimum": 1 },
+        "cancelable": { "type": "boolean" },
+        "invocation": {
+          "oneOf": [
+            { "$ref": "#/$defs/ProviderInvocation" },
+            { "$ref": "#/$defs/ImageWorkerInvocation" },
+            { "$ref": "#/$defs/RenderWorkerInvocation" }
+          ]
+        }
+      }
+    },
+    "WorkerDispatchSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "providerGeneration", "imageGeneration", "render", "queued", "running", "overdue", "nextDueAt"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "providerGeneration": { "type": "integer", "minimum": 0 },
+            "imageGeneration": { "type": "integer", "minimum": 0 },
+            "render": { "type": "integer", "minimum": 0 },
+            "queued": { "type": "integer", "minimum": 0 },
+            "running": { "type": "integer", "minimum": 0 },
+            "overdue": { "type": "integer", "minimum": 0 },
+            "nextDueAt": { "type": ["integer", "null"] }
+          }
+        },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerDispatchItem" } }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -1205,6 +1259,7 @@
     "mediaArtifactInventory": { "$ref": "#/$defs/MediaArtifactInventory" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
+    "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },

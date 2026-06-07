@@ -33,6 +33,7 @@ import { buildImageWorkerInvocation } from "../src/server/image-worker-invocatio
 import { buildProviderInvocation } from "../src/server/provider-invocation";
 import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
+import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -191,6 +192,14 @@ assert.equal(imageInvocation.policy.registerAsAssets, true, "image worker invoca
 assert.equal(imageInvocation.policy.storageIngestRequired, true, "image worker invocation should require storage ingest");
 assert.equal(imageInvocation.responseContract.expectedKind, "image", "image worker invocation should declare image outputs");
 assert.equal(imageInvocation.responseContract.ingest, "copy_to_storage", "image worker invocation should require storage ingest");
+let workerDispatch = getWorkerDispatchSnapshot();
+const imageDispatchItem = workerDispatch.items.find((item) => item.jobId === imageJobResult.job.id);
+assert.ok(imageDispatchItem, "worker dispatch snapshot should include active image jobs");
+assert.equal(imageDispatchItem.kind, "image_generation", "image jobs should dispatch as image generation work");
+assert.equal(imageDispatchItem.dispatchKey, `image_generation:${imageJobResult.job.id}`, "worker dispatch item should use a stable image dispatch key");
+assert.equal(imageDispatchItem.invocation.jobId, imageJobResult.job.id, "image dispatch item should carry its image worker invocation");
+assert.equal(workerDispatch.summary.imageGeneration, 1, "worker dispatch summary should count active image jobs");
+assert.equal(workerDispatch.summary.total, workerDispatch.items.length, "worker dispatch total should match item count");
 forceDueJobs("imageJobs");
 tickJobs();
 
@@ -237,7 +246,22 @@ assert.ok(bundle.shots[0].requirements.characterId, "character references should
 assert.equal(bundle.shots[1].requirements.imageToVideo, false, "style-only references should not force image-to-video");
 assert.equal(bundle.shots[0].directionSpec.motion, "느린 푸시인", "shot direction should be editable");
 
-generateAll(project.id, { tier: "fast" });
+const generationResult = generateAll(project.id, { tier: "fast" });
+workerDispatch = getWorkerDispatchSnapshot();
+const generationDispatchItems = workerDispatch.items.filter((item) => item.kind === "provider_generation" && item.projectId === project.id);
+assert.equal(generationDispatchItems.length, generationResult.jobs.length, "worker dispatch snapshot should include active generation jobs");
+assert.ok(generationDispatchItems.every((item) => item.dispatchKey === `provider_generation:${item.jobId}`), "generation dispatch keys should be stable");
+assert.ok(
+  generationDispatchItems.every((item) => "responseContract" in item.invocation && item.invocation.responseContract.expectedKind === "video"),
+  "generation dispatch items should carry provider invocations"
+);
+assert.equal(workerDispatch.summary.providerGeneration, generationResult.jobs.length, "worker dispatch summary should count provider generation jobs");
+assert.equal(workerDispatch.summary.total, workerDispatch.items.length, "worker dispatch summary should match generation dispatch item count");
+assert.deepEqual(
+  workerDispatch.items.map((item) => item.priority),
+  workerDispatch.items.map((_, index) => index + 1),
+  "worker dispatch priorities should be dense and ordered"
+);
 forceDueJobs("generationJobs");
 tickJobs();
 
@@ -389,7 +413,17 @@ assert.equal(renderPreview.rightsReview.required, true, "render preview should e
 assert.equal(renderPreview.renderPlan.missingShotIds.length, 1, "render preview should expose missing shots before creating render jobs");
 assert.equal(renderPreview.renderPlan.edit.commands.some((command) => command.command.includes("CTA")), true, "render preview should snapshot edit commands");
 assert.equal(renderPreview.estimate.credits, 48, "render preview should expose render cost estimate");
-startRender(project.id, [...renderSpecs]);
+const renderResult = startRender(project.id, [...renderSpecs]);
+workerDispatch = getWorkerDispatchSnapshot();
+const renderDispatchItems = workerDispatch.items.filter((item) => item.kind === "render" && item.projectId === project.id);
+assert.equal(renderDispatchItems.length, renderResult.jobs.length, "worker dispatch snapshot should include active render jobs");
+assert.ok(renderDispatchItems.every((item) => item.dispatchKey === `render:${item.jobId}`), "render dispatch keys should be stable");
+assert.ok(
+  renderDispatchItems.every((item) => "output" in item.invocation && item.invocation.output.role === "render_output"),
+  "render dispatch items should carry render worker invocations"
+);
+assert.equal(workerDispatch.summary.render, renderResult.jobs.length, "worker dispatch summary should count render jobs");
+assert.equal(workerDispatch.summary.total, workerDispatch.items.length, "worker dispatch summary should match render dispatch item count");
 forceDueJobs("renderJobs");
 tickJobs();
 
@@ -493,6 +527,10 @@ assert.equal(queue.summary.cancelled, metrics.jobs.generation.cancelled + metric
 assert.ok(queue.jobs.some((job) => job.kind === "generation" && job.status === "cancelled"), "queue snapshot should retain cancelled generation jobs");
 assert.ok(queue.jobs.some((job) => job.kind === "render" && job.status === "done"), "queue snapshot should include completed render jobs");
 assert.equal(queue.summary.nextDueAt, null, "completed mock flow should have no active queue due date");
+workerDispatch = getWorkerDispatchSnapshot();
+assert.equal(workerDispatch.summary.total, 0, "completed mock flow should have no active worker dispatch items");
+assert.equal(workerDispatch.items.length, 0, "completed worker dispatch snapshot should have no items");
+assert.equal(workerDispatch.summary.nextDueAt, null, "completed worker dispatch snapshot should have no next due date");
 
 const inventory = getMediaArtifactInventory();
 assert.equal(inventory.summary.total, metrics.mediaArtifacts.total, "artifact inventory should match system metrics artifact total");
