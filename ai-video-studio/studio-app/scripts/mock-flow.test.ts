@@ -305,6 +305,13 @@ process.env.CUTPILOT_RUNTIME_MODE = "production";
 const productionMissingOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, { token: productionOutputPolicyLease.lease.token, status: "succeeded" });
 assert.equal(productionMissingOutput.completed, false, "production worker completion should require successful output payloads");
 assert.equal(productionMissingOutput.reason, "invalid_outputs", "production worker completion should reject missing output payloads");
+const productionMockSchemeOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
+  token: productionOutputPolicyLease.lease.token,
+  status: "succeeded",
+  outputs: { imageVariants: [{ variantId: productionOutputPolicyJob.job.variants[0].id, imageUrl: "mock://production-output-policy-image.png" }] }
+});
+assert.equal(productionMockSchemeOutput.completed, false, "production worker completion should reject mock-scheme output URLs");
+assert.equal(productionMockSchemeOutput.reason, "invalid_outputs", "production worker completion should treat non-https output URLs as invalid outputs");
 const productionOutputUrl = "https://assets.cutpilot.local/production-output-policy-image.png";
 const productionValidOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
   token: productionOutputPolicyLease.lease.token,

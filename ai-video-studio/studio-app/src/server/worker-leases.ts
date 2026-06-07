@@ -43,24 +43,29 @@ function normalizeRequest(input: Partial<WorkerLeaseRequest> = {}): WorkerLeaseR
   };
 }
 
-function validUrl(value: string | undefined) {
+function validUrl(value: string | undefined, production: boolean) {
   if (!value) return false;
   try {
     const parsed = new URL(value);
+    if (production) return parsed.protocol === "https:";
     return parsed.protocol === "https:" || parsed.protocol === "http:" || parsed.protocol === "data:" || parsed.protocol === "mock:";
   } catch {
     return false;
   }
 }
 
-function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>) {
+function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>, production: boolean) {
   const output = input.outputs;
   if (!output) return false;
-  if (output.videoUrl && !validUrl(output.videoUrl)) return true;
-  if (output.posterUrl && !validUrl(output.posterUrl)) return true;
-  if (output.renderOutputUrl && !validUrl(output.renderOutputUrl)) return true;
-  if (output.shareUrl && !validUrl(output.shareUrl)) return true;
-  return Boolean(output.imageVariants?.some((variant) => !validUrl(variant.imageUrl) || (variant.thumbUrl ? !validUrl(variant.thumbUrl) : false)));
+  if (output.videoUrl && !validUrl(output.videoUrl, production)) return true;
+  if (output.posterUrl && !validUrl(output.posterUrl, production)) return true;
+  if (output.renderOutputUrl && !validUrl(output.renderOutputUrl, production)) return true;
+  if (output.shareUrl && !validUrl(output.shareUrl, production)) return true;
+  return Boolean(
+    output.imageVariants?.some(
+      (variant) => !validUrl(variant.imageUrl, production) || (variant.thumbUrl ? !validUrl(variant.thumbUrl, production) : false)
+    )
+  );
 }
 
 function suppliedStorageKeyMatches(value: string | undefined, expected: string | null) {
@@ -147,15 +152,16 @@ function imageOutputCoversAllVariants(current: StudioState, lease: WorkerLease, 
 }
 
 function validRequiredOutput(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
-  if (hasInvalidProvidedOutput(input)) return false;
+  const production = process.env.CUTPILOT_RUNTIME_MODE === "production";
+  if (hasInvalidProvidedOutput(input, production)) return false;
   if (hasInvalidProvidedStorageKeys(current, lease, input)) return false;
-  const requireOutputs = input.requireOutputs === true || process.env.CUTPILOT_RUNTIME_MODE === "production";
+  const requireOutputs = input.requireOutputs === true || production;
   if (!requireOutputs) return true;
   const output = input.outputs;
   if (!output) return false;
   if (lease.kind === "image_generation") return imageOutputCoversAllVariants(current, lease, input);
-  if (lease.kind === "provider_generation") return validUrl(output.videoUrl);
-  return validUrl(output.renderOutputUrl) || validUrl(output.videoUrl);
+  if (lease.kind === "provider_generation") return validUrl(output.videoUrl, production);
+  return validUrl(output.renderOutputUrl, production) || validUrl(output.videoUrl, production);
 }
 
 export function createWorkerLease(input: Partial<WorkerLeaseRequest> = {}): WorkerLeaseResult {
