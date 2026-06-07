@@ -148,8 +148,11 @@ function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[
     assert.equal(objectSchema.additionalProperties, false, `${owner} object schema ${path.join(".") || "<root>"} must set additionalProperties false`);
     if (typeof objectSchema.required !== "undefined") {
       assert.ok(Array.isArray(objectSchema.required), `${owner} object schema ${path.join(".") || "<root>"} required must be an array`);
+      const requiredProperties = new Set<string>();
       for (const property of objectSchema.required) {
         assert.equal(typeof property, "string", `${owner} object schema ${path.join(".") || "<root>"} required entries must be strings`);
+        assert.ok(!requiredProperties.has(property), `${owner} object schema ${path.join(".") || "<root>"} has duplicate required property ${property}`);
+        requiredProperties.add(property);
         assert.ok(objectSchema.properties?.[property], `${owner} object schema ${path.join(".") || "<root>"} required property ${property} missing from properties`);
       }
     }
@@ -160,6 +163,24 @@ function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[
     }
   }
   if (objectSchema.items) assertClosedObjectSchemas(objectSchema.items, owner, [...path, "[]"]);
+}
+
+function assertUniqueEnumValues(value: unknown, owner: string, path: string[] = []) {
+  if (!value || typeof value !== "object") return;
+  const schema = value as { enum?: unknown };
+  if (typeof schema.enum !== "undefined") {
+    assert.ok(Array.isArray(schema.enum), `${owner} schema ${path.join(".") || "<root>"} enum must be an array`);
+    assert.ok(schema.enum.length > 0, `${owner} schema ${path.join(".") || "<root>"} enum must not be empty`);
+    const enumValues = new Set<string>();
+    for (const item of schema.enum) {
+      const key = JSON.stringify(item);
+      assert.ok(!enumValues.has(key), `${owner} schema ${path.join(".") || "<root>"} has duplicate enum value ${key}`);
+      enumValues.add(key);
+    }
+  }
+  for (const [key, child] of Object.entries(value)) {
+    assertUniqueEnumValues(child, owner, [...path, key]);
+  }
 }
 
 function assertKnownDomainSchemaRefs(value: unknown, path: string[] = []) {
@@ -202,6 +223,8 @@ function assertKnownLocalSchemaRefs(value: unknown, root: unknown, path: string[
 }
 
 assertKnownLocalSchemaRefs(domainSchema, domainSchema, ["domainSchema"]);
+assertUniqueEnumValues(domainSchema, "domain schema", ["domainSchema"]);
+assertUniqueEnumValues(openApi, "openapi", ["openapi"]);
 
 for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
   assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
