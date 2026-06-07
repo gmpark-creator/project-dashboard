@@ -286,7 +286,7 @@
           }
         },
         "responses": {
-          "201": {
+          "202": {
             "description": "Image generation job queued",
             "content": {
               "application/json": {
@@ -297,6 +297,14 @@
                     "job": { "$ref": "../schemas/domain.schema.json#/$defs/ImageJob" }
                   }
                 }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
               }
             }
           }
@@ -336,6 +344,14 @@
                   },
                   "required": ["takes", "jobs"]
                 }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
               }
             }
           }
@@ -451,7 +467,15 @@
           }
         },
         "responses": {
-          "202": { "description": "Project generation queued" }
+          "202": { "description": "Project generation queued" },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -509,7 +533,15 @@
           }
         },
         "responses": {
-          "202": { "description": "Regeneration queued" }
+          "202": { "description": "Regeneration queued" },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -533,7 +565,15 @@
           }
         },
         "responses": {
-          "202": { "description": "Upgrade queued" }
+          "202": { "description": "Upgrade queued" },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -657,6 +697,14 @@
                   },
                   "required": ["jobs"]
                 }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits to reserve this work",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse" }
               }
             }
           }

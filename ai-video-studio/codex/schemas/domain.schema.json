@@ -1782,6 +1782,18 @@
         "shortfallCredits": { "type": "number", "minimum": 0 }
       }
     },
+    "InsufficientCreditsResponse": {
+      "type": "object",
+      "required": ["code", "userMessage", "retryable", "fallbackSuggested", "estimate"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "const": "INSUFFICIENT_CREDITS" },
+        "userMessage": { "type": "string" },
+        "retryable": { "type": "boolean", "const": false },
+        "fallbackSuggested": { "type": "boolean", "const": false },
+        "estimate": { "$ref": "#/$defs/CostEstimate" }
+      }
+    },
     "ErrorResponse": {
       "type": ["object", "null"],
       "required": ["code", "userMessage", "retryable", "fallbackSuggested"],
