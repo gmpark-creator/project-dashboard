@@ -9,6 +9,7 @@ import {
   deleteLiveImageAsset,
   detachLiveImageFromShot,
   getLivePersistenceReadAdapter,
+  generateLiveShot,
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
   liveProjectWritesEnabled,
@@ -103,6 +104,11 @@ async function main() {
       "live image job writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
+      () => generateLiveShot("sht_disabled", { tier: "fast", takeCount: 1 }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live shot generation writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
       () => attachLiveImageToShot("sht_disabled", { assetId: "img_disabled", mode: "first_frame" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live reference attachment writes should fail closed when the switch is disabled"
@@ -190,6 +196,11 @@ async function main() {
         }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live image job writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => generateLiveShot("sht_missing_db", { tier: "fast", takeCount: 1 }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live shot generation writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => attachLiveImageToShot("sht_missing_db", { assetId: "img_missing_db", mode: "first_frame" }),

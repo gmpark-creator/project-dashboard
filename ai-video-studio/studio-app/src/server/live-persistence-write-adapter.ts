@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, Scene, Shot } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, Scene, Shot, Take, Tier } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -10,6 +10,7 @@ import {
 import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 import { CreditReservationError } from "./mock-service";
+import { chooseProviderRoute } from "./provider-routing";
 
 type Row = Record<string, unknown>;
 export type LiveEditAudioPatch = Partial<Pick<EditState, "captions" | "bgm" | "voiceover" | "transitions">>;
@@ -34,6 +35,11 @@ export type LiveImageJobInput = {
   aspect: Aspect;
   style?: string;
   count?: number;
+  retryOfJobId?: string | null;
+};
+export type LiveShotGenerateInput = {
+  tier?: Tier;
+  takeCount?: number;
   retryOfJobId?: string | null;
 };
 export type LiveStoryboardScenePatch = Partial<Pick<Scene, "order" | "title" | "setting" | "timeOfDay">> & { id: string };
@@ -144,6 +150,62 @@ function imageSize(aspect: Aspect) {
 
 function imageVariantScoreLabel(index: number): ImageVariant["scoreLabel"] {
   return (index === 0 ? "추천" : index === 1 ? "안정적" : "확인 필요") as ImageVariant["scoreLabel"];
+}
+
+function takeLabel(index: number) {
+  return String.fromCharCode(65 + index);
+}
+
+function providerAttempt(target: GenerationJob["routing"]["selected"], startedAt: string): ProviderAttempt {
+  return {
+    id: uid("pat"),
+    provider: target.provider,
+    model: target.model,
+    requestId: null,
+    status: "queued",
+    startedAt,
+    completedAt: null,
+    latencyMs: null,
+    errorCode: null,
+    retryable: false,
+    fallbackSuggested: false
+  };
+}
+
+function rowGenerationReference(row: Row): GenerationReference {
+  const rights = jsonValue<ImageAsset["rights"]>(row.rights, { status: "needs_review", note: "" });
+  return {
+    assetId: String(row.asset_id),
+    role: row.role as ImageAssetRole,
+    mode: row.mode as AssetUsage["mode"],
+    url: String(row.url),
+    rightsStatus: rights.status
+  };
+}
+
+function generationPromptPackage(shot: Shot, references: GenerationReference[]): GenerationPromptPackage {
+  const idsByMode = (mode: AssetUsage["mode"]) => references.filter((reference) => reference.mode === mode).map((reference) => reference.assetId);
+  return {
+    projectId: shot.projectId,
+    shotId: shot.id,
+    durationSec: shot.durationSec,
+    saec: { ...shot.saec },
+    directionSpec: {
+      ...shot.directionSpec,
+      avoid: [...shot.directionSpec.avoid]
+    },
+    requirements: { ...shot.requirements },
+    references,
+    routingHints: {
+      startFrameAssetId: idsByMode("first_frame")[0] || null,
+      lastFrameAssetId: idsByMode("last_frame")[0] || null,
+      styleReferenceAssetIds: idsByMode("style_reference"),
+      characterReferenceAssetIds: idsByMode("character_reference"),
+      productReferenceAssetIds: idsByMode("product_reference"),
+      backgroundReferenceAssetIds: idsByMode("background_reference"),
+      rightsReviewRequired: references.some((reference) => reference.rightsStatus === "needs_review")
+    }
+  };
 }
 
 function boardBucket(role: ImageAssetRole): ReferenceBoardImageBucket {
@@ -776,6 +838,181 @@ export class PostgresLivePersistenceWriteAdapter {
       const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
       await this.client.query("COMMIT");
       return bundle;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async generateShot(shotId: string, input: LiveShotGenerateInput = {}): Promise<{ takes: Take[]; jobs: GenerationJob[] }> {
+    await this.client.query("BEGIN");
+    try {
+      const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [shotId]);
+      const shotRow = shotRows.rows[0];
+      if (!shotRow) throw new Error("Shot not found");
+
+      const currentShot = rowShot(shotRow);
+      const takeCount = Math.max(1, Math.min(input.takeCount || 3, 3));
+      const tier = input.tier || currentShot.requirements.tier || "fast";
+      const shot: Shot = {
+        ...currentShot,
+        status: "generating",
+        requirements: { ...currentShot.requirements, tier },
+        qualityFlags: []
+      };
+      const referenceRows = await this.client.query<Row>(
+        `
+        SELECT u.asset_id, u.role, u.mode, a.url, a.rights
+        FROM cutpilot_asset_usages u
+        JOIN cutpilot_image_assets a ON a.id = u.asset_id AND a.project_id = u.project_id
+        WHERE u.project_id = $1 AND u.target = $2 AND u.target_id = $3
+      `,
+        [shot.projectId, "shot", shot.id]
+      );
+      const references = referenceRows.rows.map(rowGenerationReference);
+      const takes: Take[] = [];
+      const jobs: GenerationJob[] = [];
+
+      await this.client.query("UPDATE cutpilot_shots SET status = $2, requirements = $3, quality_flags = $4 WHERE id = $1", [
+        shot.id,
+        shot.status,
+        json(shot.requirements),
+        json(shot.qualityFlags)
+      ]);
+
+      for (let index = 0; index < takeCount; index += 1) {
+        const promptPackage = generationPromptPackage(shot, references);
+        const routing = chooseProviderRoute(shot, promptPackage, index);
+        const createdAt = now();
+        const take: Take = {
+          id: uid("tak"),
+          shotId: shot.id,
+          projectId: shot.projectId,
+          label: takeLabel(index),
+          status: "queued",
+          videoUrl: null,
+          posterUrl: null,
+          durationSec: shot.durationSec,
+          tier,
+          engineUsed: `${routing.selected.provider}:${routing.selected.model}`,
+          metrics: {},
+          createdAt
+        };
+        const attempt = providerAttempt(routing.selected, createdAt);
+        const job: GenerationJob = {
+          id: uid("gen"),
+          shotId: shot.id,
+          takeId: take.id,
+          projectId: shot.projectId,
+          retryOfJobId: input.retryOfJobId || null,
+          status: "queued",
+          progress: 0,
+          etaSec: 6,
+          stage: "queued",
+          shouldFail: false,
+          dueAt: Date.now() + 2500 + (shot.order % 4) * 650,
+          createdAt,
+          updatedAt: createdAt,
+          error: null,
+          promptPackage,
+          routing,
+          providerAttempts: [attempt]
+        };
+
+        await this.reserveCredits({
+          projectId: shot.projectId,
+          jobId: job.id,
+          action: "generateShot",
+          credits: 6,
+          note: "Video take generation reserved"
+        });
+        await this.client.query(
+          `
+          INSERT INTO cutpilot_takes (
+            id, shot_id, project_id, label, status, video_url, poster_url,
+            duration_sec, tier, engine_used, metrics, created_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `,
+          [
+            take.id,
+            take.shotId,
+            take.projectId,
+            take.label,
+            take.status,
+            take.videoUrl,
+            take.posterUrl,
+            take.durationSec,
+            take.tier,
+            take.engineUsed,
+            json(take.metrics),
+            take.createdAt
+          ]
+        );
+        await this.client.query(
+          `
+          INSERT INTO cutpilot_generation_jobs (
+            id, project_id, shot_id, take_id, retry_of_job_id, status, progress,
+            eta_sec, stage, should_fail, due_at, error, prompt_package, routing,
+            created_at, updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        `,
+          [
+            job.id,
+            job.projectId,
+            job.shotId,
+            job.takeId,
+            job.retryOfJobId,
+            job.status,
+            job.progress,
+            job.etaSec,
+            job.stage,
+            job.shouldFail,
+            job.dueAt,
+            job.error ? json(job.error) : null,
+            json(job.promptPackage),
+            json(job.routing),
+            job.createdAt,
+            job.updatedAt
+          ]
+        );
+        await this.client.query(
+          `
+          INSERT INTO cutpilot_provider_attempts (
+            id, generation_job_id, provider, model, request_id, status,
+            started_at, completed_at, latency_ms, error_code, retryable, fallback_suggested
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `,
+          [
+            attempt.id,
+            job.id,
+            attempt.provider,
+            attempt.model,
+            attempt.requestId,
+            attempt.status,
+            attempt.startedAt,
+            attempt.completedAt,
+            attempt.latencyMs,
+            attempt.errorCode,
+            attempt.retryable,
+            attempt.fallbackSuggested
+          ]
+        );
+        takes.push(take);
+        jobs.push(job);
+      }
+
+      const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [shot.projectId]);
+      await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+        shot.projectId,
+        json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+        projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+        now()
+      ]);
+      await this.client.query("COMMIT");
+      return { takes, jobs };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

@@ -5,6 +5,7 @@ import {
   type LiveEditAudioPatch,
   type LiveExternalImageInput,
   type LiveImageJobInput,
+  type LiveShotGenerateInput,
   type LiveStoryboardUpdateInput,
   type LiveShotReferenceInput
 } from "./live-persistence-write-adapter";
@@ -153,6 +154,13 @@ export async function createLiveImageJob(input: LiveImageJobInput) {
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).createImageJob(input));
+}
+
+export async function generateLiveShot(shotId: string, input: LiveShotGenerateInput = {}) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).generateShot(shotId, input));
 }
 
 export async function attachLiveImageToShot(shotId: string, input: LiveShotReferenceInput) {

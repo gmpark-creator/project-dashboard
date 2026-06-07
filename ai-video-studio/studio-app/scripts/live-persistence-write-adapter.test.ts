@@ -130,6 +130,9 @@ class FakeClient implements PgQueryable {
       return { rows: [] as T[] };
     }
     if (sql.includes("INSERT INTO cutpilot_image_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_takes")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_generation_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_generation_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
@@ -145,6 +148,7 @@ class FakeClient implements PgQueryable {
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
+    if (sql.includes("FROM cutpilot_asset_usages u")) return { rows: [] as T[] };
     if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
     if (sql.includes("SELECT * FROM cutpilot_asset_usages WHERE project_id")) return { rows: this.assetUsageRows as T[] };
     if (
@@ -178,6 +182,15 @@ class FakeClient implements PgQueryable {
       }
       const updated = current ? (current as unknown as T) : null;
       return { rows: updated ? [updated] : [] };
+    }
+    if (sql.includes("UPDATE cutpilot_shots SET status = $2, requirements = $3, quality_flags = $4")) {
+      const current = this.shotRows.find((shot) => shot.id === params?.[0]) || this.shotRows[0];
+      if (current) {
+        current.status = params?.[1];
+        current.requirements = typeof params?.[2] === "string" ? JSON.parse(params[2]) : params?.[2];
+        current.quality_flags = typeof params?.[3] === "string" ? JSON.parse(params[3]) : params?.[3];
+      }
+      return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_shots SET") && sql.includes("scene_id = $2")) {
       const current = this.shotRows.find((shot) => shot.id === params?.[0]) || this.shotRows[0];
@@ -469,6 +482,42 @@ async function main() {
     insufficientCreditClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_image_jobs")),
     false,
     "live image job enqueue should not insert jobs when credit reservation fails"
+  );
+
+  const shotGenerateClient = new FakeClient();
+  shotGenerateClient.shotRows = [fakeShotRow()];
+  const shotGenerateResult = await new PostgresLivePersistenceWriteAdapter(shotGenerateClient).generateShot("sht_live", {
+    tier: "final",
+    takeCount: 2
+  });
+  assert.equal(shotGenerateResult.takes.length, 2, "live shot generation should create requested takes");
+  assert.equal(shotGenerateResult.jobs.length, 2, "live shot generation should create requested jobs");
+  assert.equal(shotGenerateResult.takes[0].tier, "final", "live shot generation should apply the requested tier");
+  assert.equal(shotGenerateResult.jobs[0].providerAttempts.length, 1, "live shot generation should create a queued provider attempt");
+  assert.equal(shotGenerateResult.jobs[0].promptPackage.shotId, "sht_live", "live shot generation should preserve prompt package shot ids");
+  assert.equal(shotGenerateClient.creditReserved, 12, "live shot generation should reserve per-take credits");
+  assert.equal(shotGenerateClient.creditTransactionCount, 2, "live shot generation should record one reserve transaction per job");
+  assert.equal(shotGenerateClient.shotRows[0].status, "generating", "live shot generation should mark shots generating");
+  assert.equal((shotGenerateClient.shotRows[0].requirements as Record<string, unknown>).tier, "final", "live shot generation should persist the requested shot tier");
+  assert.ok(shotGenerateClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_takes")), "live shot generation should insert takes");
+  assert.ok(shotGenerateClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_generation_jobs")), "live shot generation should insert generation jobs");
+  assert.ok(shotGenerateClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_provider_attempts")), "live shot generation should insert provider attempts");
+  assert.ok(shotGenerateClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET progress")), "live shot generation should refresh project progress");
+  assert.equal(shotGenerateClient.queries.at(-1)?.sql, "COMMIT", "live shot generation should commit successful jobs");
+
+  const shotCreditClient = new FakeClient();
+  shotCreditClient.shotRows = [fakeShotRow()];
+  shotCreditClient.creditBalance = 0;
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(shotCreditClient).generateShot("sht_live", { tier: "fast", takeCount: 1 }),
+    (error) => error instanceof CreditReservationError && error.estimate.shortfallCredits === 6,
+    "live shot generation should reject insufficient credits with the normalized credit error"
+  );
+  assert.equal(shotCreditClient.queries.at(-1)?.sql, "ROLLBACK", "live shot generation should roll back credit failures");
+  assert.equal(
+    shotCreditClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_generation_jobs")),
+    false,
+    "live shot generation should not insert jobs when the first credit reservation fails"
   );
 
   const directionClient = new FakeClient();
