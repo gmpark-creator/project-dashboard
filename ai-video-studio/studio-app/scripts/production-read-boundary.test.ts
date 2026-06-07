@@ -1,0 +1,81 @@
+import assert from "node:assert/strict";
+import { GET as getJobRoute } from "../app/api/jobs/[jobId]/route";
+import { GET as listProjectsRoute } from "../app/api/projects/route";
+import { GET as getProjectRoute } from "../app/api/projects/[projectId]/route";
+import { GET as listAssetsRoute } from "../app/api/projects/[projectId]/assets/route";
+import { POST as previewRenderRoute } from "../app/api/projects/[projectId]/render-preview/route";
+import { getMockState, resetMockState } from "../src/server/mock-service";
+
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE"];
+
+function request(method: string, body?: unknown) {
+  return new Request("http://cutpilot.local/api/test", {
+    method,
+    body: typeof body === "undefined" ? undefined : JSON.stringify(body),
+    headers: typeof body === "undefined" ? undefined : { "content-type": "application/json" }
+  });
+}
+
+function context<T extends Record<string, string>>(params: T) {
+  return { params: Promise.resolve(params) };
+}
+
+function stateFingerprint() {
+  const state = getMockState();
+  return JSON.stringify({
+    projects: state.projects.length,
+    shots: state.shots.length,
+    takes: state.takes.length,
+    imageAssets: state.imageAssets.length,
+    generationJobs: state.generationJobs.length,
+    imageJobs: state.imageJobs.length,
+    renderJobs: state.renderJobs.length
+  });
+}
+
+async function assertUnavailable(label: string, response: Response) {
+  const body = (await response.json()) as { code?: string };
+  assert.equal(response.status, 503, `${label} should fail closed in production mode`);
+  assert.equal(body.code, "MOCK_READ_UNAVAILABLE", `${label} should return the stable mock read unavailable code`);
+}
+
+function restoreEnv(originalEnv: Map<string, string | undefined>) {
+  for (const name of managedEnvNames) {
+    const value = originalEnv.get(name);
+    if (typeof value === "undefined") delete process.env[name];
+    else process.env[name] = value;
+  }
+}
+
+async function main() {
+  const originalEnv = new Map(managedEnvNames.map((name) => [name, process.env[name]] as const));
+  resetMockState();
+  try {
+    process.env.CUTPILOT_RUNTIME_MODE = "production";
+    const before = stateFingerprint();
+
+    await assertUnavailable("project list", listProjectsRoute());
+    await assertUnavailable("project bundle", await getProjectRoute(request("GET"), context({ projectId: "prj_production" })));
+    await assertUnavailable("job read", await getJobRoute(request("GET"), context({ jobId: "gen_production" })));
+    await assertUnavailable("asset list", await listAssetsRoute(request("GET"), context({ projectId: "prj_production" })));
+    await assertUnavailable(
+      "render preview",
+      await previewRenderRoute(
+        request("POST", { spec: { resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" } }),
+        context({ projectId: "prj_production" })
+      )
+    );
+
+    assert.equal(stateFingerprint(), before, "failed production reads should not advance or mutate mock state");
+  } finally {
+    restoreEnv(originalEnv);
+    resetMockState();
+  }
+
+  console.log("production-read-boundary.test OK");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

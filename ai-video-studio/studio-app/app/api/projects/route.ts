@@ -9,6 +9,9 @@ const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validTiers = new Set<Tier>(["fast", "economy", "final"]);
 
 export function GET() {
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
+  }
   return NextResponse.json({ projects: listProjects() });
 }
 

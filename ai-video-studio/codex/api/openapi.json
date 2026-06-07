@@ -30,6 +30,14 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed reads are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       },
@@ -114,6 +122,14 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed reads are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -282,6 +298,14 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed reads are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -1342,6 +1366,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed reads are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -2163,6 +2195,14 @@
           },
           "404": {
             "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed reads are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }

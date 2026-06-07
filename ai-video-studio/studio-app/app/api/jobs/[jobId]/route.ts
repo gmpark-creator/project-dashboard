@@ -8,6 +8,9 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
   const pathError = pathParamsError(params);
   if (pathError) return pathError;
   const { jobId } = params;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
+  }
   const job = getJob(jobId);
   if (job) return NextResponse.json(job);
 

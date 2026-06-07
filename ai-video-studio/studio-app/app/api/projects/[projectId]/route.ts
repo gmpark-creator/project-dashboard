@@ -8,6 +8,9 @@ export async function GET(_request: Request, context: { params: Promise<{ projec
   const pathError = pathParamsError(params);
   if (pathError) return pathError;
   const { projectId } = params;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
+  }
   const bundle = getProjectBundle(projectId);
   if (!bundle) {
     return apiError("NOT_FOUND", "프로젝트를 찾을 수 없습니다.", 404);

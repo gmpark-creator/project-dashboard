@@ -15,6 +15,9 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   if (!body || !isExportSpec(body.spec)) {
     return apiError("BAD_REQUEST", "미리 점검할 내보내기 형식이 올바르지 않습니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(previewRender(projectId, body.spec));
   } catch (error) {
