@@ -50,6 +50,10 @@ export async function getLiveProjectBundle(projectId: string) {
   return getLivePersistenceReadAdapter().getProjectBundle(projectId);
 }
 
+export async function listLiveImageAssets(projectId: string) {
+  return getLivePersistenceReadAdapter().listImageAssets(projectId);
+}
+
 export async function closeLivePersistencePoolForTests() {
   const current = pool;
   pool = null;

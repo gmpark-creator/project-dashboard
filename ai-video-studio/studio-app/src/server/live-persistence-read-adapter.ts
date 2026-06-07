@@ -414,6 +414,11 @@ export class PostgresLivePersistenceReadAdapter {
     return projects.rows.map(rowProject);
   }
 
+  async listImageAssets(projectId: string): Promise<ImageAsset[]> {
+    const imageAssets = await this.client.query<Row>("SELECT * FROM cutpilot_image_assets WHERE project_id = $1 ORDER BY created_at ASC", [projectId]);
+    return imageAssets.rows.map(rowImageAsset);
+  }
+
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {
     const projects = await this.client.query<Row>(
       `

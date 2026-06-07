@@ -75,6 +75,10 @@ async function main() {
     const liveReadBody = (await liveReadWithoutDb.json()) as { code?: string };
     assert.equal(liveReadWithoutDb.status, 503, "live project reads should fail closed without DATABASE_URL");
     assert.equal(liveReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live project reads should expose live persistence unavailability");
+    const liveAssetReadWithoutDb = await listAssetsRoute(request("GET"), context({ projectId: "prj_production" }));
+    const liveAssetReadBody = (await liveAssetReadWithoutDb.json()) as { code?: string };
+    assert.equal(liveAssetReadWithoutDb.status, 503, "live asset reads should fail closed without DATABASE_URL");
+    assert.equal(liveAssetReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live asset reads should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

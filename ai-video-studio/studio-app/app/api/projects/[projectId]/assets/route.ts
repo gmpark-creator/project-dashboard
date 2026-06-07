@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { listImageAssets, registerExternalImage } from "@/server/mock-service";
+import { listLiveImageAssets, liveProjectReadsEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
 import type { Aspect, ImageAssetRole } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
@@ -24,6 +25,16 @@ export async function GET(_request: Request, context: { params: Promise<{ projec
   if (pathError) return pathError;
   const { projectId } = params;
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectReadsEnabled()) {
+      try {
+        return NextResponse.json({ assets: await listLiveImageAssets(projectId) });
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        throw error;
+      }
+    }
     return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
   }
   try {

@@ -263,6 +263,10 @@ async function main() {
   assert.equal(bundle.mediaArtifacts[0].storageKey, `projects/${projectId}/take/${takeId}/take_video`, "bundle should map artifact storage keys");
   assert.ok(bundle.renderSourceHash.startsWith("sha256:"), "bundle should include a render source hash");
 
+  const assets = await adapter.listImageAssets(projectId);
+  assert.equal(assets.length, 1, "live read adapter should list image assets directly");
+  assert.equal(assets[0].id, assetId, "live read adapter should preserve image asset ids");
+
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),
     "adapter should query cutpilot_projects"

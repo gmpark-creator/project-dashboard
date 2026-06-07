@@ -364,6 +364,7 @@ function assertPersistenceSchemaBoundary() {
   assert.ok(migrationSource.includes("ROLLBACK"), "persistence migration apply must roll back failed migrations");
   assert.ok(readAdapterSource.includes("PostgresLivePersistenceReadAdapter"), "live persistence must expose a Postgres read adapter");
   assert.ok(readAdapterSource.includes("async listProjects()"), "live persistence read adapter must support project list reads");
+  assert.ok(readAdapterSource.includes("async listImageAssets(projectId: string)"), "live persistence read adapter must support image asset list reads");
   assert.ok(readAdapterSource.includes("async getProjectBundle(projectId: string)"), "live persistence read adapter must support project bundle reads");
   assert.ok(readAdapterSource.includes("buildLiveRenderSourceHash"), "live persistence read adapter must compute render source hashes");
   assert.ok(migrationRunnerSource.includes("DATABASE_URL"), "persistence migration runner must require DATABASE_URL for live execution");
@@ -651,13 +652,16 @@ function assertProductionReadBoundary() {
 
   const projectListRoute = readFileSync(join(appApiDir, "projects", "route.ts"), "utf8");
   const projectBundleRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "route.ts"), "utf8");
+  const projectAssetsRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "assets", "route.ts"), "utf8");
   assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_READS"), "live persistence runtime must require an explicit live read switch");
   assert.ok(liveRuntimeSource.includes("DATABASE_URL"), "live persistence runtime must require DATABASE_URL");
   assert.ok(liveRuntimeSource.includes("PostgresLivePersistenceReadAdapter"), "live persistence runtime must return the Postgres read adapter");
   assert.ok(projectListRoute.includes("listLiveProjects()"), "project list route must support live project reads behind the switch");
   assert.ok(projectBundleRoute.includes("getLiveProjectBundle(projectId)"), "project bundle route must support live project reads behind the switch");
+  assert.ok(projectAssetsRoute.includes("listLiveImageAssets(projectId)"), "project asset list route must support live asset reads behind the switch");
   assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
   assert.ok(projectBundleRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project bundle route must fail closed when live persistence is unavailable");
+  assert.ok(projectAssetsRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project asset list route must fail closed when live persistence is unavailable");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
   assert.ok(testMock.includes("scripts/live-persistence-runtime.test.ts"), "test:mock must include live persistence runtime coverage");
 }
