@@ -16,9 +16,10 @@ function readJson<T>(path: string): T {
 }
 
 type HttpMethod = (typeof httpMethods)[number];
+type OpenApiParameter = { name?: string; in?: string; required?: boolean; schema?: { type?: string; pattern?: string } };
 type OpenApiOperation = {
   operationId?: string;
-  parameters?: Array<{ name?: string; in?: string; required?: boolean; schema?: { type?: string; pattern?: string } }>;
+  parameters?: OpenApiParameter[];
   requestBody?: unknown;
   responses?: Record<string, unknown>;
 };
@@ -162,6 +163,10 @@ function routeSuccessStatuses(methodSource: string) {
   }
   if (methodSource.includes("NextResponse.json(") && statuses.size === 0) statuses.add("200");
   return statuses;
+}
+
+function routeBooleanQueryParams(methodSource: string) {
+  return new Set([...methodSource.matchAll(/booleanQueryParam\([^,]+,\s*"([^"]+)"/g)].map((match) => match[1]));
 }
 
 function sourceFiles(dir: string): string[] {
@@ -596,14 +601,35 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       }
       const operationParameters = operation.parameters || [];
       const operationParameterKeys = new Set<string>();
+      const documentedPathParameters = new Set([...pathName.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]));
+      const documentedBooleanQueryParameters = new Map<string, OpenApiParameter>();
+      const implementedBooleanQueryParameters = routeBooleanQueryParams(methodSource);
       for (const parameter of operationParameters) {
         assert.ok(parameter.name, `openapi path ${pathName} ${method.toUpperCase()} parameter missing name`);
         assert.ok(parameter.in, `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} missing location`);
         assert.ok(parameterLocations.has(parameter.in), `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} has unsupported location ${parameter.in}`);
         assert.ok(parameter.schema, `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} missing schema`);
+        if (parameter.in === "path") {
+          assert.ok(
+            documentedPathParameters.has(parameter.name),
+            `openapi path ${pathName} ${method.toUpperCase()} documents extra path parameter ${parameter.name}`
+          );
+        }
+        if (parameter.in === "query" && parameter.schema.type === "boolean") {
+          documentedBooleanQueryParameters.set(parameter.name, parameter);
+        }
         const parameterKey = `${parameter.in}:${parameter.name}`;
         assert.ok(!operationParameterKeys.has(parameterKey), `openapi path ${pathName} ${method.toUpperCase()} has duplicate parameter ${parameterKey}`);
         operationParameterKeys.add(parameterKey);
+      }
+      for (const parameterName of implementedBooleanQueryParameters) {
+        const parameter = documentedBooleanQueryParameters.get(parameterName);
+        assert.ok(parameter, `route ${operation.operationId} reads boolean query parameter ${parameterName} but OpenAPI does not document it`);
+        assert.equal(
+          parameter.schema?.type,
+          "boolean",
+          `route ${operation.operationId} boolean query parameter ${parameterName} must be documented as boolean`
+        );
       }
       const pathParameters = new Map((operation.parameters || []).filter((parameter) => parameter.in === "path").map((parameter) => [parameter.name, parameter]));
     for (const [, parameterName] of pathName.matchAll(/\{([^}]+)\}/g)) {
@@ -641,7 +667,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     }
     for (const parameter of operation.parameters || []) {
       if (parameter.in === "query" && parameter.schema?.type === "boolean") {
-        assert.ok(routeSource.includes("booleanQueryParam("), `boolean query route ${operation.operationId} missing booleanQueryParam guard`);
+        assert.ok(implementedBooleanQueryParameters.has(parameter.name || ""), `boolean query route ${operation.operationId} missing booleanQueryParam guard`);
         assert.ok(operation.responses?.["400"], `boolean query route ${operation.operationId} missing 400 response`);
       }
     }
