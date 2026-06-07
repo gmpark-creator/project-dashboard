@@ -911,6 +911,8 @@ export type SystemMetrics = {
     available: number;
     captured: number;
     refunded: number;
+    providerCostUsd: number;
+    marginPolicyVersions: string[];
   };
   providerAttempts: {
     total: number;

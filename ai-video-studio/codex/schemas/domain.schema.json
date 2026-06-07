@@ -898,7 +898,7 @@
         },
         "credits": {
           "type": "object",
-          "required": ["balance", "spent", "reserved", "available", "captured", "refunded"],
+          "required": ["balance", "spent", "reserved", "available", "captured", "refunded", "providerCostUsd", "marginPolicyVersions"],
           "additionalProperties": false,
           "properties": {
             "balance": { "type": "number", "minimum": 0 },
@@ -906,7 +906,9 @@
             "reserved": { "type": "number", "minimum": 0 },
             "available": { "type": "number", "minimum": 0 },
             "captured": { "type": "number", "minimum": 0 },
-            "refunded": { "type": "number", "minimum": 0 }
+            "refunded": { "type": "number", "minimum": 0 },
+            "providerCostUsd": { "type": "number", "minimum": 0 },
+            "marginPolicyVersions": { "type": "array", "items": { "type": "string" } }
           }
         },
         "providerAttempts": {

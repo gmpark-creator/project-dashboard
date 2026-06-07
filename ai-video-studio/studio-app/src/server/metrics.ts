@@ -25,6 +25,14 @@ function creditTotal(transactions: CreditTransaction[], kind: CreditTransaction[
   return transactions.filter((transaction) => transaction.kind === kind).reduce((total, transaction) => total + transaction.credits, 0);
 }
 
+function providerCostUsd(transactions: CreditTransaction[]) {
+  return Number(transactions.reduce((total, transaction) => total + (transaction.providerCostUsd || 0), 0).toFixed(2));
+}
+
+function marginPolicyVersions(transactions: CreditTransaction[]) {
+  return [...new Set(transactions.map((transaction) => transaction.marginPolicyVersion).filter((version): version is string => Boolean(version)))].sort();
+}
+
 export function buildSystemMetrics(current: StudioState): SystemMetrics {
   const attempts = current.generationJobs.flatMap((job) => job.providerAttempts);
   const latencies = attempts
@@ -51,7 +59,9 @@ export function buildSystemMetrics(current: StudioState): SystemMetrics {
       reserved: current.credits.reserved,
       available: Math.max(0, current.credits.balance - current.credits.spent - current.credits.reserved),
       captured: creditTotal(current.creditTransactions, "capture"),
-      refunded: creditTotal(current.creditTransactions, "refund")
+      refunded: creditTotal(current.creditTransactions, "refund"),
+      providerCostUsd: providerCostUsd(current.creditTransactions),
+      marginPolicyVersions: marginPolicyVersions(current.creditTransactions)
     },
     providerAttempts: {
       total: attempts.length,

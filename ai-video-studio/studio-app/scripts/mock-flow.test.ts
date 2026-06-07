@@ -823,6 +823,8 @@ assert.ok(metrics.providerAttempts.succeeded > 0, "system metrics should count s
 assert.ok(metrics.providerAttempts.failed > 0, "system metrics should count failed provider attempts");
 assert.equal(metrics.credits.spent, metrics.credits.captured, "system metrics spent credits should match captured credit ledger");
 assert.ok(metrics.credits.refunded > 0, "system metrics should include refunded credits");
+assert.ok(metrics.credits.providerCostUsd > 0, "system metrics should roll up provider cost from captured ledger entries");
+assert.deepEqual(metrics.credits.marginPolicyVersions, ["sandbox-v1"], "system metrics should expose active margin policy versions");
 assert.ok(metrics.mediaArtifacts.videos >= bundle.renderJobs.length, "system metrics should count video artifacts");
 
 const queue = getJobQueueSnapshot();
