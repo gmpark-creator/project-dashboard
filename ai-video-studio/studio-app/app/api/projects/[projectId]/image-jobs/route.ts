@@ -3,6 +3,7 @@ import { createImageJob } from "@/server/mock-service";
 import type { Aspect, ImageAssetRole, ImageMakerPurpose } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
+import { readJsonObject } from "../../../json-body";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validPurposes = new Set<ImageMakerPurpose>([
@@ -26,18 +27,12 @@ const validRoles = new Set<ImageAssetRole>([
   "background"
 ]);
 
-type ImageJobCreateBody = {
-  prompt?: unknown;
-  purpose?: unknown;
-  role?: unknown;
-  aspect?: unknown;
-  style?: unknown;
-  count?: unknown;
-};
-
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
-  const body = (await request.json().catch(() => ({}))) as ImageJobCreateBody;
+  const body = await readJsonObject(request);
+  if (!body) {
+    return apiError("BAD_REQUEST", "요청 형식이 올바르지 않습니다.", 400);
+  }
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
   if (!prompt) {
     return apiError("BAD_REQUEST", "이미지 아이디어를 입력해 주세요.", 400);

@@ -3,32 +3,28 @@ import { INTENT_TEMPLATES } from "@/domain/templates";
 import { createProject, listProjects } from "@/server/mock-service";
 import type { Aspect, Intent } from "@/domain/types";
 import { apiError } from "../error-response";
+import { isJsonObject, readJsonObject } from "../json-body";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
-
-type ProjectCreateBody = {
-  title?: string;
-  idea?: string;
-  intent?: string;
-  advanced?: unknown;
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 export function GET() {
   return NextResponse.json({ projects: listProjects() });
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as ProjectCreateBody;
-  const idea = body.idea?.trim() || "";
-  const title = body.title?.trim();
-  if (!idea || !body.intent || !(body.intent in INTENT_TEMPLATES)) {
+  const body = await readJsonObject(request);
+  if (!body) {
+    return apiError("BAD_REQUEST", "요청 형식이 올바르지 않습니다.", 400);
+  }
+  const idea = typeof body.idea === "string" ? body.idea.trim() : "";
+  const title = typeof body.title === "string" ? body.title.trim() : undefined;
+  if (typeof body.title !== "undefined" && typeof body.title !== "string") {
+    return apiError("BAD_REQUEST", "프로젝트 제목은 문자열이어야 합니다.", 400);
+  }
+  if (!idea || typeof body.intent !== "string" || !(body.intent in INTENT_TEMPLATES)) {
     return apiError("BAD_REQUEST", "아이디어와 목적이 필요합니다.", 400);
   }
-  const advancedInput = typeof body.advanced === "undefined" ? undefined : isRecord(body.advanced) ? body.advanced : null;
+  const advancedInput = typeof body.advanced === "undefined" ? undefined : isJsonObject(body.advanced) ? body.advanced : null;
   if (advancedInput === null) {
     return apiError("BAD_REQUEST", "고급 설정 형식이 올바르지 않습니다.", 400);
   }
