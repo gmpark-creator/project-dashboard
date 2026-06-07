@@ -323,6 +323,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid image generation request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
