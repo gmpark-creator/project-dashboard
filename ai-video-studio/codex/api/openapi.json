@@ -740,7 +740,9 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/RuntimeReadiness" }
               }
             }
-          }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
         }
       }
     },
@@ -755,7 +757,9 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/SystemMetrics" }
               }
             }
-          }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
         }
       }
     },
@@ -770,7 +774,9 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/MediaArtifactInventory" }
               }
             }
-          }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
         }
       }
     },

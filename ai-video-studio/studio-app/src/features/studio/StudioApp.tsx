@@ -228,7 +228,8 @@ const readinessCheckLabels: Record<string, string> = {
   mock_persistence: "목업 저장소",
   provider_credentials: "프로바이더 키",
   object_storage: "오브젝트 스토리지",
-  queue_worker: "큐 워커"
+  queue_worker: "큐 워커",
+  admin_access: "관리자 접근"
 };
 
 const readinessStatusText: Record<RuntimeReadiness["checks"][number]["status"], string> = {

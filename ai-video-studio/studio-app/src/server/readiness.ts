@@ -3,6 +3,7 @@ import type { RuntimeReadiness } from "../domain/types";
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
 const storageEnv = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"];
 const queueEnv = ["CUTPILOT_QUEUE_URL"];
+const adminEnv = ["CUTPILOT_ADMIN_TOKEN"];
 
 function present(name: string) {
   return Boolean(process.env[name]);
@@ -26,7 +27,8 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const missingProviderEnv = missing(providerEnv);
   const missingStorageEnv = missing(storageEnv);
   const missingQueueEnv = missing(queueEnv);
-  const missingEnv = [...missingProviderEnv, ...missingStorageEnv, ...missingQueueEnv];
+  const missingAdminEnv = missing(adminEnv);
+  const missingEnv = [...missingProviderEnv, ...missingStorageEnv, ...missingQueueEnv, ...missingAdminEnv];
   const production = mode === "production";
 
   const checks: RuntimeReadiness["checks"] = [
@@ -65,6 +67,14 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       missingQueueEnv.length
         ? `Missing queue env: ${missingQueueEnv.join(", ")}.`
         : "Queue worker env is present."
+    ),
+    check(
+      "admin_access",
+      "Admin access",
+      missingAdminEnv.length ? (production ? "fail" : "warn") : "pass",
+      missingAdminEnv.length
+        ? `Missing admin access env: ${missingAdminEnv.join(", ")}.`
+        : "Admin access env is present."
     )
   ];
 
