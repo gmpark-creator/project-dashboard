@@ -3,6 +3,12 @@ export function isJsonObject(value: unknown): value is Record<string, unknown> {
 }
 
 export async function readJsonObject(request: Request): Promise<Record<string, unknown> | null> {
-  const body = await request.json().catch(() => ({}));
-  return isJsonObject(body) ? body : null;
+  const raw = await request.text().catch(() => "");
+  if (!raw.trim()) return {};
+  try {
+    const body = JSON.parse(raw);
+    return isJsonObject(body) ? body : null;
+  } catch {
+    return null;
+  }
 }
