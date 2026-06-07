@@ -114,6 +114,12 @@ function assertUserUiHidesProviderNames() {
   }
 }
 
+function jsonSchemaRef(response: unknown) {
+  if (!response || typeof response !== "object") return null;
+  const content = (response as { content?: Record<string, { schema?: { $ref?: string } }> }).content;
+  return content?.["application/json"]?.schema?.$ref || null;
+}
+
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
   assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
@@ -307,6 +313,16 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (pathName.startsWith("/system/")) {
       assert.ok(operation.responses?.["401"], `system path ${pathName} ${method.toUpperCase()} missing 401 response`);
       assert.ok(operation.responses?.["503"], `system path ${pathName} ${method.toUpperCase()} missing 503 response`);
+      assert.equal(
+        jsonSchemaRef(operation.responses["401"]),
+        "../schemas/domain.schema.json#/$defs/ErrorResponse",
+        `system path ${pathName} ${method.toUpperCase()} 401 must reference ErrorResponse`
+      );
+      assert.equal(
+        jsonSchemaRef(operation.responses["503"]),
+        "../schemas/domain.schema.json#/$defs/ErrorResponse",
+        `system path ${pathName} ${method.toUpperCase()} 503 must reference ErrorResponse`
+      );
     }
   }
 }
