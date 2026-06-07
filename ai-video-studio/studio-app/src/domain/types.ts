@@ -765,12 +765,23 @@ export type WorkerRetryPlan = {
   items: WorkerRetryPlanItem[];
 };
 
+export type WorkerRetryRecord = {
+  id: string;
+  sourceJobId: string;
+  action: WorkerRetryAction;
+  replacementJobId: string;
+  replacementKind: QueueJobKind;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type WorkerRetryExecutionResult = {
   sourceJobId: string;
   executed: boolean;
   action: WorkerRetryAction | null;
   replacement: QueueJobSnapshot | null;
-  reason: "executed" | "not_found" | "not_retryable" | "unsupported_action" | "retry_failed";
+  retryRecord: WorkerRetryRecord | null;
+  reason: "executed" | "already_executed" | "not_found" | "not_retryable" | "unsupported_action" | "retry_failed" | "replacement_missing";
 };
 
 export type RuntimeReadiness = {
@@ -840,6 +851,7 @@ export type StudioState = {
   imageAssets: ImageAsset[];
   imageJobs: ImageJob[];
   workerLeases: WorkerLease[];
+  workerRetryRecords: WorkerRetryRecord[];
   referenceBoards: Record<string, ReferenceBoard>;
   editState: Record<string, EditState>;
   updatedAt: string;

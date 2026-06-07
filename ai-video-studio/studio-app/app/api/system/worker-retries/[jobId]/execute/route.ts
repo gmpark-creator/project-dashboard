@@ -8,6 +8,6 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
 
   const { jobId } = await context.params;
   const result = executeWorkerRetry(jobId);
-  const status = result.executed ? 201 : result.reason === "not_found" ? 404 : 409;
+  const status = result.reason === "already_executed" ? 200 : result.executed ? 201 : result.reason === "not_found" ? 404 : 409;
   return NextResponse.json(result, { status });
 }

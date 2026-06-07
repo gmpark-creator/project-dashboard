@@ -655,9 +655,23 @@
         "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerRetryPlanItem" } }
       }
     },
+    "WorkerRetryRecord": {
+      "type": "object",
+      "required": ["id", "sourceJobId", "action", "replacementJobId", "replacementKind", "createdAt", "updatedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^wretry_" },
+        "sourceJobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "action": { "$ref": "#/$defs/WorkerRetryAction" },
+        "replacementJobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "replacementKind": { "$ref": "#/$defs/QueueJobKind" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "WorkerRetryExecutionResult": {
       "type": "object",
-      "required": ["sourceJobId", "executed", "action", "replacement", "reason"],
+      "required": ["sourceJobId", "executed", "action", "replacement", "retryRecord", "reason"],
       "additionalProperties": false,
       "properties": {
         "sourceJobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
@@ -674,7 +688,13 @@
             { "type": "null" }
           ]
         },
-        "reason": { "type": "string", "enum": ["executed", "not_found", "not_retryable", "unsupported_action", "retry_failed"] }
+        "retryRecord": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerRetryRecord" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["executed", "already_executed", "not_found", "not_retryable", "unsupported_action", "retry_failed", "replacement_missing"] }
       }
     },
     "RuntimeReadiness": {
@@ -1621,6 +1641,7 @@
     "workerLeaseCompletionResult": { "$ref": "#/$defs/WorkerLeaseCompletionResult" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "workerRetryPlan": { "$ref": "#/$defs/WorkerRetryPlan" },
+    "workerRetryRecord": { "$ref": "#/$defs/WorkerRetryRecord" },
     "workerRetryExecutionResult": { "$ref": "#/$defs/WorkerRetryExecutionResult" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },

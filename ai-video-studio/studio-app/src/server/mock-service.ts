@@ -116,6 +116,7 @@ function blankState(): StudioState {
     imageAssets: [],
     imageJobs: [],
     workerLeases: [],
+    workerRetryRecords: [],
     referenceBoards: {},
     editState: {},
     updatedAt: now()
@@ -306,12 +307,14 @@ function backfillMediaArtifacts(current: StudioState) {
 }
 
 function normalizeState(current: StudioState): StudioState {
-  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "workerLeases" | "referenceBoards">>;
+  const next = current as StudioState &
+    Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "workerLeases" | "workerRetryRecords" | "referenceBoards">>;
   if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
   if (!Array.isArray(next.mediaArtifacts)) next.mediaArtifacts = [];
   if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
   if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
   if (!Array.isArray(next.workerLeases)) next.workerLeases = [];
+  if (!Array.isArray(next.workerRetryRecords)) next.workerRetryRecords = [];
   if (!next.referenceBoards) next.referenceBoards = {};
 
   for (const project of next.projects) {

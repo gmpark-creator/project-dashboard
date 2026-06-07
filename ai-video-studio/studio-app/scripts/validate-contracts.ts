@@ -81,6 +81,7 @@ for (const defName of [
   "WorkerRetryAction",
   "WorkerRetryPlanItem",
   "WorkerRetryPlan",
+  "WorkerRetryRecord",
   "WorkerRetryExecutionResult",
   "ImageWorkerInvocation",
   "DirectionSpec",

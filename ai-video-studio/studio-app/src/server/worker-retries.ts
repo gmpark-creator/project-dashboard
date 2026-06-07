@@ -1,5 +1,18 @@
-import type { GenerationJob, ImageJob, QueueJobSnapshot, RenderJob, WorkerCompletionReceipt, WorkerRetryAction, WorkerRetryExecutionResult, WorkerRetryPlan, WorkerRetryPlanItem } from "../domain/types";
-import { createImageJob, generateShot, getMockState, startRender } from "./mock-service";
+import type {
+  GenerationJob,
+  ImageJob,
+  QueueJobKind,
+  QueueJobSnapshot,
+  RenderJob,
+  StudioState,
+  WorkerCompletionReceipt,
+  WorkerRetryAction,
+  WorkerRetryExecutionResult,
+  WorkerRetryPlan,
+  WorkerRetryPlanItem,
+  WorkerRetryRecord
+} from "../domain/types";
+import { createImageJob, generateShot, getMockState, getMutableMockState, saveMockState, startRender } from "./mock-service";
 import { buildWorkerCompletionSnapshot } from "./worker-completions";
 
 function retryAction(receipt: WorkerCompletionReceipt): WorkerRetryAction {
@@ -101,16 +114,68 @@ function renderSnapshot(job: RenderJob): QueueJobSnapshot {
   };
 }
 
+function retryRecordId() {
+  return `wretry_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function replacementSnapshot(current: StudioState, kind: QueueJobKind, jobId: string) {
+  if (kind === "image") {
+    const job = current.imageJobs.find((candidate) => candidate.id === jobId);
+    return job ? imageSnapshot(job) : null;
+  }
+  if (kind === "generation") {
+    const job = current.generationJobs.find((candidate) => candidate.id === jobId);
+    return job ? generationSnapshot(job) : null;
+  }
+  const job = current.renderJobs.find((candidate) => candidate.id === jobId);
+  return job ? renderSnapshot(job) : null;
+}
+
+function alreadyExecutedResult(record: WorkerRetryRecord): WorkerRetryExecutionResult {
+  const replacement = replacementSnapshot(getMockState(), record.replacementKind, record.replacementJobId);
+  return {
+    sourceJobId: record.sourceJobId,
+    executed: Boolean(replacement),
+    action: record.action,
+    replacement,
+    retryRecord: record,
+    reason: replacement ? "already_executed" : "replacement_missing"
+  };
+}
+
+function recordRetry(sourceJobId: string, action: WorkerRetryAction, replacement: QueueJobSnapshot) {
+  const current = getMutableMockState();
+  const existing = current.workerRetryRecords.find((record) => record.sourceJobId === sourceJobId);
+  if (existing) return existing;
+
+  const timestamp = new Date().toISOString();
+  const record: WorkerRetryRecord = {
+    id: retryRecordId(),
+    sourceJobId,
+    action,
+    replacementJobId: replacement.id,
+    replacementKind: replacement.kind,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+  current.workerRetryRecords.unshift(record);
+  saveMockState(current);
+  return record;
+}
+
 export function executeWorkerRetry(sourceJobId: string): WorkerRetryExecutionResult {
+  const existingRecord = getMockState().workerRetryRecords.find((record) => record.sourceJobId === sourceJobId);
+  if (existingRecord) return alreadyExecutedResult(existingRecord);
+
   const item = getWorkerRetryPlan().items.find((candidate) => candidate.receipt.jobId === sourceJobId);
-  if (!item) return { sourceJobId, executed: false, action: null, replacement: null, reason: "not_found" };
-  if (!item.retryable) return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "not_retryable" };
+  if (!item) return { sourceJobId, executed: false, action: null, replacement: null, retryRecord: null, reason: "not_found" };
+  if (!item.retryable) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_retryable" };
 
   try {
     const current = getMockState();
     if (item.action === "retry_image_generation") {
       const source = current.imageJobs.find((job) => job.id === sourceJobId);
-      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "not_found" };
+      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
       const retry = createImageJob({
         projectId: source.projectId,
         prompt: source.prompt,
@@ -121,22 +186,28 @@ export function executeWorkerRetry(sourceJobId: string): WorkerRetryExecutionRes
         count: source.count,
         retryOfJobId: source.id
       });
-      return { sourceJobId, executed: true, action: item.action, replacement: imageSnapshot(retry.job), reason: "executed" };
+      const replacement = imageSnapshot(retry.job);
+      const retryRecord = recordRetry(sourceJobId, item.action, replacement);
+      return { sourceJobId, executed: true, action: item.action, replacement, retryRecord, reason: "executed" };
     }
     if (item.action === "retry_provider_generation") {
       const source = current.generationJobs.find((job) => job.id === sourceJobId);
-      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "not_found" };
+      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
       const retry = generateShot(source.shotId, { tier: source.promptPackage.requirements.tier, takeCount: 1, retryOfJobId: source.id });
-      return { sourceJobId, executed: true, action: item.action, replacement: generationSnapshot(retry.jobs[0]), reason: "executed" };
+      const replacement = generationSnapshot(retry.jobs[0]);
+      const retryRecord = recordRetry(sourceJobId, item.action, replacement);
+      return { sourceJobId, executed: true, action: item.action, replacement, retryRecord, reason: "executed" };
     }
     if (item.action === "retry_render") {
       const source = current.renderJobs.find((job) => job.id === sourceJobId);
-      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "not_found" };
+      if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
       const retry = startRender(source.projectId, [source.spec], { retryOfJobId: source.id });
-      return { sourceJobId, executed: true, action: item.action, replacement: renderSnapshot(retry.jobs[0]), reason: "executed" };
+      const replacement = renderSnapshot(retry.jobs[0]);
+      const retryRecord = recordRetry(sourceJobId, item.action, replacement);
+      return { sourceJobId, executed: true, action: item.action, replacement, retryRecord, reason: "executed" };
     }
-    return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "unsupported_action" };
+    return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "unsupported_action" };
   } catch {
-    return { sourceJobId, executed: false, action: item.action, replacement: null, reason: "retry_failed" };
+    return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "retry_failed" };
   }
 }

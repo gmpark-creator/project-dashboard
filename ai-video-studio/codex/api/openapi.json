@@ -1042,6 +1042,14 @@
           { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" } }
         ],
         "responses": {
+          "200": {
+            "description": "Retry was already executed and the original replacement queue job is returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult" }
+              }
+            }
+          },
           "201": {
             "description": "Retry executed and a replacement queue job was created",
             "content": {
