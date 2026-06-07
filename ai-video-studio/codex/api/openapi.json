@@ -1348,8 +1348,22 @@
               }
             }
           },
-          "404": { "description": "Lease not found" },
-          "409": { "description": "Lease token mismatch or lease is not active" },
+          "404": {
+            "description": "Lease not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease token mismatch or lease is not active",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult" }
+              }
+            }
+          },
           "400": {
             "description": "Invalid worker lease release request",
             "content": {
@@ -1408,8 +1422,22 @@
               }
             }
           },
-          "404": { "description": "Lease not found" },
-          "409": { "description": "Lease token mismatch or lease is not active" },
+          "404": {
+            "description": "Lease not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease token mismatch or lease is not active",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult" }
+              }
+            }
+          },
           "400": {
             "description": "Invalid worker lease renew request",
             "content": {
@@ -1468,8 +1496,22 @@
               }
             }
           },
-          "404": { "description": "Lease not found" },
-          "409": { "description": "Lease token mismatch, inactive lease, inactive job, or unsupported completion status" },
+          "404": {
+            "description": "Lease not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease token mismatch, inactive lease, inactive job, or unsupported completion status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult" }
+              }
+            }
+          },
           "422": {
             "description": "Worker completion output payload is missing, malformed, or does not match the assigned storage keys",
             "content": {
@@ -1613,8 +1655,22 @@
               }
             }
           },
-          "404": { "description": "Failed worker job is not in the retry plan" },
-          "409": { "description": "Failure is not retryable or the configured retry action failed" },
+          "404": {
+            "description": "Failed worker job is not in the retry plan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Failure is not retryable or the configured retry action failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult" }
+              }
+            }
+          },
           "401": {
             "description": "Admin access token required in production mode",
             "content": {
@@ -1681,8 +1737,22 @@
               }
             }
           },
-          "404": { "description": "Job not found" },
-          "409": { "description": "Job is not active" }
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CancelJobResult" }
+              }
+            }
+          },
+          "409": {
+            "description": "Job is not active",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CancelJobResult" }
+              }
+            }
+          }
         }
       }
     }

@@ -277,6 +277,18 @@ const requiredOperations = new Set([
   "executeWorkerRetry"
 ]);
 const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
+const resultShapedErrorResponses = new Map([
+  ["cancelJob:404", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
+  ["cancelJob:409", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
+  ["releaseWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult"],
+  ["releaseWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult"],
+  ["renewWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult"],
+  ["renewWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult"],
+  ["completeWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult"],
+  ["completeWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult"],
+  ["executeWorkerRetry:404", "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult"],
+  ["executeWorkerRetry:409", "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult"]
+]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {
   for (const method of [path.get, path.post, path.put, path.patch, path.delete]) {
@@ -309,6 +321,14 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
       assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);
       assert.ok(operation.responses?.["402"], `credit guarded operation ${operation.operationId} missing 402 response`);
+    }
+    if (operation.operationId) {
+      for (const [code, response] of Object.entries(operation.responses || {})) {
+        const expectedRef = resultShapedErrorResponses.get(`${operation.operationId}:${code}`);
+        if (expectedRef) {
+          assert.equal(jsonSchemaRef(response), expectedRef, `${operation.operationId} ${code} must reference ${expectedRef}`);
+        }
+      }
     }
     if (pathName.startsWith("/system/")) {
       assert.ok(operation.responses?.["401"], `system path ${pathName} ${method.toUpperCase()} missing 401 response`);
