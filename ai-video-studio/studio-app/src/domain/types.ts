@@ -143,6 +143,14 @@ export type ExportSpec = {
   caption: "none" | "burn-in" | "srt" | "both";
 };
 
+export type CostEstimate = {
+  credits: number;
+  etaSec: number;
+  availableCredits: number;
+  affordable: boolean;
+  shortfallCredits: number;
+};
+
 export type RenderJob = {
   id: string;
   projectId: string;
@@ -168,10 +176,7 @@ export type RenderPreview = {
   sourceHash: string;
   rightsReview: RenderRightsReview;
   renderPlan: RenderPlan;
-  estimate: {
-    credits: number;
-    etaSec: number;
-  };
+  estimate: CostEstimate;
 };
 
 export type RenderPlan = {

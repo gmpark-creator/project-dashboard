@@ -1772,11 +1772,14 @@
     },
     "CostEstimate": {
       "type": "object",
-      "required": ["credits", "etaSec"],
+      "required": ["credits", "etaSec", "availableCredits", "affordable", "shortfallCredits"],
       "additionalProperties": false,
       "properties": {
         "credits": { "type": "number", "minimum": 0 },
-        "etaSec": { "type": "integer", "minimum": 0 }
+        "etaSec": { "type": "integer", "minimum": 0 },
+        "availableCredits": { "type": "number", "minimum": 0 },
+        "affordable": { "type": "boolean" },
+        "shortfallCredits": { "type": "number", "minimum": 0 }
       }
     },
     "ErrorResponse": {

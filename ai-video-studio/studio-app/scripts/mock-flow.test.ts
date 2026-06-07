@@ -9,6 +9,7 @@ import {
   createProject,
   deleteImageAsset,
   detachImageFromShot,
+  estimateCost,
   forceDueJobs,
   generateAll,
   generateShot,
@@ -123,6 +124,21 @@ for (const name of readinessEnvNames) {
 }
 
 resetMockState();
+
+const affordableCost = estimateCost("generateShot", { takeCount: 1 });
+assert.equal(affordableCost.affordable, true, "cost estimate should mark normal mock balance as affordable");
+assert.equal(affordableCost.shortfallCredits, 0, "affordable cost estimates should not report a shortfall");
+const creditStressState = getMutableMockState();
+const originalCredits = { ...creditStressState.credits };
+creditStressState.credits = { balance: 0, spent: 0, reserved: 0 };
+saveMockState(creditStressState);
+const insufficientCost = estimateCost("startRender");
+assert.equal(insufficientCost.affordable, false, "cost estimate should flag insufficient available credits");
+assert.equal(insufficientCost.availableCredits, 0, "cost estimate should expose current available credits");
+assert.equal(insufficientCost.shortfallCredits, insufficientCost.credits, "insufficient estimates should expose the missing credits");
+const restoredCreditState = getMutableMockState();
+restoredCreditState.credits = originalCredits;
+saveMockState(restoredCreditState);
 
 assert.throws(
   () =>
@@ -713,6 +729,8 @@ assert.equal(renderPreview.rightsReview.required, true, "render preview should e
 assert.equal(renderPreview.renderPlan.missingShotIds.length, 1, "render preview should expose missing shots before creating render jobs");
 assert.equal(renderPreview.renderPlan.edit.commands.some((command) => command.command.includes("CTA")), true, "render preview should snapshot edit commands");
 assert.equal(renderPreview.estimate.credits, 48, "render preview should expose render cost estimate");
+assert.equal(renderPreview.estimate.affordable, true, "render preview should expose affordability for its cost estimate");
+assert.equal(renderPreview.estimate.shortfallCredits, 0, "affordable render previews should not report a credit shortfall");
 const renderResult = startRender(project.id, [...renderSpecs]);
 workerDispatch = getWorkerDispatchSnapshot();
 const renderDispatchItems = workerDispatch.items.filter((item) => item.kind === "render" && item.projectId === project.id);

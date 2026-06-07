@@ -755,9 +755,14 @@ export function estimateCost(action: string, params?: { takeCount?: number }) {
     upgradeTake: 22,
     startRender: 48
   };
+  const credits = Math.ceil((table[action] || 10) * (params?.takeCount || 1));
+  const available = availableCredits(state());
   return {
-    credits: Math.ceil((table[action] || 10) * (params?.takeCount || 1)),
-    etaSec: action === "startRender" ? 90 : 25
+    credits,
+    etaSec: action === "startRender" ? 90 : 25,
+    availableCredits: available,
+    affordable: available >= credits,
+    shortfallCredits: Math.max(0, credits - available)
   };
 }
 

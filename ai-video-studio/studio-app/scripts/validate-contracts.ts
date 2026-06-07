@@ -105,6 +105,7 @@ for (const defName of [
   "RuntimeReadiness",
   "SystemMetrics",
   "RenderSourceHash",
+  "CostEstimate",
   "RenderPreview",
   "RenderPlan",
   "RenderWorkerInvocation",
