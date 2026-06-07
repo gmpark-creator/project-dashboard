@@ -66,6 +66,12 @@ for (const defName of [
   "WorkerDispatchKind",
   "WorkerDispatchItem",
   "WorkerDispatchSnapshot",
+  "WorkerLeaseStatus",
+  "WorkerLease",
+  "WorkerLeaseRequest",
+  "WorkerLeaseResult",
+  "WorkerLeaseReleaseResult",
+  "WorkerLeaseSnapshot",
   "WorkerCompletionStatus",
   "WorkerCompletionReceipt",
   "WorkerCompletionSnapshot",
@@ -118,6 +124,9 @@ const requiredOperations = new Set([
   "getStorageCleanupPlan",
   "getJobQueueSnapshot",
   "getWorkerDispatchSnapshot",
+  "getWorkerLeaseSnapshot",
+  "createWorkerLease",
+  "releaseWorkerLease",
   "getWorkerCompletionSnapshot"
 ]);
 const operationIds = new Set<string>();

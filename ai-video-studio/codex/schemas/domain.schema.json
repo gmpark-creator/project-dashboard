@@ -406,6 +406,99 @@
         "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerDispatchItem" } }
       }
     },
+    "WorkerLeaseStatus": {
+      "type": "string",
+      "enum": ["active", "released", "expired"]
+    },
+    "WorkerLease": {
+      "type": "object",
+      "required": ["id", "token", "dispatchKey", "kind", "jobId", "projectId", "workerId", "status", "leasedAt", "expiresAt", "releasedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^wlease_" },
+        "token": { "type": "string" },
+        "dispatchKey": { "type": "string" },
+        "kind": { "$ref": "#/$defs/WorkerDispatchKind" },
+        "jobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "workerId": { "type": "string" },
+        "status": { "$ref": "#/$defs/WorkerLeaseStatus" },
+        "leasedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "releasedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "WorkerLeaseRequest": {
+      "type": "object",
+      "required": ["workerId"],
+      "additionalProperties": false,
+      "properties": {
+        "workerId": { "type": "string" },
+        "kind": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerDispatchKind" },
+            { "type": "string", "const": "any" }
+          ]
+        },
+        "ttlSec": { "type": "integer", "minimum": 5, "maximum": 600 }
+      }
+    },
+    "WorkerLeaseResult": {
+      "type": "object",
+      "required": ["lease", "item", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "lease": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerLease" },
+            { "type": "null" }
+          ]
+        },
+        "item": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerDispatchItem" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["leased", "no_available_work"] }
+      }
+    },
+    "WorkerLeaseReleaseResult": {
+      "type": "object",
+      "required": ["leaseId", "released", "status", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "leaseId": { "type": "string", "pattern": "^wlease_" },
+        "released": { "type": "boolean" },
+        "status": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerLeaseStatus" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["released", "not_found", "token_mismatch", "not_active"] }
+      }
+    },
+    "WorkerLeaseSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "leases"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "active", "released", "expired"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "active": { "type": "integer", "minimum": 0 },
+            "released": { "type": "integer", "minimum": 0 },
+            "expired": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "leases": { "type": "array", "items": { "$ref": "#/$defs/WorkerLease" } }
+      }
+    },
     "WorkerCompletionStatus": {
       "type": "string",
       "enum": ["succeeded", "failed", "cancelled"]
@@ -1396,6 +1489,7 @@
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },
+    "workerLeaseSnapshot": { "$ref": "#/$defs/WorkerLeaseSnapshot" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },

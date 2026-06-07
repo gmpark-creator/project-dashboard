@@ -113,6 +113,7 @@ function blankState(): StudioState {
     renderJobs: [],
     imageAssets: [],
     imageJobs: [],
+    workerLeases: [],
     referenceBoards: {},
     editState: {},
     updatedAt: now()
@@ -303,11 +304,12 @@ function backfillMediaArtifacts(current: StudioState) {
 }
 
 function normalizeState(current: StudioState): StudioState {
-  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "referenceBoards">>;
+  const next = current as StudioState & Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "workerLeases" | "referenceBoards">>;
   if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
   if (!Array.isArray(next.mediaArtifacts)) next.mediaArtifacts = [];
   if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
   if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
+  if (!Array.isArray(next.workerLeases)) next.workerLeases = [];
   if (!next.referenceBoards) next.referenceBoards = {};
 
   for (const project of next.projects) {
@@ -382,6 +384,14 @@ export function reloadMockStateFromDisk() {
 
 export function getMockState() {
   return tickJobs();
+}
+
+export function getMutableMockState() {
+  return state();
+}
+
+export function saveMockState(nextState = state()) {
+  return write(nextState);
 }
 
 function availableCredits(current: StudioState) {

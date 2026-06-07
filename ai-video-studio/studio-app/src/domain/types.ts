@@ -636,6 +636,52 @@ export type WorkerDispatchSnapshot = {
   items: WorkerDispatchItem[];
 };
 
+export type WorkerLeaseStatus = "active" | "released" | "expired";
+
+export type WorkerLease = {
+  id: string;
+  token: string;
+  dispatchKey: string;
+  kind: WorkerDispatchKind;
+  jobId: string;
+  projectId: string;
+  workerId: string;
+  status: WorkerLeaseStatus;
+  leasedAt: string;
+  expiresAt: string;
+  releasedAt: string | null;
+};
+
+export type WorkerLeaseRequest = {
+  workerId: string;
+  kind?: WorkerDispatchKind | "any";
+  ttlSec?: number;
+};
+
+export type WorkerLeaseResult = {
+  lease: WorkerLease | null;
+  item: WorkerDispatchItem | null;
+  reason: "leased" | "no_available_work";
+};
+
+export type WorkerLeaseReleaseResult = {
+  leaseId: string;
+  released: boolean;
+  status: WorkerLeaseStatus | null;
+  reason: "released" | "not_found" | "token_mismatch" | "not_active";
+};
+
+export type WorkerLeaseSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    active: number;
+    released: number;
+    expired: number;
+  };
+  leases: WorkerLease[];
+};
+
 export type WorkerCompletionStatus = "succeeded" | "failed" | "cancelled";
 
 export type WorkerCompletionReceipt = {
@@ -737,6 +783,7 @@ export type StudioState = {
   renderJobs: RenderJob[];
   imageAssets: ImageAsset[];
   imageJobs: ImageJob[];
+  workerLeases: WorkerLease[];
   referenceBoards: Record<string, ReferenceBoard>;
   editState: Record<string, EditState>;
   updatedAt: string;

@@ -36,6 +36,7 @@ import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
+import { createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease } from "../src/server/worker-leases";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -203,6 +204,25 @@ assert.equal(imageDispatchItem.dispatchKey, `image_generation:${imageJobResult.j
 assert.equal(imageDispatchItem.invocation.jobId, imageJobResult.job.id, "image dispatch item should carry its image worker invocation");
 assert.equal(workerDispatch.summary.imageGeneration, 1, "worker dispatch summary should count active image jobs");
 assert.equal(workerDispatch.summary.total, workerDispatch.items.length, "worker dispatch total should match item count");
+let workerLeases = getWorkerLeaseSnapshot();
+assert.equal(workerLeases.summary.total, 0, "fresh mock state should have no worker leases");
+const imageLease = createWorkerLease({ workerId: "image-worker-a", kind: "image_generation", ttlSec: 30 });
+assert.equal(imageLease.reason, "leased", "worker lease should lease active image work");
+assert.equal(imageLease.lease?.kind, "image_generation", "image worker lease should preserve dispatch kind");
+assert.equal(imageLease.lease?.dispatchKey, imageDispatchItem.dispatchKey, "image worker lease should point to the dispatch item");
+assert.equal(imageLease.item?.jobId, imageJobResult.job.id, "image worker lease should return the leased dispatch item");
+const duplicateImageLease = createWorkerLease({ workerId: "image-worker-b", kind: "image_generation", ttlSec: 30 });
+assert.equal(duplicateImageLease.reason, "no_available_work", "active worker leases should prevent duplicate dispatch leasing");
+assert.ok(imageLease.lease, "image lease should exist before release checks");
+const wrongImageRelease = releaseWorkerLease(imageLease.lease.id, "wrong-token");
+assert.equal(wrongImageRelease.released, false, "worker lease release should reject token mismatch");
+assert.equal(wrongImageRelease.reason, "token_mismatch", "worker lease release should report token mismatch");
+const imageRelease = releaseWorkerLease(imageLease.lease.id, imageLease.lease.token);
+assert.equal(imageRelease.released, true, "worker lease should release with matching token");
+assert.equal(imageRelease.reason, "released", "worker lease release should report success");
+workerLeases = getWorkerLeaseSnapshot();
+assert.equal(workerLeases.summary.released, 1, "worker lease snapshot should count released leases");
+assert.equal(workerLeases.summary.active, 0, "worker lease snapshot should have no active leases after release");
 forceDueJobs("imageJobs");
 tickJobs();
 
@@ -265,6 +285,13 @@ assert.deepEqual(
   workerDispatch.items.map((_, index) => index + 1),
   "worker dispatch priorities should be dense and ordered"
 );
+const generationLease = createWorkerLease({ workerId: "video-worker-a", kind: "provider_generation", ttlSec: 30 });
+assert.equal(generationLease.reason, "leased", "worker lease should lease active provider generation work");
+assert.equal(generationLease.lease?.kind, "provider_generation", "provider generation lease should preserve dispatch kind");
+assert.ok(generationDispatchItems.some((item) => item.dispatchKey === generationLease.lease?.dispatchKey), "provider generation lease should reference a dispatch item");
+assert.ok(generationLease.lease, "generation lease should exist before release");
+const generationRelease = releaseWorkerLease(generationLease.lease.id, generationLease.lease.token);
+assert.equal(generationRelease.released, true, "provider generation lease should release with matching token");
 forceDueJobs("generationJobs");
 tickJobs();
 
@@ -546,6 +573,9 @@ workerDispatch = getWorkerDispatchSnapshot();
 assert.equal(workerDispatch.summary.total, 0, "completed mock flow should have no active worker dispatch items");
 assert.equal(workerDispatch.items.length, 0, "completed worker dispatch snapshot should have no items");
 assert.equal(workerDispatch.summary.nextDueAt, null, "completed worker dispatch snapshot should have no next due date");
+workerLeases = getWorkerLeaseSnapshot();
+assert.equal(workerLeases.summary.active, 0, "completed mock flow should not leave active worker leases");
+assert.ok(workerLeases.summary.released >= 2, "worker lease snapshot should retain released lease history");
 const workerCompletions = getWorkerCompletionSnapshot();
 assert.equal(workerCompletions.summary.total, queue.summary.total, "worker completion receipts should cover all terminal queue jobs");
 assert.ok(workerCompletions.summary.succeeded > 0, "worker completion receipts should include successful jobs");
