@@ -11,6 +11,8 @@ class FakeClient implements PgQueryable {
   defaultRenderJobId: string | null = null;
   projectThumbUrl: string | null = null;
   editRows: Record<string, unknown>[] = [];
+  generationJobRow: Record<string, unknown> | null = null;
+  imageJobRow: Record<string, unknown> | null = null;
   renderJobRow: Record<string, unknown> | null = null;
   sceneRows: Record<string, unknown>[] = [];
   shotRows: Record<string, unknown>[] = [];
@@ -19,6 +21,9 @@ class FakeClient implements PgQueryable {
   imageAssetDeleted = false;
   assetUsageRows: Record<string, unknown>[] = [];
   projectIntent = "product_ad";
+  creditReserved = 0;
+  creditTransactionCount = 0;
+  activeRenderExists = false;
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
@@ -43,6 +48,9 @@ class FakeClient implements PgQueryable {
       const renderJobRow = this.renderJobRow as unknown as T;
       return { rows: this.renderJobRow ? [renderJobRow] : [] };
     }
+    if (sql.includes("SELECT * FROM cutpilot_generation_jobs WHERE id")) return { rows: this.generationJobRow ? ([this.generationJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_image_jobs WHERE id")) return { rows: this.imageJobRow ? ([this.imageJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT id FROM cutpilot_render_jobs WHERE project_id")) return { rows: this.activeRenderExists ? ([{ id: "rnd_active" } as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE project_id")) {
       const renderJobRow = this.renderJobRow as unknown as T;
       return { rows: this.renderJobRow ? [renderJobRow] : [] };
@@ -106,6 +114,22 @@ class FakeClient implements PgQueryable {
       return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_projects")) return { rows: [] as T[] };
+    if (sql.includes("SELECT p.credit_account_id")) {
+      const account = { credit_account_id: "acct_live", balance_credits: 1240, spent_credits: 0, reserved_credits: this.creditReserved } as unknown as T;
+      return { rows: [account] };
+    }
+    if (sql.includes("UPDATE cutpilot_credit_accounts")) {
+      this.creditReserved = Number(params?.[1] || 0);
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("INSERT INTO cutpilot_credit_transactions")) {
+      this.creditTransactionCount += 1;
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("UPDATE cutpilot_generation_jobs")) return { rows: [] as T[] };
+    if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
+    if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
+    if (sql.includes("UPDATE cutpilot_render_jobs")) return { rows: [] as T[] };
     if (sql.includes("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id")) {
       const rows = this.shotRows.map((shot) => ({ status: shot.status, selected_take_id: shot.selected_take_id })) as unknown as T[];
       return { rows };
@@ -283,6 +307,50 @@ function fakeTakeRow(status: "queued" | "running" | "done" | "failed" = "done") 
   };
 }
 
+function fakeGenerationJobRow(status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") {
+  return {
+    id: "gen_live",
+    project_id: "prj_live",
+    shot_id: "sht_live",
+    take_id: "tak_done",
+    retry_of_job_id: null,
+    status,
+    progress: 0,
+    eta_sec: 25,
+    stage: "queued",
+    should_fail: false,
+    due_at: Date.now(),
+    error: null,
+    prompt_package: {},
+    routing: {},
+    created_at: "2026-06-07T00:00:00.000Z",
+    updated_at: "2026-06-07T00:00:00.000Z"
+  };
+}
+
+function fakeImageJobRow(status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") {
+  return {
+    id: "ijob_live",
+    project_id: "prj_live",
+    retry_of_job_id: null,
+    status,
+    progress: 0,
+    eta_sec: 25,
+    stage: "queued",
+    prompt: "Image",
+    purpose: "product",
+    role: "product",
+    aspect: "9:16",
+    style: "clean",
+    count: 2,
+    variants: [{ id: "var_a", assetId: null, label: "A", status: "queued", url: null, thumbUrl: null, scoreLabel: "review" }],
+    due_at: Date.now(),
+    error: null,
+    created_at: "2026-06-07T00:00:00.000Z",
+    updated_at: "2026-06-07T00:00:00.000Z"
+  };
+}
+
 function fakeEditRow() {
   return {
     project_id: "prj_live",
@@ -427,6 +495,41 @@ async function main() {
     "live storyboard update should surface missing projects"
   );
   assert.equal(missingStoryboardProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live storyboard update should roll back missing projects");
+
+  const cancelGenerationClient = new FakeClient();
+  cancelGenerationClient.generationJobRow = fakeGenerationJobRow("queued");
+  cancelGenerationClient.takeRow = fakeTakeRow("queued");
+  cancelGenerationClient.shotRows = [fakeShotRow()];
+  cancelGenerationClient.creditReserved = 6;
+  const cancelledGeneration = await new PostgresLivePersistenceWriteAdapter(cancelGenerationClient).cancelJob("gen_live");
+  assert.equal(cancelledGeneration.cancelled, true, "live generation cancellation should cancel active jobs");
+  assert.equal(cancelledGeneration.refundedCredits, 6, "live generation cancellation should refund generation credits");
+  assert.equal(cancelGenerationClient.creditReserved, 0, "live generation cancellation should reduce reserved credits");
+  assert.equal(cancelGenerationClient.creditTransactionCount, 1, "live generation cancellation should record a refund transaction");
+  assert.ok(cancelGenerationClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_generation_jobs")), "live generation cancellation should update the generation job");
+  assert.ok(cancelGenerationClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_takes")), "live generation cancellation should cancel the take");
+  assert.equal(cancelGenerationClient.queries.at(-1)?.sql, "COMMIT", "live generation cancellation should commit successful cancellations");
+
+  const cancelImageClient = new FakeClient();
+  cancelImageClient.imageJobRow = fakeImageJobRow("running");
+  cancelImageClient.creditReserved = 8;
+  const cancelledImage = await new PostgresLivePersistenceWriteAdapter(cancelImageClient).cancelJob("ijob_live");
+  assert.equal(cancelledImage.cancelled, true, "live image cancellation should cancel active jobs");
+  assert.equal(cancelledImage.refundedCredits, 8, "live image cancellation should refund image credits");
+  assert.equal(cancelImageClient.creditTransactionCount, 1, "live image cancellation should record a refund transaction");
+
+  const cancelRenderClient = new FakeClient();
+  cancelRenderClient.renderJobRow = fakeRenderJob("running");
+  cancelRenderClient.creditReserved = 16;
+  const cancelledRender = await new PostgresLivePersistenceWriteAdapter(cancelRenderClient).cancelJob("rnd_done");
+  assert.equal(cancelledRender.cancelled, true, "live render cancellation should cancel active jobs");
+  assert.equal(cancelledRender.refundedCredits, 16, "live render cancellation should refund render credits");
+  assert.ok(cancelRenderClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_render_jobs")), "live render cancellation should update render jobs");
+
+  const missingCancelClient = new FakeClient();
+  const missingCancel = await new PostgresLivePersistenceWriteAdapter(missingCancelClient).cancelJob("gen_missing");
+  assert.equal(missingCancel.kind, null, "live job cancellation should return not found-shaped results for missing jobs");
+  assert.equal(missingCancel.cancelled, false, "live job cancellation should not cancel missing jobs");
 
   const editClient = new FakeClient();
   editClient.editRows = [fakeEditRow()];

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   attachLiveImageToShot,
   applyLiveEdit,
+  cancelLiveJob,
   closeLivePersistencePoolForTests,
   createLiveProject,
   deleteLiveImageAsset,
@@ -102,6 +103,11 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live asset delete writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () => cancelLiveJob("gen_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live job cancellation writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -172,6 +178,11 @@ async function main() {
       () => deleteLiveImageAsset("prj_missing_db", "img_missing_db"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live asset delete writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => cancelLiveJob("gen_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live job cancellation writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

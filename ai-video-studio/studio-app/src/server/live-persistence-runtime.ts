@@ -168,6 +168,13 @@ export async function deleteLiveImageAsset(projectId: string, assetId: string, o
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).deleteImageAsset(projectId, assetId, options));
 }
 
+export async function cancelLiveJob(jobId: string) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).cancelJob(jobId));
+}
+
 export async function closeLivePersistencePoolForTests() {
   const current = pool;
   pool = null;

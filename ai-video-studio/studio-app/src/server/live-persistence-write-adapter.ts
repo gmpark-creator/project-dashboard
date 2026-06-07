@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, DirectionSpec, EditState, Project, ProjectBundle, Scene, Shot } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, JobStatus, Project, ProjectBundle, Scene, Shot } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -51,6 +51,19 @@ function json(value: unknown) {
 
 function uid(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}_${randomUUID().slice(0, 8)}`;
+}
+
+function isActiveJobStatus(status: unknown): status is JobStatus {
+  return status === "queued" || status === "running";
+}
+
+function cancelledError() {
+  return {
+    code: "JOB_CANCELLED",
+    userMessage: "Job was cancelled.",
+    retryable: false,
+    fallbackSuggested: false
+  };
 }
 
 function jsonValue<T>(value: unknown, fallback: T): T {
@@ -300,6 +313,52 @@ export class PostgresLivePersistenceWriteAdapter {
   private async countProjectImageAssets(projectId: string) {
     const rows = await this.client.query<Row>("SELECT COUNT(*) AS count FROM cutpilot_image_assets WHERE project_id = $1", [projectId]);
     return Number(rows.rows[0]?.count || 0);
+  }
+
+  private async refundReservedCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
+    const accountRows = await this.client.query<Row>(
+      `
+      SELECT p.credit_account_id, a.balance_credits, a.spent_credits, a.reserved_credits
+      FROM cutpilot_projects p
+      JOIN cutpilot_credit_accounts a ON a.id = p.credit_account_id
+      WHERE p.id = $1
+      FOR UPDATE
+    `,
+      [input.projectId]
+    );
+    const account = accountRows.rows[0];
+    if (!account) return;
+    const reserved = Math.max(0, Number(account.reserved_credits) - input.credits);
+    const spent = Number(account.spent_credits);
+    const balance = Number(account.balance_credits);
+    const timestamp = now();
+    await this.client.query("UPDATE cutpilot_credit_accounts SET reserved_credits = $2, updated_at = $3 WHERE id = $1", [
+      account.credit_account_id,
+      reserved,
+      timestamp
+    ]);
+    await this.client.query(
+      `
+      INSERT INTO cutpilot_credit_transactions (
+        id, project_id, job_id, kind, action, credits, provider_cost_usd,
+        margin_policy_version, balance_after, note, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `,
+      [
+        uid("ctx"),
+        input.projectId,
+        input.jobId,
+        "refund",
+        input.action,
+        input.credits,
+        0,
+        "sandbox-v1",
+        json({ spent, reserved, available: Math.max(0, balance - reserved) }),
+        input.note,
+        timestamp
+      ]
+    );
   }
 
   async createProject(input: LiveProjectCreateInput): Promise<Project> {
@@ -863,6 +922,124 @@ export class PostgresLivePersistenceWriteAdapter {
       const remainingAssets = await this.countProjectImageAssets(projectId);
       await this.client.query("COMMIT");
       return { deleted: true, assetId, blockedByUsage: false, usageCount, remainingAssets };
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async cancelJob(jobId: string): Promise<CancelJobResult> {
+    await this.client.query("BEGIN");
+    try {
+      if (jobId.startsWith("gen_")) {
+        const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [jobId]);
+        const job = jobs.rows[0];
+        if (!job) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
+        }
+        if (!isActiveJobStatus(job.status)) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: "generationJob", projectId: String(job.project_id), cancelled: false, status: job.status as JobStatus, refundedCredits: 0, reason: "job is not active" };
+        }
+        const timestamp = now();
+        const takes = await this.client.query<Row>("SELECT * FROM cutpilot_takes WHERE id = $1 LIMIT 1 FOR UPDATE", [job.take_id]);
+        const take = takes.rows[0] || null;
+        const credits = take?.upgrade_source_take_id ? 22 : 6;
+        const action: CreditTransaction["action"] = take?.upgrade_source_take_id ? "upgradeTake" : "generateShot";
+        await this.client.query("UPDATE cutpilot_generation_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, updated_at = $7 WHERE id = $1", [
+          jobId,
+          "cancelled",
+          1,
+          0,
+          "cancelled",
+          json(cancelledError()),
+          timestamp
+        ]);
+        await this.client.query("UPDATE cutpilot_provider_attempts SET status = $2, completed_at = $3 WHERE generation_job_id = $1 AND status IN ('queued', 'submitted', 'polling')", [
+          jobId,
+          "cancelled",
+          timestamp
+        ]);
+        if (take) {
+          await this.client.query("UPDATE cutpilot_takes SET status = $2, video_url = $3, poster_url = $4, metrics = $5 WHERE id = $1", [
+            take.id,
+            "cancelled",
+            null,
+            null,
+            json({})
+          ]);
+        }
+        await this.refundReservedCredits({ projectId: String(job.project_id), jobId, action, credits, note: "Generation job cancelled and reserved credits refunded" });
+        const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [job.project_id]);
+        await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+          job.project_id,
+          json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+          projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+          timestamp
+        ]);
+        await this.client.query("COMMIT");
+        return { jobId, kind: "generationJob", projectId: String(job.project_id), cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
+      }
+
+      if (jobId.startsWith("ijob_")) {
+        const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [jobId]);
+        const job = jobs.rows[0];
+        if (!job) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
+        }
+        if (!isActiveJobStatus(job.status)) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: "imageJob", projectId: String(job.project_id), cancelled: false, status: job.status as JobStatus, refundedCredits: 0, reason: "job is not active" };
+        }
+        const credits = Number(job.count) * 4;
+        const variants = jsonValue<Array<Record<string, unknown>>>(job.variants, []).map((variant) => ({ ...variant, status: "cancelled" }));
+        await this.client.query("UPDATE cutpilot_image_jobs SET status = $2, progress = $3, eta_sec = $4, error = $5, variants = $6, updated_at = $7 WHERE id = $1", [
+          jobId,
+          "cancelled",
+          1,
+          0,
+          json(cancelledError()),
+          json(variants),
+          now()
+        ]);
+        await this.refundReservedCredits({ projectId: String(job.project_id), jobId, action: "generateImages", credits, note: "Image job cancelled and reserved credits refunded" });
+        await this.client.query("COMMIT");
+        return { jobId, kind: "imageJob", projectId: String(job.project_id), cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
+      }
+
+      if (jobId.startsWith("rnd_")) {
+        const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [jobId]);
+        const job = jobs.rows[0];
+        if (!job) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
+        }
+        if (!isActiveJobStatus(job.status)) {
+          await this.client.query("COMMIT");
+          return { jobId, kind: "renderJob", projectId: String(job.project_id), cancelled: false, status: job.status as JobStatus, refundedCredits: 0, reason: "job is not active" };
+        }
+        const timestamp = now();
+        await this.client.query("UPDATE cutpilot_render_jobs SET status = $2, progress = $3, eta_sec = $4, error = $5, updated_at = $6 WHERE id = $1", [
+          jobId,
+          "cancelled",
+          1,
+          0,
+          json(cancelledError()),
+          timestamp
+        ]);
+        await this.refundReservedCredits({ projectId: String(job.project_id), jobId, action: "startRender", credits: 16, note: "Render job cancelled and reserved credits refunded" });
+        const activeRenderRows = await this.client.query<Row>("SELECT id FROM cutpilot_render_jobs WHERE project_id = $1 AND status IN ('queued', 'running') LIMIT 1", [job.project_id]);
+        if (!activeRenderRows.rows[0]) {
+          await this.client.query("UPDATE cutpilot_projects SET status = $2, updated_at = $3 WHERE id = $1 AND status = $4", [job.project_id, "edited", timestamp, "rendering"]);
+        }
+        await this.client.query("COMMIT");
+        return { jobId, kind: "renderJob", projectId: String(job.project_id), cancelled: true, status: "cancelled", refundedCredits: 16, reason: "cancelled" };
+      }
+
+      await this.client.query("COMMIT");
+      return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

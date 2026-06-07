@@ -147,6 +147,11 @@ async function main() {
     assert.equal(liveDefaultRenderWithoutDb.status, 503, "live default render update should fail closed without DATABASE_URL");
     assert.equal(liveDefaultRenderWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live default render update should report live persistence unavailability");
 
+    const liveCancelWithoutDb = await cancelJobRoute(request("POST"), context({ jobId: "gen_production" }));
+    const liveCancelWithoutDbBody = (await liveCancelWithoutDb.json()) as { code?: string };
+    assert.equal(liveCancelWithoutDb.status, 503, "live job cancellation should fail closed without DATABASE_URL");
+    assert.equal(liveCancelWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live job cancellation should report live persistence unavailability");
+
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

@@ -610,6 +610,7 @@ function assertProductionStateMutationBoundary() {
   const shotDirectionRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "direction", "route.ts"), "utf8");
   const selectTakeRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "select-take", "route.ts"), "utf8");
   const storyboardRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "storyboard", "route.ts"), "utf8");
+  const cancelJobRouteSource = readFileSync(join(appApiDir, "jobs", "[jobId]", "cancel", "route.ts"), "utf8");
   const attachReferenceRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "references", "route.ts"), "utf8");
   const detachReferenceRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "references", "[assetId]", "route.ts"), "utf8");
   assert.ok(shotDirectionRouteSource.includes("liveProjectWritesEnabled()"), "shot direction route must require the live write switch for live state changes");
@@ -621,6 +622,9 @@ function assertProductionStateMutationBoundary() {
   assert.ok(storyboardRouteSource.includes("liveProjectWritesEnabled()"), "storyboard route must require the live write switch for live state changes");
   assert.ok(storyboardRouteSource.includes("updateLiveStoryboard(projectId"), "storyboard route must call the live storyboard adapter");
   assert.ok(storyboardRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "storyboard route must fail closed when live persistence is unavailable");
+  assert.ok(cancelJobRouteSource.includes("liveProjectWritesEnabled()"), "job cancel route must require the live write switch for live state changes");
+  assert.ok(cancelJobRouteSource.includes("cancelLiveJob(jobId"), "job cancel route must call the live job cancellation adapter");
+  assert.ok(cancelJobRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "job cancel route must fail closed when live persistence is unavailable");
   assert.ok(attachReferenceRouteSource.includes("liveProjectWritesEnabled()"), "reference attach route must require the live write switch for live state changes");
   assert.ok(attachReferenceRouteSource.includes("attachLiveImageToShot(shotId"), "reference attach route must call the live reference adapter");
   assert.ok(attachReferenceRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "reference attach route must fail closed when live persistence is unavailable");
@@ -630,16 +634,19 @@ function assertProductionStateMutationBoundary() {
   assert.ok(liveRuntimeSource.includes("updateLiveShotDirection"), "live persistence runtime must expose live shot direction updates");
   assert.ok(liveRuntimeSource.includes("selectLiveTake"), "live persistence runtime must expose live take selection updates");
   assert.ok(liveRuntimeSource.includes("updateLiveStoryboard"), "live persistence runtime must expose live storyboard updates");
+  assert.ok(liveRuntimeSource.includes("cancelLiveJob"), "live persistence runtime must expose live job cancellation");
   assert.ok(liveRuntimeSource.includes("attachLiveImageToShot"), "live persistence runtime must expose live reference attachment");
   assert.ok(liveRuntimeSource.includes("detachLiveImageFromShot"), "live persistence runtime must expose live reference detach");
   assert.ok(writeAdapterSource.includes("updateShotDirection"), "live write adapter must implement shot direction updates");
   assert.ok(writeAdapterSource.includes("selectTake"), "live write adapter must implement take selection updates");
   assert.ok(writeAdapterSource.includes("updateStoryboard"), "live write adapter must implement storyboard updates");
+  assert.ok(writeAdapterSource.includes("cancelJob"), "live write adapter must implement job cancellation");
   assert.ok(writeAdapterSource.includes("attachImageToShot"), "live write adapter must implement reference attachment");
   assert.ok(writeAdapterSource.includes("detachImageFromShot"), "live write adapter must implement reference detach");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_shots"), "live write adapter must persist shot direction updates");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_projects SET progress"), "live write adapter must refresh project progress after take selection");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_scenes SET"), "live write adapter must update storyboard scenes");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_credit_transactions"), "live write adapter must record credit refunds");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_asset_usages"), "live write adapter must persist reference usages");
   assert.ok(writeAdapterSource.includes("DELETE FROM cutpilot_asset_usages"), "live write adapter must remove detached reference usages");
   const editRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "edits", "route.ts"), "utf8");
