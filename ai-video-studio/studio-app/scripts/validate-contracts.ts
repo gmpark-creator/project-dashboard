@@ -9,6 +9,7 @@ const appDir = join(process.cwd(), "app");
 const featureDir = join(process.cwd(), "src", "features");
 const domainTypesPath = join(process.cwd(), "src", "domain", "types.ts");
 const scriptsDir = join(process.cwd(), "scripts");
+const workflowPath = join(root, "..", ".github", "workflows", "ai-video-studio.yml");
 const httpMethods = ["get", "post", "put", "patch", "delete"] as const;
 
 function readJson<T>(path: string): T {
@@ -65,6 +66,7 @@ const allowedSchemaOnlyDomainDefs = new Set([
 assertNoDuplicateOpenApiResponseCodes(openApiPath);
 assertUserUiHidesProviderNames();
 assertMockTestsAreScripted();
+assertVerificationChainIsComplete();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
 
 function countChar(input: string, char: string) {
@@ -221,6 +223,17 @@ function assertMockTestsAreScripted() {
   for (const file of testFiles) {
     assert.ok(testMock.includes(`scripts/${file}`), `test:mock missing scripts/${file}`);
   }
+}
+
+function assertVerificationChainIsComplete() {
+  const expectedVerify = "npm run typecheck && npm run validate:contracts && npm run test:mock && npm audit --omit=dev && npm run build";
+  assert.equal(packageJson.scripts?.verify, expectedVerify, "verify script must run the full local validation chain");
+  const workflow = readFileSync(workflowPath, "utf8");
+  assert.ok(workflow.includes("working-directory: ai-video-studio/studio-app"), "AI Video Studio workflow must run from studio-app");
+  assert.ok(workflow.includes('node-version: "24"'), "AI Video Studio workflow must use Node 24");
+  assert.ok(workflow.includes("cache-dependency-path: ai-video-studio/studio-app/package-lock.json"), "AI Video Studio workflow must cache the app lockfile");
+  assert.ok(workflow.includes("run: npm ci"), "AI Video Studio workflow must install with npm ci");
+  assert.ok(workflow.includes("run: npm run verify"), "AI Video Studio workflow must run npm run verify");
 }
 
 function jsonSchema(response: unknown) {
