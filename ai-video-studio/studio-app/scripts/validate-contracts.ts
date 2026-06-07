@@ -403,6 +403,7 @@ assertExportedDomainTypesHaveSchemas();
 assertDomainStringLiteralUnionsMatchSchemaEnums();
 assertSchemaOnlyDomainDefsAreAllowed();
 
+assertClosedObjectSchemas(domainSchema, "domain schema root");
 for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
   assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
 }

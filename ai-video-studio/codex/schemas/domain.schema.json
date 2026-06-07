@@ -3,6 +3,7 @@
   "$id": "https://gmpark-creator.github.io/project-dashboard/ai-video-studio/codex/schemas/domain.schema.json",
   "title": "AI Video Studio Domain Schema",
   "type": "object",
+  "additionalProperties": false,
   "$defs": {
     "Intent": {
       "type": "string",
