@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { ErrorResponse, Intent } from "@/domain/types";
+import type { Intent } from "@/domain/types";
 import { decomposeIdea } from "@/server/mock-service";
+import { apiError } from "../../error-response";
 import { readJsonObject } from "../../json-body";
 
 function badRequest(userMessage: string) {
-  return NextResponse.json(
-    {
-      code: "BAD_REQUEST",
-      userMessage,
-      retryable: false,
-      fallbackSuggested: false
-    } satisfies ErrorResponse,
-    { status: 400 }
-  );
+  return apiError("BAD_REQUEST", userMessage, 400);
 }
 
 export async function POST(request: Request) {
