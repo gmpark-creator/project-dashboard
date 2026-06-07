@@ -124,6 +124,27 @@ function jsonSchemaRef(response: unknown) {
   return jsonSchema(response)?.$ref || null;
 }
 
+function requestJsonSchema(operation: OpenApiOperation) {
+  const requestBody = operation.requestBody as
+    | { content?: Record<string, { schema?: unknown }> }
+    | undefined;
+  return requestBody?.content?.["application/json"]?.schema || null;
+}
+
+function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[] = []) {
+  if (!schema || typeof schema !== "object") return;
+  const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; items?: unknown };
+  if (objectSchema.type === "object") {
+    assert.equal(objectSchema.additionalProperties, false, `${owner} request schema ${path.join(".") || "<root>"} must set additionalProperties false`);
+  }
+  if (objectSchema.properties) {
+    for (const [property, propertySchema] of Object.entries(objectSchema.properties)) {
+      assertClosedObjectSchemas(propertySchema, owner, [...path, property]);
+    }
+  }
+  if (objectSchema.items) assertClosedObjectSchemas(objectSchema.items, owner, [...path, "[]"]);
+}
+
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
   assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
@@ -332,6 +353,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
+      assertClosedObjectSchemas(requestJsonSchema(operation), `${operation.operationId || method.toUpperCase()} ${pathName}`);
     }
     if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
       assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);

@@ -41,12 +41,14 @@
               "schema": {
                 "type": "object",
                 "required": ["intent", "idea"],
+                "additionalProperties": false,
                 "properties": {
                   "title": { "type": "string" },
                   "intent": { "$ref": "../schemas/domain.schema.json#/$defs/Intent" },
                   "idea": { "type": "string" },
                   "advanced": {
                     "type": "object",
+                    "additionalProperties": false,
                     "properties": {
                       "aspect": { "$ref": "../schemas/domain.schema.json#/$defs/Aspect" },
                       "durationSec": { "type": "integer", "minimum": 1 },
@@ -114,6 +116,7 @@
               "schema": {
                 "type": "object",
                 "required": ["idea", "intent"],
+                "additionalProperties": false,
                 "properties": {
                   "idea": { "type": "string" },
                   "intent": { "$ref": "../schemas/domain.schema.json#/$defs/Intent" },
@@ -123,6 +126,7 @@
                     "items": {
                       "type": "object",
                       "required": ["url", "kind"],
+                      "additionalProperties": false,
                       "properties": {
                         "url": { "type": "string", "format": "uri" },
                         "kind": { "type": "string", "enum": ["image", "script", "product_url", "reference"] }
@@ -239,6 +243,7 @@
               "schema": {
                 "type": "object",
                 "required": ["label", "role", "url"],
+                "additionalProperties": false,
                 "properties": {
                   "label": { "type": "string" },
                   "role": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAssetRole" },
@@ -312,6 +317,7 @@
               "schema": {
                 "type": "object",
                 "required": ["prompt", "purpose", "role", "aspect"],
+                "additionalProperties": false,
                 "properties": {
                   "prompt": { "type": "string" },
                   "purpose": { "$ref": "../schemas/domain.schema.json#/$defs/ImageMakerPurpose" },
@@ -370,6 +376,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "tier": { "$ref": "../schemas/domain.schema.json#/$defs/Tier" },
                   "takeCount": { "type": "integer", "minimum": 1, "maximum": 3 }
@@ -426,6 +433,7 @@
               "schema": {
                 "type": "object",
                 "required": ["assetId", "mode"],
+                "additionalProperties": false,
                 "properties": {
                   "assetId": { "type": "string", "pattern": "^img_" },
                   "mode": { "$ref": "../schemas/domain.schema.json#/$defs/AssetUsageMode" }
@@ -485,6 +493,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "camera": { "type": "string" },
                   "composition": { "type": "string" },
@@ -530,6 +539,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "tier": { "$ref": "../schemas/domain.schema.json#/$defs/Tier" }
                 }
@@ -584,6 +594,7 @@
               "schema": {
                 "type": "object",
                 "required": ["takeId"],
+                "additionalProperties": false,
                 "properties": {
                   "takeId": { "type": "string", "pattern": "^tak_" }
                 }
@@ -624,10 +635,12 @@
               "schema": {
                 "type": "object",
                 "required": ["scope"],
+                "additionalProperties": false,
                 "properties": {
                   "scope": { "type": "string", "enum": ["shot", "segment"] },
                   "range": {
                     "type": "object",
+                    "additionalProperties": false,
                     "properties": {
                       "startSec": { "type": "number", "minimum": 0 },
                       "endSec": { "type": "number", "minimum": 0 }
@@ -686,6 +699,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "mode": { "type": "string", "enum": ["auto", "final_regenerate", "enhance", "render_upscale"], "default": "auto" }
                 }
@@ -806,6 +820,7 @@
               "schema": {
                 "type": "object",
                 "required": ["action"],
+                "additionalProperties": false,
                 "properties": {
                   "action": {
                     "type": "string",
@@ -856,6 +871,7 @@
               "schema": {
                 "type": "object",
                 "required": ["specs"],
+                "additionalProperties": false,
                 "properties": {
                   "specs": {
                     "type": "array",
@@ -916,6 +932,7 @@
               "schema": {
                 "type": "object",
                 "required": ["renderJobId"],
+                "additionalProperties": false,
                 "properties": {
                   "renderJobId": { "type": "string", "pattern": "^rnd_" }
                 }
@@ -956,6 +973,7 @@
               "schema": {
                 "type": "object",
                 "required": ["spec"],
+                "additionalProperties": false,
                 "properties": {
                   "spec": { "$ref": "../schemas/domain.schema.json#/$defs/ExportSpec" }
                 }
