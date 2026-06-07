@@ -101,6 +101,14 @@ async function main() {
     assert.equal(liveSelectTakeWithoutDb.status, 503, "live take selection should fail closed without DATABASE_URL");
     assert.equal(liveSelectTakeWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live take selection should report live persistence unavailability");
 
+    const liveAssetRegistrationWithoutDb = await registerExternalImageRoute(
+      request("POST", { label: "Reference", url: "https://assets.cutpilot.local/reference.png", role: "product", aspect: "9:16", rightsConfirmed: true }),
+      context({ projectId: "prj_production" })
+    );
+    const liveAssetRegistrationWithoutDbBody = (await liveAssetRegistrationWithoutDb.json()) as { code?: string };
+    assert.equal(liveAssetRegistrationWithoutDb.status, 503, "live asset registration should fail closed without DATABASE_URL");
+    assert.equal(liveAssetRegistrationWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live asset registration should report live persistence unavailability");
+
     const liveEditWithoutDb = await applyEditRoute(request("POST", { command: "trim opening" }), context({ projectId: "prj_production" }));
     const liveEditWithoutDbBody = (await liveEditWithoutDb.json()) as { code?: string };
     assert.equal(liveEditWithoutDb.status, 503, "live edit update should fail closed without DATABASE_URL");

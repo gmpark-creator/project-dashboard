@@ -1,6 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
-import { PostgresLivePersistenceWriteAdapter, type LiveEditAudioPatch } from "./live-persistence-write-adapter";
+import { PostgresLivePersistenceWriteAdapter, type LiveEditAudioPatch, type LiveExternalImageInput } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
 import type { DirectionSpec, ExportSpec } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
@@ -125,6 +125,13 @@ export async function setLiveDefaultRender(projectId: string, renderJobId: strin
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).setDefaultRender(projectId, renderJobId));
+}
+
+export async function registerLiveExternalImage(input: LiveExternalImageInput) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).registerExternalImage(input));
 }
 
 export async function closeLivePersistencePoolForTests() {

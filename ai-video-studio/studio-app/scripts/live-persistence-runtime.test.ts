@@ -7,6 +7,7 @@ import {
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
   liveProjectWritesEnabled,
+  registerLiveExternalImage,
   selectLiveTake,
   setLiveAudio,
   setLiveDefaultRender,
@@ -66,6 +67,17 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live default render writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () =>
+        registerLiveExternalImage({
+          projectId: "prj_disabled",
+          label: "Disabled image",
+          role: "product",
+          url: "https://assets.cutpilot.local/disabled.png"
+        }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live external image writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -105,6 +117,17 @@ async function main() {
       () => setLiveDefaultRender("prj_missing_db", "rnd_missing_db"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live default render writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () =>
+        registerLiveExternalImage({
+          projectId: "prj_missing_db",
+          label: "Missing DB image",
+          role: "product",
+          url: "https://assets.cutpilot.local/missing-db.png"
+        }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live external image writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

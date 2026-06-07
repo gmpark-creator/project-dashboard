@@ -7,6 +7,7 @@ class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
   failOnShotInsert = false;
   projectExists = true;
+  projectAspect = "9:16";
   defaultRenderJobId: string | null = null;
   projectThumbUrl: string | null = null;
   editRows: Record<string, unknown>[] = [];
@@ -17,6 +18,10 @@ class FakeClient implements PgQueryable {
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
     if (this.failOnShotInsert && sql.includes("INSERT INTO cutpilot_shots")) throw new Error("shot insert failed");
+    if (sql.includes("SELECT id, aspect FROM cutpilot_projects")) {
+      const projectRow = { id: params?.[0], aspect: this.projectAspect } as unknown as T;
+      return { rows: this.projectExists ? [projectRow] : [] };
+    }
     if (sql.includes("SELECT p.*, a.balance_credits")) {
       const projectRow = this.bundleProjectRow() as unknown as T;
       return { rows: this.projectExists ? [projectRow] : [] };
@@ -45,6 +50,8 @@ class FakeClient implements PgQueryable {
       } as unknown as T;
       return { rows: [updated] };
     }
+    if (sql.includes("INSERT INTO cutpilot_image_assets")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_reference_boards")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_projects SET default_render_job_id")) {
       this.defaultRenderJobId = String(params?.[1]);
       this.projectThumbUrl = typeof params?.[2] === "string" ? params[2] : null;
@@ -309,6 +316,40 @@ async function main() {
     "live edit state updates should surface missing projects"
   );
   assert.equal(missingProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live edit state updates should roll back missing projects");
+
+  const externalImageClient = new FakeClient();
+  externalImageClient.projectAspect = "4:5";
+  const externalImage = await new PostgresLivePersistenceWriteAdapter(externalImageClient).registerExternalImage({
+    projectId: "prj_live",
+    label: " Product reference ",
+    role: "product",
+    url: " https://assets.cutpilot.local/reference.png ",
+    rightsConfirmed: true
+  });
+  assert.ok(externalImage.id.startsWith("img_"), "live external image registration should create an image asset id");
+  assert.equal(externalImage.label, "Product reference", "live external image registration should trim labels");
+  assert.equal(externalImage.url, "https://assets.cutpilot.local/reference.png", "live external image registration should trim URLs");
+  assert.equal(externalImage.aspect, "4:5", "live external image registration should default to the project aspect");
+  assert.equal(externalImage.width, 1280, "live external image registration should derive image width from aspect");
+  assert.equal(externalImage.rights.status, "user_confirmed", "live external image registration should persist confirmed rights");
+  assert.ok(externalImageClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_image_assets")), "live external image registration should insert image assets");
+  assert.ok(externalImageClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_reference_boards") && query.sql.includes("ON CONFLICT")), "live external image registration should upsert the reference board");
+  assert.equal(externalImageClient.queries.at(-1)?.sql, "COMMIT", "live external image registration should commit successful registrations");
+
+  const missingImageProjectClient = new FakeClient();
+  missingImageProjectClient.projectExists = false;
+  await assert.rejects(
+    () =>
+      new PostgresLivePersistenceWriteAdapter(missingImageProjectClient).registerExternalImage({
+        projectId: "prj_missing",
+        label: "Missing project image",
+        role: "product",
+        url: "https://assets.cutpilot.local/reference.png"
+      }),
+    /Project not found/,
+    "live external image registration should surface missing projects"
+  );
+  assert.equal(missingImageProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live external image registration should roll back missing projects");
 
   const defaultRenderClient = new FakeClient();
   defaultRenderClient.renderJobRow = fakeRenderJob("done");

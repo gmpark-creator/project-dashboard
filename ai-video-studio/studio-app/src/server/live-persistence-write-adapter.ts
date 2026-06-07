@@ -1,10 +1,30 @@
+import { randomUUID } from "node:crypto";
 import type { DirectionSpec, EditState, Project, Shot } from "../domain/types";
-import { buildLiveDefaultEditState, buildLiveProjectCreateRecords, type LiveProjectCreateInput } from "./live-project-builder";
+import type { Aspect, ImageAsset, ImageAssetRole, ReferenceBoard } from "../domain/types";
+import {
+  buildLiveDefaultEditState,
+  buildLiveDefaultReferenceBoard,
+  buildLiveProjectCreateRecords,
+  type LiveProjectCreateInput
+} from "./live-project-builder";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 
 type Row = Record<string, unknown>;
 export type LiveEditAudioPatch = Partial<Pick<EditState, "captions" | "bgm" | "voiceover" | "transitions">>;
+export type LiveExternalImageInput = {
+  projectId: string;
+  label: string;
+  role: ImageAssetRole;
+  url: string;
+  aspect?: Aspect;
+  prompt?: string;
+  rightsConfirmed?: boolean;
+};
+type ReferenceBoardImageBucket = keyof Pick<
+  ReferenceBoard,
+  "productImages" | "characterImages" | "locationImages" | "styleImages" | "keyframes" | "thumbnails" | "logos" | "backgrounds"
+>;
 
 function now() {
   return new Date().toISOString();
@@ -12,6 +32,10 @@ function now() {
 
 function json(value: unknown) {
   return JSON.stringify(value);
+}
+
+function uid(prefix: string) {
+  return `${prefix}_${Date.now().toString(36)}_${randomUUID().slice(0, 8)}`;
 }
 
 function jsonValue<T>(value: unknown, fallback: T): T {
@@ -68,6 +92,32 @@ function rowShot(row: Row): Shot {
   };
 }
 
+function imageSize(aspect: Aspect) {
+  return (
+    {
+      "9:16": { width: 1080, height: 1920 },
+      "16:9": { width: 1920, height: 1080 },
+      "1:1": { width: 1536, height: 1536 },
+      "4:5": { width: 1280, height: 1600 }
+    } satisfies Record<Aspect, { width: number; height: number }>
+  )[aspect];
+}
+
+function boardBucket(role: ImageAssetRole): ReferenceBoardImageBucket {
+  return (
+    {
+      product: "productImages",
+      character: "characterImages",
+      location: "locationImages",
+      style: "styleImages",
+      keyframe: "keyframes",
+      thumbnail: "thumbnails",
+      logo: "logos",
+      background: "backgrounds"
+    } satisfies Record<ImageAssetRole, ReferenceBoardImageBucket>
+  )[role];
+}
+
 function mergeDirectionPatch(current: DirectionSpec, patch: Partial<DirectionSpec>): DirectionSpec {
   return {
     ...current,
@@ -99,6 +149,22 @@ function rowEditState(row: Row | null, projectId: string): EditState {
     voiceover: jsonValue<EditState["voiceover"]>(row.voiceover, buildLiveDefaultEditState(projectId).voiceover),
     transitions: row.transitions as EditState["transitions"],
     commands: jsonValue<EditState["commands"]>(row.commands, [])
+  };
+}
+
+function rowReferenceBoard(row: Row | null, projectId: string): ReferenceBoard {
+  if (!row) return buildLiveDefaultReferenceBoard(projectId);
+  return {
+    projectId,
+    productImages: jsonValue<ReferenceBoard["productImages"]>(row.product_images, []),
+    characterImages: jsonValue<ReferenceBoard["characterImages"]>(row.character_images, []),
+    locationImages: jsonValue<ReferenceBoard["locationImages"]>(row.location_images, []),
+    styleImages: jsonValue<ReferenceBoard["styleImages"]>(row.style_images, []),
+    keyframes: jsonValue<ReferenceBoard["keyframes"]>(row.keyframes, []),
+    thumbnails: jsonValue<ReferenceBoard["thumbnails"]>(row.thumbnails, []),
+    logos: jsonValue<ReferenceBoard["logos"]>(row.logos, []),
+    backgrounds: jsonValue<ReferenceBoard["backgrounds"]>(row.backgrounds, []),
+    usages: []
   };
 }
 
@@ -140,6 +206,40 @@ export class PostgresLivePersistenceWriteAdapter {
       ]
     );
     return rowEditState(rows.rows[0] || null, editState.projectId);
+  }
+
+  private async upsertReferenceBoard(board: ReferenceBoard, updatedAt: string) {
+    await this.client.query(
+      `
+      INSERT INTO cutpilot_reference_boards (
+        project_id, product_images, character_images, location_images, style_images,
+        keyframes, thumbnails, logos, backgrounds, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (project_id) DO UPDATE SET
+        product_images = EXCLUDED.product_images,
+        character_images = EXCLUDED.character_images,
+        location_images = EXCLUDED.location_images,
+        style_images = EXCLUDED.style_images,
+        keyframes = EXCLUDED.keyframes,
+        thumbnails = EXCLUDED.thumbnails,
+        logos = EXCLUDED.logos,
+        backgrounds = EXCLUDED.backgrounds,
+        updated_at = EXCLUDED.updated_at
+    `,
+      [
+        board.projectId,
+        json(board.productImages),
+        json(board.characterImages),
+        json(board.locationImages),
+        json(board.styleImages),
+        json(board.keyframes),
+        json(board.thumbnails),
+        json(board.logos),
+        json(board.backgrounds),
+        updatedAt
+      ]
+    );
   }
 
   async createProject(input: LiveProjectCreateInput): Promise<Project> {
@@ -374,6 +474,79 @@ export class PostgresLivePersistenceWriteAdapter {
       const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
       await this.client.query("COMMIT");
       return bundle;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async registerExternalImage(input: LiveExternalImageInput): Promise<ImageAsset> {
+    await this.client.query("BEGIN");
+    try {
+      const projects = await this.client.query<Row>("SELECT id, aspect FROM cutpilot_projects WHERE id = $1 FOR UPDATE", [input.projectId]);
+      const project = projects.rows[0];
+      if (!project) throw new Error("Project not found");
+
+      const timestamp = now();
+      const aspect = input.aspect || (project.aspect as Aspect);
+      const size = imageSize(aspect);
+      const label = input.label.trim();
+      const url = input.url.trim();
+      const asset: ImageAsset = {
+        id: uid("img"),
+        projectId: input.projectId,
+        kind: "image",
+        role: input.role,
+        source: "external",
+        label,
+        prompt: input.prompt?.trim() || "External image",
+        url,
+        thumbUrl: url,
+        aspect,
+        width: size.width,
+        height: size.height,
+        rights: {
+          status: input.rightsConfirmed ? "user_confirmed" : "needs_review",
+          note: input.rightsConfirmed ? "User confirmed image usage rights." : "Image usage rights require review."
+        },
+        createdAt: timestamp,
+        updatedAt: timestamp
+      };
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_image_assets (
+          id, project_id, kind, role, source, label, prompt, url, thumb_url,
+          aspect, width, height, rights, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `,
+        [
+          asset.id,
+          asset.projectId,
+          asset.kind,
+          asset.role,
+          asset.source,
+          asset.label,
+          asset.prompt,
+          asset.url,
+          asset.thumbUrl,
+          asset.aspect,
+          asset.width,
+          asset.height,
+          json(asset.rights),
+          asset.createdAt,
+          asset.updatedAt
+        ]
+      );
+
+      const boardRows = await this.client.query<Row>("SELECT * FROM cutpilot_reference_boards WHERE project_id = $1 FOR UPDATE", [input.projectId]);
+      const board = rowReferenceBoard(boardRows.rows[0] || null, input.projectId);
+      const bucket = boardBucket(asset.role);
+      if (!board[bucket].includes(asset.id)) board[bucket] = [...board[bucket], asset.id];
+      await this.upsertReferenceBoard(board, timestamp);
+      await this.client.query("UPDATE cutpilot_projects SET updated_at = $2 WHERE id = $1", [input.projectId, timestamp]);
+      await this.client.query("COMMIT");
+      return asset;
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

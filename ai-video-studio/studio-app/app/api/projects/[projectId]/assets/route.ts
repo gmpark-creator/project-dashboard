@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { listImageAssets, registerExternalImage } from "@/server/mock-service";
-import { listLiveImageAssets, liveProjectReadsEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
+import {
+  listLiveImageAssets,
+  liveProjectReadsEnabled,
+  liveProjectWritesEnabled,
+  LivePersistenceUnavailableError,
+  registerLiveExternalImage
+} from "@/server/live-persistence-runtime";
 import type { Aspect, ImageAssetRole } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
@@ -73,6 +79,29 @@ export async function POST(request: Request, context: { params: Promise<{ projec
     return apiError("BAD_REQUEST", "권리 확인 값은 boolean이어야 합니다.", 400);
   }
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectWritesEnabled()) {
+      try {
+        return NextResponse.json(
+          await registerLiveExternalImage({
+            projectId,
+            label,
+            role: body.role as ImageAssetRole,
+            url,
+            aspect: body.aspect as Aspect | undefined,
+            prompt: body.prompt as string | undefined,
+            rightsConfirmed: body.rightsConfirmed as boolean | undefined
+          }),
+          { status: 201 }
+        );
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        const serviceResponse = serviceErrorResponse(error);
+        if (serviceResponse) return serviceResponse;
+        throw error;
+      }
+    }
     return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
   }
   try {
