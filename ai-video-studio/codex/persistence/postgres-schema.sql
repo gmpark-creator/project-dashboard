@@ -1,7 +1,8 @@
 -- Cutpilot live persistence contract.
--- This file is a schema contract for the first Postgres migration, not an
--- executable migration bundle. Application ids remain text because the current
--- domain model owns stable prefixed ids such as prj_, shot_, gen_, and rnd_.
+-- This file is the SQL body for the first Postgres migration. The migration
+-- runner records schema version/checksum separately in cutpilot_schema_migrations.
+-- Application ids remain text because the current domain model owns stable
+-- prefixed ids such as prj_, shot_, gen_, and rnd_.
 
 CREATE TABLE cutpilot_credit_accounts (
   id text PRIMARY KEY,

@@ -327,6 +327,8 @@ function assertProductionMockPersistenceIsDisabled() {
 function assertPersistenceSchemaBoundary() {
   const schemaSource = readFileSync(join(codexDir, "persistence", "postgres-schema.sql"), "utf8");
   const manifestSource = readFileSync(join(serverDir, "live-persistence-contract.ts"), "utf8");
+  const migrationSource = readFileSync(join(serverDir, "live-persistence-migrations.ts"), "utf8");
+  const migrationRunnerSource = readFileSync(join(scriptsDir, "apply-persistence-migrations.ts"), "utf8");
   const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
   const requiredTables = [
@@ -356,8 +358,16 @@ function assertPersistenceSchemaBoundary() {
   assert.ok(schemaSource.includes("cutpilot_provider_attempts"), "persistence schema must preserve provider attempt telemetry");
   assert.ok(schemaSource.includes("provider_cost_usd numeric"), "persistence schema must preserve provider cost ledger fields");
   assert.ok(schemaSource.includes("storage_key text NOT NULL"), "persistence schema must preserve storage artifact keys");
+  assert.ok(migrationSource.includes("cutpilot_schema_migrations"), "persistence migrations must record applied schema versions");
+  assert.ok(migrationSource.includes("applyLivePersistenceMigration"), "persistence migrations must expose an apply function");
+  assert.ok(migrationSource.includes("ROLLBACK"), "persistence migration apply must roll back failed migrations");
+  assert.ok(migrationRunnerSource.includes("DATABASE_URL"), "persistence migration runner must require DATABASE_URL for live execution");
+  assert.ok(migrationRunnerSource.includes("--dry-run"), "persistence migration runner must support dry-run inspection");
+  assert.ok(packageJson.scripts?.["db:migrate"]?.includes("scripts/apply-persistence-migrations.ts"), "package scripts must expose db:migrate");
+  assert.ok(packageJson.scripts?.["db:migrate:dry-run"]?.includes("--dry-run"), "package scripts must expose db:migrate:dry-run");
   assert.ok(testMock.includes("scripts/persistence-schema-boundary.test.ts"), "test:mock must include persistence schema boundary coverage");
   assert.ok(testMock.includes("scripts/persistence-contract-manifest.test.ts"), "test:mock must include persistence manifest coverage");
+  assert.ok(testMock.includes("scripts/persistence-migration-runner.test.ts"), "test:mock must include persistence migration runner coverage");
 }
 
 function assertProductionPersistenceReadinessBoundary() {
