@@ -780,7 +780,7 @@
             }
           },
           "400": {
-            "description": "Missing render specs",
+            "description": "Missing or invalid render specs",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -868,7 +868,7 @@
             }
           },
           "400": {
-            "description": "Missing render spec",
+            "description": "Missing or invalid render spec",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }

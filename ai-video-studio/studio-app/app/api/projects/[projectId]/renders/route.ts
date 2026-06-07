@@ -3,15 +3,19 @@ import { startRender } from "@/server/mock-service";
 import type { ExportSpec } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
+import { isExportSpec } from "../../../export-spec";
+import { readJsonObject } from "../../../json-body";
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
-  const body = (await request.json()) as { specs?: ExportSpec[] };
-  if (!body.specs?.length) {
-    return apiError("BAD_REQUEST", "내보내기 형식이 필요합니다.", 400);
+  const body = await readJsonObject(request);
+  const specs = body?.specs;
+  if (!Array.isArray(specs) || specs.length === 0 || !specs.every(isExportSpec)) {
+    return apiError("BAD_REQUEST", "내보내기 형식이 올바르지 않습니다.", 400);
   }
+  const exportSpecs = specs as ExportSpec[];
   try {
-    return NextResponse.json(startRender(projectId, body.specs), { status: 202 });
+    return NextResponse.json(startRender(projectId, exportSpecs), { status: 202 });
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
