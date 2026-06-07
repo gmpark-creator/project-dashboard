@@ -69,6 +69,14 @@ export function getRuntimeReadiness(): RuntimeReadiness {
         : "Queue worker env is present."
     ),
     check(
+      "worker_output_policy",
+      "Worker output policy",
+      production ? "pass" : "warn",
+      production
+        ? "Successful worker completions require output payloads."
+        : "Mock mode allows successful worker completions without output payloads."
+    ),
+    check(
       "admin_access",
       "Admin access",
       missingAdminEnv.length ? (production ? "fail" : "warn") : "pass",
