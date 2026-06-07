@@ -79,6 +79,7 @@ assertProductionQueueReadinessBoundary();
 assertProductionProjectCreateBoundary();
 assertProductionWorkRequestBoundary();
 assertProductionStateMutationBoundary();
+assertProductionReadBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -517,6 +518,63 @@ function assertProductionStateMutationBoundary() {
   }
 
   assert.ok(testMock.includes("scripts/production-state-mutation-boundary.test.ts"), "test:mock must include production state mutation boundary coverage");
+}
+
+function assertProductionReadBoundary() {
+  const guardedRoutes = [
+    {
+      route: join(appApiDir, "projects", "route.ts"),
+      path: "/projects",
+      method: "get" as const,
+      operationId: "listProjects",
+      serviceCall: "listProjects()"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "route.ts"),
+      path: "/projects/{projectId}",
+      method: "get" as const,
+      operationId: "getProjectBundle",
+      serviceCall: "getProjectBundle(projectId"
+    },
+    {
+      route: join(appApiDir, "jobs", "[jobId]", "route.ts"),
+      path: "/jobs/{jobId}",
+      method: "get" as const,
+      operationId: "getJob",
+      serviceCall: "getJob(jobId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "assets", "route.ts"),
+      path: "/projects/{projectId}/assets",
+      method: "get" as const,
+      operationId: "listImageAssets",
+      serviceCall: "listImageAssets(projectId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "render-preview", "route.ts"),
+      path: "/projects/{projectId}/render-preview",
+      method: "post" as const,
+      operationId: "previewRender",
+      serviceCall: "previewRender(projectId"
+    }
+  ];
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  for (const item of guardedRoutes) {
+    const routeSource = readFileSync(item.route, "utf8");
+    const operation = openApi.paths[item.path]?.[item.method];
+    const productionCheck = routeSource.indexOf('CUTPILOT_RUNTIME_MODE === "production"');
+    const serviceCall = routeSource.indexOf(item.serviceCall);
+
+    assert.equal(operation?.operationId, item.operationId, `${item.path} must keep the expected operation id`);
+    assert.notEqual(productionCheck, -1, `${item.operationId} route must branch on production mode`);
+    assert.notEqual(serviceCall, -1, `${item.operationId} route must still call its mock read in mock mode`);
+    assert.ok(productionCheck < serviceCall, `${item.operationId} route must reject production mock reads before service call`);
+    assert.ok(routeSource.includes('apiError("MOCK_READ_UNAVAILABLE"'), `${item.operationId} route must return a stable production read unavailable code`);
+    assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed reads are unavailable"), `${item.operationId} 503 must document mock read production unavailability`);
+  }
+
+  assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
