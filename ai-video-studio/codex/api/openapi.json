@@ -251,6 +251,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ImageAsset" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid external image asset request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -424,6 +432,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid shot reference image request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           }

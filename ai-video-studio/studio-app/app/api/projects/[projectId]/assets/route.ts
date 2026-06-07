@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { listImageAssets, registerExternalImage } from "@/server/mock-service";
 import type { Aspect, ImageAssetRole } from "@/domain/types";
+import { apiError } from "../../../error-response";
+import { readJsonObject } from "../../../json-body";
+
+const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
+const validRoles = new Set<ImageAssetRole>([
+  "product",
+  "character",
+  "location",
+  "style",
+  "keyframe",
+  "thumbnail",
+  "logo",
+  "background"
+]);
 
 export async function GET(_request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
@@ -9,23 +23,36 @@ export async function GET(_request: Request, context: { params: Promise<{ projec
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
-  const body = (await request.json().catch(() => ({}))) as {
-    label?: string;
-    role?: ImageAssetRole;
-    url?: string;
-    aspect?: Aspect;
-    prompt?: string;
-    rightsConfirmed?: boolean;
-  };
+  const body = await readJsonObject(request);
+  if (!body) {
+    return apiError("BAD_REQUEST", "요청 형식이 올바르지 않습니다.", 400);
+  }
+  const label = typeof body.label === "string" ? body.label.trim() : "";
+  const url = typeof body.url === "string" ? body.url.trim() : "";
+  if (!label || !url) {
+    return apiError("BAD_REQUEST", "이미지 이름과 URL이 필요합니다.", 400);
+  }
+  if (typeof body.role !== "string" || !validRoles.has(body.role as ImageAssetRole)) {
+    return apiError("BAD_REQUEST", "지원하지 않는 이미지 역할입니다.", 400);
+  }
+  if (typeof body.aspect !== "undefined" && (typeof body.aspect !== "string" || !validAspects.has(body.aspect as Aspect))) {
+    return apiError("BAD_REQUEST", "지원하지 않는 화면 비율입니다.", 400);
+  }
+  if (typeof body.prompt !== "undefined" && typeof body.prompt !== "string") {
+    return apiError("BAD_REQUEST", "이미지 설명은 문자열이어야 합니다.", 400);
+  }
+  if (typeof body.rightsConfirmed !== "undefined" && typeof body.rightsConfirmed !== "boolean") {
+    return apiError("BAD_REQUEST", "권리 확인 값은 boolean이어야 합니다.", 400);
+  }
   return NextResponse.json(
     registerExternalImage({
       projectId,
-      label: body.label || "",
-      role: body.role || "style",
-      url: body.url || "",
-      aspect: body.aspect,
-      prompt: body.prompt,
-      rightsConfirmed: body.rightsConfirmed
+      label,
+      role: body.role as ImageAssetRole,
+      url,
+      aspect: body.aspect as Aspect | undefined,
+      prompt: body.prompt as string | undefined,
+      rightsConfirmed: body.rightsConfirmed as boolean | undefined
     }),
     { status: 201 }
   );
