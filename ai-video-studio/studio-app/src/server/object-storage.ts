@@ -8,11 +8,27 @@ export type StoredObjectDeleteResult = {
   deleted: true;
 };
 
+export type StoredObjectIngestInput = {
+  sourceUrl: string;
+  storageKey: string;
+  contentType: "video/mp4" | "image/jpeg" | "image/png" | "audio/mpeg";
+  bytes?: number | null;
+};
+
+export type StoredObjectIngestResult = {
+  provider: ObjectStorageProvider;
+  storageKey: string;
+  url: string;
+  contentType: StoredObjectIngestInput["contentType"];
+  bytes: number | null;
+  copied: true;
+};
+
 export class ObjectStorageUnavailableError extends Error {
   code = "OBJECT_STORAGE_UNAVAILABLE" as const;
 
-  constructor(provider: string, storageKey: string) {
-    super(`Object storage delete is not available for provider "${provider}" and key "${storageKey}".`);
+  constructor(provider: string, storageKey: string, operation: "delete" | "ingest" = "delete") {
+    super(`Object storage ${operation} is not available for provider "${provider}" and key "${storageKey}".`);
     this.name = "ObjectStorageUnavailableError";
   }
 }
@@ -34,4 +50,20 @@ export function deleteStoredObject(storageKey: string): StoredObjectDeleteResult
     return { provider, storageKey, deleted: true };
   }
   throw new ObjectStorageUnavailableError(provider, storageKey);
+}
+
+export function ingestStoredObject(input: StoredObjectIngestInput): StoredObjectIngestResult {
+  const provider = configuredObjectStorageProvider();
+  const production = process.env.CUTPILOT_RUNTIME_MODE === "production";
+  if (provider === "mock" && !production) {
+    return {
+      provider,
+      storageKey: input.storageKey,
+      url: input.sourceUrl,
+      contentType: input.contentType,
+      bytes: input.bytes ?? null,
+      copied: true
+    };
+  }
+  throw new ObjectStorageUnavailableError(provider, input.storageKey, "ingest");
 }

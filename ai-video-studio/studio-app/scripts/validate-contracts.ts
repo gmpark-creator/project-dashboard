@@ -261,6 +261,8 @@ function assertStorageCleanupObjectStorageBoundary() {
 
   assert.ok(objectStorageSource.includes('objectStorageProviders = ["mock", "r2"]'), "object storage boundary must declare supported providers");
   assert.ok(objectStorageSource.includes("ObjectStorageUnavailableError"), "object storage boundary must expose an unavailable error");
+  assert.ok(objectStorageSource.includes("ingestStoredObject"), "object storage boundary must expose an ingest port");
+  assert.ok(objectStorageSource.includes("StoredObjectIngestInput"), "object storage boundary must type ingest inputs");
   assert.ok(objectStorageSource.includes('process.env.CUTPILOT_RUNTIME_MODE === "production"'), "object storage boundary must branch on production mode");
   assert.notEqual(objectDeleteCall, -1, "storage cleanup must call deleteStoredObject before deleting metadata");
   assert.notEqual(metadataDelete, -1, "storage cleanup must keep an explicit media artifact metadata deletion step");
@@ -269,6 +271,8 @@ function assertStorageCleanupObjectStorageBoundary() {
   assert.ok(routeSource.includes('apiError("OBJECT_STORAGE_UNAVAILABLE"'), "storage cleanup route must return the object storage unavailable code");
   assert.ok(JSON.stringify(executeCleanup503).includes("object storage deletion is unavailable"), "executeStorageCleanup 503 must document object storage unavailability");
   assert.ok(readinessSource.includes("liveObjectStorageDeleteImplemented = false"), "readiness must expose the missing live object storage delete adapter");
+  assert.ok(readinessSource.includes("liveObjectStorageIngestImplemented = false"), "readiness must expose the missing live object storage ingest adapter");
+  assert.ok((packageJson.scripts?.["test:mock"] || "").includes("scripts/object-storage-ingest-boundary.test.ts"), "test:mock must include object storage ingest boundary coverage");
   assert.ok(readinessSource.includes("objectStorageStatus"), "readiness must derive object storage status from the adapter boundary");
 }
 
