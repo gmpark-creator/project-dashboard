@@ -126,6 +126,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const liveDecomposerImplemented = false;
   const livePersistenceImplemented = false;
   const liveObjectStorageDeleteImplemented = false;
+  const liveQueueWorkerImplemented = false;
   const decomposerConfigured = isStoryDecomposerProvider(decomposerProvider) && decomposerProvider !== "mock";
   const decomposerStatus: RuntimeReadiness["checks"][number]["status"] =
     !isStoryDecomposerProvider(decomposerProvider) || missingDecomposerEnv.length || invalidDecomposerEnv.length
@@ -170,6 +171,15 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       : production && !livePersistenceImplemented
         ? "Production persistence env is configured, but the live persistence adapter is not yet available."
         : "Mock in-memory persistence is active for local preview.";
+  const queueBaseStatus = envStatus(missingQueueEnv, invalidQueueEnv, production);
+  const queueStatus: RuntimeReadiness["checks"][number]["status"] =
+    queueBaseStatus !== "pass" ? queueBaseStatus : production && !liveQueueWorkerImplemented ? "fail" : "pass";
+  const queueDetail =
+    queueBaseStatus !== "pass"
+      ? envDetail("queue", missingQueueEnv, invalidQueueEnv, "Queue worker env is present and URL-shaped.")
+      : production && !liveQueueWorkerImplemented
+        ? "Queue worker env is configured, but the live queue worker adapter is not yet available."
+        : "Mock in-memory queue is active for local preview.";
 
   const checks: RuntimeReadiness["checks"] = [
     check(
@@ -201,8 +211,8 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     check(
       "queue_worker",
       "Queue worker",
-      envStatus(missingQueueEnv, invalidQueueEnv, production),
-      envDetail("queue", missingQueueEnv, invalidQueueEnv, "Queue worker env is present and URL-shaped.")
+      queueStatus,
+      queueDetail
     ),
     check(
       "worker_output_policy",
