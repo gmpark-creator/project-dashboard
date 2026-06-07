@@ -201,6 +201,34 @@ assert.equal(completedOutputJob.completed, true, "worker completion should accep
 assert.ok(completedOutputJob.receipt?.artifacts.some((artifact) => artifact.url === workerImageOutputUrl), "worker completion should preserve supplied image output URLs");
 assert.ok(completedOutputJob.receipt?.artifacts.some((artifact) => artifact.url === workerThumbOutputUrl), "worker completion should preserve supplied thumbnail output URLs");
 
+const productionOutputPolicyJob = createImageJob({
+  projectId: workerCompletionProject.id,
+  prompt: "Production worker output policy image",
+  purpose: "product",
+  role: "product",
+  aspect: "9:16",
+  style: "clean",
+  count: 1
+});
+const productionOutputPolicyLease = createWorkerLease({ workerId: "completion-worker-production-policy", kind: "image_generation", ttlSec: 30 });
+assert.equal(productionOutputPolicyLease.reason, "leased", "production output policy setup should lease an image job");
+assert.equal(productionOutputPolicyLease.lease?.jobId, productionOutputPolicyJob.job.id, "production output policy lease should target the policy image job");
+assert.ok(productionOutputPolicyLease.lease, "production output policy lease should exist");
+const runtimeModeBeforeOutputPolicy = process.env.CUTPILOT_RUNTIME_MODE;
+process.env.CUTPILOT_RUNTIME_MODE = "production";
+const productionMissingOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, { token: productionOutputPolicyLease.lease.token, status: "succeeded" });
+assert.equal(productionMissingOutput.completed, false, "production worker completion should require successful output payloads");
+assert.equal(productionMissingOutput.reason, "invalid_outputs", "production worker completion should reject missing output payloads");
+const productionOutputUrl = "https://assets.cutpilot.local/production-output-policy-image.png";
+const productionValidOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
+  token: productionOutputPolicyLease.lease.token,
+  status: "succeeded",
+  outputs: { imageVariants: [{ variantId: productionOutputPolicyJob.job.variants[0].id, imageUrl: productionOutputUrl }] }
+});
+assert.equal(productionValidOutput.completed, true, "production worker completion should accept valid output payloads");
+if (typeof runtimeModeBeforeOutputPolicy === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
+else process.env.CUTPILOT_RUNTIME_MODE = runtimeModeBeforeOutputPolicy;
+
 const retryImageJob = createImageJob({
   projectId: workerCompletionProject.id,
   prompt: "Worker-failed retryable product image",

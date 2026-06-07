@@ -65,7 +65,8 @@ function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>) {
 
 function validRequiredOutput(kind: WorkerDispatchKind, input: Partial<WorkerLeaseCompletionInput>) {
   if (hasInvalidProvidedOutput(input)) return false;
-  if (!input.requireOutputs) return true;
+  const requireOutputs = input.requireOutputs === true || process.env.CUTPILOT_RUNTIME_MODE === "production";
+  if (!requireOutputs) return true;
   const output = input.outputs;
   if (!output) return false;
   if (kind === "image_generation") return Boolean(output.imageVariants?.length);
