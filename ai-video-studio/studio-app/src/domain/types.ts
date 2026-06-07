@@ -121,6 +121,7 @@ export type GenerationJob = {
   shotId: string;
   takeId: string;
   projectId: string;
+  retryOfJobId: string | null;
   status: JobStatus;
   progress: number;
   etaSec: number | null;
@@ -145,6 +146,7 @@ export type ExportSpec = {
 export type RenderJob = {
   id: string;
   projectId: string;
+  retryOfJobId: string | null;
   spec: ExportSpec;
   stage: "assemble" | "audio_mix" | "caption_burn" | "encode" | "upscale" | "done";
   progress: number;
@@ -280,6 +282,7 @@ export type ImageVariant = {
 export type ImageJob = {
   id: string;
   projectId: string;
+  retryOfJobId: string | null;
   status: JobStatus;
   progress: number;
   etaSec: number | null;
@@ -760,6 +763,14 @@ export type WorkerRetryPlan = {
     render: number;
   };
   items: WorkerRetryPlanItem[];
+};
+
+export type WorkerRetryExecutionResult = {
+  sourceJobId: string;
+  executed: boolean;
+  action: WorkerRetryAction | null;
+  replacement: QueueJobSnapshot | null;
+  reason: "executed" | "not_found" | "not_retryable" | "unsupported_action" | "retry_failed";
 };
 
 export type RuntimeReadiness = {

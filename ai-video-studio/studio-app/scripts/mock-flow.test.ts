@@ -37,7 +37,7 @@ import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocat
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
-import { getWorkerRetryPlan } from "../src/server/worker-retries";
+import { executeWorkerRetry, getWorkerRetryPlan } from "../src/server/worker-retries";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -201,6 +201,17 @@ assert.ok(retryPlanItem, "worker retry plan should include retryable failed work
 assert.equal(retryPlanItem?.action, "retry_image_generation", "failed image worker completion should become an image retry action");
 assert.equal(retryPlanItem?.retryable, true, "retryable failed worker completion should be marked retryable");
 assert.equal(retryPlanItem?.fallbackSuggested, true, "retry plan should preserve fallback suggestion");
+const retryExecution = executeWorkerRetry(retryImageJob.job.id);
+assert.equal(retryExecution.executed, true, "worker retry execution should create replacement jobs for retryable failures");
+assert.equal(retryExecution.action, "retry_image_generation", "worker retry execution should preserve the planned retry action");
+assert.ok(retryExecution.replacement, "worker retry execution should return the replacement queue snapshot");
+assert.notEqual(retryExecution.replacement?.id, retryImageJob.job.id, "worker retry execution should create a new job id");
+const retriedImageJob = getMockState().imageJobs.find((job) => job.id === retryExecution.replacement?.id);
+assert.equal(retriedImageJob?.retryOfJobId, retryImageJob.job.id, "replacement image jobs should retain the source failed job id");
+assert.ok(["queued", "running"].includes(retriedImageJob?.status || ""), "replacement image jobs should remain active before worker completion");
+forceDueJobs("imageJobs");
+tickJobs();
+assert.equal(getMockState().imageJobs.find((job) => job.id === retryExecution.replacement?.id)?.status, "done", "replacement image jobs should complete through the normal image job flow");
 
 const project = createProject({
   title: "테스트 쇼츠",

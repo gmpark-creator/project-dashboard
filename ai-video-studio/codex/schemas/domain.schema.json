@@ -655,6 +655,28 @@
         "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerRetryPlanItem" } }
       }
     },
+    "WorkerRetryExecutionResult": {
+      "type": "object",
+      "required": ["sourceJobId", "executed", "action", "replacement", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "sourceJobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "executed": { "type": "boolean" },
+        "action": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerRetryAction" },
+            { "type": "null" }
+          ]
+        },
+        "replacement": {
+          "anyOf": [
+            { "$ref": "#/$defs/QueueJobSnapshot" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["executed", "not_found", "not_retryable", "unsupported_action", "retry_failed"] }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -884,13 +906,14 @@
     },
     "GenerationJob": {
       "type": "object",
-      "required": ["id", "shotId", "takeId", "projectId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage", "routing", "providerAttempts"],
+      "required": ["id", "shotId", "takeId", "projectId", "retryOfJobId", "status", "progress", "stage", "shouldFail", "dueAt", "createdAt", "updatedAt", "error", "promptPackage", "routing", "providerAttempts"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^gen_" },
         "shotId": { "type": "string", "pattern": "^sht_" },
         "takeId": { "type": "string", "pattern": "^tak_" },
         "projectId": { "type": "string", "pattern": "^prj_" },
+        "retryOfJobId": { "type": ["string", "null"], "pattern": "^(gen_|ijob_|rnd_)" },
         "status": { "$ref": "#/$defs/JobStatus" },
         "progress": { "type": "number", "minimum": 0, "maximum": 1 },
         "etaSec": { "type": ["integer", "null"], "minimum": 0 },
@@ -1134,11 +1157,12 @@
     },
     "ImageJob": {
       "type": "object",
-      "required": ["id", "projectId", "status", "progress", "etaSec", "stage", "prompt", "purpose", "role", "aspect", "style", "count", "variants", "dueAt", "createdAt", "updatedAt", "error"],
+      "required": ["id", "projectId", "retryOfJobId", "status", "progress", "etaSec", "stage", "prompt", "purpose", "role", "aspect", "style", "count", "variants", "dueAt", "createdAt", "updatedAt", "error"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^ijob_" },
         "projectId": { "type": "string", "pattern": "^prj_" },
+        "retryOfJobId": { "type": ["string", "null"], "pattern": "^(gen_|ijob_|rnd_)" },
         "status": { "$ref": "#/$defs/JobStatus" },
         "progress": { "type": "number", "minimum": 0, "maximum": 1 },
         "etaSec": { "type": ["integer", "null"], "minimum": 0 },
@@ -1300,6 +1324,7 @@
       "required": [
         "id",
         "projectId",
+        "retryOfJobId",
         "spec",
         "stage",
         "progress",
@@ -1318,6 +1343,7 @@
       "properties": {
         "id": { "type": "string", "pattern": "^rnd_" },
         "projectId": { "type": "string", "pattern": "^prj_" },
+        "retryOfJobId": { "type": ["string", "null"], "pattern": "^(gen_|ijob_|rnd_)" },
         "spec": { "$ref": "#/$defs/ExportSpec" },
         "stage": {
           "type": "string",
@@ -1595,6 +1621,7 @@
     "workerLeaseCompletionResult": { "$ref": "#/$defs/WorkerLeaseCompletionResult" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "workerRetryPlan": { "$ref": "#/$defs/WorkerRetryPlan" },
+    "workerRetryExecutionResult": { "$ref": "#/$defs/WorkerRetryExecutionResult" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },

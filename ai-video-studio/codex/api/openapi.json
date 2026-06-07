@@ -1035,6 +1035,28 @@
         }
       }
     },
+    "/system/worker-retries/{jobId}/execute": {
+      "post": {
+        "operationId": "executeWorkerRetry",
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" } }
+        ],
+        "responses": {
+          "201": {
+            "description": "Retry executed and a replacement queue job was created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult" }
+              }
+            }
+          },
+          "404": { "description": "Failed worker job is not in the retry plan" },
+          "409": { "description": "Failure is not retryable or the configured retry action failed" },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

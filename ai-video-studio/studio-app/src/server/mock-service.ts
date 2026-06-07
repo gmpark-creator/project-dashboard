@@ -333,6 +333,7 @@ function normalizeState(current: StudioState): StudioState {
   for (const job of next.generationJobs) {
     const mutableJob = job as GenerationJob & Partial<GenerationJob>;
     const shot = next.shots.find((item) => item.id === job.shotId);
+    if (typeof mutableJob.retryOfJobId === "undefined") mutableJob.retryOfJobId = null;
     if (shot && !mutableJob.promptPackage) mutableJob.promptPackage = buildGenerationPromptPackage(next as StudioState, shot);
     if (shot && mutableJob.promptPackage && typeof mutableJob.promptPackage.durationSec !== "number") {
       mutableJob.promptPackage.durationSec = shot.durationSec;
@@ -350,9 +351,16 @@ function normalizeState(current: StudioState): StudioState {
     }
   }
 
+  for (const job of next.imageJobs) {
+    const mutableJob = job as ImageJob & Partial<ImageJob>;
+    if (typeof mutableJob.retryOfJobId === "undefined") mutableJob.retryOfJobId = null;
+  }
+
   for (const job of next.renderJobs) {
-    if (!job.rightsReview) job.rightsReview = defaultRenderRightsReview();
-    if (!job.renderPlan || !(job.renderPlan as Partial<RenderPlan>).sourceHash) job.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
+    const mutableJob = job as RenderJob & Partial<RenderJob>;
+    if (typeof mutableJob.retryOfJobId === "undefined") mutableJob.retryOfJobId = null;
+    if (!mutableJob.rightsReview) mutableJob.rightsReview = defaultRenderRightsReview();
+    if (!mutableJob.renderPlan || !(mutableJob.renderPlan as Partial<RenderPlan>).sourceHash) mutableJob.renderPlan = buildRenderPlan(next as StudioState, job.projectId, job.spec);
   }
 
   backfillMediaArtifacts(next as StudioState);
@@ -935,6 +943,7 @@ export function createImageJob(input: {
   aspect: Aspect;
   style?: string;
   count?: number;
+  retryOfJobId?: string | null;
 }) {
   const current = state();
   const project = current.projects.find((item) => item.id === input.projectId);
@@ -954,6 +963,7 @@ export function createImageJob(input: {
   const job: ImageJob = {
     id: uid("ijob"),
     projectId: project.id,
+    retryOfJobId: input.retryOfJobId || null,
     status: "queued",
     progress: 0,
     etaSec: 8,
@@ -1110,7 +1120,8 @@ function makeGenerationJob(
   take: Take,
   shouldFail: boolean,
   promptPackage: GenerationPromptPackage,
-  routing: ProviderRoutingDecision
+  routing: ProviderRoutingDecision,
+  retryOfJobId: string | null = null
 ) {
   const createdAt = now();
   const job: GenerationJob = {
@@ -1118,6 +1129,7 @@ function makeGenerationJob(
     shotId: shot.id,
     takeId: take.id,
     projectId: shot.projectId,
+    retryOfJobId,
     status: "queued",
     progress: 0,
     etaSec: 6,
@@ -1159,7 +1171,7 @@ function failTake(take: Take) {
   take.metrics = {};
 }
 
-export function generateShot(shotId: string, options: { tier?: Tier; takeCount?: number } = {}) {
+export function generateShot(shotId: string, options: { tier?: Tier; takeCount?: number; retryOfJobId?: string | null } = {}) {
   const current = state();
   const shot = current.shots.find((item) => item.id === shotId);
   if (!shot) throw new Error("Shot not found");
@@ -1179,7 +1191,7 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
     const promptPackage = buildGenerationPromptPackage(current, shot);
     const routing = chooseProviderRoute(shot, promptPackage, index);
     const take = makeTake(current, shot, tier, index, `${routing.selected.provider}:${routing.selected.model}`);
-    const job = makeGenerationJob(current, shot, take, shouldFailShot, promptPackage, routing);
+    const job = makeGenerationJob(current, shot, take, shouldFailShot, promptPackage, routing, options.retryOfJobId || null);
     takes.push(take);
     jobs.push(job);
     reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation reserved" });
@@ -1411,7 +1423,7 @@ export function previewRender(projectId: string, spec: ExportSpec): RenderPrevie
   };
 }
 
-export function startRender(projectId: string, specs: ExportSpec[]) {
+export function startRender(projectId: string, specs: ExportSpec[], options: { retryOfJobId?: string | null } = {}) {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
   if (!project) throw new Error("Project not found");
@@ -1434,6 +1446,7 @@ export function startRender(projectId: string, specs: ExportSpec[]) {
   const jobs: RenderJob[] = nextSpecs.map((spec, index) => ({
     id: uid("rnd"),
     projectId,
+    retryOfJobId: options.retryOfJobId || null,
     spec,
     stage: "assemble",
     progress: 0,
