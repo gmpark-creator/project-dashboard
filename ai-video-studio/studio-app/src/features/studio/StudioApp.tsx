@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, JobStatusCounts, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
+import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -433,6 +433,128 @@ function SystemMetricsPanel({ metrics }: { metrics: SystemMetrics }) {
   );
 }
 
+// 미디어 산출물의 보관 역할(role)을 운영자용 한국어 라벨로 바꾼다. 계약상 role은 산출물의 쓰임
+// (이미지 자산/썸네일/영상 테이크/포스터/내보내기 결과)을 나타내는 분류값이라 노출해도 안전하다.
+// 원시 자산/잡 id·소유자 id·스토리지 키는 다루지 않는다.
+const artifactRoleLabels: Record<MediaArtifact["role"], string> = {
+  image_asset: "이미지 자산",
+  image_thumbnail: "이미지 썸네일",
+  take_video: "영상 테이크",
+  take_poster: "영상 포스터",
+  render_output: "내보내기 결과"
+};
+
+const artifactKindLabels: Record<AssetKind, string> = {
+  image: "이미지",
+  video: "영상",
+  audio: "오디오",
+  brand: "브랜드"
+};
+
+// 정리 상태(cleanup)별 라벨·배지 톤·설명. retain=소유 자산이 있는 저장 산출물(보관),
+// review_external=외부 연결이라 권리 확인 권장, orphaned=연결된 자산이 없어 정리 검토 대상.
+// 이는 읽기 전용 안내일 뿐이며 이 화면에서 실제 삭제/정리는 하지 않는다.
+const artifactCleanupMeta: Record<MediaArtifactCleanup, { label: string; tone: string; hint: string }> = {
+  retain: { label: "보관", tone: "ok", hint: "소유 자산이 존재하는 저장 산출물" },
+  review_external: { label: "외부 확인", tone: "fast", hint: "외부 연결 산출물 — 사용 권리 확인 권장" },
+  orphaned: { label: "미참조", tone: "warn", hint: "연결된 자산이 없어 정리 검토 대상" }
+};
+
+// 바이트 수를 사람이 읽는 단위로 축약한다. 100 이상이거나 바이트 단위면 정수로, 그 외엔 소수 1자리로.
+function formatBytes(bytes: number) {
+  if (bytes <= 0) return "0B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const exp = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+  const value = bytes / 1024 ** exp;
+  return `${value >= 100 || exp === 0 ? Math.round(value) : value.toFixed(1)}${units[exp]}`;
+}
+
+// 인벤토리 목록의 한 줄. 프로젝트 제목·보관 역할·종류·저장 위치(저장/외부)·정리 상태·참조 수·용량·
+// 상대 시각만 보여준다. 원시 url·스토리지 키·contentType·자산/잡/소유자 id 등 백엔드용 식별자는
+// 계약에 들어 있어도 화면에는 절대 노출하지 않는다(사용자/운영자 안전).
+function ArtifactRow({ item }: { item: MediaArtifactInventoryItem }) {
+  const meta = artifactCleanupMeta[item.cleanup];
+  const sizeLabel = item.artifact.bytes === null ? "용량 미상" : formatBytes(item.artifact.bytes);
+  return (
+    <li className="artifact-row">
+      <div className="artifact-main">
+        <strong className="artifact-title">{item.projectTitle}</strong>
+        <span className="artifact-sub">
+          {artifactRoleLabels[item.artifact.role]} · {artifactKindLabels[item.artifact.kind]} · {item.artifact.status === "stored" ? "저장됨" : "외부 연결"}
+        </span>
+      </div>
+      <div className="artifact-side">
+        <span className={`badge ${meta.tone}`} title={meta.hint}>{meta.label}</span>
+        <span className="artifact-meta">
+          {item.referenced ? `참조 ${item.referenceCount}` : "참조 없음"} · {sizeLabel} · {formatLedgerTime(item.artifact.createdAt)}
+        </span>
+      </div>
+    </li>
+  );
+}
+
+// 운영자용 미디어 산출물/스토리지 인벤토리 surface. 전체 프로젝트의 저장 vs 외부 산출물, 이미지/영상
+// 구성, 정리 상태(보관/외부 확인/미참조), 저장 용량·용량 미상 건수와 최근 산출물 목록을 컴팩트하게
+// 모은다. 데이터는 GET /api/system/media-artifacts(MediaArtifactInventory)에서 온다. 이 화면은
+// 읽기 전용 점검용이며 삭제/정리 동작은 제공하지 않는다. 프로바이더/모델 이름, 원시 프롬프트, 환경값,
+// 원시 자산/잡/소유자 id, 스토리지 키, url은 노출하지 않는다.
+function MediaArtifactInventoryPanel({ inventory }: { inventory: MediaArtifactInventory }) {
+  const { summary, artifacts } = inventory;
+  const time = readinessTime(inventory.generatedAt);
+  const attention = summary.orphaned + summary.reviewExternal;
+  const retained = Math.max(0, summary.total - summary.orphaned - summary.reviewExternal);
+  const recent = artifacts.slice(0, 8);
+  return (
+    <section className="panel metrics artifact-inventory" aria-label="미디어 산출물 인벤토리">
+      <div className="head">
+        <div>
+          <h2>미디어 산출물 인벤토리</h2>
+          <p className="hint">전체 프로젝트의 저장·외부 산출물과 정리 상태를 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${attention ? "warn" : "ok"}`}>{attention ? `확인 권장 ${attention}건` : "정리 양호"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">보관 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="저장됨" value={summary.stored} />
+            <Metric label="외부 연결" value={summary.external} />
+            <Metric label="이미지" value={summary.images} />
+            <Metric label="영상" value={summary.videos} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">정리 상태 · 용량</span>
+          <div className="metric-row">
+            <Metric label="보관" value={retained} tone={retained ? "ok" : undefined} />
+            <Metric label="외부 확인" value={summary.reviewExternal} tone={summary.reviewExternal ? "warn" : undefined} />
+            <Metric label="미참조" value={summary.orphaned} tone={summary.orphaned ? "warn" : undefined} />
+            <Metric label="저장 용량" value={formatBytes(summary.knownBytes)} />
+            <Metric label="용량 미상" value={`${summary.unknownBytes}건`} />
+          </div>
+          <p className="hint metrics-note">정리 상태는 읽기 전용 안내입니다. 이 화면에서 산출물을 삭제하거나 정리하지 않습니다.</p>
+        </div>
+      </div>
+      {recent.length ? (
+        <div className="artifact-list">
+          <span className="metric-block-label">최근 산출물</span>
+          <ul>
+            {recent.map((item, index) => (
+              <ArtifactRow key={`${item.artifact.createdAt}-${index}`} item={item} />
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">아직 저장된 미디어 산출물이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -446,6 +568,7 @@ export function StudioApp() {
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<RuntimeReadiness | null>(null);
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
+  const [inventory, setInventory] = useState<MediaArtifactInventory | null>(null);
   const toastTimer = useRef<number | null>(null);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
@@ -453,6 +576,11 @@ export function StudioApp() {
   // 운영 지표 조회. 실패해도 패널만 숨기고 본 작업 흐름은 막지 않는다(읽기 전용 부가 정보).
   function loadMetrics() {
     studioApi.getSystemMetrics().then(setMetrics).catch(() => {});
+  }
+
+  // 미디어 산출물 인벤토리 조회. 지표와 같은 정책으로, 실패해도 패널만 숨기고 본 흐름은 막지 않는다.
+  function loadInventory() {
+    studioApi.getMediaArtifactInventory().then(setInventory).catch(() => {});
   }
 
   const selectedShot = useMemo(() => {
@@ -497,13 +625,17 @@ export function StudioApp() {
   useEffect(() => {
     refresh().catch((error) => notify(error.message));
     loadMetrics();
+    loadInventory();
     const id = window.setInterval(async () => {
       await studioApi.tick();
       await refresh();
-      // 지표는 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은 과해서
+      // 지표·인벤토리는 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은 과해서
       // 약 5틱(~6초)마다 한 번만 갱신한다. 액션 직후에는 run/cancel 경로에서 즉시 갱신한다.
       tickCount.current += 1;
-      if (tickCount.current % 5 === 0) loadMetrics();
+      if (tickCount.current % 5 === 0) {
+        loadMetrics();
+        loadInventory();
+      }
     }, 1200);
     return () => {
       window.clearInterval(id);
@@ -529,6 +661,7 @@ export function StudioApp() {
       notify(message);
       await refresh();
       loadMetrics();
+      loadInventory();
     } catch (error) {
       notify(error instanceof Error ? error.message : "작업 중 오류가 발생했습니다.");
     }
@@ -552,6 +685,7 @@ export function StudioApp() {
     } finally {
       await refresh().catch(() => {});
       loadMetrics();
+      loadInventory();
       setCancelingJobId(null);
     }
   }
@@ -583,6 +717,7 @@ export function StudioApp() {
     } finally {
       await refresh().catch(() => {});
       loadMetrics();
+      loadInventory();
       setCancelingJobId(null);
     }
   }
@@ -669,6 +804,7 @@ export function StudioApp() {
           {view === "assets" ? (
             <AssetLibrary
               bundle={bundle}
+              inventory={inventory}
               onRegister={(input) => bundle && run(() => studioApi.registerExternalImage(bundle.project.id, input), "외부 이미지를 Asset Library에 등록했습니다.")}
               onUseAsset={(assetId, mode) => {
                 const shotId = targetShotId();
@@ -971,10 +1107,12 @@ function ImageMaker({
 
 function AssetLibrary({
   bundle,
+  inventory,
   onRegister,
   onUseAsset
 }: {
   bundle: ProjectBundle | null;
+  inventory: MediaArtifactInventory | null;
   onRegister: (input: { label: string; role: ImageAssetRole; url: string; aspect?: Project["aspect"]; prompt?: string; rightsConfirmed?: boolean }) => void;
   onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
 }) {
@@ -984,6 +1122,8 @@ function AssetLibrary({
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   if (!bundle) return <NoProject />;
   return (
+    <>
+    {inventory ? <MediaArtifactInventoryPanel inventory={inventory} /> : null}
     <div className="grid image-grid">
       <section className="panel">
         <h2>외부 이미지 등록</h2>
@@ -1028,6 +1168,7 @@ function AssetLibrary({
         <AssetGrid assets={bundle.imageAssets} onUseAsset={onUseAsset} />
       </section>
     </div>
+    </>
   );
 }
 

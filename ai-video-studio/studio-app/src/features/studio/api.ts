@@ -1,4 +1,4 @@
-import type { AssetUsage, CancelJobResult, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, Project, ProjectBundle, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
+import type { AssetUsage, CancelJobResult, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, MediaArtifactInventory, Project, ProjectBundle, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -55,5 +55,6 @@ export const studioApi = {
   cancelJob: (jobId: string) => json<CancelJobResult>(`/api/jobs/${jobId}/cancel`, { method: "POST", body: "{}" }),
   getReadiness: () => json<RuntimeReadiness>("/api/system/readiness"),
   getSystemMetrics: () => json<SystemMetrics>("/api/system/metrics"),
+  getMediaArtifactInventory: () => json<MediaArtifactInventory>("/api/system/media-artifacts"),
   tick: () => json("/api/jobs/tick", { method: "POST", body: "{}" })
 };
