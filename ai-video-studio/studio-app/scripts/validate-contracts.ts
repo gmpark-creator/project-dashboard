@@ -131,11 +131,16 @@ function requestJsonSchema(operation: OpenApiOperation) {
   return requestBody?.content?.["application/json"]?.schema || null;
 }
 
+function responseJsonSchema(response: unknown) {
+  if (!response || typeof response !== "object") return null;
+  return (response as { content?: Record<string, { schema?: unknown }> }).content?.["application/json"]?.schema || null;
+}
+
 function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[] = []) {
   if (!schema || typeof schema !== "object") return;
   const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; items?: unknown };
   if (objectSchema.type === "object") {
-    assert.equal(objectSchema.additionalProperties, false, `${owner} request schema ${path.join(".") || "<root>"} must set additionalProperties false`);
+    assert.equal(objectSchema.additionalProperties, false, `${owner} object schema ${path.join(".") || "<root>"} must set additionalProperties false`);
   }
   if (objectSchema.properties) {
     for (const [property, propertySchema] of Object.entries(objectSchema.properties)) {
@@ -364,6 +369,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
         if (documentedJsonSuccessStatuses.has(code) || documentedJsonErrorStatuses.has(code)) {
           assert.ok(jsonSchema(response), `${operation.operationId} ${code} response must declare an application/json schema`);
         }
+        assertClosedObjectSchemas(responseJsonSchema(response), `${operation.operationId || method.toUpperCase()} ${code} response`);
         const expectedRef = resultShapedErrorResponses.get(`${operation.operationId}:${code}`);
         if (expectedRef) {
           assert.equal(jsonSchemaRef(response), expectedRef, `${operation.operationId} ${code} must reference ${expectedRef}`);
