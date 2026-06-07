@@ -72,6 +72,7 @@ const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath
 assertStorageCleanupObjectStorageBoundary();
 assertMockTickProductionBoundary();
 assertProductionAutoTickIsDisabled();
+assertProductionMockPersistenceIsDisabled();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -288,6 +289,22 @@ function assertProductionAutoTickIsDisabled() {
   assert.notEqual(firstImageLoop, -1, "tickJobs must still contain the mock image job advancement loop");
   assert.ok(productionReturn < firstImageLoop, "tickJobs must return before auto-advancing mock jobs in production mode");
   assert.ok(testMock.includes("scripts/production-auto-tick-boundary.test.ts"), "test:mock must include production auto-tick boundary coverage");
+}
+
+function assertProductionMockPersistenceIsDisabled() {
+  const mockServiceSource = readFileSync(join(serverDir, "mock-service.ts"), "utf8");
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const persistStart = mockServiceSource.indexOf("function shouldPersistMockState()");
+  const productionReturn = mockServiceSource.indexOf('process.env.CUTPILOT_RUNTIME_MODE === "production"', persistStart);
+  const envPersistReturn = mockServiceSource.indexOf("process.env.CUTPILOT_MOCK_PERSIST", persistStart);
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  assert.notEqual(persistStart, -1, "mock service must define shouldPersistMockState");
+  assert.notEqual(productionReturn, -1, "shouldPersistMockState must check production mode");
+  assert.notEqual(envPersistReturn, -1, "shouldPersistMockState must still honor CUTPILOT_MOCK_PERSIST in mock mode");
+  assert.ok(productionReturn < envPersistReturn, "production mode must disable mock persistence before CUTPILOT_MOCK_PERSIST is considered");
+  assert.ok(readinessSource.includes("File-backed mock state is disabled in production mode."), "readiness must state mock persistence is disabled in production");
+  assert.ok(testMock.includes("scripts/production-mock-persistence-boundary.test.ts"), "test:mock must include production mock persistence boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
