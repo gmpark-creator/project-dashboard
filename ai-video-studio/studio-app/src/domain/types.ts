@@ -384,6 +384,33 @@ export type MediaArtifact = {
   createdAt: string;
 };
 
+export type MediaArtifactCleanup = "retain" | "review_external" | "orphaned";
+
+export type MediaArtifactInventoryItem = {
+  artifact: MediaArtifact;
+  projectTitle: string;
+  ownerExists: boolean;
+  referenced: boolean;
+  referenceCount: number;
+  cleanup: MediaArtifactCleanup;
+};
+
+export type MediaArtifactInventory = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    stored: number;
+    external: number;
+    images: number;
+    videos: number;
+    knownBytes: number;
+    unknownBytes: number;
+    orphaned: number;
+    reviewExternal: number;
+  };
+  artifacts: MediaArtifactInventoryItem[];
+};
+
 export type CancelJobResult = {
   jobId: string;
   kind: "generationJob" | "renderJob" | "imageJob" | null;

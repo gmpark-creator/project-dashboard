@@ -17,6 +17,7 @@ _*.mjs
 *.tsbuildinfo
 .cutpilot-mock-state*.json
 data/cutpilot-mock-state*.json
+ai-video-studio/studio-app/data/cutpilot-mock-state*.json
 
 # Node / Next.js
 node_modules/

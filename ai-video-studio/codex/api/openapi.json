@@ -759,6 +759,21 @@
         }
       }
     },
+    "/system/media-artifacts": {
+      "get": {
+        "operationId": "getMediaArtifactInventory",
+        "responses": {
+          "200": {
+            "description": "Read-only media artifact inventory for storage and cleanup review",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/MediaArtifactInventory" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

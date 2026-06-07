@@ -201,6 +201,48 @@
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
+    "MediaArtifactCleanup": {
+      "type": "string",
+      "enum": ["retain", "review_external", "orphaned"]
+    },
+    "MediaArtifactInventoryItem": {
+      "type": "object",
+      "required": ["artifact", "projectTitle", "ownerExists", "referenced", "referenceCount", "cleanup"],
+      "additionalProperties": false,
+      "properties": {
+        "artifact": { "$ref": "#/$defs/MediaArtifact" },
+        "projectTitle": { "type": "string" },
+        "ownerExists": { "type": "boolean" },
+        "referenced": { "type": "boolean" },
+        "referenceCount": { "type": "integer", "minimum": 0 },
+        "cleanup": { "$ref": "#/$defs/MediaArtifactCleanup" }
+      }
+    },
+    "MediaArtifactInventory": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "artifacts"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "stored", "external", "images", "videos", "knownBytes", "unknownBytes", "orphaned", "reviewExternal"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "stored": { "type": "integer", "minimum": 0 },
+            "external": { "type": "integer", "minimum": 0 },
+            "images": { "type": "integer", "minimum": 0 },
+            "videos": { "type": "integer", "minimum": 0 },
+            "knownBytes": { "type": "number", "minimum": 0 },
+            "unknownBytes": { "type": "integer", "minimum": 0 },
+            "orphaned": { "type": "integer", "minimum": 0 },
+            "reviewExternal": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "artifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifactInventoryItem" } }
+      }
+    },
     "CancelJobResult": {
       "type": "object",
       "required": ["jobId", "kind", "projectId", "cancelled", "status", "refundedCredits", "reason"],
@@ -942,6 +984,7 @@
     "projectBundle": { "$ref": "#/$defs/ProjectBundle" },
     "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
+    "mediaArtifactInventory": { "$ref": "#/$defs/MediaArtifactInventory" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },

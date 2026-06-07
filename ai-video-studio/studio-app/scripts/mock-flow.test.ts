@@ -27,6 +27,7 @@ import {
   updateStoryboard,
   upgradeTake
 } from "../src/server/mock-service";
+import { getMediaArtifactInventory } from "../src/server/artifact-inventory";
 import { getSystemMetrics } from "../src/server/metrics";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -405,6 +406,18 @@ assert.ok(metrics.providerAttempts.failed > 0, "system metrics should count fail
 assert.equal(metrics.credits.spent, metrics.credits.captured, "system metrics spent credits should match captured credit ledger");
 assert.ok(metrics.credits.refunded > 0, "system metrics should include refunded credits");
 assert.ok(metrics.mediaArtifacts.videos >= bundle.renderJobs.length, "system metrics should count video artifacts");
+
+const inventory = getMediaArtifactInventory();
+assert.equal(inventory.summary.total, metrics.mediaArtifacts.total, "artifact inventory should match system metrics artifact total");
+assert.equal(inventory.summary.images, metrics.mediaArtifacts.images, "artifact inventory should match image artifact count");
+assert.equal(inventory.summary.videos, metrics.mediaArtifacts.videos, "artifact inventory should match video artifact count");
+assert.equal(inventory.summary.external, metrics.mediaArtifacts.external, "artifact inventory should match external artifact count");
+assert.ok(inventory.summary.stored > 0, "artifact inventory should count stored artifacts");
+assert.ok(inventory.summary.reviewExternal > 0, "artifact inventory should flag external artifacts for review");
+assert.equal(inventory.summary.orphaned, 0, "mock flow should not leave orphaned artifacts after asset deletion");
+assert.ok(inventory.artifacts.every((item) => item.artifact.storageKey.startsWith(`projects/${item.artifact.projectId}/`)), "artifact inventory should expose production-shaped storage keys");
+assert.ok(inventory.artifacts.some((item) => item.artifact.role === "render_output" && item.cleanup === "retain"), "render outputs should be retained while their jobs exist");
+assert.ok(inventory.artifacts.some((item) => item.artifact.status === "external" && item.cleanup === "review_external"), "external artifacts should be marked for review instead of deletion");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,
