@@ -1090,6 +1090,14 @@
           },
           "404": { "description": "Lease not found" },
           "409": { "description": "Lease token mismatch, inactive lease, inactive job, or unsupported completion status" },
+          "422": {
+            "description": "Worker completion output payload is missing, malformed, or does not match the assigned storage keys",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult" }
+              }
+            }
+          },
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }
