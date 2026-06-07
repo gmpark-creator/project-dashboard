@@ -598,6 +598,7 @@ function assertProductionStateMutationBoundary() {
 
 function assertProductionReadBoundary() {
   const liveRuntimeSource = readFileSync(join(serverDir, "live-persistence-runtime.ts"), "utf8");
+  const liveRenderPreviewSource = readFileSync(join(serverDir, "live-render-preview.ts"), "utf8");
   const guardedRoutes = [
     {
       route: join(appApiDir, "projects", "route.ts"),
@@ -655,19 +656,25 @@ function assertProductionReadBoundary() {
   const projectBundleRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "route.ts"), "utf8");
   const projectAssetsRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "assets", "route.ts"), "utf8");
   const jobRoute = readFileSync(join(appApiDir, "jobs", "[jobId]", "route.ts"), "utf8");
+  const renderPreviewRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "render-preview", "route.ts"), "utf8");
   assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_READS"), "live persistence runtime must require an explicit live read switch");
   assert.ok(liveRuntimeSource.includes("DATABASE_URL"), "live persistence runtime must require DATABASE_URL");
   assert.ok(liveRuntimeSource.includes("PostgresLivePersistenceReadAdapter"), "live persistence runtime must return the Postgres read adapter");
+  assert.ok(liveRenderPreviewSource.includes("buildLiveRenderPreview"), "live render preview must expose a pure builder");
+  assert.ok(liveRenderPreviewSource.includes("buildLiveRenderPlan"), "live render preview must build render plans from live bundles");
   assert.ok(projectListRoute.includes("listLiveProjects()"), "project list route must support live project reads behind the switch");
   assert.ok(projectBundleRoute.includes("getLiveProjectBundle(projectId)"), "project bundle route must support live project reads behind the switch");
   assert.ok(projectAssetsRoute.includes("listLiveImageAssets(projectId)"), "project asset list route must support live asset reads behind the switch");
   assert.ok(jobRoute.includes("getLiveJob(jobId)"), "job route must support live job reads behind the switch");
+  assert.ok(renderPreviewRoute.includes("previewLiveRender(projectId"), "render preview route must support live render preview behind the switch");
   assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
   assert.ok(projectBundleRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project bundle route must fail closed when live persistence is unavailable");
   assert.ok(projectAssetsRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project asset list route must fail closed when live persistence is unavailable");
   assert.ok(jobRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "job route must fail closed when live persistence is unavailable");
+  assert.ok(renderPreviewRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "render preview route must fail closed when live persistence is unavailable");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
   assert.ok(testMock.includes("scripts/live-persistence-runtime.test.ts"), "test:mock must include live persistence runtime coverage");
+  assert.ok(testMock.includes("scripts/live-render-preview.test.ts"), "test:mock must include live render preview coverage");
 }
 
 function jsonSchema(response: unknown) {

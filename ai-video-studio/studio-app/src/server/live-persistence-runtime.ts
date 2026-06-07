@@ -1,5 +1,7 @@
 import { Pool } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
+import { buildLiveRenderPreview } from "./live-render-preview";
+import type { ExportSpec } from "../domain/types";
 
 let pool: Pool | null = null;
 
@@ -56,6 +58,11 @@ export async function listLiveImageAssets(projectId: string) {
 
 export async function getLiveJob(jobId: string) {
   return getLivePersistenceReadAdapter().getJob(jobId);
+}
+
+export async function previewLiveRender(projectId: string, spec: ExportSpec) {
+  const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
+  return bundle ? buildLiveRenderPreview(bundle, spec) : null;
 }
 
 export async function closeLivePersistencePoolForTests() {

@@ -83,6 +83,13 @@ async function main() {
     const liveJobReadBody = (await liveJobReadWithoutDb.json()) as { code?: string };
     assert.equal(liveJobReadWithoutDb.status, 503, "live job reads should fail closed without DATABASE_URL");
     assert.equal(liveJobReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live job reads should expose live persistence unavailability");
+    const liveRenderPreviewWithoutDb = await previewRenderRoute(
+      request("POST", { spec: { resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" } }),
+      context({ projectId: "prj_production" })
+    );
+    const liveRenderPreviewBody = (await liveRenderPreviewWithoutDb.json()) as { code?: string };
+    assert.equal(liveRenderPreviewWithoutDb.status, 503, "live render preview should fail closed without DATABASE_URL");
+    assert.equal(liveRenderPreviewBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live render preview should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);
