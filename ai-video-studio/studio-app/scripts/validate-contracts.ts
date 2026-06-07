@@ -367,6 +367,8 @@ const creditGuardedOperations = new Set(["createImageJob", "generateShot", "gene
 const documentedJsonSuccessStatuses = new Set(["200", "201", "202"]);
 const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", "422", "503"]);
 const serviceConflictOperations = new Set(["setDefaultRender", "startRender"]);
+const errorResponseRef = "../schemas/domain.schema.json#/$defs/ErrorResponse";
+const insufficientCreditsResponseRef = "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse";
 const pathParameterPatterns = new Map([
   ["projectId", "^prj_"],
   ["shotId", "^sht_"],
@@ -378,12 +380,14 @@ const pathParameterPatterns = new Map([
 const resultShapedErrorResponses = new Map([
   ["cancelJob:404", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
   ["cancelJob:409", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
+  ["deleteImageAsset:409", "../schemas/domain.schema.json#/$defs/AssetDeleteResult"],
   ["releaseWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult"],
   ["releaseWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseReleaseResult"],
   ["renewWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult"],
   ["renewWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult"],
   ["completeWorkerLease:404", "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult"],
   ["completeWorkerLease:409", "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult"],
+  ["completeWorkerLease:422", "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult"],
   ["executeWorkerRetry:404", "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult"],
   ["executeWorkerRetry:409", "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult"]
 ]);
@@ -476,6 +480,10 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
         if (expectedRef) {
           assert.equal(jsonSchemaRef(response), expectedRef, `${operation.operationId} ${code} must reference ${expectedRef}`);
         }
+        if (documentedJsonErrorStatuses.has(code)) {
+          const expectedErrorRef = expectedRef || (code === "402" ? insufficientCreditsResponseRef : errorResponseRef);
+          assert.equal(jsonSchemaRef(response), expectedErrorRef, `${operation.operationId} ${code} error response must reference ${expectedErrorRef}`);
+        }
       }
     }
     if (pathName.startsWith("/system/")) {
@@ -483,12 +491,12 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       assert.ok(operation.responses?.["503"], `system path ${pathName} ${method.toUpperCase()} missing 503 response`);
       assert.equal(
         jsonSchemaRef(operation.responses["401"]),
-        "../schemas/domain.schema.json#/$defs/ErrorResponse",
+        errorResponseRef,
         `system path ${pathName} ${method.toUpperCase()} 401 must reference ErrorResponse`
       );
       assert.equal(
         jsonSchemaRef(operation.responses["503"]),
-        "../schemas/domain.schema.json#/$defs/ErrorResponse",
+        errorResponseRef,
         `system path ${pathName} ${method.toUpperCase()} 503 must reference ErrorResponse`
       );
     }
