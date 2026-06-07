@@ -1550,6 +1550,16 @@ export function setDefaultRender(projectId: string, renderJobId: string): Projec
   return getProjectBundle(projectId);
 }
 
+export function getJob(jobId: string): GenerationJob | ImageJob | RenderJob | null {
+  const current = state();
+  return (
+    current.generationJobs.find((job) => job.id === jobId) ||
+    current.imageJobs.find((job) => job.id === jobId) ||
+    current.renderJobs.find((job) => job.id === jobId) ||
+    null
+  );
+}
+
 export function cancelJob(jobId: string): CancelJobResult {
   const current = state();
   const timestamp = Date.now();

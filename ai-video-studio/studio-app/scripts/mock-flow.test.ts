@@ -13,6 +13,7 @@ import {
   forceDueJobs,
   generateAll,
   generateShot,
+  getJob,
   getMutableMockState,
   getMockState,
   getProjectBundle,
@@ -179,6 +180,7 @@ let cancelBundle = getProjectBundle(cancelProject.id);
 assert.ok(cancelBundle, "cancel project bundle should exist");
 const cancelShot = cancelBundle.shots[0];
 const cancelQueued = generateShot(cancelShot.id, { takeCount: 1 });
+assert.equal(getJob(cancelQueued.jobs[0].id)?.id, cancelQueued.jobs[0].id, "getJob should return queued generation jobs");
 const cancelResult = cancelJob(cancelQueued.jobs[0].id);
 assert.equal(cancelResult.cancelled, true, "active generation jobs should be cancellable");
 assert.equal(cancelResult.kind, "generationJob", "cancel result should identify generation jobs");
@@ -211,6 +213,8 @@ const workerImageJob = createImageJob({
   style: "clean",
   count: 1
 });
+assert.equal(getJob(workerImageJob.job.id)?.id, workerImageJob.job.id, "getJob should return queued image jobs");
+assert.equal(getJob("job_missing"), null, "getJob should return null for missing jobs");
 const completionLease = createWorkerLease({ workerId: "completion-worker-a", kind: "image_generation", ttlSec: 30 });
 assert.equal(completionLease.reason, "leased", "worker completion setup should lease an image job");
 assert.equal(completionLease.lease?.jobId, workerImageJob.job.id, "worker completion lease should target the image job");
@@ -758,6 +762,7 @@ assert.equal(renderPreview.estimate.credits, 48, "render preview should expose r
 assert.equal(renderPreview.estimate.affordable, true, "render preview should expose affordability for its cost estimate");
 assert.equal(renderPreview.estimate.shortfallCredits, 0, "affordable render previews should not report a credit shortfall");
 const renderResult = startRender(project.id, [...renderSpecs]);
+assert.equal(getJob(renderResult.jobs[0].id)?.id, renderResult.jobs[0].id, "getJob should return queued render jobs");
 workerDispatch = getWorkerDispatchSnapshot();
 const renderDispatchItems = workerDispatch.items.filter((item) => item.kind === "render" && item.projectId === project.id);
 assert.equal(renderDispatchItems.length, renderResult.jobs.length, "worker dispatch snapshot should include active render jobs");

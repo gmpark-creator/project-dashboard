@@ -1,4 +1,4 @@
-import type { AssetUsage, CancelJobResult, CostEstimate, DirectionSpec, EditState, ErrorResponse, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, InsufficientCreditsResponse, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
+import type { AssetUsage, CancelJobResult, CostEstimate, DirectionSpec, EditState, ErrorResponse, ExportSpec, GenerationJob, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, InsufficientCreditsResponse, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, RenderJob, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
 
 type ApiErrorPayload = Partial<ErrorResponse> & {
   estimate?: CostEstimate;
@@ -91,6 +91,7 @@ export const studioApi = {
     json<{ jobs: unknown[] }>(`/api/projects/${projectId}/renders`, { method: "POST", body: JSON.stringify({ specs }) }),
   setDefaultRender: (projectId: string, renderJobId: string) =>
     json<ProjectBundle>(`/api/projects/${projectId}/default-render`, { method: "POST", body: JSON.stringify({ renderJobId }) }),
+  getJob: (jobId: string) => json<GenerationJob | ImageJob | RenderJob>(`/api/jobs/${jobId}`),
   cancelJob: (jobId: string) => json<CancelJobResult>(`/api/jobs/${jobId}/cancel`, { method: "POST", body: "{}" }),
   getReadiness: () => json<RuntimeReadiness>("/api/system/readiness"),
   getSystemMetrics: () => json<SystemMetrics>("/api/system/metrics"),
