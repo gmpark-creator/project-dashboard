@@ -498,6 +498,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid shot direction patch request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
