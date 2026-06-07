@@ -71,6 +71,7 @@ for (const defName of [
   "RenderSourceHash",
   "RenderPreview",
   "RenderPlan",
+  "RenderWorkerInvocation",
   "RenderRightsReview",
   "StoryboardUpdateInput",
   "AssetDeleteResult"

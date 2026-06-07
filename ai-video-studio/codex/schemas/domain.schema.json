@@ -893,6 +893,60 @@
         "edit": { "$ref": "#/$defs/EditState" }
       }
     },
+    "RenderWorkerInvocation": {
+      "type": "object",
+      "required": ["jobId", "projectId", "sourceHash", "spec", "inputs", "missingShotIds", "edit", "output", "policy"],
+      "additionalProperties": false,
+      "properties": {
+        "jobId": { "type": "string", "pattern": "^rnd_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "sourceHash": { "$ref": "#/$defs/RenderSourceHash" },
+        "spec": { "$ref": "#/$defs/ExportSpec" },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["shotId", "takeId", "order", "title", "durationSec", "videoUrl", "posterUrl"],
+            "additionalProperties": false,
+            "properties": {
+              "shotId": { "type": "string", "pattern": "^sht_" },
+              "takeId": { "type": "string", "pattern": "^tak_" },
+              "order": { "type": "integer", "minimum": 0 },
+              "title": { "type": "string" },
+              "durationSec": { "type": "number", "minimum": 1 },
+              "videoUrl": { "type": "string" },
+              "posterUrl": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "missingShotIds": { "type": "array", "items": { "type": "string", "pattern": "^sht_" } },
+        "edit": { "$ref": "#/$defs/EditState" },
+        "output": {
+          "type": "object",
+          "required": ["role", "container", "storageKey", "shareUrlRequired"],
+          "additionalProperties": false,
+          "properties": {
+            "role": { "type": "string", "const": "render_output" },
+            "container": { "type": "string", "const": "mp4" },
+            "storageKey": { "type": "string" },
+            "shareUrlRequired": { "type": "boolean" }
+          }
+        },
+        "policy": {
+          "type": "object",
+          "required": ["missingShotPolicy", "burnCaptions", "emitSrt", "audioMix", "voiceover", "transitions"],
+          "additionalProperties": false,
+          "properties": {
+            "missingShotPolicy": { "type": "string", "const": "skip_with_notice" },
+            "burnCaptions": { "type": "boolean" },
+            "emitSrt": { "type": "boolean" },
+            "audioMix": { "type": "boolean" },
+            "voiceover": { "type": "boolean" },
+            "transitions": { "type": "string", "enum": ["none", "soft"] }
+          }
+        }
+      }
+    },
     "EditState": {
       "type": "object",
       "required": ["projectId", "captions", "bgm", "voiceover", "transitions", "commands"],
@@ -1050,6 +1104,7 @@
     "take": { "$ref": "#/$defs/Take" },
     "generationJob": { "$ref": "#/$defs/GenerationJob" },
     "providerInvocation": { "$ref": "#/$defs/ProviderInvocation" },
+    "renderWorkerInvocation": { "$ref": "#/$defs/RenderWorkerInvocation" },
     "renderJob": { "$ref": "#/$defs/RenderJob" }
   }
 }

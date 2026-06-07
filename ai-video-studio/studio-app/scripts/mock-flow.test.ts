@@ -30,6 +30,7 @@ import {
 import { getMediaArtifactInventory } from "../src/server/artifact-inventory";
 import { getSystemMetrics } from "../src/server/metrics";
 import { buildProviderInvocation } from "../src/server/provider-invocation";
+import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -407,6 +408,23 @@ assert.ok(
   bundle.renderJobs.every((job) => job.renderPlan.edit.commands.some((command) => command.command.includes("CTA"))),
   "render plan should snapshot edit commands"
 );
+const renderInvocation = buildRenderWorkerInvocation(renderedBundle.renderJobs[0]);
+assert.equal(renderInvocation.jobId, renderedBundle.renderJobs[0].id, "render worker invocation should identify its render job");
+assert.equal(renderInvocation.sourceHash, renderedBundle.renderJobs[0].renderPlan.sourceHash, "render worker invocation should preserve source hash");
+assert.equal(renderInvocation.inputs.length, renderedBundle.renderJobs[0].renderPlan.shots.length, "render worker invocation should include all renderable plan shots");
+assert.deepEqual(
+  renderInvocation.inputs.map((input) => input.order),
+  renderInvocation.inputs.map((input) => input.order).sort((a, b) => a - b),
+  "render worker invocation inputs should preserve storyboard order"
+);
+assert.equal(renderInvocation.missingShotIds.length, 1, "render worker invocation should carry missing shots for worker reporting");
+assert.equal(renderInvocation.policy.missingShotPolicy, "skip_with_notice", "render worker invocation should document missing-shot behavior");
+assert.equal(renderInvocation.policy.burnCaptions, true, "burn-in renders should request caption burn");
+assert.equal(renderInvocation.policy.emitSrt, false, "burn-in-only renders should not emit srt");
+assert.equal(renderInvocation.policy.audioMix, afterAudioBundle.editState.bgm.enabled, "render worker invocation should preserve audio mix policy");
+assert.equal(renderInvocation.output.role, "render_output", "render worker invocation should declare render output role");
+assert.equal(renderInvocation.output.container, "mp4", "render worker invocation should target mp4 output");
+assert.equal(renderInvocation.output.storageKey, `projects/${renderInvocation.projectId}/renderJob/${renderInvocation.jobId}/render_output`, "render worker invocation should expose production-shaped storage key");
 assert.deepEqual(
   renderedBundle.renderJobs[0].renderPlan.shots.map((shot) => shot.order),
   renderedBundle.renderJobs[0].renderPlan.shots.map((shot) => shot.order).sort((a, b) => a - b),

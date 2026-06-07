@@ -191,6 +191,38 @@ export type RenderPlan = {
   edit: EditState;
 };
 
+export type RenderWorkerInvocation = {
+  jobId: string;
+  projectId: string;
+  sourceHash: string;
+  spec: ExportSpec;
+  inputs: Array<{
+    shotId: string;
+    takeId: string;
+    order: number;
+    title: string;
+    durationSec: number;
+    videoUrl: string;
+    posterUrl: string | null;
+  }>;
+  missingShotIds: string[];
+  edit: EditState;
+  output: {
+    role: "render_output";
+    container: "mp4";
+    storageKey: string;
+    shareUrlRequired: boolean;
+  };
+  policy: {
+    missingShotPolicy: "skip_with_notice";
+    burnCaptions: boolean;
+    emitSrt: boolean;
+    audioMix: boolean;
+    voiceover: boolean;
+    transitions: EditState["transitions"];
+  };
+};
+
 export type RenderRightsReview = {
   required: boolean;
   assetIds: string[];
