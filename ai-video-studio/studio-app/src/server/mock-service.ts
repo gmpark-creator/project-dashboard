@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { INTENT_TEMPLATES } from "../domain/templates";
+import { fileBackedMockStateStore } from "./mock-state-store";
 import { chooseProviderRoute } from "./provider-routing";
 import type {
   Aspect,
@@ -41,10 +40,6 @@ import type {
   WorkerLease,
   WorkerLeaseCompletionInput
 } from "../domain/types";
-
-const globalStore = globalThis as typeof globalThis & {
-  __aiVideoStudioMockState?: StudioState;
-};
 
 function now() {
   return new Date().toISOString();
@@ -93,35 +88,6 @@ function mockPosterUrl(id: string, label: string) {
   const hue = [...id].reduce((total, char) => total + char.charCodeAt(0), 0) % 360;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="hsl(${hue},70%,26%)"/><stop offset="1" stop-color="hsl(${(hue + 80) % 360},70%,44%)"/></linearGradient></defs><rect width="1080" height="1920" fill="url(#g)"/><circle cx="810" cy="420" r="220" fill="rgba(255,255,255,.14)"/><rect x="104" y="1230" width="872" height="264" rx="36" fill="rgba(0,0,0,.34)"/><text x="140" y="1340" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="white">Cutpilot preview</text><text x="140" y="1438" font-family="Arial, sans-serif" font-size="34" fill="rgba(255,255,255,.82)">${svgText(label)}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-}
-
-function shouldPersistMockState() {
-  if (process.env.CUTPILOT_RUNTIME_MODE === "production") return false;
-  return process.env.CUTPILOT_MOCK_PERSIST !== "0";
-}
-
-function mockStateFilePath() {
-  return join(/*turbopackIgnore: true*/ process.cwd(), "data", "cutpilot-mock-state.json");
-}
-
-function loadMockStateFromDisk(): StudioState | null {
-  if (!shouldPersistMockState()) return null;
-  const filePath = mockStateFilePath();
-  if (!existsSync(filePath)) return null;
-  try {
-    return JSON.parse(readFileSync(filePath, "utf8")) as StudioState;
-  } catch {
-    return null;
-  }
-}
-
-function persistMockStateToDisk(nextState: StudioState) {
-  if (!shouldPersistMockState()) return;
-  const filePath = mockStateFilePath();
-  mkdirSync(dirname(filePath), { recursive: true });
-  const tempPath = `${filePath}.${process.pid}.tmp`;
-  writeFileSync(tempPath, JSON.stringify(nextState, null, 2), "utf8");
-  renameSync(tempPath, filePath);
 }
 
 function blankState(): StudioState {
@@ -409,27 +375,30 @@ function normalizeState(current: StudioState): StudioState {
 }
 
 function state(): StudioState {
-  if (!globalStore.__aiVideoStudioMockState) {
-    globalStore.__aiVideoStudioMockState = loadMockStateFromDisk() || blankState();
+  let current = fileBackedMockStateStore.readMemory();
+  if (!current) {
+    current = fileBackedMockStateStore.loadPersisted() || blankState();
   }
-  globalStore.__aiVideoStudioMockState = normalizeState(globalStore.__aiVideoStudioMockState);
-  return globalStore.__aiVideoStudioMockState;
+  current = normalizeState(current);
+  fileBackedMockStateStore.writeMemory(current);
+  return current;
 }
 
 function write(nextState = state()) {
   nextState.updatedAt = now();
-  globalStore.__aiVideoStudioMockState = nextState;
-  persistMockStateToDisk(nextState);
+  fileBackedMockStateStore.writeMemory(nextState);
+  fileBackedMockStateStore.persist(nextState);
   return nextState;
 }
 
 export function resetMockState() {
-  globalStore.__aiVideoStudioMockState = blankState();
-  return write(globalStore.__aiVideoStudioMockState);
+  const nextState = blankState();
+  fileBackedMockStateStore.writeMemory(nextState);
+  return write(nextState);
 }
 
 export function reloadMockStateFromDisk() {
-  globalStore.__aiVideoStudioMockState = undefined;
+  fileBackedMockStateStore.writeMemory(undefined);
   return state();
 }
 
