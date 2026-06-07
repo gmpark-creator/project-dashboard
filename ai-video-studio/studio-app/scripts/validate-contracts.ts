@@ -280,6 +280,9 @@ for (const path of Object.values(openApi.paths)) {
 for (const operation of requiredOperations) {
   assert.ok(operationIds.has(operation), `openapi missing operation ${operation}`);
 }
+for (const operation of operationIds) {
+  assert.ok(requiredOperations.has(operation), `openapi operation ${operation} missing from requiredOperations`);
+}
 
 for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
   const routeFile = routeFileForOpenApiPath(pathName);
