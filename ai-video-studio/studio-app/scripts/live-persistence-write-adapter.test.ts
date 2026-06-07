@@ -192,6 +192,14 @@ class FakeClient implements PgQueryable {
       }
       return { rows: [] as T[] };
     }
+    if (sql.includes("UPDATE cutpilot_shots SET status = $2, requirements = $3 WHERE id = $1")) {
+      const current = this.shotRows.find((shot) => shot.id === params?.[0]) || this.shotRows[0];
+      if (current) {
+        current.status = params?.[1];
+        current.requirements = typeof params?.[2] === "string" ? JSON.parse(params[2]) : params?.[2];
+      }
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_shots SET") && sql.includes("scene_id = $2")) {
       const current = this.shotRows.find((shot) => shot.id === params?.[0]) || this.shotRows[0];
       if (current) {
@@ -519,6 +527,32 @@ async function main() {
     false,
     "live shot generation should not insert jobs when the first credit reservation fails"
   );
+
+  const upgradeClient = new FakeClient();
+  upgradeClient.shotRows = [fakeShotRow()];
+  upgradeClient.takeRow = fakeTakeRow("done");
+  const upgradeResult = await new PostgresLivePersistenceWriteAdapter(upgradeClient).upgradeTake("tak_done", { mode: "enhance" });
+  assert.equal(upgradeResult.take.tier, "final", "live take upgrade should create a final-tier take");
+  assert.equal(upgradeResult.take.upgradeSourceTakeId, "tak_done", "live take upgrade should preserve the source take id");
+  assert.equal(upgradeResult.take.upgradeMode, "enhance", "live take upgrade should persist the requested mode");
+  assert.equal(upgradeResult.job.providerAttempts.length, 1, "live take upgrade should create an initial provider attempt");
+  assert.equal(upgradeClient.creditReserved, 22, "live take upgrade should reserve upgrade credits");
+  assert.equal(upgradeClient.creditTransactionCount, 1, "live take upgrade should record a reserve transaction");
+  assert.equal(upgradeClient.shotRows[0].status, "generating", "live take upgrade should mark the source shot generating");
+  assert.equal((upgradeClient.shotRows[0].requirements as Record<string, unknown>).tier, "final", "live take upgrade should persist final shot tier");
+  assert.ok(upgradeClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_takes") && query.sql.includes("upgrade_source_take_id")), "live take upgrade should insert an upgrade take");
+  assert.ok(upgradeClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_generation_jobs")), "live take upgrade should insert a generation job");
+  assert.ok(upgradeClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_provider_attempts")), "live take upgrade should insert a provider attempt");
+  assert.equal(upgradeClient.queries.at(-1)?.sql, "COMMIT", "live take upgrade should commit successful jobs");
+
+  const unfinishedUpgradeClient = new FakeClient();
+  unfinishedUpgradeClient.takeRow = fakeTakeRow("running");
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(unfinishedUpgradeClient).upgradeTake("tak_done", { mode: "enhance" }),
+    /Done take not found/,
+    "live take upgrade should reject unfinished source takes"
+  );
+  assert.equal(unfinishedUpgradeClient.queries.at(-1)?.sql, "ROLLBACK", "live take upgrade should roll back unfinished source takes");
 
   const directionClient = new FakeClient();
   directionClient.shotRows = [fakeShotRow()];

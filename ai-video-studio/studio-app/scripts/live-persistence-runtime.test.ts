@@ -18,7 +18,8 @@ import {
   setLiveAudio,
   setLiveDefaultRender,
   updateLiveStoryboard,
-  updateLiveShotDirection
+  updateLiveShotDirection,
+  upgradeLiveTake
 } from "../src/server/live-persistence-runtime";
 
 const managedEnvNames = ["CUTPILOT_ENABLE_LIVE_READS", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL", "DATABASE_SSL", "DATABASE_SSL_REJECT_UNAUTHORIZED"];
@@ -107,6 +108,11 @@ async function main() {
       () => generateLiveShot("sht_disabled", { tier: "fast", takeCount: 1 }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live shot generation writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => upgradeLiveTake("tak_disabled", { mode: "final_regenerate" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live take upgrade writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => attachLiveImageToShot("sht_disabled", { assetId: "img_disabled", mode: "first_frame" }),
@@ -201,6 +207,11 @@ async function main() {
       () => generateLiveShot("sht_missing_db", { tier: "fast", takeCount: 1 }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live shot generation writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => upgradeLiveTake("tak_missing_db", { mode: "final_regenerate" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live take upgrade writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => attachLiveImageToShot("sht_missing_db", { assetId: "img_missing_db", mode: "first_frame" }),

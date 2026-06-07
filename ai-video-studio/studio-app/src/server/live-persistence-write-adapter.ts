@@ -42,6 +42,9 @@ export type LiveShotGenerateInput = {
   takeCount?: number;
   retryOfJobId?: string | null;
 };
+export type LiveTakeUpgradeInput = {
+  mode?: NonNullable<Take["upgradeMode"]>;
+};
 export type LiveStoryboardScenePatch = Partial<Pick<Scene, "order" | "title" | "setting" | "timeOfDay">> & { id: string };
 export type LiveStoryboardShotPatch = Partial<Pick<Shot, "order" | "sceneId" | "title" | "durationSec">> & {
   id: string;
@@ -135,6 +138,28 @@ function rowShot(row: Row): Shot {
       notes: ""
     })
   };
+}
+
+function rowTake(row: Row): Take {
+  const take: Take = {
+    id: String(row.id),
+    shotId: String(row.shot_id),
+    projectId: String(row.project_id),
+    label: String(row.label),
+    status: row.status as Take["status"],
+    videoUrl: nullableString(row.video_url),
+    posterUrl: nullableString(row.poster_url),
+    durationSec: Number(row.duration_sec),
+    tier: row.tier as Take["tier"],
+    engineUsed: nullableString(row.engine_used),
+    metrics: jsonValue<Take["metrics"]>(row.metrics, {}),
+    createdAt: String(row.created_at)
+  };
+  const upgradeSourceTakeId = nullableString(row.upgrade_source_take_id);
+  const upgradeMode = nullableString(row.upgrade_mode);
+  if (upgradeSourceTakeId) take.upgradeSourceTakeId = upgradeSourceTakeId;
+  if (upgradeMode) take.upgradeMode = upgradeMode as Take["upgradeMode"];
+  return take;
 }
 
 function imageSize(aspect: Aspect) {
@@ -1013,6 +1038,177 @@ export class PostgresLivePersistenceWriteAdapter {
       ]);
       await this.client.query("COMMIT");
       return { takes, jobs };
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async upgradeTake(takeId: string, input: LiveTakeUpgradeInput = {}): Promise<{ take: Take; job: GenerationJob }> {
+    await this.client.query("BEGIN");
+    try {
+      const sourceRows = await this.client.query<Row>("SELECT * FROM cutpilot_takes WHERE id = $1 LIMIT 1 FOR UPDATE", [takeId]);
+      const sourceRow = sourceRows.rows[0];
+      if (!sourceRow || sourceRow.status !== "done") throw new Error("Done take not found");
+      const source = rowTake(sourceRow);
+
+      const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [source.shotId]);
+      const shotRow = shotRows.rows[0];
+      if (!shotRow) throw new Error("Source shot not found");
+      const currentShot = rowShot(shotRow);
+      const shot: Shot = {
+        ...currentShot,
+        status: "generating",
+        requirements: { ...currentShot.requirements, tier: "final" }
+      };
+      const referenceRows = await this.client.query<Row>(
+        `
+        SELECT u.asset_id, u.role, u.mode, a.url, a.rights
+        FROM cutpilot_asset_usages u
+        JOIN cutpilot_image_assets a ON a.id = u.asset_id AND a.project_id = u.project_id
+        WHERE u.project_id = $1 AND u.target = $2 AND u.target_id = $3
+      `,
+        [shot.projectId, "shot", shot.id]
+      );
+      const promptPackage = generationPromptPackage(shot, referenceRows.rows.map(rowGenerationReference));
+      const routing = chooseProviderRoute(shot, promptPackage, 0);
+      const createdAt = now();
+      const take: Take = {
+        id: uid("tak"),
+        shotId: shot.id,
+        projectId: shot.projectId,
+        label: "Publish",
+        status: "queued",
+        videoUrl: null,
+        posterUrl: null,
+        durationSec: shot.durationSec,
+        tier: "final",
+        engineUsed: `${routing.selected.provider}:${routing.selected.model}`,
+        metrics: {},
+        createdAt,
+        upgradeSourceTakeId: source.id,
+        upgradeMode: input.mode || "final_regenerate"
+      };
+      const attempt = providerAttempt(routing.selected, createdAt);
+      const job: GenerationJob = {
+        id: uid("gen"),
+        shotId: shot.id,
+        takeId: take.id,
+        projectId: shot.projectId,
+        retryOfJobId: null,
+        status: "queued",
+        progress: 0,
+        etaSec: 6,
+        stage: "queued",
+        shouldFail: false,
+        dueAt: Date.now() + 2500 + (shot.order % 4) * 650,
+        createdAt,
+        updatedAt: createdAt,
+        error: null,
+        promptPackage,
+        routing,
+        providerAttempts: [attempt]
+      };
+
+      await this.reserveCredits({
+        projectId: shot.projectId,
+        jobId: job.id,
+        action: "upgradeTake",
+        credits: 22,
+        note: "Publishing quality upgrade reserved"
+      });
+      await this.client.query("UPDATE cutpilot_shots SET status = $2, requirements = $3 WHERE id = $1", [
+        shot.id,
+        shot.status,
+        json(shot.requirements)
+      ]);
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_takes (
+          id, shot_id, project_id, label, status, video_url, poster_url,
+          duration_sec, tier, engine_used, metrics, created_at,
+          upgrade_source_take_id, upgrade_mode
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      `,
+        [
+          take.id,
+          take.shotId,
+          take.projectId,
+          take.label,
+          take.status,
+          take.videoUrl,
+          take.posterUrl,
+          take.durationSec,
+          take.tier,
+          take.engineUsed,
+          json(take.metrics),
+          take.createdAt,
+          take.upgradeSourceTakeId,
+          take.upgradeMode
+        ]
+      );
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_generation_jobs (
+          id, project_id, shot_id, take_id, retry_of_job_id, status, progress,
+          eta_sec, stage, should_fail, due_at, error, prompt_package, routing,
+          created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      `,
+        [
+          job.id,
+          job.projectId,
+          job.shotId,
+          job.takeId,
+          job.retryOfJobId,
+          job.status,
+          job.progress,
+          job.etaSec,
+          job.stage,
+          job.shouldFail,
+          job.dueAt,
+          job.error ? json(job.error) : null,
+          json(job.promptPackage),
+          json(job.routing),
+          job.createdAt,
+          job.updatedAt
+        ]
+      );
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_provider_attempts (
+          id, generation_job_id, provider, model, request_id, status,
+          started_at, completed_at, latency_ms, error_code, retryable, fallback_suggested
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `,
+        [
+          attempt.id,
+          job.id,
+          attempt.provider,
+          attempt.model,
+          attempt.requestId,
+          attempt.status,
+          attempt.startedAt,
+          attempt.completedAt,
+          attempt.latencyMs,
+          attempt.errorCode,
+          attempt.retryable,
+          attempt.fallbackSuggested
+        ]
+      );
+
+      const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [shot.projectId]);
+      await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+        shot.projectId,
+        json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+        projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+        now()
+      ]);
+      await this.client.query("COMMIT");
+      return { take, job };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;
