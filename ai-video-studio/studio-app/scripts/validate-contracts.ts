@@ -7,6 +7,7 @@ const codexDir = join(root, "codex");
 const appApiDir = join(process.cwd(), "app", "api");
 const appDir = join(process.cwd(), "app");
 const featureDir = join(process.cwd(), "src", "features");
+const serverDir = join(process.cwd(), "src", "server");
 const domainTypesPath = join(process.cwd(), "src", "domain", "types.ts");
 const scriptsDir = join(process.cwd(), "scripts");
 const workflowPath = join(root, "..", ".github", "workflows", "ai-video-studio.yml");
@@ -68,6 +69,7 @@ assertUserUiHidesProviderNames();
 assertMockTestsAreScripted();
 assertVerificationChainIsComplete();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
+assertStorageCleanupObjectStorageBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -234,6 +236,29 @@ function assertVerificationChainIsComplete() {
   assert.ok(workflow.includes("cache-dependency-path: ai-video-studio/studio-app/package-lock.json"), "AI Video Studio workflow must cache the app lockfile");
   assert.ok(workflow.includes("run: npm ci"), "AI Video Studio workflow must install with npm ci");
   assert.ok(workflow.includes("run: npm run verify"), "AI Video Studio workflow must run npm run verify");
+}
+
+function assertStorageCleanupObjectStorageBoundary() {
+  const objectStorageSource = readFileSync(join(serverDir, "object-storage.ts"), "utf8");
+  const cleanupSource = readFileSync(join(serverDir, "storage-cleanup.ts"), "utf8");
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const routeSource = readFileSync(join(appApiDir, "system", "storage-cleanup", "route.ts"), "utf8");
+  const objectDeleteCall = cleanupSource.indexOf("deleteStoredObject(item.storageKey)");
+  const metadataDelete = cleanupSource.indexOf("current.mediaArtifacts = current.mediaArtifacts.filter");
+  const executeCleanup = openApi.paths["/system/storage-cleanup"]?.post;
+  const executeCleanup503 = executeCleanup?.responses?.["503"];
+
+  assert.ok(objectStorageSource.includes('objectStorageProviders = ["mock", "r2"]'), "object storage boundary must declare supported providers");
+  assert.ok(objectStorageSource.includes("ObjectStorageUnavailableError"), "object storage boundary must expose an unavailable error");
+  assert.ok(objectStorageSource.includes('process.env.CUTPILOT_RUNTIME_MODE === "production"'), "object storage boundary must branch on production mode");
+  assert.notEqual(objectDeleteCall, -1, "storage cleanup must call deleteStoredObject before deleting metadata");
+  assert.notEqual(metadataDelete, -1, "storage cleanup must keep an explicit media artifact metadata deletion step");
+  assert.ok(objectDeleteCall < metadataDelete, "storage cleanup must confirm object deletion before metadata deletion");
+  assert.ok(routeSource.includes("ObjectStorageUnavailableError"), "storage cleanup route must catch object storage unavailable errors");
+  assert.ok(routeSource.includes('apiError("OBJECT_STORAGE_UNAVAILABLE"'), "storage cleanup route must return the object storage unavailable code");
+  assert.ok(JSON.stringify(executeCleanup503).includes("object storage deletion is unavailable"), "executeStorageCleanup 503 must document object storage unavailability");
+  assert.ok(readinessSource.includes("liveObjectStorageDeleteImplemented = false"), "readiness must expose the missing live object storage delete adapter");
+  assert.ok(readinessSource.includes("objectStorageStatus"), "readiness must derive object storage status from the adapter boundary");
 }
 
 function jsonSchema(response: unknown) {
