@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
+import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
 import { studioApi } from "./api";
 
-type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
+type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export" | "ops";
 
 const titles: Record<View, [string, string]> = {
   dashboard: ["프로젝트", "진행 중인 비주얼 프로젝트와 완료된 렌더를 확인합니다"],
@@ -15,7 +15,8 @@ const titles: Record<View, [string, string]> = {
   storyboard: ["스토리보드", "장면과 컷을 확인하고 전체 생성을 시작합니다"],
   compare: ["비교 선택", "컷별 후보를 보고 선택하거나 해당 컷만 다시 시도합니다"],
   edit: ["다듬기", "자막, 사운드, 보이스, 전환을 저장합니다"],
-  export: ["내보내기", "선택된 컷을 여러 길이의 렌더 잡으로 보냅니다"]
+  export: ["내보내기", "선택된 컷을 여러 길이의 렌더 잡으로 보냅니다"],
+  ops: ["운영", "워커·큐·엔진·스토리지 상태를 읽기 전용으로 점검합니다"]
 };
 
 function statusLabel(status: string) {
@@ -226,9 +227,13 @@ function nextViewForBundle(nextBundle: ProjectBundle) {
 const readinessCheckLabels: Record<string, string> = {
   runtime_mode: "런타임 모드",
   mock_persistence: "목업 저장소",
+  persistence: "영속성 저장소",
   provider_credentials: "프로바이더 키",
+  provider_execution: "엔진 실행",
+  story_decomposer: "스토리 분해",
   object_storage: "오브젝트 스토리지",
   queue_worker: "큐 워커",
+  worker_output_policy: "워커 산출물 정책",
   admin_access: "관리자 접근"
 };
 
@@ -683,6 +688,540 @@ function JobQueueSnapshotPanel({ queue }: { queue: JobQueueSnapshot }) {
   );
 }
 
+// ── 운영 콘솔(Operations Console) 패널 ─────────────────────────────────────────
+// 워커 파이프라인(디스패치→리스→완료→재시도)·엔진 헬스·런타임 점검을 읽기 전용으로 모으는 운영자 surface.
+// 계약상 섞여 오는 raw id·token·provider/model 실명·storageKey·url·workerId·dispatchKey는 절대 노출하지
+// 않고, summary 집계와 안전 라벨(종류·상태·단계·상대시간·집계 수치)만 그린다. 데이터는 GET /api/system/*
+// 운영자 스냅샷에서 오며 admin-guard라 권한이 없으면 호출이 실패하므로, 상위에서 흡수하고 패널을 숨긴다.
+
+// 워커 작업 종류(provider_generation/image_generation/render) → 한국어. 큐 라벨과 어휘를 맞춘다.
+const workerKindLabels: Record<WorkerDispatchKind, string> = {
+  provider_generation: "영상 생성",
+  image_generation: "이미지",
+  render: "내보내기"
+};
+
+// ISO 만료 시각을 "N분 후 만료" 형태 상대시간으로. 이미 지난 만료는 "만료 임박"으로 흡수한다.
+function expiresInLabel(iso: string) {
+  const ms = new Date(iso).getTime();
+  if (Number.isNaN(ms)) return "";
+  const diffSec = Math.round((ms - Date.now()) / 1000);
+  if (diffSec <= 0) return "만료 임박";
+  if (diffSec < 60) return `${diffSec}초 후 만료`;
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min}분 후 만료`;
+  return `${Math.floor(min / 60)}시간 후 만료`;
+}
+
+// 워커 디스패치 스냅샷. 엔진에 전달 대기·진행 중인 작업을 종류별 분포·기한 초과 중심으로 요약한다.
+// dispatchKey·jobId·projectId·invocation은 노출하지 않고 종류·상태·단계·예상 시간만 보여준다.
+function WorkerDispatchPanel({ dispatch }: { dispatch: WorkerDispatchSnapshot }) {
+  const { summary, items } = dispatch;
+  const time = readinessTime(dispatch.generatedAt);
+  const rows = [...items]
+    .sort((a, b) => {
+      const aActive = a.status === "running" ? 0 : 1;
+      const bActive = b.status === "running" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return a.dueAt - b.dueAt;
+    })
+    .slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="워커 디스패치">
+      <div className="head">
+        <div>
+          <h2>워커 디스패치</h2>
+          <p className="hint">엔진에 전달 대기·진행 중인 작업을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.running + summary.queued ? "fast" : "ok"}`}>{summary.running + summary.queued ? `진행 중 ${summary.running + summary.queued}건` : "대기 작업 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">디스패치 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="대기" value={summary.queued} />
+            <Metric label="진행" value={summary.running} />
+            <Metric label="기한 초과" value={summary.overdue} tone={summary.overdue ? "warn" : undefined} />
+            <Metric label="다음 마감" value={formatDueIn(summary.nextDueAt)} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">종류별</span>
+          <div className="metric-row">
+            <Metric label="영상 생성" value={summary.providerGeneration} />
+            <Metric label="이미지" value={summary.imageGeneration} />
+            <Metric label="내보내기" value={summary.render} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">진행·대기 작업</span>
+          <ul>
+            {rows.map((item, index) => (
+              <li className="queue-row" key={`${item.kind}-${item.updatedAt}-${index}`}>
+                <div className="queue-main">
+                  <strong className="queue-title">{workerKindLabels[item.kind]}</strong>
+                  <span className="queue-sub">
+                    {queueStageLabel(item.stage)}
+                    {item.etaSec !== null ? ` · 예상 ${formatSeconds(item.etaSec)}` : ""}
+                  </span>
+                </div>
+                <div className="queue-side">
+                  <span className={`badge ${item.status === "running" ? "fast" : ""}`}>{item.status === "running" ? "진행" : "대기"}</span>
+                  <span className="queue-meta">
+                    {formatDueIn(item.dueAt)}
+                    {item.cancelable ? " · 취소 가능" : ""}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">현재 디스패치 대기·진행 작업이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+const leaseStatusMeta: Record<WorkerLeaseStatus, { label: string; tone: string }> = {
+  active: { label: "진행 중", tone: "fast" },
+  released: { label: "반납됨", tone: "" },
+  expired: { label: "만료", tone: "warn" }
+};
+
+// 워커 리스 스냅샷. 워커가 작업을 점유(리스)한 현황. active를 만료 임박 순으로 상위 8건만 보여준다.
+// token·workerId·dispatchKey·jobId 등 식별자는 노출하지 않고 종류·상태·만료 상대시간만 보여준다.
+function WorkerLeasePanel({ leases }: { leases: WorkerLeaseSnapshot }) {
+  const { summary } = leases;
+  const time = readinessTime(leases.generatedAt);
+  const rows = [...leases.leases]
+    .sort((a, b) => {
+      const aActive = a.status === "active" ? 0 : 1;
+      const bActive = b.status === "active" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime();
+    })
+    .slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="워커 리스">
+      <div className="head">
+        <div>
+          <h2>워커 리스</h2>
+          <p className="hint">워커가 점유 중인 작업과 만료 현황을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.active ? "fast" : "ok"}`}>{summary.active ? `점유 중 ${summary.active}건` : "점유 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">리스 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="진행 중" value={summary.active} tone={summary.active ? "ok" : undefined} />
+            <Metric label="반납됨" value={summary.released} />
+            <Metric label="만료" value={summary.expired} tone={summary.expired ? "warn" : undefined} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">최근 리스</span>
+          <ul>
+            {rows.map((lease, index) => {
+              const meta = leaseStatusMeta[lease.status];
+              const when =
+                lease.status === "active"
+                  ? expiresInLabel(lease.expiresAt)
+                  : lease.status === "released"
+                    ? lease.releasedAt
+                      ? `${formatLedgerTime(lease.releasedAt)} 반납`
+                      : "반납됨"
+                    : "만료됨";
+              return (
+                <li className="queue-row" key={`${lease.kind}-${lease.leasedAt}-${index}`}>
+                  <div className="queue-main">
+                    <strong className="queue-title">{workerKindLabels[lease.kind]}</strong>
+                    <span className="queue-sub">{formatLedgerTime(lease.leasedAt)} 점유</span>
+                  </div>
+                  <div className="queue-side">
+                    <span className={`badge ${meta.tone}`}>{meta.label}</span>
+                    <span className="queue-meta">{when}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">현재 점유 중인 리스가 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+const completionStatusMeta: Record<WorkerCompletionStatus, { label: string; tone: string }> = {
+  succeeded: { label: "성공", tone: "ok" },
+  failed: { label: "실패", tone: "warn" },
+  cancelled: { label: "취소", tone: "" }
+};
+
+// 워커 완료 수령증 스냅샷. 완료된 작업의 성공/실패·산출물 수·확정/환불 크레딧을 집계한다. jobId·
+// completionKey·원시 error·artifacts는 노출하지 않고 종류·상태·집계 수치만 보여준다.
+function WorkerCompletionPanel({ completions }: { completions: WorkerCompletionSnapshot }) {
+  const { summary } = completions;
+  const time = readinessTime(completions.generatedAt);
+  const rows = [...completions.receipts]
+    .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+    .slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="워커 완료">
+      <div className="head">
+        <div>
+          <h2>워커 완료</h2>
+          <p className="hint">완료된 작업의 결과와 크레딧 정산을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.failed ? "warn" : "ok"}`}>{summary.failed ? `실패 ${summary.failed}건` : `성공 ${summary.succeeded}건`}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">완료 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="성공" value={summary.succeeded} tone={summary.succeeded ? "ok" : undefined} />
+            <Metric label="실패" value={summary.failed} tone={summary.failed ? "warn" : undefined} />
+            <Metric label="취소" value={summary.cancelled} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">산출물 · 크레딧</span>
+          <div className="metric-row">
+            <Metric label="산출물" value={summary.artifactCount} />
+            <Metric label="확정 ⚡" value={summary.capturedCredits} />
+            <Metric label="환불 ⚡" value={summary.refundedCredits} tone={summary.refundedCredits ? "ok" : undefined} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">최근 완료</span>
+          <ul>
+            {rows.map((receipt, index) => {
+              const meta = completionStatusMeta[receipt.status];
+              return (
+                <li className="queue-row" key={`${receipt.kind}-${receipt.completedAt}-${index}`}>
+                  <div className="queue-main">
+                    <strong className="queue-title">{workerKindLabels[receipt.kind]}</strong>
+                    <span className="queue-sub">
+                      산출물 {receipt.summary.artifactCount}
+                      {receipt.summary.capturedCredits ? ` · 확정 ${receipt.summary.capturedCredits}⚡` : ""}
+                      {receipt.summary.refundedCredits ? ` · 환불 ${receipt.summary.refundedCredits}⚡` : ""}
+                    </span>
+                  </div>
+                  <div className="queue-side">
+                    <span className={`badge ${meta.tone}`}>{meta.label}</span>
+                    <span className="queue-meta">{formatLedgerTime(receipt.completedAt)}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">아직 완료된 작업이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+const retryActionLabels: Record<WorkerRetryAction, string> = {
+  retry_provider_generation: "영상 재생성",
+  retry_image_generation: "이미지 재생성",
+  retry_render: "내보내기 재시도",
+  hold: "보류"
+};
+
+// 워커 재시도 계획. 실패 작업을 재시도 가능/보류로 분류한 읽기 전용 계획. 실제 재시도 실행은 운영
+// 런북(Codex 백엔드) 영역이라 이 화면에서 실행하지 않는다. receipt의 id는 노출하지 않는다.
+function WorkerRetryPlanPanel({ plan }: { plan: WorkerRetryPlan }) {
+  const { summary } = plan;
+  const time = readinessTime(plan.generatedAt);
+  const rows = plan.items.slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="재시도 계획">
+      <div className="head">
+        <div>
+          <h2>재시도 계획</h2>
+          <p className="hint">실패 작업의 재시도 가능 여부를 읽기 전용으로 분류합니다. 여기서 직접 재시도하지 않습니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.retryable ? "fast" : summary.totalFailed ? "warn" : "ok"}`}>{summary.totalFailed ? `재시도 가능 ${summary.retryable}/${summary.totalFailed}` : "실패 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">분류</span>
+          <div className="metric-row">
+            <Metric label="실패" value={summary.totalFailed} tone={summary.totalFailed ? "warn" : undefined} />
+            <Metric label="재시도 가능" value={summary.retryable} tone={summary.retryable ? "ok" : undefined} />
+            <Metric label="보류" value={summary.hold} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">종류별</span>
+          <div className="metric-row">
+            <Metric label="영상 생성" value={summary.providerGeneration} />
+            <Metric label="이미지" value={summary.imageGeneration} />
+            <Metric label="내보내기" value={summary.render} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">계획 항목</span>
+          <ul>
+            {rows.map((item, index) => (
+              <li className="queue-row" key={`${item.receipt.kind}-${index}`}>
+                <div className="queue-main">
+                  <strong className="queue-title">{workerKindLabels[item.receipt.kind]}</strong>
+                  <span className="queue-sub">
+                    {retryActionLabels[item.action]}
+                    {item.fallbackSuggested ? " · 대체 권장" : ""}
+                  </span>
+                </div>
+                <div className="queue-side">
+                  <span className={`badge ${item.retryable ? "fast" : ""}`}>{item.retryable ? "재시도 가능" : "보류"}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">재시도할 실패 작업이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+// 워커 재시도 실행 스냅샷. 재시도로 만들어진 교체 작업 이력. 교체 누락은 점검 신호다. sourceJobId·
+// replacementJobId 등 id는 노출하지 않고 동작·교체 종류·시각만 보여준다.
+function WorkerRetryExecutionPanel({ executions }: { executions: WorkerRetryExecutionSnapshot }) {
+  const { summary } = executions;
+  const time = readinessTime(executions.generatedAt);
+  const rows = [...executions.items]
+    .sort((a, b) => new Date(b.record.createdAt).getTime() - new Date(a.record.createdAt).getTime())
+    .slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="재시도 실행">
+      <div className="head">
+        <div>
+          <h2>재시도 실행</h2>
+          <p className="hint">재시도로 생성된 교체 작업 이력을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.missingReplacement ? "warn" : "ok"}`}>{summary.missingReplacement ? `교체 누락 ${summary.missingReplacement}건` : `교체 ${summary.withReplacement}건`}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">실행 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="교체 있음" value={summary.withReplacement} tone={summary.withReplacement ? "ok" : undefined} />
+            <Metric label="교체 누락" value={summary.missingReplacement} tone={summary.missingReplacement ? "warn" : undefined} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">종류별</span>
+          <div className="metric-row">
+            <Metric label="영상 생성" value={summary.providerGeneration} />
+            <Metric label="이미지" value={summary.imageGeneration} />
+            <Metric label="내보내기" value={summary.render} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">최근 재시도</span>
+          <ul>
+            {rows.map((item, index) => (
+              <li className="queue-row" key={`${item.record.createdAt}-${index}`}>
+                <div className="queue-main">
+                  <strong className="queue-title">{retryActionLabels[item.record.action]}</strong>
+                  <span className="queue-sub">
+                    교체 {queueKindLabels[item.record.replacementKind]}
+                    {item.replacementMissing ? " · 교체 누락" : ""}
+                  </span>
+                </div>
+                <div className="queue-side">
+                  <span className={`badge ${item.replacementMissing ? "warn" : "ok"}`}>{item.replacementMissing ? "누락" : "생성됨"}</span>
+                  <span className="queue-meta">{formatLedgerTime(item.record.createdAt)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">아직 재시도 실행 이력이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+// 엔진 상태 스냅샷. 생성 엔진의 가용성을 점검하되, 제품 원칙(P1: 모델명 숨김)과 노출 금지 규칙에 따라
+// provider/model 실명·reason은 절대 노출하지 않고 상태 분포와 기능 지원 개수만 집계로 보여준다.
+function ProviderHealthPanel({ health }: { health: ProviderHealthSnapshot }) {
+  const { summary, targets } = health;
+  const time = readinessTime(health.generatedAt);
+  const attention = summary.degraded + summary.down;
+  const audioCount = targets.filter((target) => target.supportsAudio === true || target.supportsAudio === "true").length;
+  const imageInput = targets.filter((target) => target.input.includes("image")).length;
+  const textInput = targets.filter((target) => target.input.includes("text")).length;
+  return (
+    <section className="panel metrics" aria-label="엔진 상태">
+      <div className="head">
+        <div>
+          <h2>엔진 상태</h2>
+          <p className="hint">생성 엔진의 가용성을 이름 없이 집계로만 점검합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${attention ? "warn" : "ok"}`}>{attention ? `점검 권장 ${attention}개` : "전체 정상"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">가용성</span>
+          <div className="metric-row">
+            <Metric label="모니터링" value={summary.total} />
+            <Metric label="정상" value={summary.healthy} tone={summary.healthy ? "ok" : undefined} />
+            <Metric label="주의" value={summary.degraded} tone={summary.degraded ? "warn" : undefined} />
+            <Metric label="중단" value={summary.down} tone={summary.down ? "warn" : undefined} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">기능 지원</span>
+          <div className="metric-row">
+            <Metric label="오디오" value={audioCount} />
+            <Metric label="이미지 입력" value={imageInput} />
+            <Metric label="텍스트 입력" value={textInput} />
+          </div>
+          <p className="hint metrics-note">엔진·모델 이름은 표시하지 않고 가용성·기능만 집계합니다.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// 운영 콘솔용 런타임 점검 패널. 상단 배지(RuntimeReadinessBadge)와 같은 데이터를 쓰되, 콘솔에서는
+// 클릭 없이 점검 항목을 펼쳐 보여준다. 환경변수는 이름만 노출하고 값은 보여주지 않는다.
+function ReadinessConsolePanel({ readiness }: { readiness: RuntimeReadiness }) {
+  const production = readiness.mode === "production";
+  const attention = readiness.checks.filter((item) => item.status === "warn" || item.status === "fail").length;
+  const time = readinessTime(readiness.generatedAt);
+  const modeLabel = production ? "운영 모드" : "목업 모드";
+  const stateLabel = production ? (readiness.ready ? "준비됨" : "점검 필요") : attention ? "확인 권장" : "정상";
+  return (
+    <section className="panel metrics" aria-label="런타임 점검">
+      <div className="head">
+        <div>
+          <h2>런타임 점검</h2>
+          <p className="hint">{modeLabel} · {stateLabel}</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${attention ? "warn" : "ok"}`}>{attention ? `확인 권장 ${attention}건` : "정상"}</span>
+          {time ? <span className="hint">{time} 점검</span> : null}
+        </div>
+      </div>
+      <ul className="readiness-list">
+        {readiness.checks.map((item) => (
+          <li key={item.id} className={`readiness-item status-${item.status}`}>
+            <span className="readiness-item-dot" aria-hidden="true" />
+            <span className="readiness-item-label">{readinessCheckLabels[item.id] || item.label}</span>
+            <span className="readiness-item-status">{readinessStatusText[item.status]}</span>
+          </li>
+        ))}
+      </ul>
+      {readiness.missingEnv.length ? (
+        <div className="readiness-env">
+          <span className="readiness-env-title">누락 환경변수</span>
+          <div className="readiness-env-chips">
+            {readiness.missingEnv.map((name) => (
+              <code key={name} className="readiness-env-chip">{name}</code>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+// 운영 콘솔. 워커·큐·엔진·런타임 상태를 한 화면에 모은 읽기 전용 운영자 surface. 로드된 패널만 렌더하고
+// 권한/네트워크로 모두 실패하면 안내를 보여준다. 이 화면은 어떤 작업도 변경·중단하지 않는다.
+function OperationsConsole({
+  readiness,
+  metrics,
+  queue,
+  dispatch,
+  leases,
+  completions,
+  retryPlan,
+  retryExecutions,
+  providerHealth
+}: {
+  readiness: RuntimeReadiness | null;
+  metrics: SystemMetrics | null;
+  queue: JobQueueSnapshot | null;
+  dispatch: WorkerDispatchSnapshot | null;
+  leases: WorkerLeaseSnapshot | null;
+  completions: WorkerCompletionSnapshot | null;
+  retryPlan: WorkerRetryPlan | null;
+  retryExecutions: WorkerRetryExecutionSnapshot | null;
+  providerHealth: ProviderHealthSnapshot | null;
+}) {
+  const anyLoaded =
+    readiness || metrics || queue || dispatch || leases || completions || retryPlan || retryExecutions || providerHealth;
+  return (
+    <>
+      <div className="head">
+        <div>
+          <h2>운영 콘솔</h2>
+          <p className="hint">워커·큐·엔진·런타임 상태를 한곳에서 읽기 전용으로 점검합니다. 이 화면에서는 어떤 작업도 멈추거나 변경하지 않습니다.</p>
+        </div>
+      </div>
+      {readiness ? <ReadinessConsolePanel readiness={readiness} /> : null}
+      {metrics ? <SystemMetricsPanel metrics={metrics} /> : null}
+      {queue ? <JobQueueSnapshotPanel queue={queue} /> : null}
+      {dispatch ? <WorkerDispatchPanel dispatch={dispatch} /> : null}
+      {leases ? <WorkerLeasePanel leases={leases} /> : null}
+      {completions ? <WorkerCompletionPanel completions={completions} /> : null}
+      {retryPlan ? <WorkerRetryPlanPanel plan={retryPlan} /> : null}
+      {retryExecutions ? <WorkerRetryExecutionPanel executions={retryExecutions} /> : null}
+      {providerHealth ? <ProviderHealthPanel health={providerHealth} /> : null}
+      {!anyLoaded ? (
+        <div className="empty">
+          <div>
+            <h2>운영 데이터를 불러오지 못했습니다</h2>
+            <p>운영 권한이 필요한 화면일 수 있습니다. 잠시 후 자동으로 다시 시도합니다.</p>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -698,6 +1237,13 @@ export function StudioApp() {
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [inventory, setInventory] = useState<MediaArtifactInventory | null>(null);
   const [queue, setQueue] = useState<JobQueueSnapshot | null>(null);
+  // 운영 콘솔(ops 뷰) 전용 운영자 스냅샷. 콘솔에 있는 동안에만 조회하고, 실패한 것만 패널을 숨긴다.
+  const [dispatch, setDispatch] = useState<WorkerDispatchSnapshot | null>(null);
+  const [leases, setLeases] = useState<WorkerLeaseSnapshot | null>(null);
+  const [completions, setCompletions] = useState<WorkerCompletionSnapshot | null>(null);
+  const [retryPlan, setRetryPlan] = useState<WorkerRetryPlan | null>(null);
+  const [retryExecutions, setRetryExecutions] = useState<WorkerRetryExecutionSnapshot | null>(null);
+  const [providerHealth, setProviderHealth] = useState<ProviderHealthSnapshot | null>(null);
   const toastTimer = useRef<number | null>(null);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
@@ -715,6 +1261,19 @@ export function StudioApp() {
   // 작업 큐 스냅샷 조회. 지표·인벤토리와 같은 정책으로, 실패해도 패널만 숨기고 본 흐름은 막지 않는다.
   function loadQueue() {
     studioApi.getJobQueueSnapshot().then(setQueue).catch(() => {});
+  }
+
+  // 운영 콘솔용 운영자 스냅샷 일괄 조회. 모두 admin-guard라 권한이 없으면 실패하므로 각 패널을 독립적으로
+  // 갱신하고, 실패한 것만 숨긴다(본 작업 흐름 비차단). 콘솔(ops 뷰)에 있는 동안에만 호출한다.
+  function loadOps() {
+    studioApi.getWorkerDispatch().then(setDispatch).catch(() => {});
+    studioApi.getWorkerLeases().then(setLeases).catch(() => {});
+    studioApi.getWorkerCompletions().then(setCompletions).catch(() => {});
+    studioApi.getWorkerRetryPlan().then(setRetryPlan).catch(() => {});
+    studioApi.getWorkerRetryExecutions().then(setRetryExecutions).catch(() => {});
+    studioApi.getProviderHealth().then(setProviderHealth).catch(() => {});
+    loadMetrics();
+    loadQueue();
   }
 
   const selectedShot = useMemo(() => {
@@ -790,6 +1349,16 @@ export function StudioApp() {
   useEffect(() => {
     studioApi.getReadiness().then(setReadiness).catch(() => setReadiness(null));
   }, []);
+
+  // 운영 콘솔(ops) 화면에 있는 동안에만 운영자 스냅샷을 주기적으로 갱신한다. 다른 화면에서는 호출하지
+  // 않아 불필요한 운영자 API 부하를 피한다. 화면을 떠나면 인터벌을 정리한다.
+  useEffect(() => {
+    if (view !== "ops") return;
+    loadOps();
+    const id = window.setInterval(loadOps, 4000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   useEffect(() => {
     const projectTitle = bundle?.project.title ? ` · ${bundle.project.title}` : "";
@@ -1048,6 +1617,19 @@ export function StudioApp() {
                 goToView("assets");
                 notify("Asset Library에서 외부 이미지의 사용 권리와 동의를 확인하세요.");
               }}
+            />
+          ) : null}
+          {view === "ops" ? (
+            <OperationsConsole
+              readiness={readiness}
+              metrics={metrics}
+              queue={queue}
+              dispatch={dispatch}
+              leases={leases}
+              completions={completions}
+              retryPlan={retryPlan}
+              retryExecutions={retryExecutions}
+              providerHealth={providerHealth}
             />
           ) : null}
         </section>

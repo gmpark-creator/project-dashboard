@@ -1,4 +1,4 @@
-import type { AssetUsage, CancelJobResult, CostEstimate, DirectionSpec, EditState, ErrorResponse, ExportSpec, GenerationJob, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, InsufficientCreditsResponse, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, RenderJob, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
+import type { AssetUsage, CancelJobResult, CostEstimate, DirectionSpec, EditState, ErrorResponse, ExportSpec, GenerationJob, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, InsufficientCreditsResponse, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, ProviderHealthSnapshot, RenderJob, RenderPreview, RuntimeReadiness, Scene, Shot, StorageCleanupExecutionSnapshot, StorageCleanupPlan, SystemMetrics, Tier, WorkerCompletionSnapshot, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
 
 type ApiErrorPayload = Partial<ErrorResponse> & {
   estimate?: CostEstimate;
@@ -99,5 +99,16 @@ export const studioApi = {
   getSystemMetrics: () => json<SystemMetrics>("/api/system/metrics"),
   getMediaArtifactInventory: () => json<MediaArtifactInventory>("/api/system/media-artifacts"),
   getJobQueueSnapshot: () => json<JobQueueSnapshot>("/api/system/queue"),
+  // 운영 콘솔용 읽기 전용 운영자 스냅샷. 모두 admin-guard라 권한이 없으면 실패하므로 호출부에서 조용히
+  // 흡수하고 패널만 숨긴다(본 작업 흐름은 막지 않음). 응답에 섞인 raw id·token·provider명·storageKey·url은
+  // 화면에 노출하지 않고, 컴포넌트가 집계·안전 라벨만 그린다.
+  getProviderHealth: () => json<ProviderHealthSnapshot>("/api/system/provider-health"),
+  getWorkerDispatch: () => json<WorkerDispatchSnapshot>("/api/system/worker-dispatch"),
+  getWorkerLeases: () => json<WorkerLeaseSnapshot>("/api/system/worker-leases"),
+  getWorkerCompletions: () => json<WorkerCompletionSnapshot>("/api/system/worker-completions"),
+  getWorkerRetryPlan: () => json<WorkerRetryPlan>("/api/system/worker-retries"),
+  getWorkerRetryExecutions: () => json<WorkerRetryExecutionSnapshot>("/api/system/worker-retries/executions"),
+  getStorageCleanupPlan: () => json<StorageCleanupPlan>("/api/system/storage-cleanup"),
+  getStorageCleanupExecutions: () => json<StorageCleanupExecutionSnapshot>("/api/system/storage-cleanup/executions"),
   tick: () => json<JobQueueSnapshot>("/api/jobs/tick", { method: "POST", body: "{}" })
 };
