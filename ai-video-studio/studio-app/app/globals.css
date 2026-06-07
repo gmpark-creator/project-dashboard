@@ -1575,9 +1575,11 @@ label {
   margin-top: 2px;
 }
 
-/* 미디어 산출물 인벤토리. 운영 지표 패널(.metrics)의 블록 구조를 재사용하고, 최근 산출물은 중첩
-   카드 없이 상단 구분선으로만 나뉘는 목록(.ledger와 동일 패턴)으로 보여준다. */
-.artifact-list {
+/* 미디어 산출물 인벤토리와 작업 큐 스냅샷. 운영 지표 패널(.metrics)의 블록 구조를 재사용하고, 목록은
+   중첩 카드 없이 상단 구분선으로만 나뉘는 행(.ledger와 동일 패턴)으로 보여준다. 두 운영 surface가
+   동일한 행 레이아웃을 쓰므로 .artifact-*와 .queue-* 선택자를 함께 묶어 한 곳에서 관리한다. */
+.artifact-list,
+.queue-list {
   margin-top: 14px;
   padding-top: 13px;
   border-top: 1px solid var(--line);
@@ -1586,7 +1588,8 @@ label {
   gap: 4px;
 }
 
-.artifact-list ul {
+.artifact-list ul,
+.queue-list ul {
   list-style: none;
   margin: 4px 0 0;
   padding: 0;
@@ -1594,7 +1597,8 @@ label {
   gap: 0;
 }
 
-.artifact-row {
+.artifact-row,
+.queue-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -1604,11 +1608,13 @@ label {
   border-top: 1px solid var(--line);
 }
 
-.artifact-row:first-child {
+.artifact-row:first-child,
+.queue-row:first-child {
   border-top: 0;
 }
 
-.artifact-main {
+.artifact-main,
+.queue-main {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1616,20 +1622,23 @@ label {
   flex: 1 1 200px;
 }
 
-.artifact-title {
+.artifact-title,
+.queue-title {
   font-size: 13px;
   font-weight: 800;
   color: var(--text);
   overflow-wrap: anywhere;
 }
 
-.artifact-sub {
+.artifact-sub,
+.queue-sub {
   font-size: 12px;
   color: var(--dim);
   overflow-wrap: anywhere;
 }
 
-.artifact-side {
+.artifact-side,
+.queue-side {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1639,7 +1648,8 @@ label {
   text-align: right;
 }
 
-.artifact-meta {
+.artifact-meta,
+.queue-meta {
   font-size: 12px;
   color: var(--muted);
   overflow-wrap: anywhere;

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
+import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -556,6 +556,133 @@ function MediaArtifactInventoryPanel({ inventory }: { inventory: MediaArtifactIn
   );
 }
 
+// 큐 잡 종류(generation/image/render)를 운영자용 한국어 라벨로 바꾼다. 계약상 kind는 작업 분류값이라
+// 노출해도 안전하다. 원시 잡/프로젝트 id는 다루지 않는다.
+const queueKindLabels: Record<QueueJobKind, string> = {
+  generation: "영상 생성",
+  image: "이미지",
+  render: "내보내기"
+};
+
+// 큐 잡의 진행 단계(stage)를 한국어로 바꾼다. 종류별로 단계 어휘가 달라(이미지/렌더/영상 생성) 알려진
+// 단계는 매핑하고, 미정의 값은 원문으로 폴백한다. stage는 워크플로 단계 라벨일 뿐 식별자가 아니다.
+const queueStageLabels: Record<string, string> = {
+  queued: "대기 중",
+  prompting: "요구사항 정리 중",
+  generating: "생성 중",
+  saving: "저장 중",
+  assemble: "컷 합치는 중",
+  audio_mix: "소리 입히는 중",
+  caption_burn: "자막 입히는 중",
+  encode: "인코딩 중",
+  upscale: "고해상도 처리 중",
+  done: "완료",
+  failed: "실패"
+};
+
+function queueStageLabel(stage: string) {
+  return queueStageLabels[stage] || stage;
+}
+
+// 마감 시각(epoch ms)을 "지금 / N초 후 / N분 후 / N시간 후"의 짧은 상대 시간으로 표시한다. null이면 —.
+// 이미 지난 마감은 "지금"으로 흡수한다(기한 초과 건수는 요약에서 별도로 센다).
+function formatDueIn(epochMs: number | null) {
+  if (epochMs === null) return "—";
+  const diffSec = Math.round((epochMs - Date.now()) / 1000);
+  if (diffSec <= 0) return "지금";
+  if (diffSec < 60) return `${diffSec}초 후`;
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min}분 후`;
+  const hr = Math.floor(min / 60);
+  return `${hr}시간 후`;
+}
+
+// 운영자용 작업 큐/워커 스냅샷 surface. 전체 프로젝트의 큐 작업을 대기/진행/진행 중/취소 가능/실패/취소/
+// 기한 초과/다음 마감으로 요약하고, 최근·진행 작업을 종류·상태·단계·진행률·예상 시간만으로 짧게 보여준다.
+// 데이터는 GET /api/system/queue(JobQueueSnapshot)에서 온다. 이 화면은 읽기 전용 운영 점검용이며 큐
+// 일시정지/재개/재시도/삭제 같은 워커 제어 동작은 제공하지 않는다. 계약에 들어 있는 원시 잡·프로젝트·
+// 테이크·자산 id, 프로바이더/모델 이름, 원시 프롬프트, request id, 스토리지 키, url, 환경값은 노출하지 않는다.
+function JobQueueSnapshotPanel({ queue }: { queue: JobQueueSnapshot }) {
+  const { summary, jobs } = queue;
+  const time = readinessTime(queue.generatedAt);
+  // 진행 중(대기/진행) 잡을 먼저(마감 임박 순), 그다음 최근 갱신 순으로 정렬해 상위 8건만 컴팩트하게 노출한다.
+  const rows = [...jobs]
+    .sort((a, b) => {
+      const aActive = a.status === "queued" || a.status === "running" ? 0 : 1;
+      const bActive = b.status === "queued" || b.status === "running" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      if (aActive === 0) return a.dueAt - b.dueAt;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    })
+    .slice(0, 8);
+  return (
+    <section className="panel metrics queue-snapshot" aria-label="작업 큐 스냅샷">
+      <div className="head">
+        <div>
+          <h2>작업 큐 스냅샷</h2>
+          <p className="hint">전체 프로젝트의 큐·워커 작업 현황을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.active ? "fast" : "ok"}`}>{summary.active ? `진행 중 작업 ${summary.active}건` : "진행 중 작업 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">작업 현황</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="대기" value={summary.queued} />
+            <Metric label="진행" value={summary.running} />
+            <Metric label="진행 중" value={summary.active} />
+            <Metric label="취소 가능" value={summary.cancelable} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">상태 · 마감</span>
+          <div className="metric-row">
+            <Metric label="실패" value={summary.failed} tone={summary.failed ? "warn" : undefined} />
+            <Metric label="취소됨" value={summary.cancelled} />
+            <Metric label="기한 초과" value={summary.overdue} tone={summary.overdue ? "warn" : undefined} />
+            <Metric label="다음 마감" value={formatDueIn(summary.nextDueAt)} />
+          </div>
+          <p className="hint metrics-note">읽기 전용 운영 스냅샷입니다. 이 화면에서 큐를 멈추거나 재시도/삭제하지 않습니다.</p>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="queue-list">
+          <span className="metric-block-label">최근·진행 작업</span>
+          <ul>
+            {rows.map((job, index) => {
+              const active = job.status === "queued" || job.status === "running";
+              return (
+                <li className="queue-row" key={`${job.kind}-${job.updatedAt}-${index}`}>
+                  <div className="queue-main">
+                    <strong className="queue-title">{queueKindLabels[job.kind]}</strong>
+                    <span className="queue-sub">
+                      {queueStageLabel(job.stage)} · {Math.round(job.progress * 100)}%
+                      {active && job.etaSec !== null ? ` · 예상 ${formatSeconds(job.etaSec)}` : ""}
+                    </span>
+                  </div>
+                  <div className="queue-side">
+                    <span className={`badge ${jobBadgeTone(job.status)}`}>{statusLabel(job.status)}</span>
+                    <span className="queue-meta">
+                      {active ? formatDueIn(job.dueAt) : formatLedgerTime(job.updatedAt)}
+                      {job.cancelable ? " · 취소 가능" : ""}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">현재 큐에 표시할 작업이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -570,6 +697,7 @@ export function StudioApp() {
   const [readiness, setReadiness] = useState<RuntimeReadiness | null>(null);
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [inventory, setInventory] = useState<MediaArtifactInventory | null>(null);
+  const [queue, setQueue] = useState<JobQueueSnapshot | null>(null);
   const toastTimer = useRef<number | null>(null);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
@@ -582,6 +710,11 @@ export function StudioApp() {
   // 미디어 산출물 인벤토리 조회. 지표와 같은 정책으로, 실패해도 패널만 숨기고 본 흐름은 막지 않는다.
   function loadInventory() {
     studioApi.getMediaArtifactInventory().then(setInventory).catch(() => {});
+  }
+
+  // 작업 큐 스냅샷 조회. 지표·인벤토리와 같은 정책으로, 실패해도 패널만 숨기고 본 흐름은 막지 않는다.
+  function loadQueue() {
+    studioApi.getJobQueueSnapshot().then(setQueue).catch(() => {});
   }
 
   const selectedShot = useMemo(() => {
@@ -627,15 +760,17 @@ export function StudioApp() {
     refresh().catch((error) => notify(error.message));
     loadMetrics();
     loadInventory();
+    loadQueue();
     const id = window.setInterval(async () => {
       await studioApi.tick();
       await refresh();
-      // 지표·인벤토리는 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은 과해서
-      // 약 5틱(~6초)마다 한 번만 갱신한다. 액션 직후에는 run/cancel 경로에서 즉시 갱신한다.
+      // 지표·인벤토리·큐 스냅샷은 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은
+      // 과해서 약 5틱(~6초)마다 한 번만 갱신한다. 액션 직후에는 run/cancel 경로에서 즉시 갱신한다.
       tickCount.current += 1;
       if (tickCount.current % 5 === 0) {
         loadMetrics();
         loadInventory();
+        loadQueue();
       }
     }, 1200);
     return () => {
@@ -663,6 +798,7 @@ export function StudioApp() {
       await refresh();
       loadMetrics();
       loadInventory();
+      loadQueue();
     } catch (error) {
       notify(error instanceof Error ? error.message : "작업 중 오류가 발생했습니다.");
     }
@@ -687,6 +823,7 @@ export function StudioApp() {
       await refresh().catch(() => {});
       loadMetrics();
       loadInventory();
+      loadQueue();
       setCancelingJobId(null);
     }
   }
@@ -719,6 +856,7 @@ export function StudioApp() {
       await refresh().catch(() => {});
       loadMetrics();
       loadInventory();
+      loadQueue();
       setCancelingJobId(null);
     }
   }
@@ -772,6 +910,7 @@ export function StudioApp() {
             <Dashboard
               projects={projects}
               metrics={metrics}
+              queue={queue}
               onNew={() => goToView("new")}
               onImages={() => goToView("images")}
               onOpen={async (projectId) => {
@@ -915,12 +1054,14 @@ export function StudioApp() {
 function Dashboard({
   projects,
   metrics,
+  queue,
   onNew,
   onImages,
   onOpen
 }: {
   projects: Project[];
   metrics: SystemMetrics | null;
+  queue: JobQueueSnapshot | null;
   onNew: () => void;
   onImages: () => void;
   onOpen: (projectId: string) => void;
@@ -946,6 +1087,7 @@ function Dashboard({
   return (
     <>
       {metrics ? <SystemMetricsPanel metrics={metrics} /> : null}
+      {queue ? <JobQueueSnapshotPanel queue={queue} /> : null}
       <div className="head">
         <div>
           <h2>이어서 작업하기</h2>
