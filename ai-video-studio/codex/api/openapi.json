@@ -331,6 +331,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid generation request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
@@ -499,6 +507,14 @@
         },
         "responses": {
           "202": { "description": "Project generation queued" },
+          "400": {
+            "description": "Invalid project generation request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
@@ -573,6 +589,14 @@
         },
         "responses": {
           "202": { "description": "Regeneration queued" },
+          "400": {
+            "description": "Invalid regeneration request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
@@ -605,6 +629,14 @@
         },
         "responses": {
           "202": { "description": "Upgrade queued" },
+          "400": {
+            "description": "Invalid upgrade request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
