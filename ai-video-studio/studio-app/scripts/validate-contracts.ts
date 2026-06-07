@@ -74,6 +74,7 @@ assertMockTickProductionBoundary();
 assertProductionAutoTickIsDisabled();
 assertProductionMockPersistenceIsDisabled();
 assertProductionPersistenceReadinessBoundary();
+assertProductionQueueReadinessBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -317,6 +318,17 @@ function assertProductionPersistenceReadinessBoundary() {
   assert.ok(readinessSource.includes("livePersistenceImplemented = false"), "readiness must expose the missing live persistence adapter");
   assert.ok(readinessSource.includes('check("persistence", "Persistence"'), "readiness must include a persistence check");
   assert.ok(testMock.includes("scripts/production-persistence-readiness.test.ts"), "test:mock must include production persistence readiness coverage");
+}
+
+function assertProductionQueueReadinessBoundary() {
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  assert.ok(readinessSource.includes('queueEnv = ["CUTPILOT_QUEUE_URL"]'), "readiness must require CUTPILOT_QUEUE_URL for queue workers");
+  assert.ok(readinessSource.includes("validQueueUrl("), "readiness must validate queue URL shape");
+  assert.ok(readinessSource.includes("liveQueueWorkerImplemented = false"), "readiness must expose the missing live queue worker adapter");
+  assert.ok(readinessSource.includes("queueStatus"), "readiness must derive queue worker status from the adapter boundary");
+  assert.ok(testMock.includes("scripts/production-queue-readiness.test.ts"), "test:mock must include production queue readiness coverage");
 }
 
 function jsonSchema(response: unknown) {
