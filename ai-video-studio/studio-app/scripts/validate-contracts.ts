@@ -25,6 +25,10 @@ type Capabilities = {
 };
 
 type Routing = {
+  hideEngineFromUser: boolean;
+  fallbackOnError: boolean;
+  defaultTakePolicy: Record<string, { takeCount?: number; splitAcrossProviders?: boolean | string }>;
+  filters: string[];
   rules: Array<{
     id: string;
     use: Array<{ provider: string; model: string }>;
@@ -112,12 +116,31 @@ function assertUserUiHidesProviderNames() {
 
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
+  assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
+  const providerModels = new Set<string>();
   for (const model of provider.models) {
+    assert.ok(model.id.trim(), `provider ${provider.provider} has a model without id`);
+    assert.ok(!providerModels.has(model.id), `provider ${provider.provider} has duplicate model ${model.id}`);
+    providerModels.add(model.id);
     knownModels.add(`${provider.provider}:${model.id}`);
   }
 }
+assert.equal(knownModels.size, capabilities.providers.reduce((total, provider) => total + provider.models.length, 0), "provider capability model keys should be unique");
+assert.equal(routing.hideEngineFromUser, true, "routing must keep engine names hidden from users");
+assert.equal(routing.fallbackOnError, true, "routing fallback policy should remain enabled");
+for (const tier of ["economy", "fast", "final"]) {
+  assert.ok(routing.defaultTakePolicy[tier], `routing defaultTakePolicy missing ${tier}`);
+}
+for (const filter of ["inputType", "aspectRatio", "durationSec", "resolution", "regionPolicy", "audioCapability", "providerHealth", "budget"]) {
+  assert.ok(routing.filters.includes(filter), `routing filters missing ${filter}`);
+}
 
+const routingRuleIds = new Set<string>();
 for (const rule of routing.rules) {
+  assert.ok(rule.id.trim(), "routing rule missing id");
+  assert.ok(!routingRuleIds.has(rule.id), `routing rule duplicate id ${rule.id}`);
+  assert.ok(rule.use.length > 0, `routing rule ${rule.id} has no targets`);
+  routingRuleIds.add(rule.id);
   for (const target of rule.use) {
     assert.ok(
       knownModels.has(`${target.provider}:${target.model}`),
