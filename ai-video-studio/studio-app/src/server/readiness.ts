@@ -1,4 +1,5 @@
 import type { RuntimeReadiness } from "../domain/types";
+import { livePersistenceSchemaVersion } from "./live-persistence-contract";
 import { configuredObjectStorageProvider, isObjectStorageProvider } from "./object-storage";
 import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
@@ -179,7 +180,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     persistenceBaseStatus !== "pass"
       ? envDetail("persistence", missingPersistenceEnv, invalidPersistenceEnv, "Persistence env is present and URL-shaped.")
       : production && !livePersistenceImplemented
-        ? "Production persistence env is configured, but the live persistence adapter is not yet available."
+        ? `Production persistence env is configured for ${livePersistenceSchemaVersion}, but the live persistence adapter is not yet available.`
         : "Mock in-memory persistence is active for local preview.";
   const queueBaseStatus = envStatus(missingQueueEnv, invalidQueueEnv, production);
   const queueStatus: RuntimeReadiness["checks"][number]["status"] =

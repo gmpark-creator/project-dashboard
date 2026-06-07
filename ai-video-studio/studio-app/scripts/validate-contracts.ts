@@ -322,6 +322,8 @@ function assertProductionMockPersistenceIsDisabled() {
 
 function assertPersistenceSchemaBoundary() {
   const schemaSource = readFileSync(join(codexDir, "persistence", "postgres-schema.sql"), "utf8");
+  const manifestSource = readFileSync(join(serverDir, "live-persistence-contract.ts"), "utf8");
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
   const requiredTables = [
     "cutpilot_projects",
@@ -341,13 +343,17 @@ function assertPersistenceSchemaBoundary() {
 
   for (const table of requiredTables) {
     assert.ok(schemaSource.includes(`CREATE TABLE ${table}`), `persistence schema missing ${table}`);
+    assert.ok(manifestSource.includes(`"${table}"`), `live persistence manifest missing ${table}`);
   }
+  assert.ok(manifestSource.includes('livePersistenceSchemaVersion = "cutpilot_postgres_v1"'), "live persistence manifest must expose the schema version");
+  assert.ok(readinessSource.includes("livePersistenceSchemaVersion"), "readiness must name the live persistence schema version while the adapter is unavailable");
   assert.equal(schemaSource.includes("CREATE TABLE cutpilot_studio_state"), false, "persistence schema must not collapse live state into a single blob table");
   assert.ok(schemaSource.includes("REFERENCES cutpilot_projects(id) ON DELETE CASCADE"), "persistence schema must anchor child tables to projects");
   assert.ok(schemaSource.includes("cutpilot_provider_attempts"), "persistence schema must preserve provider attempt telemetry");
   assert.ok(schemaSource.includes("provider_cost_usd numeric"), "persistence schema must preserve provider cost ledger fields");
   assert.ok(schemaSource.includes("storage_key text NOT NULL"), "persistence schema must preserve storage artifact keys");
   assert.ok(testMock.includes("scripts/persistence-schema-boundary.test.ts"), "test:mock must include persistence schema boundary coverage");
+  assert.ok(testMock.includes("scripts/persistence-contract-manifest.test.ts"), "test:mock must include persistence manifest coverage");
 }
 
 function assertProductionPersistenceReadinessBoundary() {
