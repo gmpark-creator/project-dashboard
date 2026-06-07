@@ -60,6 +60,7 @@ for (const defName of [
   "QueueJobKind",
   "QueueJobSnapshot",
   "JobQueueSnapshot",
+  "ImageWorkerInvocation",
   "DirectionSpec",
   "EditAudioPatch",
   "EditCommandInput",

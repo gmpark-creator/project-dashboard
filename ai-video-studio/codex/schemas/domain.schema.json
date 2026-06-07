@@ -773,6 +773,65 @@
         "error": { "$ref": "#/$defs/ErrorResponse" }
       }
     },
+    "ImageWorkerInvocation": {
+      "type": "object",
+      "required": ["jobId", "projectId", "request", "outputs", "policy", "responseContract"],
+      "additionalProperties": false,
+      "properties": {
+        "jobId": { "type": "string", "pattern": "^ijob_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "request": {
+          "type": "object",
+          "required": ["prompt", "purpose", "role", "aspect", "style", "count"],
+          "additionalProperties": false,
+          "properties": {
+            "prompt": { "type": "string" },
+            "purpose": { "$ref": "#/$defs/ImageMakerPurpose" },
+            "role": { "$ref": "#/$defs/ImageAssetRole" },
+            "aspect": { "$ref": "#/$defs/Aspect" },
+            "style": { "type": "string" },
+            "count": { "type": "integer", "minimum": 1, "maximum": 4 }
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["variantId", "label", "scoreLabel", "imageStorageKey", "thumbnailStorageKey"],
+            "additionalProperties": false,
+            "properties": {
+              "variantId": { "type": "string", "pattern": "^ivar_" },
+              "label": { "type": "string" },
+              "scoreLabel": { "type": "string", "enum": ["추천", "안정적", "확인 필요"] },
+              "imageStorageKey": { "type": "string" },
+              "thumbnailStorageKey": { "type": "string" }
+            }
+          }
+        },
+        "policy": {
+          "type": "object",
+          "required": ["rightsStatus", "registerAsAssets", "storageIngestRequired"],
+          "additionalProperties": false,
+          "properties": {
+            "rightsStatus": { "type": "string", "const": "generated" },
+            "registerAsAssets": { "type": "boolean" },
+            "storageIngestRequired": { "type": "boolean" }
+          }
+        },
+        "responseContract": {
+          "type": "object",
+          "required": ["expectedKind", "outputRole", "thumbnailRole", "ingest", "progress"],
+          "additionalProperties": false,
+          "properties": {
+            "expectedKind": { "type": "string", "const": "image" },
+            "outputRole": { "type": "string", "const": "image_asset" },
+            "thumbnailRole": { "type": "string", "const": "image_thumbnail" },
+            "ingest": { "type": "string", "const": "copy_to_storage" },
+            "progress": { "type": "string", "const": "async_polling" }
+          }
+        }
+      }
+    },
     "AssetUsage": {
       "type": "object",
       "required": ["assetId", "role", "target", "targetId", "mode", "createdAt"],
@@ -1152,6 +1211,7 @@
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
     "generationJob": { "$ref": "#/$defs/GenerationJob" },
+    "imageWorkerInvocation": { "$ref": "#/$defs/ImageWorkerInvocation" },
     "providerInvocation": { "$ref": "#/$defs/ProviderInvocation" },
     "renderWorkerInvocation": { "$ref": "#/$defs/RenderWorkerInvocation" },
     "renderJob": { "$ref": "#/$defs/RenderJob" }

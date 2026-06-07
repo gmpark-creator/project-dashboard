@@ -297,6 +297,38 @@ export type ImageJob = {
   error: ErrorResponse | null;
 };
 
+export type ImageWorkerInvocation = {
+  jobId: string;
+  projectId: string;
+  request: {
+    prompt: string;
+    purpose: ImageMakerPurpose;
+    role: ImageAssetRole;
+    aspect: Aspect;
+    style: string;
+    count: number;
+  };
+  outputs: Array<{
+    variantId: string;
+    label: string;
+    scoreLabel: ImageVariant["scoreLabel"];
+    imageStorageKey: string;
+    thumbnailStorageKey: string;
+  }>;
+  policy: {
+    rightsStatus: "generated";
+    registerAsAssets: boolean;
+    storageIngestRequired: boolean;
+  };
+  responseContract: {
+    expectedKind: "image";
+    outputRole: "image_asset";
+    thumbnailRole: "image_thumbnail";
+    ingest: "copy_to_storage";
+    progress: "async_polling";
+  };
+};
+
 export type AssetUsage = {
   assetId: string;
   role: ImageAssetRole;

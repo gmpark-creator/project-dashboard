@@ -29,6 +29,7 @@ import {
 } from "../src/server/mock-service";
 import { getMediaArtifactInventory } from "../src/server/artifact-inventory";
 import { getSystemMetrics } from "../src/server/metrics";
+import { buildImageWorkerInvocation } from "../src/server/image-worker-invocation";
 import { buildProviderInvocation } from "../src/server/provider-invocation";
 import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
@@ -156,7 +157,7 @@ assert.equal(bundle.shots[0].title, "Hero product push-in", "storyboard update s
 assert.equal(bundle.shots[0].saec.action, "Slow push toward the product hero angle", "storyboard update should persist SAEC changes");
 assert.notEqual(bundle.renderSourceHash, initialRenderSourceHash, "storyboard edits should change render source hash");
 
-createImageJob({
+const imageJobResult = createImageJob({
   projectId: project.id,
   prompt: "딸기라떼 제품 이미지, 밝은 카페 배경, 손은 나오지 않게",
   purpose: "product",
@@ -165,6 +166,31 @@ createImageJob({
   style: "프리미엄 광고 사진",
   count: 4
 });
+const imageInvocation = buildImageWorkerInvocation(imageJobResult.job);
+assert.equal(imageInvocation.jobId, imageJobResult.job.id, "image worker invocation should identify its image job");
+assert.equal(imageInvocation.projectId, project.id, "image worker invocation should identify the project");
+assert.equal(imageInvocation.request.prompt, imageJobResult.job.prompt, "image worker invocation should carry the image prompt");
+assert.equal(imageInvocation.request.style, imageJobResult.job.style, "image worker invocation should carry style guidance");
+assert.equal(imageInvocation.request.count, imageJobResult.job.count, "image worker invocation should carry requested variant count");
+assert.equal(imageInvocation.outputs.length, imageJobResult.job.variants.length, "image worker invocation should declare one output per variant");
+assert.deepEqual(
+  imageInvocation.outputs.map((output) => output.variantId),
+  imageJobResult.job.variants.map((variant) => variant.id),
+  "image worker invocation outputs should preserve variant ids"
+);
+assert.ok(
+  imageInvocation.outputs.every((output) => output.imageStorageKey.includes(`/imageJob/${imageInvocation.jobId}/variants/${output.variantId}/image_asset`)),
+  "image worker invocation should expose production-shaped image storage keys"
+);
+assert.ok(
+  imageInvocation.outputs.every((output) => output.thumbnailStorageKey.includes(`/imageJob/${imageInvocation.jobId}/variants/${output.variantId}/image_thumbnail`)),
+  "image worker invocation should expose production-shaped thumbnail storage keys"
+);
+assert.equal(imageInvocation.policy.rightsStatus, "generated", "image worker invocation should mark generated image rights");
+assert.equal(imageInvocation.policy.registerAsAssets, true, "image worker invocation should require asset library registration");
+assert.equal(imageInvocation.policy.storageIngestRequired, true, "image worker invocation should require storage ingest");
+assert.equal(imageInvocation.responseContract.expectedKind, "image", "image worker invocation should declare image outputs");
+assert.equal(imageInvocation.responseContract.ingest, "copy_to_storage", "image worker invocation should require storage ingest");
 forceDueJobs("imageJobs");
 tickJobs();
 
