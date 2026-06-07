@@ -70,6 +70,7 @@ assertMockTestsAreScripted();
 assertVerificationChainIsComplete();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
 assertStorageCleanupObjectStorageBoundary();
+assertMockTickProductionBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -259,6 +260,19 @@ function assertStorageCleanupObjectStorageBoundary() {
   assert.ok(JSON.stringify(executeCleanup503).includes("object storage deletion is unavailable"), "executeStorageCleanup 503 must document object storage unavailability");
   assert.ok(readinessSource.includes("liveObjectStorageDeleteImplemented = false"), "readiness must expose the missing live object storage delete adapter");
   assert.ok(readinessSource.includes("objectStorageStatus"), "readiness must derive object storage status from the adapter boundary");
+}
+
+function assertMockTickProductionBoundary() {
+  const routeSource = readFileSync(join(appApiDir, "jobs", "tick", "route.ts"), "utf8");
+  const studioSource = readFileSync(join(featureDir, "studio", "StudioApp.tsx"), "utf8");
+  const tickPost = openApi.paths["/jobs/tick"]?.post;
+  const tick503 = tickPost?.responses?.["503"];
+
+  assert.ok(routeSource.includes('CUTPILOT_RUNTIME_MODE === "production"'), "mock tick route must branch on production mode");
+  assert.ok(routeSource.includes('apiError("MOCK_TICK_UNAVAILABLE"'), "mock tick route must return a stable production unavailable code");
+  assert.ok(JSON.stringify(tick503).includes("Mock job ticking is unavailable"), "tickJobs 503 must document mock tick production unavailability");
+  assert.ok(studioSource.includes("await studioApi.tick()"), "studio interval must still use the mock tick endpoint for local preview");
+  assert.ok(studioSource.includes("Production does not expose the mock tick endpoint."), "studio interval must catch production mock tick failures");
 }
 
 function jsonSchema(response: unknown) {
