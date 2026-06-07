@@ -1278,6 +1278,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid worker lease completion request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "404": { "description": "Lease not found" },
           "409": { "description": "Lease token mismatch, inactive lease, inactive job, or unsupported completion status" },
           "422": {

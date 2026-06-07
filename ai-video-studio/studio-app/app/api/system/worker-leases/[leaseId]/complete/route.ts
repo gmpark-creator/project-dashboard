@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { completeWorkerLease } from "@/server/worker-leases";
+import { apiError } from "../../../../error-response";
+import { readJsonObject } from "../../../../json-body";
 import { requireSystemAccess } from "@/server/system-access";
+import { isWorkerLeaseCompletionInput } from "../../../../worker-completion-validation";
 
 export async function POST(request: Request, context: { params: Promise<{ leaseId: string }> }) {
   const denied = requireSystemAccess(request);
   if (denied) return denied;
   const { leaseId } = await context.params;
-  const body = await request.json().catch(() => ({}));
-  const result = completeWorkerLease(leaseId, {
-    token: typeof body.token === "string" ? body.token : undefined,
-    status: body.status,
-    error: body.error,
-    outputs: body.outputs,
-    requireOutputs: body.requireOutputs === true
-  });
+  const body = await readJsonObject(request);
+  if (!body || !isWorkerLeaseCompletionInput(body)) {
+    return apiError("BAD_REQUEST", "worker lease 완료 요청 형식이 올바르지 않습니다.", 400);
+  }
+  const result = completeWorkerLease(leaseId, body);
   const status = result.completed ? 200 : result.reason === "not_found" ? 404 : result.reason === "invalid_outputs" ? 422 : 409;
   return NextResponse.json(result, { status });
 }
