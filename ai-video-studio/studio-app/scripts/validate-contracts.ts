@@ -74,6 +74,7 @@ assertMockTickProductionBoundary();
 assertProductionAutoTickIsDisabled();
 assertProductionMockPersistenceIsDisabled();
 assertProductionPersistenceReadinessBoundary();
+assertProductionProviderReadinessBoundary();
 assertProductionQueueReadinessBoundary();
 
 function countChar(input: string, char: string) {
@@ -318,6 +319,17 @@ function assertProductionPersistenceReadinessBoundary() {
   assert.ok(readinessSource.includes("livePersistenceImplemented = false"), "readiness must expose the missing live persistence adapter");
   assert.ok(readinessSource.includes('check("persistence", "Persistence"'), "readiness must include a persistence check");
   assert.ok(testMock.includes("scripts/production-persistence-readiness.test.ts"), "test:mock must include production persistence readiness coverage");
+}
+
+function assertProductionProviderReadinessBoundary() {
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  assert.ok(readinessSource.includes('providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"]'), "readiness must require provider execution env");
+  assert.ok(readinessSource.includes("liveProviderExecutionImplemented = false"), "readiness must expose the missing live provider execution adapter");
+  assert.ok(readinessSource.includes("providerExecutionStatus"), "readiness must derive provider execution status from the adapter boundary");
+  assert.ok(readinessSource.includes('check("provider_execution", "Provider execution"'), "readiness must include a provider execution check");
+  assert.ok(testMock.includes("scripts/production-provider-readiness.test.ts"), "test:mock must include production provider readiness coverage");
 }
 
 function assertProductionQueueReadinessBoundary() {
