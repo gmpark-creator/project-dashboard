@@ -228,7 +228,11 @@ for (const operation of requiredOperations) {
 for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
   const routeFile = routeFileForOpenApiPath(pathName);
   assert.ok(existsSync(routeFile), `openapi path ${pathName} missing Next route ${routeFile}`);
+  const routeSource = readFileSync(routeFile, "utf8");
   const exportedMethods = exportedRouteMethods(routeFile);
+  if (pathName.startsWith("/system/")) {
+    assert.ok(routeSource.includes("requireSystemAccess("), `system route ${pathName} missing requireSystemAccess guard`);
+  }
   for (const method of httpMethods) {
     const operation = pathItem[method];
     if (!operation) continue;
@@ -236,6 +240,10 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
+    }
+    if (pathName.startsWith("/system/")) {
+      assert.ok(operation.responses?.["401"], `system path ${pathName} ${method.toUpperCase()} missing 401 response`);
+      assert.ok(operation.responses?.["503"], `system path ${pathName} ${method.toUpperCase()} missing 503 response`);
     }
   }
 }
