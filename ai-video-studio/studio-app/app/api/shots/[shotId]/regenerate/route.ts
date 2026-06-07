@@ -3,6 +3,7 @@ import { regenerate } from "@/server/mock-service";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 export async function POST(request: Request, context: { params: Promise<{ shotId: string }> }) {
   const { shotId } = await context.params;
@@ -22,6 +23,8 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
     throw error;
   }
 }

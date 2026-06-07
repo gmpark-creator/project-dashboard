@@ -3,6 +3,7 @@ import { listImageAssets, registerExternalImage } from "@/server/mock-service";
 import type { Aspect, ImageAssetRole } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validRoles = new Set<ImageAssetRole>([
@@ -18,7 +19,13 @@ const validRoles = new Set<ImageAssetRole>([
 
 export async function GET(_request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
-  return NextResponse.json({ assets: listImageAssets(projectId) });
+  try {
+    return NextResponse.json({ assets: listImageAssets(projectId) });
+  } catch (error) {
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
+    throw error;
+  }
 }
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
@@ -44,16 +51,22 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   if (typeof body.rightsConfirmed !== "undefined" && typeof body.rightsConfirmed !== "boolean") {
     return apiError("BAD_REQUEST", "권리 확인 값은 boolean이어야 합니다.", 400);
   }
-  return NextResponse.json(
-    registerExternalImage({
-      projectId,
-      label,
-      role: body.role as ImageAssetRole,
-      url,
-      aspect: body.aspect as Aspect | undefined,
-      prompt: body.prompt as string | undefined,
-      rightsConfirmed: body.rightsConfirmed as boolean | undefined
-    }),
-    { status: 201 }
-  );
+  try {
+    return NextResponse.json(
+      registerExternalImage({
+        projectId,
+        label,
+        role: body.role as ImageAssetRole,
+        url,
+        aspect: body.aspect as Aspect | undefined,
+        prompt: body.prompt as string | undefined,
+        rightsConfirmed: body.rightsConfirmed as boolean | undefined
+      }),
+      { status: 201 }
+    );
+  } catch (error) {
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
+    throw error;
+  }
 }

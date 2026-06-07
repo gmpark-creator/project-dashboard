@@ -1000,7 +1000,9 @@ function makeImageAsset(
 }
 
 export function listImageAssets(projectId: string) {
-  return tickJobs().imageAssets.filter((asset) => asset.projectId === projectId);
+  const current = tickJobs();
+  if (!current.projects.some((project) => project.id === projectId)) throw new Error("Project not found");
+  return current.imageAssets.filter((asset) => asset.projectId === projectId);
 }
 
 export function createImageJob(input: {
@@ -1274,6 +1276,8 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
 export function generateAll(projectId: string, options: { tier?: Tier } = {}) {
   const queued: GenerationJob[] = [];
   const current = state();
+  const project = current.projects.find((item) => item.id === projectId);
+  if (!project) throw new Error("Project not found");
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   const targetShots = shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
   assertCanReserveCredits(current, targetShots.length * 18);
@@ -1341,17 +1345,19 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
 
 export function applyEdit(projectId: string, command?: string) {
   const current = state();
+  const project = current.projects.find((item) => item.id === projectId);
+  if (!project) throw new Error("Project not found");
   const edit = current.editState[projectId] || defaultEditState(projectId);
   if (command) edit.commands.push({ command, createdAt: now() });
   current.editState[projectId] = edit;
-  const project = current.projects.find((item) => item.id === projectId);
-  if (project) project.status = "edited";
+  project.status = "edited";
   write(current);
   return edit;
 }
 
 export function setAudio(projectId: string, patch: Partial<EditState>) {
   const current = state();
+  if (!current.projects.some((project) => project.id === projectId)) throw new Error("Project not found");
   current.editState[projectId] = { ...(current.editState[projectId] || defaultEditState(projectId)), ...patch };
   write(current);
   return current.editState[projectId];
@@ -1508,7 +1514,7 @@ export function startRender(projectId: string, specs: ExportSpec[], options: { r
       .map((job) => `${job.spec.resolution}:${job.spec.cut}:${job.spec.aspect}:${job.spec.caption}`)
   );
   const nextSpecs = specs.filter((spec) => !activeSpecs.has(`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`));
-  if (!nextSpecs.length) throw new Error("이미 같은 내보내기 작업이 진행 중입니다.");
+  if (!nextSpecs.length) throw new Error("Render job already active");
   assertCanReserveCredits(current, nextSpecs.length * 16);
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   for (const shot of shots) {

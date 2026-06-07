@@ -4,6 +4,7 @@ import type { Aspect, ImageAssetRole, ImageMakerPurpose } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validPurposes = new Set<ImageMakerPurpose>([
@@ -69,6 +70,8 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
     throw error;
   }
 }

@@ -3,6 +3,7 @@ import { updateShotDirection } from "@/server/mock-service";
 import type { DirectionSpec } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 const directionKeys = new Set(["camera", "composition", "lighting", "motion", "style", "avoid", "notes"]);
 const stringDirectionKeys = new Set(["camera", "composition", "lighting", "motion", "style", "notes"]);
@@ -24,5 +25,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ shotI
   if (!body || !isDirectionPatch(body)) {
     return apiError("BAD_REQUEST", "연출 설정 형식이 올바르지 않습니다.", 400);
   }
-  return NextResponse.json(updateShotDirection(shotId, body));
+  try {
+    return NextResponse.json(updateShotDirection(shotId, body));
+  } catch (error) {
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
+    throw error;
+  }
 }

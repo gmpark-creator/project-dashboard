@@ -4,6 +4,7 @@ import type { Tier } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 const validTiers = new Set<Tier>(["fast", "economy", "final"]);
 
@@ -23,6 +24,8 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
     throw error;
   }
 }

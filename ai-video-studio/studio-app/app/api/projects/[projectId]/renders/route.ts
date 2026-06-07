@@ -5,6 +5,7 @@ import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { isExportSpec } from "../../../export-spec";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await context.params;
@@ -19,6 +20,8 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
     throw error;
   }
 }

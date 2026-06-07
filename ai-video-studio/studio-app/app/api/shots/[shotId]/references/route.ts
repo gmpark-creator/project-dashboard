@@ -3,6 +3,7 @@ import { attachImageToShot } from "@/server/mock-service";
 import type { AssetUsage } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 const validUsageModes = new Set<AssetUsage["mode"]>([
   "first_frame",
@@ -25,11 +26,17 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   if (typeof body.mode !== "string" || !validUsageModes.has(body.mode as AssetUsage["mode"])) {
     return apiError("BAD_REQUEST", "지원하지 않는 참조 모드입니다.", 400);
   }
-  return NextResponse.json(
-    attachImageToShot(shotId, {
-      assetId: body.assetId,
-      mode: body.mode as AssetUsage["mode"]
-    }),
-    { status: 202 }
-  );
+  try {
+    return NextResponse.json(
+      attachImageToShot(shotId, {
+        assetId: body.assetId,
+        mode: body.mode as AssetUsage["mode"]
+      }),
+      { status: 202 }
+    );
+  } catch (error) {
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
+    throw error;
+  }
 }

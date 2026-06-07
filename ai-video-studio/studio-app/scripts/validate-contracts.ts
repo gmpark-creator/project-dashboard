@@ -359,6 +359,7 @@ const requiredOperations = new Set([
 const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
 const documentedJsonSuccessStatuses = new Set(["200", "201", "202"]);
 const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", "422", "503"]);
+const serviceConflictOperations = new Set(["setDefaultRender", "startRender"]);
 const pathParameterPatterns = new Map([
   ["projectId", "^prj_"],
   ["shotId", "^sht_"],
@@ -432,6 +433,12 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
       assertClosedObjectSchemas(requestJsonSchema(operation), `${operation.operationId || method.toUpperCase()} ${pathName}`);
+    }
+    if (routeSource.includes("serviceErrorResponse(")) {
+      assert.ok(operation.responses?.["404"], `service error route ${operation.operationId} missing 404 response`);
+      if (operation.operationId && serviceConflictOperations.has(operation.operationId)) {
+        assert.ok(operation.responses?.["409"], `service conflict route ${operation.operationId} missing 409 response`);
+      }
     }
     if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
       assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);

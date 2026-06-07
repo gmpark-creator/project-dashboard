@@ -4,6 +4,7 @@ import type { Take } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
+import { serviceErrorResponse } from "../../../service-error";
 
 type UpgradeMode = NonNullable<Take["upgradeMode"]>;
 type UpgradeRequestMode = UpgradeMode | "auto";
@@ -26,6 +27,8 @@ export async function POST(request: Request, context: { params: Promise<{ takeId
   } catch (error) {
     const creditResponse = creditReservationResponse(error);
     if (creditResponse) return creditResponse;
+    const serviceResponse = serviceErrorResponse(error);
+    if (serviceResponse) return serviceResponse;
     throw error;
   }
 }
