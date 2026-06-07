@@ -198,7 +198,7 @@ function recordMediaArtifact(
   );
   if (existing) {
     existing.url = input.url;
-    existing.sourceJobId = input.sourceJobId;
+    existing.sourceJobId = input.sourceJobId || existing.sourceJobId;
     existing.contentType = input.contentType;
     existing.bytes = input.bytes;
     existing.status = input.status;

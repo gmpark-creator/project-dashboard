@@ -63,6 +63,9 @@ for (const defName of [
   "WorkerDispatchKind",
   "WorkerDispatchItem",
   "WorkerDispatchSnapshot",
+  "WorkerCompletionStatus",
+  "WorkerCompletionReceipt",
+  "WorkerCompletionSnapshot",
   "ImageWorkerInvocation",
   "DirectionSpec",
   "EditAudioPatch",
@@ -106,7 +109,8 @@ const requiredOperations = new Set([
   "getSystemMetrics",
   "getMediaArtifactInventory",
   "getJobQueueSnapshot",
-  "getWorkerDispatchSnapshot"
+  "getWorkerDispatchSnapshot",
+  "getWorkerCompletionSnapshot"
 ]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {

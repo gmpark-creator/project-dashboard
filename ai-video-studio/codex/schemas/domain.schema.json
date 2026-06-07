@@ -364,6 +364,61 @@
         "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerDispatchItem" } }
       }
     },
+    "WorkerCompletionStatus": {
+      "type": "string",
+      "enum": ["succeeded", "failed", "cancelled"]
+    },
+    "WorkerCompletionReceipt": {
+      "type": "object",
+      "required": ["completionKey", "kind", "jobId", "projectId", "status", "completedAt", "error", "artifacts", "creditTransactions", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "completionKey": { "type": "string" },
+        "kind": { "$ref": "#/$defs/WorkerDispatchKind" },
+        "jobId": { "type": "string", "pattern": "^(gen_|ijob_|rnd_)" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "status": { "$ref": "#/$defs/WorkerCompletionStatus" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "error": { "$ref": "#/$defs/ErrorResponse" },
+        "artifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifact" } },
+        "creditTransactions": { "type": "array", "items": { "$ref": "#/$defs/CreditTransaction" } },
+        "summary": {
+          "type": "object",
+          "required": ["artifactCount", "storedArtifacts", "externalArtifacts", "capturedCredits", "refundedCredits"],
+          "additionalProperties": false,
+          "properties": {
+            "artifactCount": { "type": "integer", "minimum": 0 },
+            "storedArtifacts": { "type": "integer", "minimum": 0 },
+            "externalArtifacts": { "type": "integer", "minimum": 0 },
+            "capturedCredits": { "type": "number", "minimum": 0 },
+            "refundedCredits": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "WorkerCompletionSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "receipts"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "succeeded", "failed", "cancelled", "artifactCount", "capturedCredits", "refundedCredits"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "succeeded": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "cancelled": { "type": "integer", "minimum": 0 },
+            "artifactCount": { "type": "integer", "minimum": 0 },
+            "capturedCredits": { "type": "number", "minimum": 0 },
+            "refundedCredits": { "type": "number", "minimum": 0 }
+          }
+        },
+        "receipts": { "type": "array", "items": { "$ref": "#/$defs/WorkerCompletionReceipt" } }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -1260,6 +1315,7 @@
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },
+    "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },

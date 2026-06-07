@@ -33,6 +33,7 @@ import { buildImageWorkerInvocation } from "../src/server/image-worker-invocatio
 import { buildProviderInvocation } from "../src/server/provider-invocation";
 import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
+import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -531,6 +532,34 @@ workerDispatch = getWorkerDispatchSnapshot();
 assert.equal(workerDispatch.summary.total, 0, "completed mock flow should have no active worker dispatch items");
 assert.equal(workerDispatch.items.length, 0, "completed worker dispatch snapshot should have no items");
 assert.equal(workerDispatch.summary.nextDueAt, null, "completed worker dispatch snapshot should have no next due date");
+const workerCompletions = getWorkerCompletionSnapshot();
+assert.equal(workerCompletions.summary.total, queue.summary.total, "worker completion receipts should cover all terminal queue jobs");
+assert.ok(workerCompletions.summary.succeeded > 0, "worker completion receipts should include successful jobs");
+assert.ok(workerCompletions.summary.failed > 0, "worker completion receipts should include failed jobs");
+assert.ok(workerCompletions.summary.cancelled > 0, "worker completion receipts should include cancelled jobs");
+assert.equal(workerCompletions.summary.artifactCount, workerCompletions.receipts.reduce((total, receipt) => total + receipt.summary.artifactCount, 0), "completion artifact summary should match receipts");
+assert.equal(workerCompletions.summary.capturedCredits, metrics.credits.captured, "completion receipts should reconcile captured credits");
+assert.equal(workerCompletions.summary.refundedCredits, metrics.credits.refunded, "completion receipts should reconcile refunded credits");
+assert.ok(
+  workerCompletions.receipts.some((receipt) => receipt.kind === "provider_generation" && receipt.status === "succeeded" && receipt.artifacts.some((artifact) => artifact.role === "take_video")),
+  "successful provider generation receipts should include take video artifacts"
+);
+assert.ok(
+  workerCompletions.receipts.some((receipt) => receipt.kind === "image_generation" && receipt.status === "succeeded" && receipt.artifacts.some((artifact) => artifact.role === "image_asset") && receipt.artifacts.some((artifact) => artifact.role === "image_thumbnail")),
+  "successful image generation receipts should include image and thumbnail artifacts"
+);
+assert.ok(
+  workerCompletions.receipts.some((receipt) => receipt.kind === "render" && receipt.status === "succeeded" && receipt.artifacts.some((artifact) => artifact.role === "render_output")),
+  "successful render receipts should include render output artifacts"
+);
+assert.ok(
+  workerCompletions.receipts.some((receipt) => receipt.kind === "provider_generation" && receipt.status === "failed" && receipt.error?.code === "MOCK_PROVIDER_FAILED"),
+  "failed provider receipts should preserve normalized provider errors"
+);
+assert.ok(
+  workerCompletions.receipts.some((receipt) => receipt.kind === "provider_generation" && receipt.status === "cancelled" && receipt.error?.code === "JOB_CANCELLED" && receipt.summary.refundedCredits > 0),
+  "cancelled provider receipts should preserve cancel errors and refunds"
+);
 
 const inventory = getMediaArtifactInventory();
 assert.equal(inventory.summary.total, metrics.mediaArtifacts.total, "artifact inventory should match system metrics artifact total");

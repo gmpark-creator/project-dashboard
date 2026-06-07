@@ -814,6 +814,23 @@
         }
       }
     },
+    "/system/worker-completions": {
+      "get": {
+        "operationId": "getWorkerCompletionSnapshot",
+        "responses": {
+          "200": {
+            "description": "Read-only terminal worker completion receipts for artifact and credit reconciliation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerCompletionSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

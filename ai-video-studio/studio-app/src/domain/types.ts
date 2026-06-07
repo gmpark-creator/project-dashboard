@@ -586,6 +586,41 @@ export type WorkerDispatchSnapshot = {
   items: WorkerDispatchItem[];
 };
 
+export type WorkerCompletionStatus = "succeeded" | "failed" | "cancelled";
+
+export type WorkerCompletionReceipt = {
+  completionKey: string;
+  kind: WorkerDispatchKind;
+  jobId: string;
+  projectId: string;
+  status: WorkerCompletionStatus;
+  completedAt: string;
+  error: ErrorResponse | null;
+  artifacts: MediaArtifact[];
+  creditTransactions: CreditTransaction[];
+  summary: {
+    artifactCount: number;
+    storedArtifacts: number;
+    externalArtifacts: number;
+    capturedCredits: number;
+    refundedCredits: number;
+  };
+};
+
+export type WorkerCompletionSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    succeeded: number;
+    failed: number;
+    cancelled: number;
+    artifactCount: number;
+    capturedCredits: number;
+    refundedCredits: number;
+  };
+  receipts: WorkerCompletionReceipt[];
+};
+
 export type RuntimeReadiness = {
   mode: "mock" | "production";
   generatedAt: string;
