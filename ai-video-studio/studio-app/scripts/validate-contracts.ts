@@ -76,6 +76,7 @@ assertProductionMockPersistenceIsDisabled();
 assertProductionPersistenceReadinessBoundary();
 assertProductionProviderReadinessBoundary();
 assertProductionQueueReadinessBoundary();
+assertProductionProjectCreateBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -341,6 +342,22 @@ function assertProductionQueueReadinessBoundary() {
   assert.ok(readinessSource.includes("liveQueueWorkerImplemented = false"), "readiness must expose the missing live queue worker adapter");
   assert.ok(readinessSource.includes("queueStatus"), "readiness must derive queue worker status from the adapter boundary");
   assert.ok(testMock.includes("scripts/production-queue-readiness.test.ts"), "test:mock must include production queue readiness coverage");
+}
+
+function assertProductionProjectCreateBoundary() {
+  const routeSource = readFileSync(join(appApiDir, "projects", "route.ts"), "utf8");
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+  const createProjectPost = openApi.paths["/projects"]?.post;
+  const createProject503 = createProjectPost?.responses?.["503"];
+  const productionCheck = routeSource.indexOf('CUTPILOT_RUNTIME_MODE === "production"');
+  const createCall = routeSource.indexOf("createProject({");
+
+  assert.notEqual(productionCheck, -1, "project creation route must branch on production mode");
+  assert.notEqual(createCall, -1, "project creation route must still call createProject in mock mode");
+  assert.ok(productionCheck < createCall, "project creation route must reject production mock mutation before createProject");
+  assert.ok(routeSource.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "project creation route must return a stable production unavailable code");
+  assert.ok(JSON.stringify(createProject503).includes("Mock-backed project creation is unavailable"), "createProject 503 must document mock mutation production unavailability");
+  assert.ok(testMock.includes("scripts/production-project-create-boundary.test.ts"), "test:mock must include production project creation boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
