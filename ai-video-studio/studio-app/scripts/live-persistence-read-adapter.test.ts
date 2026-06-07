@@ -239,6 +239,23 @@ class FakeClient implements PgQueryable {
         }
       ];
     }
+    if (sql.includes("FROM cutpilot_worker_leases")) {
+      return [
+        {
+          id: "wlease_live_read",
+          token: "lease-token",
+          dispatch_key: `provider_generation:${genJobId}`,
+          kind: "provider_generation",
+          job_id: genJobId,
+          project_id: projectId,
+          worker_id: "worker-live",
+          status: "active",
+          leased_at: now,
+          expires_at: "2999-01-01T00:00:00.000Z",
+          released_at: null
+        }
+      ];
+    }
     return [];
   }
 }
@@ -282,6 +299,10 @@ async function main() {
   assert.equal(dispatch.summary.total, 1, "live read adapter should build worker dispatch snapshots from active jobs");
   assert.equal(dispatch.items[0].kind, "provider_generation", "live worker dispatch should preserve generation dispatch kind");
   assert.equal(dispatch.items[0].jobId, genJobId, "live worker dispatch should preserve generation job ids");
+
+  const leases = await adapter.getWorkerLeaseSnapshot();
+  assert.equal(leases.summary.active, 1, "live read adapter should build worker lease snapshots from persisted leases");
+  assert.equal(leases.leases[0].dispatchKey, `provider_generation:${genJobId}`, "live worker lease snapshots should preserve dispatch keys");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),

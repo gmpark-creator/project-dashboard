@@ -15,7 +15,9 @@ import type {
   Scene,
   Shot,
   StudioState,
-  Take
+  Take,
+  WorkerLease,
+  WorkerLeaseSnapshot
 } from "../domain/types";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { buildQueueSnapshotFromJobs } from "./queue-snapshot";
@@ -257,6 +259,24 @@ function rowCreditTransaction(row: Row): CreditTransaction {
   };
 }
 
+function rowWorkerLease(row: Row): WorkerLease {
+  const expiresAt = iso(row.expires_at);
+  const rawStatus = row.status as WorkerLease["status"];
+  return {
+    id: String(row.id),
+    token: String(row.token),
+    dispatchKey: String(row.dispatch_key),
+    kind: row.kind as WorkerLease["kind"],
+    jobId: String(row.job_id),
+    projectId: String(row.project_id),
+    workerId: String(row.worker_id),
+    status: rawStatus === "active" && new Date(expiresAt).getTime() <= Date.now() ? "expired" : rawStatus,
+    leasedAt: iso(row.leased_at),
+    expiresAt,
+    releasedAt: row.released_at ? iso(row.released_at) : null
+  };
+}
+
 function rowMediaArtifact(row: Row): MediaArtifact {
   return {
     id: String(row.id),
@@ -456,6 +476,20 @@ export class PostgresLivePersistenceReadAdapter {
     const imageJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs ORDER BY due_at ASC")).rows.map(rowImageJob);
     const renderJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs ORDER BY due_at ASC")).rows.map(rowRenderJob);
     return buildWorkerDispatchSnapshotFromJobs({ generationJobs, imageJobs, renderJobs });
+  }
+
+  async getWorkerLeaseSnapshot(): Promise<WorkerLeaseSnapshot> {
+    const leases = (await this.client.query<Row>("SELECT * FROM cutpilot_worker_leases ORDER BY leased_at DESC")).rows.map(rowWorkerLease);
+    return {
+      generatedAt: new Date().toISOString(),
+      summary: {
+        total: leases.length,
+        active: leases.filter((lease) => lease.status === "active").length,
+        released: leases.filter((lease) => lease.status === "released").length,
+        expired: leases.filter((lease) => lease.status === "expired").length
+      },
+      leases
+    };
   }
 
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {

@@ -49,12 +49,19 @@ async function main() {
     const variant = imageJob.variants[0];
     assert.ok(variant, "storage policy setup should create an image variant");
 
+    const productionLeaseResponse = await createWorkerLease(request({ workerId: "api-storage-policy-worker", kind: "image_generation", ttlSec: 30 }));
+    assert.equal(productionLeaseResponse.status, 503, "production lease route should reject mock-backed lease creation");
+    const productionLeaseResult = await json<{ code: string }>(productionLeaseResponse);
+    assert.equal(productionLeaseResult.code, "MOCK_MUTATION_UNAVAILABLE", "production lease route should fail closed without live writes");
+
+    delete process.env.CUTPILOT_RUNTIME_MODE;
     const leaseResponse = await createWorkerLease(request({ workerId: "api-storage-policy-worker", kind: "image_generation", ttlSec: 30 }));
-    assert.equal(leaseResponse.status, 201, "authorized production lease route should return a created lease");
+    assert.equal(leaseResponse.status, 201, "authorized mock lease route should return a created lease for storage-policy setup");
     const leaseResult = await json<WorkerLeaseResult>(leaseResponse);
     assert.equal(leaseResult.reason, "leased", "route-level storage policy setup should lease image work");
     assert.equal(leaseResult.lease?.jobId, imageJob.id, "route-level storage policy setup should lease the queued image job");
     assert.ok(leaseResult.lease, "route-level storage policy setup should return a lease");
+    process.env.CUTPILOT_RUNTIME_MODE = "production";
 
     const imageUrl = "https://assets.cutpilot.local/api-worker-storage-policy-image.png";
     const thumbUrl = "https://assets.cutpilot.local/api-worker-storage-policy-thumb.jpg";

@@ -4,6 +4,7 @@ import {
   applyLiveEdit,
   cancelLiveJob,
   closeLivePersistencePoolForTests,
+  createLiveWorkerLease,
   createLiveImageJob,
   createLiveProject,
   deleteLiveImageAsset,
@@ -11,6 +12,7 @@ import {
   getLivePersistenceReadAdapter,
   getLiveQueueSnapshot,
   getLiveWorkerDispatchSnapshot,
+  getLiveWorkerLeaseSnapshot,
   generateAllLiveShots,
   generateLiveShot,
   LivePersistenceUnavailableError,
@@ -60,9 +62,19 @@ async function main() {
       "live worker dispatch snapshots should fail closed when the read switch is disabled"
     );
     await assert.rejects(
+      () => getLiveWorkerLeaseSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker lease snapshots should fail closed when the read switch is disabled"
+    );
+    await assert.rejects(
       () => createLiveProject({ idea: "Disabled live write", intent: "product_ad" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live project writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => createLiveWorkerLease({ workerId: "worker-disabled", kind: "any" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker lease creation should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_disabled", { camera: "locked" }),
@@ -176,12 +188,22 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker dispatch snapshots should require DATABASE_URL"
     );
+    await assert.rejects(
+      () => getLiveWorkerLeaseSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker lease snapshots should require DATABASE_URL"
+    );
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     assert.equal(liveProjectWritesEnabled(), true, "live project writes should be enabled by an explicit switch");
     await assert.rejects(
       () => createLiveProject({ idea: "Missing DB live write", intent: "product_ad" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live project writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => createLiveWorkerLease({ workerId: "worker-missing-db", kind: "any" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker lease creation should require DATABASE_URL"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),

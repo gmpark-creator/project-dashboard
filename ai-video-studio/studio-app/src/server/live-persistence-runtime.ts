@@ -13,7 +13,7 @@ import {
   type LiveTakeUpgradeInput
 } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
-import type { DirectionSpec, ExportSpec } from "../domain/types";
+import type { DirectionSpec, ExportSpec, WorkerLeaseRequest } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
 
 let pool: Pool | null = null;
@@ -99,6 +99,10 @@ export async function getLiveWorkerDispatchSnapshot() {
   return getLivePersistenceReadAdapter().getWorkerDispatchSnapshot();
 }
 
+export async function getLiveWorkerLeaseSnapshot() {
+  return getLivePersistenceReadAdapter().getWorkerLeaseSnapshot();
+}
+
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;
@@ -158,6 +162,13 @@ export async function startLiveRender(projectId: string, input: LiveStartRenderI
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).startRender(projectId, input));
+}
+
+export async function createLiveWorkerLease(input: Partial<WorkerLeaseRequest> = {}) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).createWorkerLease(input));
 }
 
 export async function registerLiveExternalImage(input: LiveExternalImageInput) {

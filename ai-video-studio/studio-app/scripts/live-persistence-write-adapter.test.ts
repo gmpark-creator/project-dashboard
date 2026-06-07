@@ -27,6 +27,7 @@ class FakeClient implements PgQueryable {
   creditReserved = 0;
   creditTransactionCount = 0;
   activeRenderExists = false;
+  workerLeaseRows: Record<string, unknown>[] = [];
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
@@ -142,6 +143,33 @@ class FakeClient implements PgQueryable {
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_render_jobs")) return { rows: [] as T[] };
+    if (sql.includes("UPDATE cutpilot_worker_leases SET status")) {
+      this.workerLeaseRows = this.workerLeaseRows.map((lease) =>
+        lease.status === params?.[0] && new Date(String(lease.expires_at)).getTime() <= new Date(String(params?.[2])).getTime()
+          ? { ...lease, status: params?.[1] }
+          : lease
+      );
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("SELECT dispatch_key FROM cutpilot_worker_leases")) {
+      return { rows: this.workerLeaseRows.filter((lease) => lease.status === params?.[0]).map((lease) => ({ dispatch_key: lease.dispatch_key })) as unknown as T[] };
+    }
+    if (sql.includes("INSERT INTO cutpilot_worker_leases")) {
+      this.workerLeaseRows.push({
+        id: params?.[0],
+        token: params?.[1],
+        dispatch_key: params?.[2],
+        kind: params?.[3],
+        job_id: params?.[4],
+        project_id: params?.[5],
+        worker_id: params?.[6],
+        status: params?.[7],
+        leased_at: params?.[8],
+        expires_at: params?.[9],
+        released_at: params?.[10]
+      });
+      return { rows: [] as T[] };
+    }
     if (sql.includes("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id")) {
       const rows = this.shotRows.map((shot) => ({ status: shot.status, selected_take_id: shot.selected_take_id })) as unknown as T[];
       return { rows };
@@ -158,6 +186,9 @@ class FakeClient implements PgQueryable {
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE project_id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_generation_jobs ORDER BY due_at")) return { rows: this.generationJobRow ? ([this.generationJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_image_jobs ORDER BY due_at")) return { rows: this.imageJobRow ? ([this.imageJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_render_jobs ORDER BY due_at")) return { rows: this.renderJobRow ? ([this.renderJobRow as unknown as T]) : [] };
     if (sql.includes("FROM cutpilot_asset_usages u")) return { rows: [] as T[] };
     if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
     if (sql.includes("SELECT * FROM cutpilot_asset_usages WHERE project_id")) return { rows: this.assetUsageRows as T[] };
@@ -363,6 +394,48 @@ function fakeGenerationJobRow(status: "queued" | "running" | "done" | "failed" |
   };
 }
 
+function fakeDispatchGenerationJobRow(status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") {
+  return {
+    ...fakeGenerationJobRow(status),
+    prompt_package: {
+      projectId: "prj_live",
+      shotId: "sht_live",
+      durationSec: 3,
+      saec: { subject: "Product", action: "Show", environment: "Studio", camera: "push", framing: "wide", lighting: "soft", style: "clean", negative: "" },
+      directionSpec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: [], notes: "" },
+      requirements: {
+        tier: "fast",
+        aspect: "9:16",
+        imageToVideo: false,
+        needsLipsyncAudio: false,
+        motionHeavy: false,
+        characterLock: false,
+        characterId: null,
+        region: "US"
+      },
+      references: [],
+      routingHints: {
+        startFrameAssetId: null,
+        lastFrameAssetId: null,
+        styleReferenceAssetIds: [],
+        characterReferenceAssetIds: [],
+        productReferenceAssetIds: [],
+        backgroundReferenceAssetIds: [],
+        rightsReviewRequired: false
+      }
+    },
+    routing: {
+      ruleId: "mock",
+      selected: { provider: "mock", model: "mock-video" },
+      candidates: [{ provider: "mock", model: "mock-video" }],
+      rejected: [],
+      splitTakeIndex: 0,
+      fallbackEnabled: true,
+      hiddenFromUser: true
+    }
+  };
+}
+
 function fakeImageJobRow(status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") {
   return {
     id: "ijob_live",
@@ -487,6 +560,45 @@ async function main() {
     "live render enqueue should reject fully duplicated active specs"
   );
   assert.equal(duplicateRenderClient.queries.at(-1)?.sql, "ROLLBACK", "live render enqueue should roll back duplicate requests");
+
+  const workerLeaseClient = new FakeClient();
+  workerLeaseClient.generationJobRow = fakeDispatchGenerationJobRow("queued");
+  const workerLeaseResult = await new PostgresLivePersistenceWriteAdapter(workerLeaseClient).createWorkerLease({
+    workerId: " worker-live ",
+    kind: "provider_generation",
+    ttlSec: 30
+  });
+  assert.equal(workerLeaseResult.reason, "leased", "live worker lease creation should lease available dispatch work");
+  assert.equal(workerLeaseResult.lease?.workerId, "worker-live", "live worker lease creation should trim worker ids");
+  assert.equal(workerLeaseResult.item?.kind, "provider_generation", "live worker lease creation should preserve dispatch item kinds");
+  assert.equal(workerLeaseClient.workerLeaseRows.length, 1, "live worker lease creation should insert a lease row");
+  assert.equal(workerLeaseClient.workerLeaseRows[0].dispatch_key, "provider_generation:gen_live", "live worker lease creation should persist dispatch keys");
+  assert.equal(workerLeaseClient.queries.at(-1)?.sql, "COMMIT", "live worker lease creation should commit successful leases");
+
+  const busyWorkerLeaseClient = new FakeClient();
+  busyWorkerLeaseClient.generationJobRow = fakeDispatchGenerationJobRow("queued");
+  busyWorkerLeaseClient.workerLeaseRows = [
+    {
+      id: "wlease_busy",
+      token: "token",
+      dispatch_key: "provider_generation:gen_live",
+      kind: "provider_generation",
+      job_id: "gen_live",
+      project_id: "prj_live",
+      worker_id: "worker-busy",
+      status: "active",
+      leased_at: "2026-06-07T00:00:00.000Z",
+      expires_at: "2999-01-01T00:00:00.000Z",
+      released_at: null
+    }
+  ];
+  const busyWorkerLeaseResult = await new PostgresLivePersistenceWriteAdapter(busyWorkerLeaseClient).createWorkerLease({
+    workerId: "worker-live",
+    kind: "provider_generation",
+    ttlSec: 30
+  });
+  assert.equal(busyWorkerLeaseResult.reason, "no_available_work", "live worker lease creation should skip actively leased dispatch keys");
+  assert.equal(busyWorkerLeaseResult.lease, null, "live worker lease creation should not create leases when no work is available");
 
   const imageJobClient = new FakeClient();
   const imageJobResult = await new PostgresLivePersistenceWriteAdapter(imageJobClient).createImageJob({

@@ -797,6 +797,7 @@ function assertProductionReadBoundary() {
   const renderPreviewRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "render-preview", "route.ts"), "utf8");
   const queueRoute = readFileSync(join(appApiDir, "system", "queue", "route.ts"), "utf8");
   const workerDispatchRoute = readFileSync(join(appApiDir, "system", "worker-dispatch", "route.ts"), "utf8");
+  const workerLeasesRoute = readFileSync(join(appApiDir, "system", "worker-leases", "route.ts"), "utf8");
   const queueSnapshotSource = readFileSync(join(serverDir, "queue-snapshot.ts"), "utf8");
   const workerDispatchSource = readFileSync(join(serverDir, "worker-dispatch.ts"), "utf8");
   assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_READS"), "live persistence runtime must require an explicit live read switch");
@@ -813,8 +814,12 @@ function assertProductionReadBoundary() {
   assert.ok(renderPreviewRoute.includes("previewLiveRender(projectId"), "render preview route must support live render preview behind the switch");
   assert.ok(queueRoute.includes("getLiveQueueSnapshot()"), "system queue route must support live queue reads behind the switch");
   assert.ok(workerDispatchRoute.includes("getLiveWorkerDispatchSnapshot()"), "worker dispatch route must support live dispatch reads behind the switch");
+  assert.ok(workerLeasesRoute.includes("getLiveWorkerLeaseSnapshot()"), "worker leases route must support live lease reads behind the switch");
+  assert.ok(workerLeasesRoute.includes("createLiveWorkerLease(leaseRequest)"), "worker leases route must support live lease creation behind the switch");
   assert.ok(liveRuntimeSource.includes("getLiveQueueSnapshot"), "live persistence runtime must expose live queue snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerDispatchSnapshot"), "live persistence runtime must expose live worker dispatch snapshots");
+  assert.ok(liveRuntimeSource.includes("getLiveWorkerLeaseSnapshot"), "live persistence runtime must expose live worker lease snapshots");
+  assert.ok(liveRuntimeSource.includes("createLiveWorkerLease"), "live persistence runtime must expose live worker lease creation");
   assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
   assert.ok(projectBundleRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project bundle route must fail closed when live persistence is unavailable");
   assert.ok(projectAssetsRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project asset list route must fail closed when live persistence is unavailable");
@@ -822,8 +827,11 @@ function assertProductionReadBoundary() {
   assert.ok(renderPreviewRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "render preview route must fail closed when live persistence is unavailable");
   assert.ok(queueRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "system queue route must fail closed when live persistence is unavailable");
   assert.ok(workerDispatchRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker dispatch route must fail closed when live persistence is unavailable");
+  assert.ok(workerLeasesRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker leases route must fail closed when live persistence is unavailable");
   assert.ok(queueRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "system queue route must fail closed in production without live reads");
   assert.ok(workerDispatchRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker dispatch route must fail closed in production without live reads");
+  assert.ok(workerLeasesRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker leases route must fail closed in production without live reads");
+  assert.ok(workerLeasesRoute.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "worker leases route must fail closed in production without live writes");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
   assert.ok(testMock.includes("scripts/live-persistence-runtime.test.ts"), "test:mock must include live persistence runtime coverage");
   assert.ok(testMock.includes("scripts/live-render-preview.test.ts"), "test:mock must include live render preview coverage");

@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  createLiveWorkerLease,
+  getLiveWorkerLeaseSnapshot,
+  liveProjectReadsEnabled,
+  liveProjectWritesEnabled,
+  LivePersistenceUnavailableError
+} from "@/server/live-persistence-runtime";
 import { createWorkerLease, getWorkerLeaseSnapshot } from "@/server/worker-leases";
 import type { WorkerDispatchKind, WorkerLeaseRequest } from "@/domain/types";
 import { apiError } from "../../error-response";
@@ -7,9 +14,22 @@ import { requireSystemAccess } from "@/server/system-access";
 
 const validKinds = new Set<WorkerDispatchKind | "any">(["provider_generation", "image_generation", "render", "any"]);
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
   const denied = requireSystemAccess(request);
   if (denied) return denied;
+  if (liveProjectReadsEnabled()) {
+    try {
+      return NextResponse.json(await getLiveWorkerLeaseSnapshot());
+    } catch (error) {
+      if (error instanceof LivePersistenceUnavailableError) {
+        return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+      }
+      throw error;
+    }
+  }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
+  }
   return NextResponse.json(getWorkerLeaseSnapshot());
 }
 
@@ -40,6 +60,20 @@ export async function POST(request: Request) {
     kind: typeof body.kind === "string" ? (body.kind as WorkerLeaseRequest["kind"]) : undefined,
     ttlSec: typeof body.ttlSec === "number" ? body.ttlSec : undefined
   };
+  if (liveProjectWritesEnabled()) {
+    try {
+      const result = await createLiveWorkerLease(leaseRequest);
+      return NextResponse.json(result, { status: result.lease ? 201 : 200 });
+    } catch (error) {
+      if (error instanceof LivePersistenceUnavailableError) {
+        return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+      }
+      throw error;
+    }
+  }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   const result = createWorkerLease(leaseRequest);
   return NextResponse.json(result, { status: result.lease ? 201 : 200 });
 }

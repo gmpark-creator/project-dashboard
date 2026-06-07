@@ -6,6 +6,7 @@ import { GET as listAssetsRoute } from "../app/api/projects/[projectId]/assets/r
 import { POST as previewRenderRoute } from "../app/api/projects/[projectId]/render-preview/route";
 import { GET as queueRoute } from "../app/api/system/queue/route";
 import { GET as workerDispatchRoute } from "../app/api/system/worker-dispatch/route";
+import { GET as workerLeasesRoute } from "../app/api/system/worker-leases/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
 const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL", "CUTPILOT_ADMIN_TOKEN"];
@@ -71,6 +72,7 @@ async function main() {
     await assertUnavailable("asset list", await listAssetsRoute(request("GET"), context({ projectId: "prj_production" })));
     await assertUnavailable("system queue", await queueRoute(systemRequest()));
     await assertUnavailable("worker dispatch", await workerDispatchRoute(systemRequest()));
+    await assertUnavailable("worker leases", await workerLeasesRoute(systemRequest()));
     await assertUnavailable(
       "render preview",
       await previewRenderRoute(
@@ -109,6 +111,10 @@ async function main() {
     const liveWorkerDispatchBody = (await liveWorkerDispatchWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerDispatchWithoutDb.status, 503, "live worker dispatch should fail closed without DATABASE_URL");
     assert.equal(liveWorkerDispatchBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker dispatch should expose live persistence unavailability");
+    const liveWorkerLeasesWithoutDb = await workerLeasesRoute(systemRequest());
+    const liveWorkerLeasesBody = (await liveWorkerLeasesWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerLeasesWithoutDb.status, 503, "live worker lease snapshot should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerLeasesBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease snapshot should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

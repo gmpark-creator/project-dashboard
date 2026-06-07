@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerDispatchKind, WorkerLease, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -191,6 +191,23 @@ function takeLabel(index: number) {
 
 function renderSpecKey(spec: ExportSpec) {
   return `${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`;
+}
+
+function clampWorkerLeaseTtl(ttlSec: number | undefined) {
+  return Math.max(5, Math.min(ttlSec || 60, 600));
+}
+
+function workerKind(input: WorkerLeaseRequest["kind"]): WorkerDispatchKind | null {
+  if (!input || input === "any") return null;
+  return input;
+}
+
+function normalizeWorkerLeaseRequest(input: Partial<WorkerLeaseRequest> = {}): WorkerLeaseRequest {
+  return {
+    workerId: input.workerId?.trim() || "live-worker",
+    kind: input.kind || "any",
+    ttlSec: clampWorkerLeaseTtl(input.ttlSec)
+  };
 }
 
 function providerAttempt(target: GenerationJob["routing"]["selected"], startedAt: string): ProviderAttempt {
@@ -443,6 +460,10 @@ export class PostgresLivePersistenceWriteAdapter {
     const account = accountRows.rows[0];
     if (!account) throw new Error("Project not found");
     return Math.max(0, Number(account.balance_credits) - Number(account.spent_credits) - Number(account.reserved_credits));
+  }
+
+  private async expireWorkerLeases(timestamp: string) {
+    await this.client.query("UPDATE cutpilot_worker_leases SET status = $2 WHERE status = $1 AND expires_at <= $3", ["active", "expired", timestamp]);
   }
 
   private async reserveCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
@@ -891,6 +912,71 @@ export class PostgresLivePersistenceWriteAdapter {
       const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
       await this.client.query("COMMIT");
       return bundle;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async createWorkerLease(input: Partial<WorkerLeaseRequest> = {}): Promise<WorkerLeaseResult> {
+    await this.client.query("BEGIN");
+    try {
+      const request = normalizeWorkerLeaseRequest(input);
+      const timestamp = now();
+      await this.expireWorkerLeases(timestamp);
+      const requestedKind = workerKind(request.kind);
+      const activeLeaseRows = await this.client.query<Row>("SELECT dispatch_key FROM cutpilot_worker_leases WHERE status = $1", ["active"]);
+      const leasedDispatchKeys = new Set(activeLeaseRows.rows.map((row) => String(row.dispatch_key)));
+      const dispatch = await new PostgresLivePersistenceReadAdapter(this.client).getWorkerDispatchSnapshot();
+      const item = dispatch.items.find((candidate) => {
+        if (requestedKind && candidate.kind !== requestedKind) return false;
+        return !leasedDispatchKeys.has(candidate.dispatchKey);
+      });
+
+      if (!item) {
+        await this.client.query("COMMIT");
+        return { lease: null, item: null, reason: "no_available_work" };
+      }
+
+      const leasedAt = new Date(timestamp);
+      const lease: WorkerLease = {
+        id: uid("wlease"),
+        token: randomUUID(),
+        dispatchKey: item.dispatchKey,
+        kind: item.kind,
+        jobId: item.jobId,
+        projectId: item.projectId,
+        workerId: request.workerId,
+        status: "active",
+        leasedAt: timestamp,
+        expiresAt: new Date(leasedAt.getTime() + clampWorkerLeaseTtl(request.ttlSec) * 1000).toISOString(),
+        releasedAt: null
+      };
+
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_worker_leases (
+          id, token, dispatch_key, kind, job_id, project_id, worker_id,
+          status, leased_at, expires_at, released_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `,
+        [
+          lease.id,
+          lease.token,
+          lease.dispatchKey,
+          lease.kind,
+          lease.jobId,
+          lease.projectId,
+          lease.workerId,
+          lease.status,
+          lease.leasedAt,
+          lease.expiresAt,
+          lease.releasedAt
+        ]
+      );
+      await this.client.query("COMMIT");
+      return { lease, item, reason: "leased" };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;
