@@ -99,5 +99,5 @@ export const studioApi = {
   getSystemMetrics: () => json<SystemMetrics>("/api/system/metrics"),
   getMediaArtifactInventory: () => json<MediaArtifactInventory>("/api/system/media-artifacts"),
   getJobQueueSnapshot: () => json<JobQueueSnapshot>("/api/system/queue"),
-  tick: () => json("/api/jobs/tick", { method: "POST", body: "{}" })
+  tick: () => json<JobQueueSnapshot>("/api/jobs/tick", { method: "POST", body: "{}" })
 };

@@ -762,7 +762,8 @@ export function StudioApp() {
     loadInventory();
     loadQueue();
     const id = window.setInterval(async () => {
-      await studioApi.tick();
+      const nextQueue = await studioApi.tick();
+      setQueue(nextQueue);
       await refresh();
       // 지표·인벤토리·큐 스냅샷은 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은
       // 과해서 약 5틱(~6초)마다 한 번만 갱신한다. 액션 직후에는 run/cancel 경로에서 즉시 갱신한다.
