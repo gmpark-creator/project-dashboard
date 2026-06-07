@@ -496,6 +496,13 @@ export type ErrorResponse = {
   fallbackSuggested: boolean;
 };
 
+export type InsufficientCreditsResponse = ErrorResponse & {
+  code: "INSUFFICIENT_CREDITS";
+  retryable: false;
+  fallbackSuggested: false;
+  estimate: CostEstimate;
+};
+
 export type CreditTransaction = {
   id: string;
   projectId: string;

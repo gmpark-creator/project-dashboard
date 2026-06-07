@@ -1,4 +1,43 @@
-import type { AssetUsage, CancelJobResult, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
+import type { AssetUsage, CancelJobResult, CostEstimate, DirectionSpec, EditState, ErrorResponse, ExportSpec, ImageAsset, ImageAssetRole, ImageJob, ImageMakerPurpose, InsufficientCreditsResponse, Intent, JobQueueSnapshot, MediaArtifactInventory, Project, ProjectBundle, RenderPreview, RuntimeReadiness, Scene, Shot, SystemMetrics, Tier } from "@/domain/types";
+
+type ApiErrorPayload = Partial<ErrorResponse> & {
+  estimate?: CostEstimate;
+};
+
+export class ApiError extends Error {
+  status: number;
+  code: string;
+  retryable: boolean;
+  fallbackSuggested: boolean;
+  estimate: CostEstimate | null;
+  payload: ApiErrorPayload;
+
+  constructor(status: number, payload: ApiErrorPayload) {
+    super(apiErrorMessage(status, payload));
+    this.name = "ApiError";
+    this.status = status;
+    this.code = payload.code || `HTTP_${status}`;
+    this.retryable = payload.retryable ?? false;
+    this.fallbackSuggested = payload.fallbackSuggested ?? false;
+    this.estimate = payload.estimate || null;
+    this.payload = payload;
+  }
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
+
+function isInsufficientCreditsResponse(payload: ApiErrorPayload): payload is InsufficientCreditsResponse {
+  return payload.code === "INSUFFICIENT_CREDITS" && Boolean(payload.estimate);
+}
+
+function apiErrorMessage(status: number, payload: ApiErrorPayload) {
+  const message = payload.userMessage || `Request failed: ${status}`;
+  if (!isInsufficientCreditsResponse(payload)) return message;
+  const { credits, availableCredits, shortfallCredits } = payload.estimate;
+  return `${message} (needed ${credits}, available ${availableCredits}, shortfall ${shortfallCredits})`;
+}
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -7,8 +46,8 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
     cache: "no-store"
   });
   if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { userMessage?: string };
-    throw new Error(error.userMessage || `Request failed: ${response.status}`);
+    const error = (await response.json().catch(() => ({}))) as ApiErrorPayload;
+    throw new ApiError(response.status, error);
   }
   return (await response.json()) as T;
 }
