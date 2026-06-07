@@ -114,10 +114,14 @@ function assertUserUiHidesProviderNames() {
   }
 }
 
-function jsonSchemaRef(response: unknown) {
+function jsonSchema(response: unknown) {
   if (!response || typeof response !== "object") return null;
   const content = (response as { content?: Record<string, { schema?: { $ref?: string } }> }).content;
-  return content?.["application/json"]?.schema?.$ref || null;
+  return content?.["application/json"]?.schema || null;
+}
+
+function jsonSchemaRef(response: unknown) {
+  return jsonSchema(response)?.$ref || null;
 }
 
 const knownModels = new Set<string>();
@@ -277,6 +281,7 @@ const requiredOperations = new Set([
   "executeWorkerRetry"
 ]);
 const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
+const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", "422", "503"]);
 const resultShapedErrorResponses = new Map([
   ["cancelJob:404", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
   ["cancelJob:409", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
@@ -324,6 +329,9 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     }
     if (operation.operationId) {
       for (const [code, response] of Object.entries(operation.responses || {})) {
+        if (documentedJsonErrorStatuses.has(code)) {
+          assert.ok(jsonSchema(response), `${operation.operationId} ${code} error response must declare an application/json schema`);
+        }
         const expectedRef = resultShapedErrorResponses.get(`${operation.operationId}:${code}`);
         if (expectedRef) {
           assert.equal(jsonSchemaRef(response), expectedRef, `${operation.operationId} ${code} must reference ${expectedRef}`);
