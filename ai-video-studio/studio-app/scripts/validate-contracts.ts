@@ -92,6 +92,26 @@ function routeFileForOpenApiPath(pathName: string) {
   return join(appApiDir, ...segments, "route.ts");
 }
 
+function openApiPathForRouteFile(routeFile: string) {
+  const routePath = routeFile.slice(appApiDir.length + 1).replace(/\\/g, "/").replace(/\/route\.ts$/, "");
+  return `/${routePath
+    .split("/")
+    .map((segment) => {
+      const parameter = segment.match(/^\[(.+)\]$/);
+      return parameter ? `{${parameter[1]}}` : segment;
+    })
+    .join("/")}`;
+}
+
+function routeFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return routeFiles(path);
+    return entry.name === "route.ts" ? [path] : [];
+  });
+}
+
 function exportedRouteMethods(routeFile: string) {
   if (!existsSync(routeFile)) return new Set<HttpMethod>();
   const source = readFileSync(routeFile, "utf8");
@@ -353,6 +373,7 @@ const requiredOperations = new Set([
   "listProjects",
   "registerExternalImage",
   "createImageJob",
+  "tickJobs",
   "cancelJob",
   "attachImageToShot",
   "detachImageFromShot",
@@ -435,6 +456,17 @@ for (const operation of requiredOperations) {
 }
 for (const operation of operationIds) {
   assert.ok(requiredOperations.has(operation), `openapi operation ${operation} missing from requiredOperations`);
+}
+
+for (const routeFile of routeFiles(appApiDir)) {
+  const pathName = openApiPathForRouteFile(routeFile);
+  const pathItem = openApi.paths[pathName];
+  const routeMethods = exportedRouteMethods(routeFile);
+  assert.ok(routeMethods.size > 0, `Next route ${routeFile} must export at least one HTTP method`);
+  assert.ok(pathItem, `Next route ${routeFile} missing OpenAPI path ${pathName}`);
+  for (const method of routeMethods) {
+    assert.ok(pathItem?.[method], `Next route ${routeFile} ${method.toUpperCase()} missing OpenAPI operation for ${pathName}`);
+  }
 }
 
 for (const [pathName, pathItem] of Object.entries(openApi.paths)) {

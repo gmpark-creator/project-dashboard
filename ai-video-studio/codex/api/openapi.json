@@ -1965,6 +1965,21 @@
         }
       }
     },
+    "/jobs/tick": {
+      "post": {
+        "operationId": "tickJobs",
+        "responses": {
+          "200": {
+            "description": "Queue snapshot after advancing mock jobs",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/JobQueueSnapshot" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

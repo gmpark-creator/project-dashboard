@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { tickJobs } from "@/server/mock-service";
+import { getJobQueueSnapshot } from "@/server/queue-snapshot";
 
 export function POST() {
-  return NextResponse.json(tickJobs());
+  return NextResponse.json(getJobQueueSnapshot());
 }

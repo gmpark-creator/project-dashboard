@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test:mock": "tsx scripts/api-json-body.test.ts && tsx scripts/api-service-error.test.ts && tsx scripts/api-path-params.test.ts && tsx scripts/api-query-params.test.ts && tsx scripts/api-credit-error.test.ts && tsx scripts/mock-flow.test.ts",
+    "test:mock": "tsx scripts/api-json-body.test.ts && tsx scripts/api-service-error.test.ts && tsx scripts/api-path-params.test.ts && tsx scripts/api-query-params.test.ts && tsx scripts/api-credit-error.test.ts && tsx scripts/api-tick-route.test.ts && tsx scripts/mock-flow.test.ts",
     "validate:contracts": "tsx scripts/validate-contracts.ts",
     "verify": "npm run typecheck && npm run validate:contracts && npm run test:mock && npm audit --omit=dev && npm run build"
   },
