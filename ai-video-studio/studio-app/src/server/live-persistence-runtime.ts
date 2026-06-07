@@ -95,6 +95,10 @@ export async function getLiveQueueSnapshot() {
   return getLivePersistenceReadAdapter().getQueueSnapshot();
 }
 
+export async function getLiveWorkerDispatchSnapshot() {
+  return getLivePersistenceReadAdapter().getWorkerDispatchSnapshot();
+}
+
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;

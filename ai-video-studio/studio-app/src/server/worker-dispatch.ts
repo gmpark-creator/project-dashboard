@@ -50,12 +50,12 @@ function renderItem(job: RenderJob) {
   return baseItem({ kind: "render", job, invocation: buildRenderWorkerInvocation(job) });
 }
 
-export function buildWorkerDispatchSnapshot(current: StudioState): WorkerDispatchSnapshot {
+export function buildWorkerDispatchSnapshotFromJobs(input: { generationJobs: GenerationJob[]; imageJobs: ImageJob[]; renderJobs: RenderJob[] }): WorkerDispatchSnapshot {
   const now = Date.now();
   const items = [
-    ...current.generationJobs.filter((job) => active(job.status)).map(generationItem),
-    ...current.imageJobs.filter((job) => active(job.status)).map(imageItem),
-    ...current.renderJobs.filter((job) => active(job.status)).map(renderItem)
+    ...input.generationJobs.filter((job) => active(job.status)).map(generationItem),
+    ...input.imageJobs.filter((job) => active(job.status)).map(imageItem),
+    ...input.renderJobs.filter((job) => active(job.status)).map(renderItem)
   ]
     .sort((a, b) => {
       if (a.dueAt !== b.dueAt) return a.dueAt - b.dueAt;
@@ -77,6 +77,10 @@ export function buildWorkerDispatchSnapshot(current: StudioState): WorkerDispatc
     },
     items
   };
+}
+
+export function buildWorkerDispatchSnapshot(current: StudioState): WorkerDispatchSnapshot {
+  return buildWorkerDispatchSnapshotFromJobs(current);
 }
 
 export function getWorkerDispatchSnapshot() {

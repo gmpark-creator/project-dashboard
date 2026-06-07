@@ -122,10 +122,10 @@ class FakeClient implements PgQueryable {
           shot_id: shotId,
           take_id: takeId,
           retry_of_job_id: null,
-          status: "done",
-          progress: 100,
-          eta_sec: null,
-          stage: "done",
+          status: "queued",
+          progress: 0,
+          eta_sec: 6,
+          stage: "queued",
           should_fail: false,
           due_at: 1,
           error: null,
@@ -277,6 +277,11 @@ async function main() {
   assert.equal(queue.summary.total, 1, "live read adapter should build queue snapshots from persisted jobs");
   assert.equal(queue.jobs[0].id, genJobId, "live queue snapshots should preserve generation job ids");
   assert.equal(queue.jobs[0].kind, "generation", "live queue snapshots should preserve job kinds");
+
+  const dispatch = await adapter.getWorkerDispatchSnapshot();
+  assert.equal(dispatch.summary.total, 1, "live read adapter should build worker dispatch snapshots from active jobs");
+  assert.equal(dispatch.items[0].kind, "provider_generation", "live worker dispatch should preserve generation dispatch kind");
+  assert.equal(dispatch.items[0].jobId, genJobId, "live worker dispatch should preserve generation job ids");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),
