@@ -725,10 +725,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["action", "params"],
+                "required": ["action"],
                 "properties": {
-                  "action": { "type": "string" },
-                  "params": { "type": "object" }
+                  "action": {
+                    "type": "string",
+                    "enum": ["generateShot", "generateAll", "regenerate", "generateImages", "registerExternalImage", "upgradeTake", "startRender"]
+                  },
+                  "params": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "takeCount": { "type": "integer", "minimum": 1 }
+                    }
+                  }
                 }
               }
             }
