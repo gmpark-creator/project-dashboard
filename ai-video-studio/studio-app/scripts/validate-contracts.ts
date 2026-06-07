@@ -143,9 +143,16 @@ function responseJsonSchema(response: unknown) {
 
 function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[] = []) {
   if (!schema || typeof schema !== "object") return;
-  const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; items?: unknown };
+  const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; required?: unknown; items?: unknown };
   if (objectSchema.type === "object") {
     assert.equal(objectSchema.additionalProperties, false, `${owner} object schema ${path.join(".") || "<root>"} must set additionalProperties false`);
+    if (typeof objectSchema.required !== "undefined") {
+      assert.ok(Array.isArray(objectSchema.required), `${owner} object schema ${path.join(".") || "<root>"} required must be an array`);
+      for (const property of objectSchema.required) {
+        assert.equal(typeof property, "string", `${owner} object schema ${path.join(".") || "<root>"} required entries must be strings`);
+        assert.ok(objectSchema.properties?.[property], `${owner} object schema ${path.join(".") || "<root>"} required property ${property} missing from properties`);
+      }
+    }
   }
   if (objectSchema.properties) {
     for (const [property, propertySchema] of Object.entries(objectSchema.properties)) {
@@ -431,9 +438,13 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       }
     }
     if (operation.requestBody) {
+      const requestBody = operation.requestBody as { required?: unknown };
+      const requestSchema = requestJsonSchema(operation);
+      assert.equal(typeof requestBody.required, "boolean", `openapi path ${pathName} ${method.toUpperCase()} requestBody.required must be boolean`);
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
       assert.ok(routeSource.includes("readJsonObject("), `request body route ${operation.operationId} missing readJsonObject parser`);
-      assertClosedObjectSchemas(requestJsonSchema(operation), `${operation.operationId || method.toUpperCase()} ${pathName}`);
+      assert.ok(requestSchema, `openapi path ${pathName} ${method.toUpperCase()} requestBody missing application/json schema`);
+      assertClosedObjectSchemas(requestSchema, `${operation.operationId || method.toUpperCase()} ${pathName}`);
     }
     if (routeSource.includes("serviceErrorResponse(")) {
       assert.ok(operation.responses?.["404"], `service error route ${operation.operationId} missing 404 response`);
