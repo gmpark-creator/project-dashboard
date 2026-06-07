@@ -3,6 +3,7 @@ import { configuredObjectStorageProvider, isObjectStorageProvider } from "./obje
 import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
+const persistenceEnv = ["DATABASE_URL"];
 const storageEnv = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"];
 const queueEnv = ["CUTPILOT_QUEUE_URL"];
 const adminEnv = ["CUTPILOT_ADMIN_TOKEN"];
@@ -47,9 +48,19 @@ function validQueueUrl(input: string) {
   }
 }
 
+function validDatabaseUrl(input: string) {
+  try {
+    const parsed = new URL(input);
+    return ["postgres:", "postgresql:", "mysql:", "sqlserver:"].includes(parsed.protocol) && hasMinimumLength(input, 16);
+  } catch {
+    return false;
+  }
+}
+
 function validEnvValue(name: string) {
   const current = value(name);
   if (!current) return false;
+  if (name === "DATABASE_URL") return validDatabaseUrl(current);
   if (name === "GOOGLE_VERTEX_PROJECT") return validProjectId(current);
   if (name === "R2_BUCKET") return validBucketName(current);
   if (name === "CUTPILOT_QUEUE_URL") return validQueueUrl(current);
@@ -91,6 +102,7 @@ function check(
 export function getRuntimeReadiness(): RuntimeReadiness {
   const mode: RuntimeReadiness["mode"] = process.env.CUTPILOT_RUNTIME_MODE === "production" ? "production" : "mock";
   const missingProviderEnv = missing(providerEnv);
+  const missingPersistenceEnv = missing(persistenceEnv);
   const missingStorageEnv = missing(storageEnv);
   const missingQueueEnv = missing(queueEnv);
   const missingAdminEnv = missing(adminEnv);
@@ -99,6 +111,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const decomposerProviderInvalidEnv = isStoryDecomposerProvider(decomposerProvider) ? [] : decomposerProviderEnv;
   const missingDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? missing(decomposerCredentialEnv(decomposerProvider)) : [];
   const invalidProviderEnv = invalid(providerEnv);
+  const invalidPersistenceEnv = invalid(persistenceEnv);
   const objectStorageProvider = configuredObjectStorageProvider();
   const invalidObjectStorageProviderEnv = isObjectStorageProvider(objectStorageProvider) ? [] : ["OBJECT_STORAGE_PROVIDER"];
   const invalidStorageEnv = [...invalid(storageEnv), ...invalidObjectStorageProviderEnv];
@@ -107,10 +120,11 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const invalidDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? invalid(decomposerCredentialEnv(decomposerProvider)) : [];
   const missingDecomposerEnv = [...decomposerProviderMissingEnv, ...missingDecomposerCredentialEnv];
   const invalidDecomposerEnv = [...decomposerProviderInvalidEnv, ...invalidDecomposerCredentialEnv];
-  const missingEnv = [...missingProviderEnv, ...missingStorageEnv, ...missingQueueEnv, ...missingAdminEnv, ...missingDecomposerEnv];
-  const invalidEnv = [...invalidProviderEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv, ...invalidDecomposerEnv];
+  const missingEnv = [...missingProviderEnv, ...missingPersistenceEnv, ...missingStorageEnv, ...missingQueueEnv, ...missingAdminEnv, ...missingDecomposerEnv];
+  const invalidEnv = [...invalidProviderEnv, ...invalidPersistenceEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv, ...invalidDecomposerEnv];
   const production = mode === "production";
   const liveDecomposerImplemented = false;
+  const livePersistenceImplemented = false;
   const liveObjectStorageDeleteImplemented = false;
   const decomposerConfigured = isStoryDecomposerProvider(decomposerProvider) && decomposerProvider !== "mock";
   const decomposerStatus: RuntimeReadiness["checks"][number]["status"] =
@@ -147,6 +161,15 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     : mockPersistenceDisabled
       ? "File-backed mock state is disabled."
       : "File-backed mock state is enabled by default.";
+  const persistenceBaseStatus = envStatus(missingPersistenceEnv, invalidPersistenceEnv, production);
+  const persistenceStatus: RuntimeReadiness["checks"][number]["status"] =
+    persistenceBaseStatus !== "pass" ? persistenceBaseStatus : production && !livePersistenceImplemented ? "fail" : "pass";
+  const persistenceDetail =
+    persistenceBaseStatus !== "pass"
+      ? envDetail("persistence", missingPersistenceEnv, invalidPersistenceEnv, "Persistence env is present and URL-shaped.")
+      : production && !livePersistenceImplemented
+        ? "Production persistence env is configured, but the live persistence adapter is not yet available."
+        : "Mock in-memory persistence is active for local preview.";
 
   const checks: RuntimeReadiness["checks"] = [
     check(
@@ -161,6 +184,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       mockPersistenceStatus,
       mockPersistenceDetail
     ),
+    check("persistence", "Persistence", persistenceStatus, persistenceDetail),
     check(
       "provider_credentials",
       "Provider credentials",
