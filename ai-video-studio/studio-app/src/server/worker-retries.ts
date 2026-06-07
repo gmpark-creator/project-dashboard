@@ -120,6 +120,22 @@ function retryRecordId() {
 }
 
 function replacementSnapshot(current: StudioState, kind: QueueJobKind, jobId: string) {
+  return replacementSnapshotFromJobs(
+    {
+      generationJobs: current.generationJobs,
+      imageJobs: current.imageJobs,
+      renderJobs: current.renderJobs
+    },
+    kind,
+    jobId
+  );
+}
+
+function replacementSnapshotFromJobs(
+  current: Pick<StudioState, "generationJobs" | "imageJobs" | "renderJobs">,
+  kind: QueueJobKind,
+  jobId: string
+) {
   if (kind === "image") {
     const job = current.imageJobs.find((candidate) => candidate.id === jobId);
     return job ? imageSnapshot(job) : null;
@@ -167,13 +183,29 @@ function recordRetry(sourceJobId: string, action: WorkerRetryAction, replacement
 export function getWorkerRetryExecutionSnapshot(): WorkerRetryExecutionSnapshot {
   const current = getMockState();
   const completionSnapshot = buildWorkerCompletionSnapshot(current);
-  const items = [...current.workerRetryRecords]
+  return buildWorkerRetryExecutionSnapshotFromRecords({
+    records: current.workerRetryRecords,
+    receipts: completionSnapshot.receipts,
+    generationJobs: current.generationJobs,
+    imageJobs: current.imageJobs,
+    renderJobs: current.renderJobs
+  });
+}
+
+export function buildWorkerRetryExecutionSnapshotFromRecords(input: {
+  records: WorkerRetryRecord[];
+  receipts: WorkerCompletionReceipt[];
+  generationJobs: GenerationJob[];
+  imageJobs: ImageJob[];
+  renderJobs: RenderJob[];
+}): WorkerRetryExecutionSnapshot {
+  const items = [...input.records]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((record) => {
-      const replacement = replacementSnapshot(current, record.replacementKind, record.replacementJobId);
+      const replacement = replacementSnapshotFromJobs(input, record.replacementKind, record.replacementJobId);
       return {
         record,
-        sourceReceipt: completionSnapshot.receipts.find((receipt) => receipt.jobId === record.sourceJobId) || null,
+        sourceReceipt: input.receipts.find((receipt) => receipt.jobId === record.sourceJobId) || null,
         replacement,
         replacementMissing: !replacement
       };

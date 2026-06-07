@@ -15,6 +15,7 @@ import {
   getLiveWorkerDispatchSnapshot,
   getLiveWorkerCompletionSnapshot,
   getLiveWorkerLeaseSnapshot,
+  getLiveWorkerRetryExecutionSnapshot,
   getLiveWorkerRetryPlan,
   generateAllLiveShots,
   generateLiveShot,
@@ -80,6 +81,11 @@ async function main() {
       () => getLiveWorkerRetryPlan(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live worker retry plans should fail closed when the read switch is disabled"
+    );
+    await assert.rejects(
+      () => getLiveWorkerRetryExecutionSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker retry execution snapshots should fail closed when the read switch is disabled"
     );
     await assert.rejects(
       () => createLiveProject({ idea: "Disabled live write", intent: "product_ad" }),
@@ -232,6 +238,11 @@ async function main() {
       () => getLiveWorkerRetryPlan(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker retry plans should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => getLiveWorkerRetryExecutionSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker retry execution snapshots should require DATABASE_URL"
     );
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     assert.equal(liveProjectWritesEnabled(), true, "live project writes should be enabled by an explicit switch");

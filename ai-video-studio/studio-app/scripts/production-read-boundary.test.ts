@@ -8,6 +8,7 @@ import { GET as queueRoute } from "../app/api/system/queue/route";
 import { GET as workerDispatchRoute } from "../app/api/system/worker-dispatch/route";
 import { GET as workerCompletionsRoute } from "../app/api/system/worker-completions/route";
 import { GET as workerLeasesRoute } from "../app/api/system/worker-leases/route";
+import { GET as workerRetryExecutionsRoute } from "../app/api/system/worker-retries/executions/route";
 import { GET as workerRetriesRoute } from "../app/api/system/worker-retries/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
@@ -77,6 +78,7 @@ async function main() {
     await assertUnavailable("worker leases", await workerLeasesRoute(systemRequest()));
     await assertUnavailable("worker completions", await workerCompletionsRoute(systemRequest()));
     await assertUnavailable("worker retries", await workerRetriesRoute(systemRequest()));
+    await assertUnavailable("worker retry executions", await workerRetryExecutionsRoute(systemRequest()));
     await assertUnavailable(
       "render preview",
       await previewRenderRoute(
@@ -127,6 +129,10 @@ async function main() {
     const liveWorkerRetriesBody = (await liveWorkerRetriesWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerRetriesWithoutDb.status, 503, "live worker retry plan should fail closed without DATABASE_URL");
     assert.equal(liveWorkerRetriesBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker retry plan should expose live persistence unavailability");
+    const liveWorkerRetryExecutionsWithoutDb = await workerRetryExecutionsRoute(systemRequest());
+    const liveWorkerRetryExecutionsBody = (await liveWorkerRetryExecutionsWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerRetryExecutionsWithoutDb.status, 503, "live worker retry execution snapshot should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerRetryExecutionsBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker retry execution snapshot should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

@@ -17,13 +17,14 @@ import type {
   StudioState,
   Take,
   WorkerLease,
-  WorkerLeaseSnapshot
+  WorkerLeaseSnapshot,
+  WorkerRetryRecord
 } from "../domain/types";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { buildQueueSnapshotFromJobs } from "./queue-snapshot";
 import { buildWorkerCompletionSnapshotFromJobs } from "./worker-completions";
 import { buildWorkerDispatchSnapshotFromJobs } from "./worker-dispatch";
-import { buildWorkerRetryPlan } from "./worker-retries";
+import { buildWorkerRetryExecutionSnapshotFromRecords, buildWorkerRetryPlan } from "./worker-retries";
 
 type Row = Record<string, unknown>;
 
@@ -279,6 +280,18 @@ function rowWorkerLease(row: Row): WorkerLease {
   };
 }
 
+function rowWorkerRetryRecord(row: Row): WorkerRetryRecord {
+  return {
+    id: String(row.id),
+    sourceJobId: String(row.source_job_id),
+    action: row.action as WorkerRetryRecord["action"],
+    replacementJobId: String(row.replacement_job_id),
+    replacementKind: row.replacement_kind as WorkerRetryRecord["replacementKind"],
+    createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at)
+  };
+}
+
 function rowMediaArtifact(row: Row): MediaArtifact {
   return {
     id: String(row.id),
@@ -507,6 +520,23 @@ export class PostgresLivePersistenceReadAdapter {
 
   async getWorkerRetryPlan() {
     return buildWorkerRetryPlan((await this.getWorkerCompletionSnapshot()).receipts);
+  }
+
+  async getWorkerRetryExecutionSnapshot() {
+    const completionSnapshot = await this.getWorkerCompletionSnapshot();
+    const records = (await this.client.query<Row>("SELECT * FROM cutpilot_worker_retry_records ORDER BY created_at DESC")).rows.map(rowWorkerRetryRecord);
+    const generationJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs ORDER BY updated_at DESC")).rows.map((row) =>
+      rowGenerationJob(row, [])
+    );
+    const imageJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs ORDER BY updated_at DESC")).rows.map(rowImageJob);
+    const renderJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs ORDER BY updated_at DESC")).rows.map(rowRenderJob);
+    return buildWorkerRetryExecutionSnapshotFromRecords({
+      records,
+      receipts: completionSnapshot.receipts,
+      generationJobs,
+      imageJobs,
+      renderJobs
+    });
   }
 
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {

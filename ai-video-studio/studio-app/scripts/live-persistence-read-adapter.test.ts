@@ -8,6 +8,7 @@ const sceneId = "scn_live_read";
 const shotId = "shot_live_read";
 const takeId = "take_live_read";
 const genJobId = "gen_live_read";
+const retryGenJobId = "gen_retry_live_read";
 const assetId = "img_live_read";
 
 class FakeClient implements PgQueryable {
@@ -115,10 +116,10 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("FROM cutpilot_generation_jobs")) {
       if (sql.includes("WHERE id = $1") && params?.[0] !== genJobId) return [];
-      const status = sql.includes("ORDER BY updated_at DESC") ? "failed" : "queued";
-      return [
-        {
-          id: genJobId,
+      const completionQuery = sql.includes("ORDER BY updated_at DESC");
+      const status = completionQuery ? "failed" : "queued";
+      const sourceRow = {
+        id: genJobId,
           project_id: projectId,
           shot_id: shotId,
           take_id: takeId,
@@ -160,6 +161,19 @@ class FakeClient implements PgQueryable {
           routing: { ruleId: "mock", selected: { provider: "mock", model: "mock-video" }, candidates: [], rejected: [], splitTakeIndex: 0, fallbackEnabled: true, hiddenFromUser: true },
           created_at: now,
           updated_at: now
+      };
+      if (!completionQuery) return [sourceRow];
+      return [
+        sourceRow,
+        {
+          ...sourceRow,
+          id: retryGenJobId,
+          retry_of_job_id: genJobId,
+          status: "queued",
+          progress: 0,
+          eta_sec: 6,
+          stage: "queued",
+          error: null
         }
       ];
     }
@@ -257,6 +271,19 @@ class FakeClient implements PgQueryable {
         }
       ];
     }
+    if (sql.includes("FROM cutpilot_worker_retry_records")) {
+      return [
+        {
+          id: "wretry_live_read",
+          source_job_id: genJobId,
+          action: "retry_provider_generation",
+          replacement_job_id: retryGenJobId,
+          replacement_kind: "generation",
+          created_at: now,
+          updated_at: now
+        }
+      ];
+    }
     return [];
   }
 }
@@ -316,6 +343,12 @@ async function main() {
   assert.equal(retryPlan.summary.totalFailed, 1, "live read adapter should build retry plans from failed completion receipts");
   assert.equal(retryPlan.summary.retryable, 1, "live retry plans should count retryable failures");
   assert.equal(retryPlan.items[0].action, "retry_provider_generation", "live retry plans should preserve provider retry actions");
+
+  const retryExecutions = await adapter.getWorkerRetryExecutionSnapshot();
+  assert.equal(retryExecutions.summary.total, 1, "live read adapter should build retry execution snapshots from persisted records");
+  assert.equal(retryExecutions.summary.withReplacement, 1, "live retry execution snapshots should resolve replacement jobs");
+  assert.equal(retryExecutions.items[0].sourceReceipt?.jobId, genJobId, "live retry execution snapshots should attach source receipts");
+  assert.equal(retryExecutions.items[0].replacement?.id, retryGenJobId, "live retry execution snapshots should attach replacement jobs");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),
