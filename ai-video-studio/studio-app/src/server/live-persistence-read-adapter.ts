@@ -18,6 +18,7 @@ import type {
   Take
 } from "../domain/types";
 import type { PgQueryable } from "./live-persistence-migrations";
+import { buildQueueSnapshotFromJobs } from "./queue-snapshot";
 
 type Row = Record<string, unknown>;
 
@@ -436,6 +437,15 @@ export class PostgresLivePersistenceReadAdapter {
       return jobs.rows[0] ? rowRenderJob(jobs.rows[0]) : null;
     }
     return null;
+  }
+
+  async getQueueSnapshot() {
+    const generationJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs ORDER BY created_at ASC")).rows.map((row) =>
+      rowGenerationJob(row, [])
+    );
+    const imageJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs ORDER BY created_at ASC")).rows.map(rowImageJob);
+    const renderJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs ORDER BY created_at ASC")).rows.map(rowRenderJob);
+    return buildQueueSnapshotFromJobs({ generationJobs, imageJobs, renderJobs });
   }
 
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {

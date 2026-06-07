@@ -273,6 +273,11 @@ async function main() {
   assert.equal(generationJob && "providerAttempts" in generationJob ? generationJob.providerAttempts[0].requestId : null, "req_live_read", "live generation job reads should attach provider attempts");
   assert.equal(await adapter.getJob("gen_missing"), null, "live read adapter should return null for missing generation jobs");
 
+  const queue = await adapter.getQueueSnapshot();
+  assert.equal(queue.summary.total, 1, "live read adapter should build queue snapshots from persisted jobs");
+  assert.equal(queue.jobs[0].id, genJobId, "live queue snapshots should preserve generation job ids");
+  assert.equal(queue.jobs[0].kind, "generation", "live queue snapshots should preserve job kinds");
+
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),
     "adapter should query cutpilot_projects"

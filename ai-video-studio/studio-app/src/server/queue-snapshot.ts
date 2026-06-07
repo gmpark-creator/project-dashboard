@@ -57,13 +57,13 @@ function kindOrder(kind: QueueJobKind) {
   return kind === "generation" ? 0 : kind === "image" ? 1 : 2;
 }
 
-export function buildJobQueueSnapshot(current: StudioState): JobQueueSnapshot {
+export function buildQueueSnapshotFromJobs(input: { generationJobs: GenerationJob[]; imageJobs: ImageJob[]; renderJobs: RenderJob[] }): JobQueueSnapshot {
   const generatedAt = new Date().toISOString();
   const now = Date.now();
   const jobs = [
-    ...current.generationJobs.map(generationSnapshot),
-    ...current.imageJobs.map(imageSnapshot),
-    ...current.renderJobs.map(renderSnapshot)
+    ...input.generationJobs.map(generationSnapshot),
+    ...input.imageJobs.map(imageSnapshot),
+    ...input.renderJobs.map(renderSnapshot)
   ].sort((a, b) => {
     if (a.status !== b.status) return active(a.status) === active(b.status) ? 0 : active(a.status) ? -1 : 1;
     if (a.dueAt !== b.dueAt) return a.dueAt - b.dueAt;
@@ -88,6 +88,10 @@ export function buildJobQueueSnapshot(current: StudioState): JobQueueSnapshot {
     },
     jobs
   };
+}
+
+export function buildJobQueueSnapshot(current: StudioState): JobQueueSnapshot {
+  return buildQueueSnapshotFromJobs(current);
 }
 
 export function getJobQueueSnapshot() {

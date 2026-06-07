@@ -4,9 +4,10 @@ import { GET as listProjectsRoute } from "../app/api/projects/route";
 import { GET as getProjectRoute } from "../app/api/projects/[projectId]/route";
 import { GET as listAssetsRoute } from "../app/api/projects/[projectId]/assets/route";
 import { POST as previewRenderRoute } from "../app/api/projects/[projectId]/render-preview/route";
+import { GET as queueRoute } from "../app/api/system/queue/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL"];
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL", "CUTPILOT_ADMIN_TOKEN"];
 
 function request(method: string, body?: unknown) {
   return new Request("http://cutpilot.local/api/test", {
@@ -18,6 +19,12 @@ function request(method: string, body?: unknown) {
 
 function context<T extends Record<string, string>>(params: T) {
   return { params: Promise.resolve(params) };
+}
+
+function systemRequest() {
+  return new Request("http://cutpilot.local/api/system/queue", {
+    headers: { authorization: "Bearer test-admin-token" }
+  });
 }
 
 function stateFingerprint() {
@@ -52,6 +59,7 @@ async function main() {
   resetMockState();
   try {
     process.env.CUTPILOT_RUNTIME_MODE = "production";
+    process.env.CUTPILOT_ADMIN_TOKEN = "test-admin-token";
     delete process.env.CUTPILOT_ENABLE_LIVE_READS;
     delete process.env.DATABASE_URL;
     const before = stateFingerprint();
@@ -60,6 +68,7 @@ async function main() {
     await assertUnavailable("project bundle", await getProjectRoute(request("GET"), context({ projectId: "prj_production" })));
     await assertUnavailable("job read", await getJobRoute(request("GET"), context({ jobId: "gen_production" })));
     await assertUnavailable("asset list", await listAssetsRoute(request("GET"), context({ projectId: "prj_production" })));
+    await assertUnavailable("system queue", await queueRoute(systemRequest()));
     await assertUnavailable(
       "render preview",
       await previewRenderRoute(
@@ -90,6 +99,10 @@ async function main() {
     const liveRenderPreviewBody = (await liveRenderPreviewWithoutDb.json()) as { code?: string };
     assert.equal(liveRenderPreviewWithoutDb.status, 503, "live render preview should fail closed without DATABASE_URL");
     assert.equal(liveRenderPreviewBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live render preview should expose live persistence unavailability");
+    const liveQueueWithoutDb = await queueRoute(systemRequest());
+    const liveQueueBody = (await liveQueueWithoutDb.json()) as { code?: string };
+    assert.equal(liveQueueWithoutDb.status, 503, "live queue snapshot should fail closed without DATABASE_URL");
+    assert.equal(liveQueueBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live queue snapshot should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

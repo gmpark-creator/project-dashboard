@@ -91,6 +91,10 @@ export async function getLiveJob(jobId: string) {
   return getLivePersistenceReadAdapter().getJob(jobId);
 }
 
+export async function getLiveQueueSnapshot() {
+  return getLivePersistenceReadAdapter().getQueueSnapshot();
+}
+
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;
