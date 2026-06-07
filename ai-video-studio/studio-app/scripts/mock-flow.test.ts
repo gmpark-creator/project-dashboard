@@ -12,6 +12,7 @@ import {
   forceDueJobs,
   generateAll,
   generateShot,
+  getMutableMockState,
   getMockState,
   getProjectBundle,
   previewRender,
@@ -22,6 +23,7 @@ import {
   selectTake,
   setAudio,
   setDefaultRender,
+  saveMockState,
   startRender,
   tickJobs,
   updateShotDirection,
@@ -38,7 +40,7 @@ import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
 import { executeWorkerRetry, getWorkerRetryExecutionSnapshot, getWorkerRetryPlan } from "../src/server/worker-retries";
-import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
+import { buildStorageCleanupPlan, executeStorageCleanup, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -740,6 +742,17 @@ assert.equal(orphanCleanupItem?.cleanup, "orphaned", "simulated missing owner sh
 assert.equal(orphanCleanupItem?.action, "delete_object", "orphaned stored artifacts should become delete candidates");
 assert.equal(orphanCleanupItem?.safeToDelete, true, "orphaned stored artifacts should be safe to delete");
 assert.ok(orphanCleanupPlan.summary.deleteCandidates > cleanupPlan.summary.deleteCandidates, "orphan cleanup plan should increase delete candidates");
+const executableCleanupState = getMutableMockState();
+executableCleanupState.imageAssets = executableCleanupState.imageAssets.filter((asset) => asset.id !== orphanBaseArtifact.ownerId);
+saveMockState(executableCleanupState);
+const executableCleanupPlan = getStorageCleanupPlan();
+assert.ok(executableCleanupPlan.summary.deleteCandidates > 0, "orphaned artifacts should become executable cleanup candidates in mock state");
+const cleanupExecution = executeStorageCleanup({ limit: 1 });
+assert.equal(cleanupExecution.summary.deleted, 1, "storage cleanup execution should delete one safe candidate when limited to one");
+assert.equal(cleanupExecution.summary.recordsCreated, 1, "storage cleanup execution should create one audit record per deleted artifact");
+assert.equal(cleanupExecution.records.length, 1, "storage cleanup execution should return created records");
+assert.equal(getMockState().mediaArtifacts.some((artifact) => artifact.id === cleanupExecution.records[0]?.artifactId), false, "deleted cleanup artifacts should be removed from mock state");
+assert.equal(getMockState().storageCleanupRecords.some((record) => record.id === cleanupExecution.records[0]?.id), true, "storage cleanup execution records should persist in mock state");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,

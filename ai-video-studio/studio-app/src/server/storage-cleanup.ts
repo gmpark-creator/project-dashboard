@@ -1,6 +1,14 @@
-import type { MediaArtifactInventoryItem, StorageCleanupAction, StorageCleanupPlan, StorageCleanupPlanItem, StudioState } from "../domain/types";
+import type {
+  MediaArtifactInventoryItem,
+  StorageCleanupAction,
+  StorageCleanupExecutionRecord,
+  StorageCleanupExecutionResult,
+  StorageCleanupPlan,
+  StorageCleanupPlanItem,
+  StudioState
+} from "../domain/types";
 import { buildMediaArtifactInventory } from "./artifact-inventory";
-import { getMockState } from "./mock-service";
+import { getMockState, getMutableMockState, saveMockState } from "./mock-service";
 
 function actionFor(item: MediaArtifactInventoryItem): StorageCleanupAction {
   if (item.cleanup === "orphaned" && item.artifact.status === "stored") return "delete_object";
@@ -49,4 +57,49 @@ export function buildStorageCleanupPlan(current: StudioState): StorageCleanupPla
 
 export function getStorageCleanupPlan() {
   return buildStorageCleanupPlan(getMockState());
+}
+
+function cleanupRecordId() {
+  return `scln_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function executeStorageCleanup(input: { limit?: number } = {}): StorageCleanupExecutionResult {
+  const current = getMutableMockState();
+  const plan = buildStorageCleanupPlan(current);
+  const candidates = plan.items.filter((item) => item.safeToDelete);
+  const limit = typeof input.limit === "number" ? Math.max(0, Math.floor(input.limit)) : null;
+  const selected = limit === null ? candidates : candidates.slice(0, limit);
+  const selectedIds = new Set(selected.map((item) => item.artifact.id));
+  const timestamp = new Date().toISOString();
+  const records: StorageCleanupExecutionRecord[] = selected.map((item) => ({
+    id: cleanupRecordId(),
+    artifactId: item.artifact.id,
+    projectId: item.artifact.projectId,
+    storageKey: item.storageKey,
+    action: "delete_object",
+    status: "deleted",
+    bytes: item.artifact.bytes,
+    reason: item.reason,
+    createdAt: timestamp
+  }));
+
+  if (records.length) {
+    current.mediaArtifacts = current.mediaArtifacts.filter((artifact) => !selectedIds.has(artifact.id));
+    current.storageCleanupRecords.unshift(...records);
+    saveMockState(current);
+  }
+
+  return {
+    executedAt: timestamp,
+    limit,
+    summary: {
+      candidates: candidates.length,
+      deleted: records.length,
+      skipped: Math.max(0, candidates.length - records.length),
+      recordsCreated: records.length,
+      knownReclaimedBytes: records.reduce((total, record) => total + (record.bytes || 0), 0),
+      unknownReclaimedItems: records.filter((record) => record.bytes === null).length
+    },
+    records
+  };
 }

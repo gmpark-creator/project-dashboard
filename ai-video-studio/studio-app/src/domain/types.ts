@@ -564,6 +564,32 @@ export type StorageCleanupPlan = {
   items: StorageCleanupPlanItem[];
 };
 
+export type StorageCleanupExecutionRecord = {
+  id: string;
+  artifactId: string;
+  projectId: string;
+  storageKey: string;
+  action: "delete_object";
+  status: "deleted";
+  bytes: number | null;
+  reason: string;
+  createdAt: string;
+};
+
+export type StorageCleanupExecutionResult = {
+  executedAt: string;
+  limit: number | null;
+  summary: {
+    candidates: number;
+    deleted: number;
+    skipped: number;
+    recordsCreated: number;
+    knownReclaimedBytes: number;
+    unknownReclaimedItems: number;
+  };
+  records: StorageCleanupExecutionRecord[];
+};
+
 export type CancelJobResult = {
   jobId: string;
   kind: "generationJob" | "renderJob" | "imageJob" | null;
@@ -862,6 +888,7 @@ export type StudioState = {
   credits: { balance: number; spent: number; reserved: number };
   creditTransactions: CreditTransaction[];
   mediaArtifacts: MediaArtifact[];
+  storageCleanupRecords: StorageCleanupExecutionRecord[];
   projects: Project[];
   scenes: Scene[];
   shots: Shot[];

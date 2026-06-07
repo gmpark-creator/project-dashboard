@@ -812,6 +812,35 @@
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }
+      },
+      "post": {
+        "operationId": "executeStorageCleanup",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "limit": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Safe orphaned storage cleanup candidates were removed from mock state and audit records were created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/StorageCleanupExecutionResult" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
       }
     },
     "/system/queue": {

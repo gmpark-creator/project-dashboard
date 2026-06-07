@@ -285,6 +285,45 @@
         "items": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupPlanItem" } }
       }
     },
+    "StorageCleanupExecutionRecord": {
+      "type": "object",
+      "required": ["id", "artifactId", "projectId", "storageKey", "action", "status", "bytes", "reason", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^scln_" },
+        "artifactId": { "type": "string", "pattern": "^art_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "storageKey": { "type": "string" },
+        "action": { "type": "string", "const": "delete_object" },
+        "status": { "type": "string", "const": "deleted" },
+        "bytes": { "type": ["number", "null"], "minimum": 0 },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "StorageCleanupExecutionResult": {
+      "type": "object",
+      "required": ["executedAt", "limit", "summary", "records"],
+      "additionalProperties": false,
+      "properties": {
+        "executedAt": { "type": "string", "format": "date-time" },
+        "limit": { "type": ["integer", "null"], "minimum": 0 },
+        "summary": {
+          "type": "object",
+          "required": ["candidates", "deleted", "skipped", "recordsCreated", "knownReclaimedBytes", "unknownReclaimedItems"],
+          "additionalProperties": false,
+          "properties": {
+            "candidates": { "type": "integer", "minimum": 0 },
+            "deleted": { "type": "integer", "minimum": 0 },
+            "skipped": { "type": "integer", "minimum": 0 },
+            "recordsCreated": { "type": "integer", "minimum": 0 },
+            "knownReclaimedBytes": { "type": "number", "minimum": 0 },
+            "unknownReclaimedItems": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupExecutionRecord" } }
+      }
+    },
     "CancelJobResult": {
       "type": "object",
       "required": ["jobId", "kind", "projectId", "cancelled", "status", "refundedCredits", "reason"],
@@ -1676,6 +1715,8 @@
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "mediaArtifactInventory": { "$ref": "#/$defs/MediaArtifactInventory" },
     "storageCleanupPlan": { "$ref": "#/$defs/StorageCleanupPlan" },
+    "storageCleanupExecutionRecord": { "$ref": "#/$defs/StorageCleanupExecutionRecord" },
+    "storageCleanupExecutionResult": { "$ref": "#/$defs/StorageCleanupExecutionResult" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },

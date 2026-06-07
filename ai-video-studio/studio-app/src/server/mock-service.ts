@@ -107,6 +107,7 @@ function blankState(): StudioState {
     credits: { balance: 1240, spent: 0, reserved: 0 },
     creditTransactions: [],
     mediaArtifacts: [],
+    storageCleanupRecords: [],
     projects: [],
     scenes: [],
     shots: [],
@@ -308,9 +309,15 @@ function backfillMediaArtifacts(current: StudioState) {
 
 function normalizeState(current: StudioState): StudioState {
   const next = current as StudioState &
-    Partial<Pick<StudioState, "creditTransactions" | "mediaArtifacts" | "imageAssets" | "imageJobs" | "workerLeases" | "workerRetryRecords" | "referenceBoards">>;
+    Partial<
+      Pick<
+        StudioState,
+        "creditTransactions" | "mediaArtifacts" | "storageCleanupRecords" | "imageAssets" | "imageJobs" | "workerLeases" | "workerRetryRecords" | "referenceBoards"
+      >
+    >;
   if (!Array.isArray(next.creditTransactions)) next.creditTransactions = [];
   if (!Array.isArray(next.mediaArtifacts)) next.mediaArtifacts = [];
+  if (!Array.isArray(next.storageCleanupRecords)) next.storageCleanupRecords = [];
   if (!Array.isArray(next.imageAssets)) next.imageAssets = [];
   if (!Array.isArray(next.imageJobs)) next.imageJobs = [];
   if (!Array.isArray(next.workerLeases)) next.workerLeases = [];
