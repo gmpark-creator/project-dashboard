@@ -42,6 +42,9 @@ export type LiveShotGenerateInput = {
   takeCount?: number;
   retryOfJobId?: string | null;
 };
+export type LiveGenerateAllInput = {
+  tier?: Tier;
+};
 export type LiveTakeUpgradeInput = {
   mode?: NonNullable<Take["upgradeMode"]>;
 };
@@ -415,6 +418,22 @@ export class PostgresLivePersistenceWriteAdapter {
   private async countProjectImageAssets(projectId: string) {
     const rows = await this.client.query<Row>("SELECT COUNT(*) AS count FROM cutpilot_image_assets WHERE project_id = $1", [projectId]);
     return Number(rows.rows[0]?.count || 0);
+  }
+
+  private async availableCredits(projectId: string) {
+    const accountRows = await this.client.query<Row>(
+      `
+      SELECT p.credit_account_id, a.balance_credits, a.spent_credits, a.reserved_credits
+      FROM cutpilot_projects p
+      JOIN cutpilot_credit_accounts a ON a.id = p.credit_account_id
+      WHERE p.id = $1
+      FOR UPDATE
+    `,
+      [projectId]
+    );
+    const account = accountRows.rows[0];
+    if (!account) throw new Error("Project not found");
+    return Math.max(0, Number(account.balance_credits) - Number(account.spent_credits) - Number(account.reserved_credits));
   }
 
   private async reserveCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
@@ -1042,6 +1061,24 @@ export class PostgresLivePersistenceWriteAdapter {
       await this.client.query("ROLLBACK");
       throw error;
     }
+  }
+
+  async generateAll(projectId: string, input: LiveGenerateAllInput = {}): Promise<{ jobs: GenerationJob[] }> {
+    const projects = await this.client.query<Row>("SELECT id FROM cutpilot_projects WHERE id = $1 LIMIT 1", [projectId]);
+    if (!projects.rows[0]) throw new Error("Project not found");
+
+    const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE project_id = $1 ORDER BY order_index", [projectId]);
+    const targetShots = shotRows.rows.map(rowShot).filter((shot) => shot.status === "pending" || shot.status === "failed");
+    const requiredCredits = targetShots.length * 18;
+    const available = await this.availableCredits(projectId);
+    if (available < requiredCredits) throw new CreditReservationError(requiredCredits, available);
+
+    const jobs: GenerationJob[] = [];
+    for (const shot of targetShots) {
+      const generated = await this.generateShot(shot.id, { tier: input.tier || "fast", takeCount: 3 });
+      jobs.push(...generated.jobs);
+    }
+    return { jobs };
   }
 
   async upgradeTake(takeId: string, input: LiveTakeUpgradeInput = {}): Promise<{ take: Take; job: GenerationJob }> {

@@ -93,6 +93,10 @@ async function main() {
       )
     );
     await assertLivePersistenceUnavailable(
+      "live generate-all",
+      await generateAllRoute(request({ tier: "fast" }), context({ projectId: "prj_production" }))
+    );
+    await assertLivePersistenceUnavailable(
       "live shot generation",
       await generateShotRoute(request({ tier: "fast", takeCount: 1 }), context({ shotId: "sht_production" }))
     );

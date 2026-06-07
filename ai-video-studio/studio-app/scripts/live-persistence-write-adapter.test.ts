@@ -145,6 +145,10 @@ class FakeClient implements PgQueryable {
       const rows = this.shotRows.filter((shot) => Array.isArray(shot.reference_image_ids) && shot.reference_image_ids.includes(params?.[1] as string)) as T[];
       return { rows };
     }
+    if (sql.includes("SELECT * FROM cutpilot_shots WHERE id = $1")) {
+      const shot = this.shotRows.find((row) => row.id === params?.[0]);
+      return { rows: shot ? ([shot as unknown as T]) : [] };
+    }
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
@@ -527,6 +531,31 @@ async function main() {
     false,
     "live shot generation should not insert jobs when the first credit reservation fails"
   );
+
+  const generateAllClient = new FakeClient();
+  const generateAllPendingShot = fakeShotRow();
+  generateAllPendingShot.id = "sht_pending";
+  generateAllPendingShot.order_index = 0;
+  generateAllPendingShot.status = "pending";
+  const generateAllFailedShot = fakeShotRow();
+  generateAllFailedShot.id = "sht_failed";
+  generateAllFailedShot.order_index = 1;
+  generateAllFailedShot.status = "failed";
+  const generateAllSelectedShot = fakeShotRow();
+  generateAllSelectedShot.id = "sht_selected";
+  generateAllSelectedShot.order_index = 2;
+  generateAllSelectedShot.status = "selected";
+  generateAllSelectedShot.selected_take_id = "tak_done";
+  generateAllClient.shotRows = [generateAllPendingShot, generateAllFailedShot, generateAllSelectedShot];
+  const generateAllResult = await new PostgresLivePersistenceWriteAdapter(generateAllClient).generateAll("prj_live", { tier: "economy" });
+  assert.equal(generateAllResult.jobs.length, 6, "live generate-all should enqueue three takes for each pending or failed shot");
+  assert.equal(generateAllClient.creditReserved, 36, "live generate-all should reserve credits for targeted shots");
+  assert.equal(generateAllClient.creditTransactionCount, 6, "live generate-all should record per-job reserve transactions");
+  assert.equal(generateAllClient.shotRows.find((shot) => shot.id === "sht_pending")?.status, "generating", "live generate-all should update pending shots");
+  assert.equal(generateAllClient.shotRows.find((shot) => shot.id === "sht_failed")?.status, "generating", "live generate-all should update failed shots");
+  assert.equal(generateAllClient.shotRows.find((shot) => shot.id === "sht_selected")?.status, "selected", "live generate-all should skip selected shots");
+  assert.ok(generateAllClient.queries.some((query) => query.sql.includes("SELECT * FROM cutpilot_shots WHERE project_id")), "live generate-all should inspect project shots");
+  assert.equal(generateAllClient.queries.filter((query) => query.sql === "COMMIT").length, 2, "live generate-all should commit each targeted shot generation");
 
   const upgradeClient = new FakeClient();
   upgradeClient.shotRows = [fakeShotRow()];

@@ -9,6 +9,7 @@ import {
   deleteLiveImageAsset,
   detachLiveImageFromShot,
   getLivePersistenceReadAdapter,
+  generateAllLiveShots,
   generateLiveShot,
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
@@ -110,6 +111,11 @@ async function main() {
       "live shot generation writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
+      () => generateAllLiveShots("prj_disabled", { tier: "fast" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live generate-all writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
       () => upgradeLiveTake("tak_disabled", { mode: "final_regenerate" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live take upgrade writes should fail closed when the switch is disabled"
@@ -207,6 +213,11 @@ async function main() {
       () => generateLiveShot("sht_missing_db", { tier: "fast", takeCount: 1 }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live shot generation writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => generateAllLiveShots("prj_missing_db", { tier: "fast" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live generate-all writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => upgradeLiveTake("tak_missing_db", { mode: "final_regenerate" }),
