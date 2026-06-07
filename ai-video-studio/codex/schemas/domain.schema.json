@@ -158,7 +158,7 @@
     },
     "CreditTransaction": {
       "type": "object",
-      "required": ["id", "projectId", "jobId", "kind", "action", "credits", "balanceAfter", "note", "createdAt"],
+      "required": ["id", "projectId", "jobId", "kind", "action", "credits", "providerCostUsd", "marginPolicyVersion", "balanceAfter", "note", "createdAt"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^ctx_" },
@@ -167,6 +167,8 @@
         "kind": { "type": "string", "enum": ["reserve", "capture", "refund"] },
         "action": { "type": "string", "enum": ["generateImages", "generateShot", "upgradeTake", "startRender"] },
         "credits": { "type": "number", "minimum": 0 },
+        "providerCostUsd": { "type": ["number", "null"], "minimum": 0 },
+        "marginPolicyVersion": { "type": "string" },
         "balanceAfter": {
           "type": "object",
           "required": ["spent", "reserved", "available"],

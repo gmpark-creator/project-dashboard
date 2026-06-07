@@ -54,6 +54,7 @@ function uid(prefix: string) {
 }
 
 const PLAYABLE_MOCK_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+const MARGIN_POLICY_VERSION = "sandbox-v1";
 
 function mockVideoUrl(id: string) {
   return `${PLAYABLE_MOCK_VIDEO_URL}#${encodeURIComponent(id)}`;
@@ -324,6 +325,14 @@ function normalizeState(current: StudioState): StudioState {
   if (!Array.isArray(next.workerRetryRecords)) next.workerRetryRecords = [];
   if (!next.referenceBoards) next.referenceBoards = {};
 
+  for (const transaction of next.creditTransactions) {
+    const mutableTransaction = transaction as CreditTransaction & Partial<Pick<CreditTransaction, "providerCostUsd" | "marginPolicyVersion">>;
+    if (typeof mutableTransaction.providerCostUsd === "undefined") {
+      mutableTransaction.providerCostUsd = mockProviderCostUsd(transaction.kind, transaction.credits);
+    }
+    if (!mutableTransaction.marginPolicyVersion) mutableTransaction.marginPolicyVersion = MARGIN_POLICY_VERSION;
+  }
+
   for (const project of next.projects) {
     const mutableProject = project as Project & { defaultRenderJobId: string | null | undefined };
     if (typeof mutableProject.defaultRenderJobId === "undefined") mutableProject.defaultRenderJobId = null;
@@ -418,13 +427,20 @@ function availableCredits(current: StudioState) {
   return Math.max(0, current.credits.balance - current.credits.spent - current.credits.reserved);
 }
 
+function mockProviderCostUsd(kind: CreditTransaction["kind"], credits: number) {
+  if (kind !== "capture") return null;
+  return Number((credits * 0.035).toFixed(2));
+}
+
 function addCreditTransaction(
   current: StudioState,
-  input: Omit<CreditTransaction, "id" | "balanceAfter" | "createdAt">
+  input: Omit<CreditTransaction, "id" | "providerCostUsd" | "marginPolicyVersion" | "balanceAfter" | "createdAt">
 ) {
   const transaction: CreditTransaction = {
     id: uid("ctx"),
     ...input,
+    providerCostUsd: mockProviderCostUsd(input.kind, input.credits),
+    marginPolicyVersion: MARGIN_POLICY_VERSION,
     balanceAfter: {
       spent: current.credits.spent,
       reserved: current.credits.reserved,

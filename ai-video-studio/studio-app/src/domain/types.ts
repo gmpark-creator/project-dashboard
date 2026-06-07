@@ -498,6 +498,8 @@ export type CreditTransaction = {
   kind: "reserve" | "capture" | "refund";
   action: "generateImages" | "generateShot" | "upgradeTake" | "startRender";
   credits: number;
+  providerCostUsd: number | null;
+  marginPolicyVersion: string;
   balanceAfter: {
     spent: number;
     reserved: number;

@@ -745,6 +745,15 @@ assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "
 assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "upgradeTake"), "credit ledger should capture publishing upgrades");
 assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "startRender"), "credit ledger should capture completed renders");
 const allCreditTransactions = getMockState().creditTransactions;
+assert.ok(allCreditTransactions.every((transaction) => transaction.marginPolicyVersion === "sandbox-v1"), "credit ledger should stamp the active margin policy version");
+assert.ok(
+  allCreditTransactions.filter((transaction) => transaction.kind === "capture").every((transaction) => typeof transaction.providerCostUsd === "number" && transaction.providerCostUsd > 0),
+  "captured credit ledger entries should include mock provider cost"
+);
+assert.ok(
+  allCreditTransactions.filter((transaction) => transaction.kind !== "capture").every((transaction) => transaction.providerCostUsd === null),
+  "uncaptured credit ledger entries should not claim provider cost"
+);
 const capturedCredits = allCreditTransactions
   .filter((transaction) => transaction.kind === "capture")
   .reduce((total, transaction) => total + transaction.credits, 0);
