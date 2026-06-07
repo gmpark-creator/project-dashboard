@@ -339,14 +339,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid generation request",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
-              }
-            }
-          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
@@ -391,6 +383,14 @@
                   },
                   "required": ["takes", "jobs"]
                 }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid generation request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           },

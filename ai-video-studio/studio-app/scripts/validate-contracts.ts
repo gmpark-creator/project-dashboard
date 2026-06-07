@@ -32,7 +32,42 @@ type Routing = {
 const capabilities = readJson<Capabilities>(join(codexDir, "config", "provider-capabilities.json"));
 const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"));
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
-const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(join(codexDir, "api", "openapi.json"));
+const openApiPath = join(codexDir, "api", "openapi.json");
+assertNoDuplicateOpenApiResponseCodes(openApiPath);
+const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
+
+function countChar(input: string, char: string) {
+  return [...input].filter((item) => item === char).length;
+}
+
+function assertNoDuplicateOpenApiResponseCodes(path: string) {
+  const lines = readFileSync(path, "utf8").split(/\r?\n/);
+  let inResponses = false;
+  let depth = 0;
+  let startLine = 0;
+  let responseCodes = new Set<string>();
+
+  for (const [index, line] of lines.entries()) {
+    if (!inResponses && line.includes('"responses": {')) {
+      inResponses = true;
+      depth = 0;
+      startLine = index + 1;
+      responseCodes = new Set<string>();
+    }
+    if (!inResponses) continue;
+
+    if (depth === 1) {
+      const match = line.trim().match(/^"(\d{3})":\s*\{/);
+      if (match) {
+        assert.ok(!responseCodes.has(match[1]), `openapi duplicate response ${match[1]} near line ${startLine}`);
+        responseCodes.add(match[1]);
+      }
+    }
+
+    depth += countChar(line, "{") - countChar(line, "}");
+    if (depth === 0) inResponses = false;
+  }
+}
 
 function routeFileForOpenApiPath(pathName: string) {
   const segments = pathName
