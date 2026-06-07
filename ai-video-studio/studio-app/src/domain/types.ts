@@ -721,13 +721,18 @@ export type WorkerLeaseRenewResult = {
 
 export type WorkerLeaseCompletionOutput = {
   videoUrl?: string;
+  videoStorageKey?: string;
   posterUrl?: string;
+  posterStorageKey?: string;
   renderOutputUrl?: string;
+  renderStorageKey?: string;
   shareUrl?: string;
   imageVariants?: Array<{
     variantId?: string;
     imageUrl: string;
+    imageStorageKey?: string;
     thumbUrl?: string;
+    thumbnailStorageKey?: string;
   }>;
 };
 

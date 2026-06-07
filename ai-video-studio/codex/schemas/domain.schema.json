@@ -565,8 +565,11 @@
       "additionalProperties": false,
       "properties": {
         "videoUrl": { "type": "string", "format": "uri" },
+        "videoStorageKey": { "type": "string" },
         "posterUrl": { "type": "string" },
+        "posterStorageKey": { "type": "string" },
         "renderOutputUrl": { "type": "string", "format": "uri" },
+        "renderStorageKey": { "type": "string" },
         "shareUrl": { "type": "string", "format": "uri" },
         "imageVariants": {
           "type": "array",
@@ -577,7 +580,9 @@
             "properties": {
               "variantId": { "type": "string", "pattern": "^ivar_" },
               "imageUrl": { "type": "string", "format": "uri" },
-              "thumbUrl": { "type": "string", "format": "uri" }
+              "imageStorageKey": { "type": "string" },
+              "thumbUrl": { "type": "string", "format": "uri" },
+              "thumbnailStorageKey": { "type": "string" }
             }
           }
         }

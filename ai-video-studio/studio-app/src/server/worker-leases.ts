@@ -63,15 +63,92 @@ function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>) {
   return Boolean(output.imageVariants?.some((variant) => !validUrl(variant.imageUrl) || (variant.thumbUrl ? !validUrl(variant.thumbUrl) : false)));
 }
 
+function suppliedStorageKeyMatches(value: string | undefined, expected: string | null) {
+  if (typeof value === "undefined") return true;
+  return typeof value === "string" && value.length > 0 && value === expected;
+}
+
+function hasTopLevelStorageKeys(output: NonNullable<WorkerLeaseCompletionInput["outputs"]>) {
+  return Boolean(output.videoStorageKey || output.posterStorageKey || output.renderStorageKey);
+}
+
+function hasImageVariantStorageKeys(output: NonNullable<WorkerLeaseCompletionInput["outputs"]>) {
+  return Boolean(output.imageVariants?.some((variant) => variant.imageStorageKey || variant.thumbnailStorageKey));
+}
+
+function takeStorageKey(projectId: string, takeId: string, role: "take_video" | "take_poster") {
+  return `projects/${projectId}/take/${takeId}/${role}`;
+}
+
+function renderStorageKey(projectId: string, jobId: string) {
+  return `projects/${projectId}/renderJob/${jobId}/render_output`;
+}
+
+function imageVariantStorageKey(projectId: string, jobId: string, variantId: string, role: "image_asset" | "image_thumbnail") {
+  return `projects/${projectId}/imageJob/${jobId}/variants/${variantId}/${role}`;
+}
+
+function expectedImageVariantForOutput(current: StudioState, lease: WorkerLease, variantId: string | undefined, index: number) {
+  const job = current.imageJobs.find((item) => item.id === lease.jobId);
+  if (!job) return null;
+  return (variantId ? job.variants.find((variant) => variant.id === variantId) : null) || job.variants[index] || null;
+}
+
+function hasInvalidImageStorageKeys(current: StudioState, lease: WorkerLease, output: NonNullable<WorkerLeaseCompletionInput["outputs"]>) {
+  if (hasTopLevelStorageKeys(output)) return true;
+  return Boolean(
+    output.imageVariants?.some((variant, index) => {
+      if (!variant.imageStorageKey && !variant.thumbnailStorageKey) return false;
+      const expectedVariant = expectedImageVariantForOutput(current, lease, variant.variantId, index);
+      if (!expectedVariant) return true;
+      return (
+        !suppliedStorageKeyMatches(variant.imageStorageKey, imageVariantStorageKey(lease.projectId, lease.jobId, expectedVariant.id, "image_asset")) ||
+        !suppliedStorageKeyMatches(variant.thumbnailStorageKey, imageVariantStorageKey(lease.projectId, lease.jobId, expectedVariant.id, "image_thumbnail"))
+      );
+    })
+  );
+}
+
+function hasInvalidProviderStorageKeys(current: StudioState, lease: WorkerLease, output: NonNullable<WorkerLeaseCompletionInput["outputs"]>) {
+  if (output.renderStorageKey || hasImageVariantStorageKeys(output)) return true;
+  const job = current.generationJobs.find((item) => item.id === lease.jobId);
+  if (!job && (output.videoStorageKey || output.posterStorageKey)) return true;
+  return (
+    !suppliedStorageKeyMatches(output.videoStorageKey, job ? takeStorageKey(job.projectId, job.takeId, "take_video") : null) ||
+    !suppliedStorageKeyMatches(output.posterStorageKey, job ? takeStorageKey(job.projectId, job.takeId, "take_poster") : null)
+  );
+}
+
+function hasInvalidRenderStorageKeys(current: StudioState, lease: WorkerLease, output: NonNullable<WorkerLeaseCompletionInput["outputs"]>) {
+  if (output.videoStorageKey || output.posterStorageKey || hasImageVariantStorageKeys(output)) return true;
+  const job = current.renderJobs.find((item) => item.id === lease.jobId);
+  if (!job && output.renderStorageKey) return true;
+  return !suppliedStorageKeyMatches(output.renderStorageKey, job ? renderStorageKey(job.projectId, job.id) : null);
+}
+
+function hasInvalidProvidedStorageKeys(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
+  const output = input.outputs;
+  if (!output) return false;
+  if (lease.kind === "image_generation") return hasInvalidImageStorageKeys(current, lease, output);
+  if (lease.kind === "provider_generation") return hasInvalidProviderStorageKeys(current, lease, output);
+  return hasInvalidRenderStorageKeys(current, lease, output);
+}
+
 function imageOutputCoversAllVariants(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
   const job = current.imageJobs.find((item) => item.id === lease.jobId);
   const variants = input.outputs?.imageVariants || [];
   if (!job || !variants.length) return false;
-  return job.variants.every((variant, index) => variants.some((item) => item.variantId === variant.id) || Boolean(variants[index]));
+  const coveredVariantIds = new Set(
+    variants
+      .map((variant, index) => expectedImageVariantForOutput(current, lease, variant.variantId, index)?.id)
+      .filter((variantId): variantId is string => Boolean(variantId))
+  );
+  return job.variants.every((variant) => coveredVariantIds.has(variant.id));
 }
 
 function validRequiredOutput(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
   if (hasInvalidProvidedOutput(input)) return false;
+  if (hasInvalidProvidedStorageKeys(current, lease, input)) return false;
   const requireOutputs = input.requireOutputs === true || process.env.CUTPILOT_RUNTIME_MODE === "production";
   if (!requireOutputs) return true;
   const output = input.outputs;

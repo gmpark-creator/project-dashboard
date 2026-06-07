@@ -192,12 +192,38 @@ assert.equal(missingRequiredOutput.completed, false, "worker completion should r
 assert.equal(missingRequiredOutput.reason, "invalid_outputs", "worker completion should report invalid output payloads before mutating jobs");
 const workerImageOutputUrl = "https://assets.cutpilot.local/worker-output-image.png";
 const workerThumbOutputUrl = "https://assets.cutpilot.local/worker-output-thumb.jpg";
+const workerImageStorageKey = `projects/${outputImageJob.job.projectId}/imageJob/${outputImageJob.job.id}/variants/${outputImageJob.job.variants[0].id}/image_asset`;
+const workerThumbnailStorageKey = `projects/${outputImageJob.job.projectId}/imageJob/${outputImageJob.job.id}/variants/${outputImageJob.job.variants[0].id}/image_thumbnail`;
+const mismatchedStorageKeyOutput = completeWorkerLease(outputLease.lease.id, {
+  token: outputLease.lease.token,
+  status: "succeeded",
+  requireOutputs: true,
+  outputs: {
+    imageVariants: [
+      {
+        variantId: outputImageJob.job.variants[0].id,
+        imageUrl: workerImageOutputUrl,
+        imageStorageKey: "projects/wrong/imageJob/wrong/variants/wrong/image_asset"
+      }
+    ]
+  }
+});
+assert.equal(mismatchedStorageKeyOutput.completed, false, "worker completion should reject mismatched output storage keys");
+assert.equal(mismatchedStorageKeyOutput.reason, "invalid_outputs", "worker completion should report mismatched output storage keys as invalid outputs");
 const completedOutputJob = completeWorkerLease(outputLease.lease.id, {
   token: outputLease.lease.token,
   status: "succeeded",
   requireOutputs: true,
   outputs: {
-    imageVariants: [{ variantId: outputImageJob.job.variants[0].id, imageUrl: workerImageOutputUrl, thumbUrl: workerThumbOutputUrl }]
+    imageVariants: [
+      {
+        variantId: outputImageJob.job.variants[0].id,
+        imageUrl: workerImageOutputUrl,
+        imageStorageKey: workerImageStorageKey,
+        thumbUrl: workerThumbOutputUrl,
+        thumbnailStorageKey: workerThumbnailStorageKey
+      }
+    ]
   }
 });
 assert.equal(completedOutputJob.completed, true, "worker completion should accept production-shaped output payloads");
