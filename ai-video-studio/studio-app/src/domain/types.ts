@@ -293,6 +293,7 @@ export type GenerationReference = {
 export type GenerationPromptPackage = {
   projectId: string;
   shotId: string;
+  durationSec: number;
   saec: Saec;
   directionSpec: DirectionSpec;
   requirements: ShotRequirements;
@@ -321,6 +322,41 @@ export type ProviderRoutingDecision = {
   splitTakeIndex: number;
   fallbackEnabled: boolean;
   hiddenFromUser: boolean;
+};
+
+export type ProviderInvocationInputKind = "text" | "image" | "first_last_frames";
+
+export type ProviderInvocation = {
+  jobId: string;
+  takeId: string;
+  projectId: string;
+  shotId: string;
+  provider: string;
+  model: string;
+  routingRuleId: string;
+  inputKind: ProviderInvocationInputKind;
+  request: {
+    prompt: string;
+    negativePrompt: string;
+    aspect: Aspect;
+    durationSec: number;
+    tier: Tier;
+    references: GenerationReference[];
+    startFrameUrl: string | null;
+    lastFrameUrl: string | null;
+  };
+  policy: {
+    hiddenFromUser: boolean;
+    fallbackEnabled: boolean;
+    rightsReviewRequired: boolean;
+    storageIngestRequired: boolean;
+  };
+  responseContract: {
+    expectedKind: "video";
+    outputRole: "take_video";
+    ingest: "copy_to_storage";
+    progress: "async_polling";
+  };
 };
 
 export type ReferenceBoard = {

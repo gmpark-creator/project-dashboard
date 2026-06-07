@@ -330,6 +330,9 @@ function normalizeState(current: StudioState): StudioState {
     const mutableJob = job as GenerationJob & Partial<GenerationJob>;
     const shot = next.shots.find((item) => item.id === job.shotId);
     if (shot && !mutableJob.promptPackage) mutableJob.promptPackage = buildGenerationPromptPackage(next as StudioState, shot);
+    if (shot && mutableJob.promptPackage && typeof mutableJob.promptPackage.durationSec !== "number") {
+      mutableJob.promptPackage.durationSec = shot.durationSec;
+    }
     if (shot && mutableJob.promptPackage && !mutableJob.routing) {
       mutableJob.routing = chooseProviderRoute(shot, mutableJob.promptPackage, 0);
     }
@@ -850,6 +853,7 @@ function buildGenerationPromptPackage(current: StudioState, shot: Shot): Generat
   return {
     projectId: shot.projectId,
     shotId: shot.id,
+    durationSec: shot.durationSec,
     saec: { ...shot.saec },
     directionSpec: {
       ...shot.directionSpec,

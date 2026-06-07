@@ -61,6 +61,8 @@ for (const defName of [
   "EditAudioPatch",
   "EditCommandInput",
   "GenerationPromptPackage",
+  "ProviderInvocation",
+  "ProviderInvocationInputKind",
   "ProviderAttempt",
   "ProviderRoutingDecision",
   "ProjectBundle",

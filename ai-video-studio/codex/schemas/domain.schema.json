@@ -550,6 +550,62 @@
         "hiddenFromUser": { "type": "boolean" }
       }
     },
+    "ProviderInvocationInputKind": {
+      "type": "string",
+      "enum": ["text", "image", "first_last_frames"]
+    },
+    "ProviderInvocation": {
+      "type": "object",
+      "required": ["jobId", "takeId", "projectId", "shotId", "provider", "model", "routingRuleId", "inputKind", "request", "policy", "responseContract"],
+      "additionalProperties": false,
+      "properties": {
+        "jobId": { "type": "string", "pattern": "^gen_" },
+        "takeId": { "type": "string", "pattern": "^tak_" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "shotId": { "type": "string", "pattern": "^sht_" },
+        "provider": { "type": "string" },
+        "model": { "type": "string" },
+        "routingRuleId": { "type": "string" },
+        "inputKind": { "$ref": "#/$defs/ProviderInvocationInputKind" },
+        "request": {
+          "type": "object",
+          "required": ["prompt", "negativePrompt", "aspect", "durationSec", "tier", "references", "startFrameUrl", "lastFrameUrl"],
+          "additionalProperties": false,
+          "properties": {
+            "prompt": { "type": "string" },
+            "negativePrompt": { "type": "string" },
+            "aspect": { "$ref": "#/$defs/Aspect" },
+            "durationSec": { "type": "integer", "minimum": 1 },
+            "tier": { "$ref": "#/$defs/Tier" },
+            "references": { "type": "array", "items": { "$ref": "#/$defs/GenerationReference" } },
+            "startFrameUrl": { "type": ["string", "null"] },
+            "lastFrameUrl": { "type": ["string", "null"] }
+          }
+        },
+        "policy": {
+          "type": "object",
+          "required": ["hiddenFromUser", "fallbackEnabled", "rightsReviewRequired", "storageIngestRequired"],
+          "additionalProperties": false,
+          "properties": {
+            "hiddenFromUser": { "type": "boolean" },
+            "fallbackEnabled": { "type": "boolean" },
+            "rightsReviewRequired": { "type": "boolean" },
+            "storageIngestRequired": { "type": "boolean" }
+          }
+        },
+        "responseContract": {
+          "type": "object",
+          "required": ["expectedKind", "outputRole", "ingest", "progress"],
+          "additionalProperties": false,
+          "properties": {
+            "expectedKind": { "type": "string", "const": "video" },
+            "outputRole": { "type": "string", "const": "take_video" },
+            "ingest": { "type": "string", "const": "copy_to_storage" },
+            "progress": { "type": "string", "const": "async_polling" }
+          }
+        }
+      }
+    },
     "GenerationReference": {
       "type": "object",
       "required": ["assetId", "role", "mode", "url", "rightsStatus"],
@@ -564,11 +620,12 @@
     },
     "GenerationPromptPackage": {
       "type": "object",
-      "required": ["projectId", "shotId", "saec", "directionSpec", "requirements", "references", "routingHints"],
+      "required": ["projectId", "shotId", "durationSec", "saec", "directionSpec", "requirements", "references", "routingHints"],
       "additionalProperties": false,
       "properties": {
         "projectId": { "type": "string", "pattern": "^prj_" },
         "shotId": { "type": "string", "pattern": "^sht_" },
+        "durationSec": { "type": "integer", "minimum": 1 },
         "saec": { "$ref": "#/$defs/SAEC" },
         "directionSpec": { "$ref": "#/$defs/DirectionSpec" },
         "requirements": { "$ref": "#/$defs/ShotRequirements" },
@@ -992,6 +1049,7 @@
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
     "generationJob": { "$ref": "#/$defs/GenerationJob" },
+    "providerInvocation": { "$ref": "#/$defs/ProviderInvocation" },
     "renderJob": { "$ref": "#/$defs/RenderJob" }
   }
 }

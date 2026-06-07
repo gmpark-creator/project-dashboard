@@ -29,6 +29,7 @@ import {
 } from "../src/server/mock-service";
 import { getMediaArtifactInventory } from "../src/server/artifact-inventory";
 import { getSystemMetrics } from "../src/server/metrics";
+import { buildProviderInvocation } from "../src/server/provider-invocation";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -238,15 +239,27 @@ assert.equal(failedAttempt.fallbackSuggested, true, "failed attempts should reta
 const firstShotId = bundle.shots[0].id;
 const secondShotId = bundle.shots[1].id;
 
+const referencedShot = bundle.shots.find((shot) => shot.id === firstShotId);
+assert.ok(referencedShot, "referenced shot should exist for provider health routing checks");
 const referencedShotJob = bundle.generationJobs.find((job) => job.shotId === firstShotId);
 assert.ok(referencedShotJob, "referenced shot should create a generation job");
 assert.equal(referencedShotJob.providerAttempts[0].provider, referencedShotJob.routing.selected.provider, "attempt provider should match the selected route");
 assert.equal(referencedShotJob.providerAttempts[0].model, referencedShotJob.routing.selected.model, "attempt model should match the selected route");
 assert.equal(referencedShotJob.promptPackage.routingHints.startFrameAssetId, productAsset.id, "first-frame asset should be in generation prompt package");
+assert.equal(referencedShotJob.promptPackage.durationSec, referencedShot?.durationSec, "prompt package should snapshot shot duration");
 assert.equal(referencedShotJob.routing.ruleId, "image-to-video-fast", "first-frame fast shots should use image-to-video fast routing");
 assert.equal(referencedShotJob.routing.hiddenFromUser, true, "provider routing must remain hidden from user UI");
 assert.equal(referencedShotJob.routing.selected.provider, "luma", "first image-to-video fast candidate should be Luma");
 assert.equal(referencedShotJob.routing.selected.model, "ray-flash-2", "first image-to-video fast model should be ray-flash-2");
+const referencedInvocation = buildProviderInvocation(referencedShotJob);
+assert.equal(referencedInvocation.provider, referencedShotJob.routing.selected.provider, "provider invocation should use the selected provider");
+assert.equal(referencedInvocation.model, referencedShotJob.routing.selected.model, "provider invocation should use the selected model");
+assert.equal(referencedInvocation.inputKind, "image", "first-frame jobs should become image provider invocations");
+assert.equal(referencedInvocation.request.startFrameUrl, productAsset.url, "provider invocation should carry the first-frame URL");
+assert.equal(referencedInvocation.request.durationSec, referencedShot?.durationSec, "provider invocation should carry snapped shot duration");
+assert.equal(referencedInvocation.policy.hiddenFromUser, true, "provider invocation should preserve hidden-from-user policy");
+assert.equal(referencedInvocation.policy.storageIngestRequired, true, "provider invocation should require output ingest to storage");
+assert.equal(referencedInvocation.responseContract.ingest, "copy_to_storage", "provider invocation should require storage ingest");
 const referencedShotRoutes = bundle.generationJobs
   .filter((job) => job.shotId === firstShotId)
   .map((job) => `${job.routing.selected.provider}:${job.routing.selected.model}`);
@@ -255,8 +268,6 @@ assert.deepEqual(
   ["luma:ray-flash-2", "runway:gen4_turbo", "google-vertex:veo-3.1-fast-generate-001"],
   "fast image-to-video takes should split across configured provider candidates"
 );
-const referencedShot = bundle.shots.find((shot) => shot.id === firstShotId);
-assert.ok(referencedShot, "referenced shot should exist for provider health routing checks");
 setProviderHealth({ provider: "luma", model: "ray-flash-2" }, "down", "synthetic outage");
 const reroutedForHealth = chooseProviderRoute(referencedShot, referencedShotJob.promptPackage, 0);
 assert.equal(reroutedForHealth.selected.provider, "runway", "down provider candidates should be skipped before route selection");
@@ -289,6 +300,10 @@ assert.equal(styleShotJob.routing.ruleId, "fast-text-draft", "style-only fast sh
 assert.deepEqual(styleShotJob.promptPackage.routingHints.styleReferenceAssetIds, [styleAsset.id], "style reference should be routed as style only");
 assert.equal(styleShotJob.promptPackage.requirements.imageToVideo, false, "style-only generation package should not request image-to-video");
 assert.equal(styleShotJob.promptPackage.routingHints.rightsReviewRequired, true, "unconfirmed reference rights should be visible to the adapter package");
+const styleInvocation = buildProviderInvocation(styleShotJob);
+assert.equal(styleInvocation.inputKind, "text", "style-only references should keep a text provider invocation");
+assert.equal(styleInvocation.policy.rightsReviewRequired, true, "provider invocation should preserve rights review requirements");
+assert.ok(styleInvocation.request.negativePrompt.includes(styleShotJob.promptPackage.saec.negative), "provider invocation should include SAEC negative prompt");
 
 const blockedDelete = deleteImageAsset(project.id, styleAsset.id);
 assert.equal(blockedDelete.deleted, false, "used assets should not be deleted without force");
