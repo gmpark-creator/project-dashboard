@@ -590,6 +590,17 @@ export type StorageCleanupExecutionResult = {
   records: StorageCleanupExecutionRecord[];
 };
 
+export type StorageCleanupExecutionSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    deleted: number;
+    knownReclaimedBytes: number;
+    unknownReclaimedItems: number;
+  };
+  records: StorageCleanupExecutionRecord[];
+};
+
 export type CancelJobResult = {
   jobId: string;
   kind: "generationJob" | "renderJob" | "imageJob" | null;

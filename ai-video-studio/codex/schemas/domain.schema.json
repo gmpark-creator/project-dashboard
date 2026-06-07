@@ -324,6 +324,26 @@
         "records": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupExecutionRecord" } }
       }
     },
+    "StorageCleanupExecutionSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "records"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "deleted", "knownReclaimedBytes", "unknownReclaimedItems"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "deleted": { "type": "integer", "minimum": 0 },
+            "knownReclaimedBytes": { "type": "number", "minimum": 0 },
+            "unknownReclaimedItems": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupExecutionRecord" } }
+      }
+    },
     "CancelJobResult": {
       "type": "object",
       "required": ["jobId", "kind", "projectId", "cancelled", "status", "refundedCredits", "reason"],
@@ -1717,6 +1737,7 @@
     "storageCleanupPlan": { "$ref": "#/$defs/StorageCleanupPlan" },
     "storageCleanupExecutionRecord": { "$ref": "#/$defs/StorageCleanupExecutionRecord" },
     "storageCleanupExecutionResult": { "$ref": "#/$defs/StorageCleanupExecutionResult" },
+    "storageCleanupExecutionSnapshot": { "$ref": "#/$defs/StorageCleanupExecutionSnapshot" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },

@@ -3,6 +3,7 @@ import type {
   StorageCleanupAction,
   StorageCleanupExecutionRecord,
   StorageCleanupExecutionResult,
+  StorageCleanupExecutionSnapshot,
   StorageCleanupPlan,
   StorageCleanupPlanItem,
   StudioState
@@ -57,6 +58,20 @@ export function buildStorageCleanupPlan(current: StudioState): StorageCleanupPla
 
 export function getStorageCleanupPlan() {
   return buildStorageCleanupPlan(getMockState());
+}
+
+export function getStorageCleanupExecutionSnapshot(): StorageCleanupExecutionSnapshot {
+  const records = [...getMockState().storageCleanupRecords].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      total: records.length,
+      deleted: records.filter((record) => record.status === "deleted").length,
+      knownReclaimedBytes: records.reduce((total, record) => total + (record.bytes || 0), 0),
+      unknownReclaimedItems: records.filter((record) => record.bytes === null).length
+    },
+    records
+  };
 }
 
 function cleanupRecordId() {

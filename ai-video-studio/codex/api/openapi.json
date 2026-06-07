@@ -843,6 +843,23 @@
         }
       }
     },
+    "/system/storage-cleanup/executions": {
+      "get": {
+        "operationId": "getStorageCleanupExecutionSnapshot",
+        "responses": {
+          "200": {
+            "description": "Read-only storage cleanup execution records for operator audit",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/StorageCleanupExecutionSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/queue": {
       "get": {
         "operationId": "getJobQueueSnapshot",

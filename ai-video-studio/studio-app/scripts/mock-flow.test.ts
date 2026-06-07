@@ -40,7 +40,7 @@ import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
 import { executeWorkerRetry, getWorkerRetryExecutionSnapshot, getWorkerRetryPlan } from "../src/server/worker-retries";
-import { buildStorageCleanupPlan, executeStorageCleanup, getStorageCleanupPlan } from "../src/server/storage-cleanup";
+import { buildStorageCleanupPlan, executeStorageCleanup, getStorageCleanupExecutionSnapshot, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -753,6 +753,10 @@ assert.equal(cleanupExecution.summary.recordsCreated, 1, "storage cleanup execut
 assert.equal(cleanupExecution.records.length, 1, "storage cleanup execution should return created records");
 assert.equal(getMockState().mediaArtifacts.some((artifact) => artifact.id === cleanupExecution.records[0]?.artifactId), false, "deleted cleanup artifacts should be removed from mock state");
 assert.equal(getMockState().storageCleanupRecords.some((record) => record.id === cleanupExecution.records[0]?.id), true, "storage cleanup execution records should persist in mock state");
+const cleanupExecutionSnapshot = getStorageCleanupExecutionSnapshot();
+assert.ok(cleanupExecutionSnapshot.records.some((record) => record.id === cleanupExecution.records[0]?.id), "storage cleanup execution snapshot should include persisted records");
+assert.equal(cleanupExecutionSnapshot.summary.total, getMockState().storageCleanupRecords.length, "storage cleanup execution snapshot should summarize persisted cleanup records");
+assert.equal(cleanupExecutionSnapshot.summary.deleted, cleanupExecutionSnapshot.records.length, "storage cleanup execution snapshot should count deleted records");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,
