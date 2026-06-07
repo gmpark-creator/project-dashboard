@@ -510,12 +510,17 @@ function assertProductionWorkRequestBoundary() {
 
   const imageJobRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "image-jobs", "route.ts"), "utf8");
   const shotGenerateRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "generate", "route.ts"), "utf8");
+  const shotRegenerateRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "regenerate", "route.ts"), "utf8");
   assert.ok(imageJobRouteSource.includes("liveProjectWritesEnabled()"), "image job route must require the live write switch for live work requests");
   assert.ok(imageJobRouteSource.includes("createLiveImageJob({"), "image job route must call the live image enqueue adapter");
   assert.ok(imageJobRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "image job route must fail closed when live persistence is unavailable");
   assert.ok(shotGenerateRouteSource.includes("liveProjectWritesEnabled()"), "shot generate route must require the live write switch for live work requests");
   assert.ok(shotGenerateRouteSource.includes("generateLiveShot(shotId"), "shot generate route must call the live shot generation adapter");
   assert.ok(shotGenerateRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot generate route must fail closed when live persistence is unavailable");
+  assert.ok(shotRegenerateRouteSource.includes("liveProjectWritesEnabled()"), "shot regenerate route must require the live write switch for live work requests");
+  assert.ok(shotRegenerateRouteSource.includes("generateLiveShot(shotId"), "shot regenerate route must call the live shot generation adapter");
+  assert.ok(shotRegenerateRouteSource.includes("takeCount: 2"), "shot regenerate route must enqueue two replacement takes");
+  assert.ok(shotRegenerateRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot regenerate route must fail closed when live persistence is unavailable");
   assert.ok(liveRuntimeSource.includes("createLiveImageJob"), "live persistence runtime must expose live image job enqueue");
   assert.ok(liveRuntimeSource.includes("generateLiveShot"), "live persistence runtime must expose live shot generation enqueue");
   assert.ok(writeAdapterSource.includes("createImageJob"), "live write adapter must implement live image job enqueue");

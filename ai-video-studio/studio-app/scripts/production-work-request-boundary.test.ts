@@ -96,6 +96,10 @@ async function main() {
       "live shot generation",
       await generateShotRoute(request({ tier: "fast", takeCount: 1 }), context({ shotId: "sht_production" }))
     );
+    await assertLivePersistenceUnavailable(
+      "live shot regeneration",
+      await regenerateShotRoute(request({ scope: "shot", tweaks: "tighten the motion" }), context({ shotId: "sht_production" }))
+    );
 
     assert.equal(stateFingerprint(), before, "failed production work requests should not mutate mock state");
   } finally {

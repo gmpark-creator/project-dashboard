@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { regenerate } from "@/server/mock-service";
+import { generateLiveShot, liveProjectWritesEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
@@ -23,6 +24,20 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   }
   const tweaks = typeof body.tweaks === "string" ? body.tweaks : undefined;
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectWritesEnabled()) {
+      try {
+        return NextResponse.json(await generateLiveShot(shotId, { takeCount: 2 }), { status: 202 });
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        const creditResponse = creditReservationResponse(error);
+        if (creditResponse) return creditResponse;
+        const serviceResponse = serviceErrorResponse(error);
+        if (serviceResponse) return serviceResponse;
+        throw error;
+      }
+    }
     return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
   }
   try {
