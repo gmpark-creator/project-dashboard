@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { POST as createProjectRoute } from "../app/api/projects/route";
 import { listProjects, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE"];
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL"];
 
 function request(body: unknown) {
   return new Request("http://cutpilot.local/api/projects", {
@@ -25,6 +25,8 @@ async function main() {
   resetMockState();
   try {
     process.env.CUTPILOT_RUNTIME_MODE = "production";
+    delete process.env.CUTPILOT_ENABLE_LIVE_WRITES;
+    delete process.env.DATABASE_URL;
     const beforeCount = listProjects().length;
     const response = await createProjectRoute(request({ idea: "A production project should not mutate mock state", intent: "product_ad" }));
     const body = (await response.json()) as { code?: string };
@@ -33,7 +35,15 @@ async function main() {
     assert.equal(body.code, "MOCK_MUTATION_UNAVAILABLE", "production project creation should return a stable unavailable code");
     assert.equal(listProjects().length, beforeCount, "failed production project creation should not mutate mock project state");
 
+    process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
+    const liveWithoutDbResponse = await createProjectRoute(request({ idea: "A live write without DB should fail closed", intent: "product_ad" }));
+    const liveWithoutDbBody = (await liveWithoutDbResponse.json()) as { code?: string };
+    assert.equal(liveWithoutDbResponse.status, 503, "live project creation should fail closed without DATABASE_URL");
+    assert.equal(liveWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live project creation should report live persistence unavailability");
+    assert.equal(listProjects().length, beforeCount, "failed live project creation should not mutate mock project state");
+
     delete process.env.CUTPILOT_RUNTIME_MODE;
+    delete process.env.CUTPILOT_ENABLE_LIVE_WRITES;
     const mockResponse = await createProjectRoute(request({ idea: "A mock project should still be creatable", intent: "product_ad" }));
     assert.equal(mockResponse.status, 201, "mock mode project creation should remain available");
     assert.equal(listProjects().length, beforeCount + 1, "mock mode project creation should mutate local mock state");

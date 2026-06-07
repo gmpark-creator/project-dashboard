@@ -425,6 +425,9 @@ function assertProductionQueueReadinessBoundary() {
 
 function assertProductionProjectCreateBoundary() {
   const routeSource = readFileSync(join(appApiDir, "projects", "route.ts"), "utf8");
+  const liveRuntimeSource = readFileSync(join(serverDir, "live-persistence-runtime.ts"), "utf8");
+  const writeAdapterSource = readFileSync(join(serverDir, "live-persistence-write-adapter.ts"), "utf8");
+  const projectBuilderSource = readFileSync(join(serverDir, "live-project-builder.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
   const createProjectPost = openApi.paths["/projects"]?.post;
   const createProject503 = createProjectPost?.responses?.["503"];
@@ -435,8 +438,17 @@ function assertProductionProjectCreateBoundary() {
   assert.notEqual(createCall, -1, "project creation route must still call createProject in mock mode");
   assert.ok(productionCheck < createCall, "project creation route must reject production mock mutation before createProject");
   assert.ok(routeSource.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "project creation route must return a stable production unavailable code");
+  assert.ok(routeSource.includes("createLiveProject({"), "project creation route must support live project writes behind a switch");
+  assert.ok(routeSource.includes("liveProjectWritesEnabled()"), "project creation route must require the live write switch");
+  assert.ok(routeSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project creation route must fail closed when live persistence is unavailable");
+  assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_WRITES"), "live persistence runtime must require an explicit live write switch");
+  assert.ok(liveRuntimeSource.includes("PostgresLivePersistenceWriteAdapter"), "live persistence runtime must use the Postgres write adapter");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_projects"), "live write adapter must insert projects");
+  assert.ok(writeAdapterSource.includes("ROLLBACK"), "live write adapter must roll back failed project creation");
+  assert.ok(projectBuilderSource.includes("buildLiveProjectCreateRecords"), "live project builder must expose project creation records");
   assert.ok(JSON.stringify(createProject503).includes("Mock-backed project creation is unavailable"), "createProject 503 must document mock mutation production unavailability");
   assert.ok(testMock.includes("scripts/production-project-create-boundary.test.ts"), "test:mock must include production project creation boundary coverage");
+  assert.ok(testMock.includes("scripts/live-persistence-write-adapter.test.ts"), "test:mock must include live persistence write adapter coverage");
 }
 
 function assertProductionWorkRequestBoundary() {

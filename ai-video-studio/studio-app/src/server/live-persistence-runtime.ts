@@ -1,7 +1,9 @@
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
+import { PostgresLivePersistenceWriteAdapter } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
 import type { ExportSpec } from "../domain/types";
+import type { LiveProjectCreateInput } from "./live-project-builder";
 
 let pool: Pool | null = null;
 
@@ -18,6 +20,10 @@ export function liveProjectReadsEnabled() {
   return process.env.CUTPILOT_ENABLE_LIVE_READS === "1";
 }
 
+export function liveProjectWritesEnabled() {
+  return process.env.CUTPILOT_ENABLE_LIVE_WRITES === "1";
+}
+
 function databaseSslConfig() {
   if (process.env.DATABASE_SSL === "1") return { rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "0" };
   return undefined;
@@ -27,13 +33,10 @@ function databaseUrl() {
   return process.env.DATABASE_URL?.trim() || "";
 }
 
-export function getLivePersistenceReadAdapter() {
-  if (!liveProjectReadsEnabled()) {
-    throw new LivePersistenceUnavailableError("Live project reads are disabled. Set CUTPILOT_ENABLE_LIVE_READS=1 after running migrations.");
-  }
+function getConfiguredPool() {
   const connectionString = databaseUrl();
   if (!connectionString) {
-    throw new LivePersistenceUnavailableError("DATABASE_URL is required for live project reads.");
+    throw new LivePersistenceUnavailableError("DATABASE_URL is required for live persistence.");
   }
   if (!pool) {
     pool = new Pool({
@@ -41,7 +44,24 @@ export function getLivePersistenceReadAdapter() {
       ssl: databaseSslConfig()
     });
   }
+  return pool;
+}
+
+export function getLivePersistenceReadAdapter() {
+  if (!liveProjectReadsEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project reads are disabled. Set CUTPILOT_ENABLE_LIVE_READS=1 after running migrations.");
+  }
+  const pool = getConfiguredPool();
   return new PostgresLivePersistenceReadAdapter(pool);
+}
+
+async function withLivePersistenceClient<T>(callback: (client: PoolClient) => Promise<T>) {
+  const client = await getConfiguredPool().connect();
+  try {
+    return await callback(client);
+  } finally {
+    client.release();
+  }
 }
 
 export async function listLiveProjects() {
@@ -63,6 +83,13 @@ export async function getLiveJob(jobId: string) {
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;
+}
+
+export async function createLiveProject(input: LiveProjectCreateInput) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).createProject(input));
 }
 
 export async function closeLivePersistencePoolForTests() {

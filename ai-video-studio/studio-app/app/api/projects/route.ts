@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { INTENT_TEMPLATES } from "@/domain/templates";
 import { createProject, listProjects } from "@/server/mock-service";
-import { listLiveProjects, liveProjectReadsEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
+import { createLiveProject, listLiveProjects, liveProjectReadsEnabled, liveProjectWritesEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
 import type { Aspect, Intent, Tier } from "@/domain/types";
 import { apiError } from "../error-response";
 import { isJsonObject, readJsonObject } from "../json-body";
@@ -64,6 +64,16 @@ export async function POST(request: Request) {
       }
     : undefined;
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectWritesEnabled()) {
+      try {
+        return NextResponse.json(await createLiveProject({ title, idea, intent: body.intent as Intent, advanced }), { status: 201 });
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        throw error;
+      }
+    }
     return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed project creation is not available in production mode.", 503);
   }
   return NextResponse.json(createProject({ title, idea, intent: body.intent as Intent, advanced }), { status: 201 });

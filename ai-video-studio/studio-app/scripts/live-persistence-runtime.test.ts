@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import {
   closeLivePersistencePoolForTests,
+  createLiveProject,
   getLivePersistenceReadAdapter,
   LivePersistenceUnavailableError,
-  liveProjectReadsEnabled
+  liveProjectReadsEnabled,
+  liveProjectWritesEnabled
 } from "../src/server/live-persistence-runtime";
 
-const managedEnvNames = ["CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL", "DATABASE_SSL", "DATABASE_SSL_REJECT_UNAUTHORIZED"];
+const managedEnvNames = ["CUTPILOT_ENABLE_LIVE_READS", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL", "DATABASE_SSL", "DATABASE_SSL_REJECT_UNAUTHORIZED"];
 
 function restoreEnv(originalEnv: Map<string, string | undefined>) {
   for (const name of managedEnvNames) {
@@ -20,12 +22,19 @@ async function main() {
   const originalEnv = new Map(managedEnvNames.map((name) => [name, process.env[name]] as const));
   try {
     delete process.env.CUTPILOT_ENABLE_LIVE_READS;
+    delete process.env.CUTPILOT_ENABLE_LIVE_WRITES;
     delete process.env.DATABASE_URL;
     assert.equal(liveProjectReadsEnabled(), false, "live project reads should be disabled by default");
+    assert.equal(liveProjectWritesEnabled(), false, "live project writes should be disabled by default");
     assert.throws(
       () => getLivePersistenceReadAdapter(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live read adapter should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => createLiveProject({ idea: "Disabled live write", intent: "product_ad" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live project writes should fail closed when the switch is disabled"
     );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
@@ -34,6 +43,13 @@ async function main() {
       () => getLivePersistenceReadAdapter(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live read adapter should require DATABASE_URL"
+    );
+    process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
+    assert.equal(liveProjectWritesEnabled(), true, "live project writes should be enabled by an explicit switch");
+    await assert.rejects(
+      () => createLiveProject({ idea: "Missing DB live write", intent: "product_ad" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live project writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";
