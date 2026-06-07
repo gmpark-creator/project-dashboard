@@ -124,6 +124,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const invalidEnv = [...invalidProviderEnv, ...invalidPersistenceEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv, ...invalidDecomposerEnv];
   const production = mode === "production";
   const liveDecomposerImplemented = false;
+  const liveProviderExecutionImplemented = false;
   const livePersistenceImplemented = false;
   const liveObjectStorageDeleteImplemented = false;
   const liveQueueWorkerImplemented = false;
@@ -146,6 +147,15 @@ export function getRuntimeReadiness(): RuntimeReadiness {
           : production && !liveDecomposerImplemented
             ? "Live story decomposer adapter boundary is configured, but the live adapter implementation is not yet available."
             : "Mock story decomposer is active for local preview.";
+  const providerExecutionBaseStatus = envStatus(missingProviderEnv, invalidProviderEnv, production);
+  const providerExecutionStatus: RuntimeReadiness["checks"][number]["status"] =
+    providerExecutionBaseStatus !== "pass" ? providerExecutionBaseStatus : production && !liveProviderExecutionImplemented ? "fail" : "pass";
+  const providerExecutionDetail =
+    providerExecutionBaseStatus !== "pass"
+      ? envDetail("provider", missingProviderEnv, invalidProviderEnv, "Provider credential env is present and format-checked.")
+      : production && !liveProviderExecutionImplemented
+        ? "Provider credential env is configured, but the live provider execution adapter is not yet available."
+        : "Mock provider execution is active for local preview.";
   const storageBaseStatus = envStatus(missingStorageEnv, invalidStorageEnv, production);
   const objectStorageStatus: RuntimeReadiness["checks"][number]["status"] =
     storageBaseStatus !== "pass" ? storageBaseStatus : production && !liveObjectStorageDeleteImplemented ? "fail" : "pass";
@@ -201,6 +211,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       envStatus(missingProviderEnv, invalidProviderEnv, production),
       envDetail("provider", missingProviderEnv, invalidProviderEnv, "Provider credential env is present and format-checked.")
     ),
+    check("provider_execution", "Provider execution", providerExecutionStatus, providerExecutionDetail),
     check("story_decomposer", "Story decomposer", decomposerStatus, decomposerDetail),
     check(
       "object_storage",
