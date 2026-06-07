@@ -155,6 +155,21 @@ function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[
   if (objectSchema.items) assertClosedObjectSchemas(objectSchema.items, owner, [...path, "[]"]);
 }
 
+function assertKnownDomainSchemaRefs(value: unknown, path: string[] = []) {
+  if (!value || typeof value !== "object") return;
+  const ref = (value as { $ref?: unknown }).$ref;
+  const domainRefPrefix = "../schemas/domain.schema.json#/$defs/";
+  if (typeof ref === "string" && ref.startsWith(domainRefPrefix)) {
+    const defName = ref.slice(domainRefPrefix.length);
+    assert.ok(domainSchema.$defs[defName], `openapi ref ${ref} at ${path.join(".")} missing domain schema`);
+  }
+  for (const [key, child] of Object.entries(value)) {
+    assertKnownDomainSchemaRefs(child, [...path, key]);
+  }
+}
+
+assertKnownDomainSchemaRefs(openApi, ["openapi"]);
+
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
   assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
