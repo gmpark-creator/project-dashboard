@@ -1151,6 +1151,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid worker lease request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }
@@ -1188,6 +1196,14 @@
           },
           "404": { "description": "Lease not found" },
           "409": { "description": "Lease token mismatch or lease is not active" },
+          "400": {
+            "description": "Invalid worker lease release request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }
@@ -1226,6 +1242,14 @@
           },
           "404": { "description": "Lease not found" },
           "409": { "description": "Lease token mismatch or lease is not active" },
+          "400": {
+            "description": "Invalid worker lease renew request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }

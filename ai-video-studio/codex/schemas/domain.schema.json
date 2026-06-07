@@ -491,7 +491,6 @@
     },
     "WorkerLeaseRequest": {
       "type": "object",
-      "required": ["workerId"],
       "additionalProperties": false,
       "properties": {
         "workerId": { "type": "string" },
