@@ -78,6 +78,9 @@ for (const defName of [
   "WorkerCompletionStatus",
   "WorkerCompletionReceipt",
   "WorkerCompletionSnapshot",
+  "WorkerRetryAction",
+  "WorkerRetryPlanItem",
+  "WorkerRetryPlan",
   "ImageWorkerInvocation",
   "DirectionSpec",
   "EditAudioPatch",
@@ -132,7 +135,8 @@ const requiredOperations = new Set([
   "releaseWorkerLease",
   "renewWorkerLease",
   "completeWorkerLease",
-  "getWorkerCompletionSnapshot"
+  "getWorkerCompletionSnapshot",
+  "getWorkerRetryPlan"
 ]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {

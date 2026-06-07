@@ -37,6 +37,7 @@ import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocat
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
+import { getWorkerRetryPlan } from "../src/server/worker-retries";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -167,6 +168,39 @@ assert.equal(completedWorkerJob.receipt?.summary.capturedCredits, 4, "worker com
 const duplicateCompletion = completeWorkerLease(completionLease.lease.id, { token: completionLease.lease.token, status: "succeeded" });
 assert.equal(duplicateCompletion.completed, false, "worker completion should not re-complete released leases");
 assert.equal(duplicateCompletion.reason, "not_active", "worker completion should report inactive released leases");
+
+const retryImageJob = createImageJob({
+  projectId: workerCompletionProject.id,
+  prompt: "Worker-failed retryable product image",
+  purpose: "product",
+  role: "product",
+  aspect: "9:16",
+  style: "clean",
+  count: 1
+});
+const retryLease = createWorkerLease({ workerId: "completion-worker-b", kind: "image_generation", ttlSec: 30 });
+assert.equal(retryLease.reason, "leased", "worker retry setup should lease an image job");
+assert.equal(retryLease.lease?.jobId, retryImageJob.job.id, "worker retry lease should target the failed image job");
+assert.ok(retryLease.lease, "worker retry lease should exist");
+const failedWorkerJob = completeWorkerLease(retryLease.lease.id, {
+  token: retryLease.lease.token,
+  status: "failed",
+  error: {
+    code: "IMAGE_PROVIDER_TIMEOUT",
+    userMessage: "이미지 제공자가 시간 초과되었습니다.",
+    retryable: true,
+    fallbackSuggested: true
+  }
+});
+assert.equal(failedWorkerJob.completed, true, "worker completion should record failed leased jobs");
+assert.equal(failedWorkerJob.receipt?.status, "failed", "failed worker completion should return a failed receipt");
+assert.equal(failedWorkerJob.receipt?.error?.code, "IMAGE_PROVIDER_TIMEOUT", "failed worker completion should preserve error code");
+const workerRetryPlan = getWorkerRetryPlan();
+const retryPlanItem = workerRetryPlan.items.find((item) => item.receipt.jobId === retryImageJob.job.id);
+assert.ok(retryPlanItem, "worker retry plan should include retryable failed worker completions");
+assert.equal(retryPlanItem?.action, "retry_image_generation", "failed image worker completion should become an image retry action");
+assert.equal(retryPlanItem?.retryable, true, "retryable failed worker completion should be marked retryable");
+assert.equal(retryPlanItem?.fallbackSuggested, true, "retry plan should preserve fallback suggestion");
 
 const project = createProject({
   title: "테스트 쇼츠",

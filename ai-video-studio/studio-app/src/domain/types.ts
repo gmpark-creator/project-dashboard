@@ -739,6 +739,29 @@ export type WorkerCompletionSnapshot = {
   receipts: WorkerCompletionReceipt[];
 };
 
+export type WorkerRetryAction = "retry_provider_generation" | "retry_image_generation" | "retry_render" | "hold";
+
+export type WorkerRetryPlanItem = {
+  receipt: WorkerCompletionReceipt;
+  action: WorkerRetryAction;
+  retryable: boolean;
+  fallbackSuggested: boolean;
+  reason: string;
+};
+
+export type WorkerRetryPlan = {
+  generatedAt: string;
+  summary: {
+    totalFailed: number;
+    retryable: number;
+    hold: number;
+    providerGeneration: number;
+    imageGeneration: number;
+    render: number;
+  };
+  items: WorkerRetryPlanItem[];
+};
+
 export type RuntimeReadiness = {
   mode: "mock" | "production";
   generatedAt: string;

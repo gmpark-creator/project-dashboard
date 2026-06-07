@@ -617,6 +617,44 @@
         "receipts": { "type": "array", "items": { "$ref": "#/$defs/WorkerCompletionReceipt" } }
       }
     },
+    "WorkerRetryAction": {
+      "type": "string",
+      "enum": ["retry_provider_generation", "retry_image_generation", "retry_render", "hold"]
+    },
+    "WorkerRetryPlanItem": {
+      "type": "object",
+      "required": ["receipt", "action", "retryable", "fallbackSuggested", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "receipt": { "$ref": "#/$defs/WorkerCompletionReceipt" },
+        "action": { "$ref": "#/$defs/WorkerRetryAction" },
+        "retryable": { "type": "boolean" },
+        "fallbackSuggested": { "type": "boolean" },
+        "reason": { "type": "string" }
+      }
+    },
+    "WorkerRetryPlan": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["totalFailed", "retryable", "hold", "providerGeneration", "imageGeneration", "render"],
+          "additionalProperties": false,
+          "properties": {
+            "totalFailed": { "type": "integer", "minimum": 0 },
+            "retryable": { "type": "integer", "minimum": 0 },
+            "hold": { "type": "integer", "minimum": 0 },
+            "providerGeneration": { "type": "integer", "minimum": 0 },
+            "imageGeneration": { "type": "integer", "minimum": 0 },
+            "render": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/WorkerRetryPlanItem" } }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -1556,6 +1594,7 @@
     "workerLeaseRenewResult": { "$ref": "#/$defs/WorkerLeaseRenewResult" },
     "workerLeaseCompletionResult": { "$ref": "#/$defs/WorkerLeaseCompletionResult" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
+    "workerRetryPlan": { "$ref": "#/$defs/WorkerRetryPlan" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },

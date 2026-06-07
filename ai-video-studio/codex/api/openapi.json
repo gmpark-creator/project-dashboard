@@ -1018,6 +1018,23 @@
         }
       }
     },
+    "/system/worker-retries": {
+      "get": {
+        "operationId": "getWorkerRetryPlan",
+        "responses": {
+          "200": {
+            "description": "Read-only retry plan for failed worker completion receipts",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerRetryPlan" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",
