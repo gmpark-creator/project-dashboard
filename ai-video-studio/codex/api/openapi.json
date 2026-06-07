@@ -1044,6 +1044,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid storage cleanup request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "401": { "description": "Admin access token required in production mode" },
           "503": { "description": "Admin access token is not configured in production mode" }
         }
