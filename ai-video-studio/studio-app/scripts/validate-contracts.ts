@@ -1,13 +1,19 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(process.cwd(), "..");
 const codexDir = join(root, "codex");
+const appApiDir = join(process.cwd(), "app", "api");
+const httpMethods = ["get", "post", "put", "patch", "delete"] as const;
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, "utf8")) as T;
 }
+
+type HttpMethod = (typeof httpMethods)[number];
+type OpenApiOperation = { operationId?: string };
+type OpenApiPathItem = Partial<Record<HttpMethod, OpenApiOperation>>;
 
 type Capabilities = {
   providers: Array<{
@@ -26,9 +32,26 @@ type Routing = {
 const capabilities = readJson<Capabilities>(join(codexDir, "config", "provider-capabilities.json"));
 const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"));
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
-const openApi = readJson<{ paths: Record<string, { get?: { operationId?: string }; post?: { operationId?: string }; put?: { operationId?: string }; patch?: { operationId?: string }; delete?: { operationId?: string } }> }>(
-  join(codexDir, "api", "openapi.json")
-);
+const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(join(codexDir, "api", "openapi.json"));
+
+function routeFileForOpenApiPath(pathName: string) {
+  const segments = pathName
+    .slice(1)
+    .split("/")
+    .map((segment) => {
+      const parameter = segment.match(/^\{(.+)\}$/);
+      return parameter ? `[${parameter[1]}]` : segment;
+    });
+  return join(appApiDir, ...segments, "route.ts");
+}
+
+function exportedRouteMethods(routeFile: string) {
+  if (!existsSync(routeFile)) return new Set<HttpMethod>();
+  const source = readFileSync(routeFile, "utf8");
+  return new Set(
+    httpMethods.filter((method) => new RegExp(`export\\s+(async\\s+)?function\\s+${method.toUpperCase()}\\b`).test(source))
+  );
+}
 
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
@@ -162,6 +185,18 @@ for (const operation of requiredOperations) {
   assert.ok(operationIds.has(operation), `openapi missing operation ${operation}`);
 }
 
+for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
+  const routeFile = routeFileForOpenApiPath(pathName);
+  assert.ok(existsSync(routeFile), `openapi path ${pathName} missing Next route ${routeFile}`);
+  const exportedMethods = exportedRouteMethods(routeFile);
+  for (const method of httpMethods) {
+    const operation = pathItem[method];
+    if (!operation) continue;
+    assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
+    assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
+  }
+}
+
 const templateDir = join(codexDir, "config", "templates");
 const templateFiles = readdirSync(templateDir).filter((name) => name.endsWith(".json"));
 assert.equal(templateFiles.length, 6, "expected 6 intent templates");
@@ -178,5 +213,6 @@ console.log("validate-contracts OK", {
   providers: capabilities.providers.length,
   routingRules: routing.rules.length,
   templates: templateFiles.length,
-  visualMakerOps: requiredOperations.size
+  visualMakerOps: requiredOperations.size,
+  openApiRoutes: Object.keys(openApi.paths).length
 });
