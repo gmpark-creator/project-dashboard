@@ -452,6 +452,8 @@ function assertProductionProjectCreateBoundary() {
 }
 
 function assertProductionWorkRequestBoundary() {
+  const liveRuntimeSource = readFileSync(join(serverDir, "live-persistence-runtime.ts"), "utf8");
+  const writeAdapterSource = readFileSync(join(serverDir, "live-persistence-write-adapter.ts"), "utf8");
   const guardedRoutes = [
     {
       route: join(appApiDir, "projects", "[projectId]", "generate-all", "route.ts"),
@@ -506,6 +508,15 @@ function assertProductionWorkRequestBoundary() {
     assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed work requests are unavailable"), `${item.operationId} 503 must document mock work request production unavailability`);
   }
 
+  const imageJobRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "image-jobs", "route.ts"), "utf8");
+  assert.ok(imageJobRouteSource.includes("liveProjectWritesEnabled()"), "image job route must require the live write switch for live work requests");
+  assert.ok(imageJobRouteSource.includes("createLiveImageJob({"), "image job route must call the live image enqueue adapter");
+  assert.ok(imageJobRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "image job route must fail closed when live persistence is unavailable");
+  assert.ok(liveRuntimeSource.includes("createLiveImageJob"), "live persistence runtime must expose live image job enqueue");
+  assert.ok(writeAdapterSource.includes("createImageJob"), "live write adapter must implement live image job enqueue");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_image_jobs"), "live write adapter must persist image jobs");
+  assert.ok(writeAdapterSource.includes('"generateImages"'), "live write adapter must reserve image generation credits");
+  assert.ok(writeAdapterSource.includes('"reserve"'), "live write adapter must record reserve ledger entries");
   assert.ok(testMock.includes("scripts/production-work-request-boundary.test.ts"), "test:mock must include production work request boundary coverage");
 }
 

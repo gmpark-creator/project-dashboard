@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, JobStatus, Project, ProjectBundle, Scene, Shot } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, Scene, Shot } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -9,6 +9,7 @@ import {
 } from "./live-project-builder";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
+import { CreditReservationError } from "./mock-service";
 
 type Row = Record<string, unknown>;
 export type LiveEditAudioPatch = Partial<Pick<EditState, "captions" | "bgm" | "voiceover" | "transitions">>;
@@ -24,6 +25,16 @@ export type LiveExternalImageInput = {
 export type LiveShotReferenceInput = {
   assetId: string;
   mode: AssetUsage["mode"];
+};
+export type LiveImageJobInput = {
+  projectId: string;
+  prompt: string;
+  purpose: ImageMakerPurpose;
+  role: ImageAssetRole;
+  aspect: Aspect;
+  style?: string;
+  count?: number;
+  retryOfJobId?: string | null;
 };
 export type LiveStoryboardScenePatch = Partial<Pick<Scene, "order" | "title" | "setting" | "timeOfDay">> & { id: string };
 export type LiveStoryboardShotPatch = Partial<Pick<Shot, "order" | "sceneId" | "title" | "durationSec">> & {
@@ -129,6 +140,10 @@ function imageSize(aspect: Aspect) {
       "4:5": { width: 1280, height: 1600 }
     } satisfies Record<Aspect, { width: number; height: number }>
   )[aspect];
+}
+
+function imageVariantScoreLabel(index: number): ImageVariant["scoreLabel"] {
+  return (index === 0 ? "추천" : index === 1 ? "안정적" : "확인 필요") as ImageVariant["scoreLabel"];
 }
 
 function boardBucket(role: ImageAssetRole): ReferenceBoardImageBucket {
@@ -313,6 +328,57 @@ export class PostgresLivePersistenceWriteAdapter {
   private async countProjectImageAssets(projectId: string) {
     const rows = await this.client.query<Row>("SELECT COUNT(*) AS count FROM cutpilot_image_assets WHERE project_id = $1", [projectId]);
     return Number(rows.rows[0]?.count || 0);
+  }
+
+  private async reserveCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
+    const accountRows = await this.client.query<Row>(
+      `
+      SELECT p.credit_account_id, a.balance_credits, a.spent_credits, a.reserved_credits
+      FROM cutpilot_projects p
+      JOIN cutpilot_credit_accounts a ON a.id = p.credit_account_id
+      WHERE p.id = $1
+      FOR UPDATE
+    `,
+      [input.projectId]
+    );
+    const account = accountRows.rows[0];
+    if (!account) throw new Error("Project not found");
+
+    const balance = Number(account.balance_credits);
+    const spent = Number(account.spent_credits);
+    const reserved = Number(account.reserved_credits);
+    const available = Math.max(0, balance - spent - reserved);
+    if (available < input.credits) throw new CreditReservationError(input.credits, available);
+
+    const nextReserved = reserved + input.credits;
+    const timestamp = now();
+    await this.client.query("UPDATE cutpilot_credit_accounts SET reserved_credits = $2, updated_at = $3 WHERE id = $1", [
+      account.credit_account_id,
+      nextReserved,
+      timestamp
+    ]);
+    await this.client.query(
+      `
+      INSERT INTO cutpilot_credit_transactions (
+        id, project_id, job_id, kind, action, credits, provider_cost_usd,
+        margin_policy_version, balance_after, note, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `,
+      [
+        uid("ctx"),
+        input.projectId,
+        input.jobId,
+        "reserve",
+        input.action,
+        input.credits,
+        0,
+        "sandbox-v1",
+        json({ spent, reserved: nextReserved, available: Math.max(0, balance - spent - nextReserved) }),
+        input.note,
+        timestamp
+      ]
+    );
   }
 
   private async refundReservedCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
@@ -710,6 +776,88 @@ export class PostgresLivePersistenceWriteAdapter {
       const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
       await this.client.query("COMMIT");
       return bundle;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async createImageJob(input: LiveImageJobInput): Promise<{ job: ImageJob }> {
+    await this.client.query("BEGIN");
+    try {
+      const prompt = input.prompt.trim();
+      if (!prompt) throw new Error("Image prompt is required");
+      const count = Math.max(1, Math.min(input.count || 4, 4));
+      const timestamp = now();
+      const variants: ImageVariant[] = Array.from({ length: count }, (_, index) => ({
+        id: uid("ivar"),
+        assetId: null,
+        label: String.fromCharCode(65 + index),
+        status: "queued",
+        url: null,
+        thumbUrl: null,
+        scoreLabel: imageVariantScoreLabel(index)
+      }));
+      const job: ImageJob = {
+        id: uid("ijob"),
+        projectId: input.projectId,
+        retryOfJobId: input.retryOfJobId || null,
+        status: "queued",
+        progress: 0,
+        etaSec: 8,
+        stage: "queued",
+        prompt,
+        purpose: input.purpose,
+        role: input.role,
+        aspect: input.aspect,
+        style: input.style?.trim() || "clean commercial visual",
+        count,
+        variants,
+        dueAt: Date.now() + 3600,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        error: null
+      };
+
+      await this.reserveCredits({
+        projectId: input.projectId,
+        jobId: job.id,
+        action: "generateImages",
+        credits: count * 4,
+        note: "Image Maker variants reserved"
+      });
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_image_jobs (
+          id, project_id, retry_of_job_id, status, progress, eta_sec, stage,
+          prompt, purpose, role, aspect, style, count, variants, due_at,
+          error, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      `,
+        [
+          job.id,
+          job.projectId,
+          job.retryOfJobId,
+          job.status,
+          job.progress,
+          job.etaSec,
+          job.stage,
+          job.prompt,
+          job.purpose,
+          job.role,
+          job.aspect,
+          job.style,
+          job.count,
+          json(job.variants),
+          job.dueAt,
+          job.error ? json(job.error) : null,
+          job.createdAt,
+          job.updatedAt
+        ]
+      );
+      await this.client.query("COMMIT");
+      return { job };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

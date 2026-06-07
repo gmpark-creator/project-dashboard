@@ -7,7 +7,7 @@ import { POST as regenerateShotRoute } from "../app/api/shots/[shotId]/regenerat
 import { POST as upgradeTakeRoute } from "../app/api/takes/[takeId]/upgrade/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE"];
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL"];
 
 function request(body: unknown) {
   return new Request("http://cutpilot.local/api/test", {
@@ -38,6 +38,12 @@ async function assertUnavailable(label: string, response: Response) {
   const body = (await response.json()) as { code?: string };
   assert.equal(response.status, 503, `${label} should fail closed in production mode`);
   assert.equal(body.code, "MOCK_MUTATION_UNAVAILABLE", `${label} should return the stable mock mutation unavailable code`);
+}
+
+async function assertLivePersistenceUnavailable(label: string, response: Response) {
+  const body = (await response.json()) as { code?: string };
+  assert.equal(response.status, 503, `${label} should fail closed when live persistence is unavailable`);
+  assert.equal(body.code, "LIVE_PERSISTENCE_UNAVAILABLE", `${label} should return the stable live persistence unavailable code`);
 }
 
 function restoreEnv(originalEnv: Map<string, string | undefined>) {
@@ -73,6 +79,16 @@ async function main() {
       "render start",
       await startRenderRoute(
         request({ specs: [{ resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" }] }),
+        context({ projectId: "prj_production" })
+      )
+    );
+
+    process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
+    delete process.env.DATABASE_URL;
+    await assertLivePersistenceUnavailable(
+      "live image generation",
+      await createImageJobRoute(
+        request({ prompt: "clean product shot", purpose: "product", role: "product", aspect: "9:16", count: 1 }),
         context({ projectId: "prj_production" })
       )
     );

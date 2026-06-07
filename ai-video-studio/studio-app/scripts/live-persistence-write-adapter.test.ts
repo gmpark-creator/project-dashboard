@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { buildLiveProjectCreateRecords } from "../src/server/live-project-builder";
 import { PostgresLivePersistenceWriteAdapter } from "../src/server/live-persistence-write-adapter";
 import type { PgQueryable } from "../src/server/live-persistence-migrations";
+import { CreditReservationError } from "../src/server/mock-service";
 
 class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
@@ -21,6 +22,8 @@ class FakeClient implements PgQueryable {
   imageAssetDeleted = false;
   assetUsageRows: Record<string, unknown>[] = [];
   projectIntent = "product_ad";
+  creditBalance = 1240;
+  creditSpent = 0;
   creditReserved = 0;
   creditTransactionCount = 0;
   activeRenderExists = false;
@@ -115,8 +118,8 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("UPDATE cutpilot_projects")) return { rows: [] as T[] };
     if (sql.includes("SELECT p.credit_account_id")) {
-      const account = { credit_account_id: "acct_live", balance_credits: 1240, spent_credits: 0, reserved_credits: this.creditReserved } as unknown as T;
-      return { rows: [account] };
+      const account = { credit_account_id: "acct_live", balance_credits: this.creditBalance, spent_credits: this.creditSpent, reserved_credits: this.creditReserved } as unknown as T;
+      return { rows: this.projectExists ? [account] : [] };
     }
     if (sql.includes("UPDATE cutpilot_credit_accounts")) {
       this.creditReserved = Number(params?.[1] || 0);
@@ -126,6 +129,7 @@ class FakeClient implements PgQueryable {
       this.creditTransactionCount += 1;
       return { rows: [] as T[] };
     }
+    if (sql.includes("INSERT INTO cutpilot_image_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_generation_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
@@ -424,6 +428,48 @@ async function main() {
     "live write adapter should surface insert errors"
   );
   assert.equal(failingClient.queries.at(-1)?.sql, "ROLLBACK", "live write adapter should roll back failed creation");
+
+  const imageJobClient = new FakeClient();
+  const imageJobResult = await new PostgresLivePersistenceWriteAdapter(imageJobClient).createImageJob({
+    projectId: "prj_live",
+    prompt: " hero product render ",
+    purpose: "product",
+    role: "product",
+    aspect: "9:16",
+    count: 2
+  });
+  assert.ok(imageJobResult.job.id.startsWith("ijob_"), "live image job enqueue should create an image job id");
+  assert.equal(imageJobResult.job.status, "queued", "live image job enqueue should start jobs queued");
+  assert.equal(imageJobResult.job.prompt, "hero product render", "live image job enqueue should trim prompts");
+  assert.equal(imageJobResult.job.variants.length, 2, "live image job enqueue should create requested variants");
+  assert.equal(imageJobClient.creditReserved, 8, "live image job enqueue should reserve image generation credits");
+  assert.equal(imageJobClient.creditTransactionCount, 1, "live image job enqueue should record a reserve transaction");
+  assert.ok(imageJobClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_image_jobs")), "live image job enqueue should insert image jobs");
+  assert.ok(imageJobClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_credit_transactions") && query.params?.[3] === "reserve"), "live image job enqueue should persist reserve ledger entries");
+  assert.equal(imageJobClient.queries.at(-1)?.sql, "COMMIT", "live image job enqueue should commit successful jobs");
+
+  const insufficientCreditClient = new FakeClient();
+  insufficientCreditClient.creditBalance = 4;
+  insufficientCreditClient.creditReserved = 4;
+  await assert.rejects(
+    () =>
+      new PostgresLivePersistenceWriteAdapter(insufficientCreditClient).createImageJob({
+        projectId: "prj_live",
+        prompt: "expensive image",
+        purpose: "product",
+        role: "product",
+        aspect: "9:16",
+        count: 2
+      }),
+    (error) => error instanceof CreditReservationError && error.estimate.shortfallCredits === 8,
+    "live image job enqueue should reject insufficient credits with the normalized credit error"
+  );
+  assert.equal(insufficientCreditClient.queries.at(-1)?.sql, "ROLLBACK", "live image job enqueue should roll back credit failures");
+  assert.equal(
+    insufficientCreditClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_image_jobs")),
+    false,
+    "live image job enqueue should not insert jobs when credit reservation fails"
+  );
 
   const directionClient = new FakeClient();
   directionClient.shotRows = [fakeShotRow()];

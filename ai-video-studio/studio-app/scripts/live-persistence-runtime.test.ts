@@ -4,6 +4,7 @@ import {
   applyLiveEdit,
   cancelLiveJob,
   closeLivePersistencePoolForTests,
+  createLiveImageJob,
   createLiveProject,
   deleteLiveImageAsset,
   detachLiveImageFromShot,
@@ -89,6 +90,19 @@ async function main() {
       "live external image writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
+      () =>
+        createLiveImageJob({
+          projectId: "prj_disabled",
+          prompt: "Disabled image",
+          purpose: "product",
+          role: "product",
+          aspect: "9:16",
+          count: 1
+        }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live image job writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
       () => attachLiveImageToShot("sht_disabled", { assetId: "img_disabled", mode: "first_frame" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live reference attachment writes should fail closed when the switch is disabled"
@@ -163,6 +177,19 @@ async function main() {
         }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live external image writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () =>
+        createLiveImageJob({
+          projectId: "prj_missing_db",
+          prompt: "Missing DB image",
+          purpose: "product",
+          role: "product",
+          aspect: "9:16",
+          count: 1
+        }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live image job writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => attachLiveImageToShot("sht_missing_db", { assetId: "img_missing_db", mode: "first_frame" }),

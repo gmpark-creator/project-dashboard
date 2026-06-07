@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createImageJob } from "@/server/mock-service";
+import { createLiveImageJob, liveProjectWritesEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
 import type { Aspect, ImageAssetRole, ImageMakerPurpose } from "@/domain/types";
 import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
@@ -59,6 +60,31 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   }
   const style = typeof body.style === "string" ? body.style : undefined;
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectWritesEnabled()) {
+      try {
+        return NextResponse.json(
+          await createLiveImageJob({
+            projectId,
+            prompt,
+            purpose: body.purpose as ImageMakerPurpose,
+            role: body.role as ImageAssetRole,
+            aspect: body.aspect as Aspect,
+            style,
+            count: body.count as number | undefined
+          }),
+          { status: 202 }
+        );
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        const creditResponse = creditReservationResponse(error);
+        if (creditResponse) return creditResponse;
+        const serviceResponse = serviceErrorResponse(error);
+        if (serviceResponse) return serviceResponse;
+        throw error;
+      }
+    }
     return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
   }
   try {
