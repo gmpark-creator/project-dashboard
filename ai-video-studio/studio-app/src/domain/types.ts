@@ -865,6 +865,7 @@ export type RuntimeReadiness = {
   generatedAt: string;
   ready: boolean;
   missingEnv: string[];
+  invalidEnv: string[];
   checks: Array<{
     id: string;
     label: string;

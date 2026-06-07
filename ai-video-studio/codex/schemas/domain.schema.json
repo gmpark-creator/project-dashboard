@@ -831,13 +831,14 @@
     },
     "RuntimeReadiness": {
       "type": "object",
-      "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
+      "required": ["mode", "generatedAt", "ready", "missingEnv", "invalidEnv", "checks"],
       "additionalProperties": false,
       "properties": {
         "mode": { "type": "string", "enum": ["mock", "production"] },
         "generatedAt": { "type": "string", "format": "date-time" },
         "ready": { "type": "boolean" },
         "missingEnv": { "type": "array", "items": { "type": "string" } },
+        "invalidEnv": { "type": "array", "items": { "type": "string" } },
         "checks": {
           "type": "array",
           "items": {
