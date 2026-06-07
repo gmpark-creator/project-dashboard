@@ -36,7 +36,9 @@ import type {
   Shot,
   StudioState,
   Take,
-  Tier
+  Tier,
+  WorkerLease,
+  WorkerLeaseCompletionInput
 } from "../domain/types";
 
 const globalStore = globalThis as typeof globalThis & {
@@ -1545,6 +1547,189 @@ export function cancelJob(jobId: string): CancelJobResult {
   }
 
   return { jobId, kind: null, projectId: null, cancelled: false, status: null, refundedCredits: 0, reason: "job not found" };
+}
+
+function workerError(input: WorkerLeaseCompletionInput, fallbackCode: string, fallbackMessage: string): ErrorResponse {
+  return {
+    code: input.error?.code?.trim() || fallbackCode,
+    userMessage: input.error?.userMessage?.trim() || fallbackMessage,
+    retryable: Boolean(input.error?.retryable ?? true),
+    fallbackSuggested: Boolean(input.error?.fallbackSuggested ?? true)
+  };
+}
+
+function completeImageWorkerJob(current: StudioState, job: ImageJob) {
+  job.status = "done";
+  job.progress = 1;
+  job.stage = "done";
+  job.etaSec = 0;
+  job.error = null;
+  job.updatedAt = now();
+  job.variants = job.variants.map((variant, index) => {
+    if (variant.assetId) return { ...variant, status: "done" };
+    const asset = makeImageAsset(current, {
+      projectId: job.projectId,
+      role: job.role,
+      source: "image_maker",
+      label: `${job.purpose} ${variant.label}`,
+      prompt: `${job.prompt} / ${job.style}`,
+      aspect: job.aspect,
+      sourceJobId: job.id,
+      rights: {
+        status: "generated",
+        note: "Image Maker에서 생성된 이미지입니다."
+      }
+    });
+    return {
+      ...variant,
+      assetId: asset.id,
+      status: "done",
+      url: asset.url,
+      thumbUrl: asset.thumbUrl,
+      scoreLabel: index === 0 ? "추천" : variant.scoreLabel
+    };
+  });
+  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants completed by worker" });
+}
+
+function failImageWorkerJob(current: StudioState, job: ImageJob, error: ErrorResponse) {
+  job.status = "failed";
+  job.progress = 1;
+  job.stage = "failed";
+  job.etaSec = 0;
+  job.error = error;
+  job.updatedAt = now();
+  job.variants = job.variants.map((variant) => ({ ...variant, status: "failed" }));
+  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants failed by worker and were refunded" });
+}
+
+function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, timestamp = Date.now()) {
+  const take = current.takes.find((item) => item.id === job.takeId);
+  const shot = current.shots.find((item) => item.id === job.shotId);
+  job.status = "done";
+  job.progress = 1;
+  job.stage = "done";
+  job.etaSec = 0;
+  job.error = null;
+  job.updatedAt = now();
+  finishProviderAttempt(job, "succeeded", null, timestamp);
+  if (take && shot) completeTake(current, take, shot, job.id);
+  if (shot) {
+    const doneTakes = current.takes.filter((item) => item.shotId === shot.id && item.status === "done");
+    shot.status = "reviewing";
+    if (!shot.selectedTakeId && doneTakes.length) {
+      shot.selectedTakeId = doneTakes.sort((a, b) => (b.metrics.overall || 0) - (a.metrics.overall || 0))[0].id;
+    }
+    if (shot.order === 4 || shot.order === 8) {
+      shot.qualityFlags = [
+        {
+          axis: "motion",
+          score: 2,
+          hint: "모션 흔들림이 의심됩니다. 이 컷만 다시 시도할 수 있습니다."
+        }
+      ];
+    }
+    refreshProject(current, shot.projectId);
+  }
+  const credits = take?.upgradeSourceTakeId ? 22 : 6;
+  captureReservedCredits(current, {
+    projectId: job.projectId,
+    jobId: job.id,
+    action: take?.upgradeSourceTakeId ? "upgradeTake" : "generateShot",
+    credits,
+    note: take?.upgradeSourceTakeId ? "Publishing quality upgrade completed by worker" : "Video take generation completed by worker"
+  });
+}
+
+function failGenerationWorkerJob(current: StudioState, job: GenerationJob, error: ErrorResponse, timestamp = Date.now()) {
+  const take = current.takes.find((item) => item.id === job.takeId);
+  const shot = current.shots.find((item) => item.id === job.shotId);
+  job.status = "failed";
+  job.progress = 1;
+  job.stage = "failed";
+  job.etaSec = 0;
+  job.error = error;
+  job.updatedAt = now();
+  finishProviderAttempt(job, "failed", error, timestamp);
+  if (take) failTake(take);
+  if (shot) {
+    shot.status = "failed";
+    shot.qualityFlags = [
+      {
+        axis: "motion",
+        score: 2,
+        hint: "생성 실패. 이 컷만 다시 시도해도 이전 후보와 다른 컷은 보존됩니다."
+      }
+    ];
+    refreshProject(current, shot.projectId);
+  }
+  const credits = take?.upgradeSourceTakeId ? 22 : 6;
+  refundReservedCredits(current, {
+    projectId: job.projectId,
+    jobId: job.id,
+    action: take?.upgradeSourceTakeId ? "upgradeTake" : "generateShot",
+    credits,
+    note: take?.upgradeSourceTakeId ? "Publishing quality upgrade failed by worker and was refunded" : "Video take generation failed by worker and was refunded"
+  });
+}
+
+function completeRenderWorkerJob(current: StudioState, job: RenderJob) {
+  job.status = "done";
+  job.progress = 1;
+  job.stage = "done";
+  job.etaSec = 0;
+  job.error = null;
+  job.updatedAt = now();
+  job.outputUrl = mockVideoUrl(job.id);
+  job.shareUrl = mockShareUrl(job.id);
+  recordRenderArtifact(current, job);
+  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed by worker` });
+  const project = current.projects.find((item) => item.id === job.projectId);
+  if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;
+  if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {
+    project.status = "done";
+    const defaultJob = current.renderJobs.find((item) => item.id === project.defaultRenderJobId && item.projectId === project.id) || job;
+    project.thumbUrl = mockPosterUrl(defaultJob.id, `${defaultJob.spec.cut} render`);
+  }
+}
+
+function failRenderWorkerJob(current: StudioState, job: RenderJob, error: ErrorResponse) {
+  job.status = "failed";
+  job.progress = 1;
+  job.etaSec = 0;
+  job.error = error;
+  job.updatedAt = now();
+  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render failed by worker and was refunded` });
+  const project = current.projects.find((item) => item.id === job.projectId);
+  const hasActiveRender = current.renderJobs.some((item) => item.projectId === job.projectId && isActiveJob(item.status));
+  if (project && project.status === "rendering" && !hasActiveRender) project.status = "edited";
+}
+
+export function completeLeasedWorkerJob(current: StudioState, lease: WorkerLease, input: WorkerLeaseCompletionInput): "completed" | "job_not_active" | "unsupported_status" {
+  if (input.status !== "succeeded" && input.status !== "failed") return "unsupported_status";
+  const timestamp = Date.now();
+  if (lease.kind === "image_generation") {
+    const job = current.imageJobs.find((item) => item.id === lease.jobId);
+    if (!job || !isActiveJob(job.status)) return "job_not_active";
+    if (input.status === "succeeded") completeImageWorkerJob(current, job);
+    else failImageWorkerJob(current, job, workerError(input, "IMAGE_WORKER_FAILED", "이미지 생성 작업이 실패했습니다."));
+    return "completed";
+  }
+  if (lease.kind === "provider_generation") {
+    const job = current.generationJobs.find((item) => item.id === lease.jobId);
+    if (!job || !isActiveJob(job.status)) return "job_not_active";
+    if (input.status === "succeeded") completeGenerationWorkerJob(current, job, timestamp);
+    else failGenerationWorkerJob(current, job, workerError(input, "PROVIDER_WORKER_FAILED", "영상 생성 작업이 실패했습니다."), timestamp);
+    return "completed";
+  }
+  if (lease.kind === "render") {
+    const job = current.renderJobs.find((item) => item.id === lease.jobId);
+    if (!job || !isActiveJob(job.status)) return "job_not_active";
+    if (input.status === "succeeded") completeRenderWorkerJob(current, job);
+    else failRenderWorkerJob(current, job, workerError(input, "RENDER_WORKER_FAILED", "렌더 작업이 실패했습니다."));
+    return "completed";
+  }
+  return "unsupported_status";
 }
 
 export function forceDueJobs(kind: "generationJobs" | "renderJobs" | "imageJobs") {

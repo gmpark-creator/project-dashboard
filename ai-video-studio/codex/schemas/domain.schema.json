@@ -501,6 +501,47 @@
         "reason": { "type": "string", "enum": ["renewed", "not_found", "token_mismatch", "not_active"] }
       }
     },
+    "WorkerLeaseCompletionInput": {
+      "type": "object",
+      "required": ["token", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "token": { "type": "string" },
+        "status": { "type": "string", "enum": ["succeeded", "failed"] },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "code": { "type": "string" },
+            "userMessage": { "type": "string" },
+            "retryable": { "type": "boolean" },
+            "fallbackSuggested": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "WorkerLeaseCompletionResult": {
+      "type": "object",
+      "required": ["leaseId", "completed", "lease", "receipt", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "leaseId": { "type": "string", "pattern": "^wlease_" },
+        "completed": { "type": "boolean" },
+        "lease": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerLease" },
+            { "type": "null" }
+          ]
+        },
+        "receipt": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerCompletionReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["completed", "not_found", "token_mismatch", "not_active", "job_not_active", "unsupported_status"] }
+      }
+    },
     "WorkerLeaseSnapshot": {
       "type": "object",
       "required": ["generatedAt", "summary", "leases"],
@@ -1513,6 +1554,7 @@
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },
     "workerLeaseSnapshot": { "$ref": "#/$defs/WorkerLeaseSnapshot" },
     "workerLeaseRenewResult": { "$ref": "#/$defs/WorkerLeaseRenewResult" },
+    "workerLeaseCompletionResult": { "$ref": "#/$defs/WorkerLeaseCompletionResult" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },

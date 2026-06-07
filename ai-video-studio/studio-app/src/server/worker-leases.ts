@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { StudioState, WorkerDispatchKind, WorkerLease, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult, WorkerLeaseSnapshot } from "../domain/types";
-import { getMutableMockState, saveMockState } from "./mock-service";
+import type { StudioState, WorkerDispatchKind, WorkerLease, WorkerLeaseCompletionInput, WorkerLeaseCompletionResult, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult, WorkerLeaseSnapshot } from "../domain/types";
+import { completeLeasedWorkerJob, getMutableMockState, saveMockState } from "./mock-service";
+import { buildWorkerCompletionSnapshot } from "./worker-completions";
 import { buildWorkerDispatchSnapshot } from "./worker-dispatch";
 
 const DEFAULT_TTL_SEC = 60;
@@ -118,6 +119,40 @@ export function renewWorkerLease(leaseId: string, input: { token?: string | null
   lease.expiresAt = new Date(Date.now() + clampTtl(input.ttlSec) * 1000).toISOString();
   saveMockState(current);
   return { leaseId, renewed: true, lease, status: lease.status, reason: "renewed" };
+}
+
+export function completeWorkerLease(leaseId: string, input: Partial<WorkerLeaseCompletionInput> = {}): WorkerLeaseCompletionResult {
+  const current = getMutableMockState();
+  expireLeases(current);
+  const lease = current.workerLeases.find((item) => item.id === leaseId);
+  if (!lease) {
+    saveMockState(current);
+    return { leaseId, completed: false, lease: null, receipt: null, reason: "not_found" };
+  }
+  if (lease.token !== input.token) {
+    saveMockState(current);
+    return { leaseId, completed: false, lease, receipt: null, reason: "token_mismatch" };
+  }
+  if (lease.status !== "active") {
+    saveMockState(current);
+    return { leaseId, completed: false, lease, receipt: null, reason: "not_active" };
+  }
+  const status = input.status;
+  if (status !== "succeeded" && status !== "failed") {
+    saveMockState(current);
+    return { leaseId, completed: false, lease, receipt: null, reason: "unsupported_status" };
+  }
+  const completion = completeLeasedWorkerJob(current, lease, { token: input.token, status, error: input.error });
+  if (completion !== "completed") {
+    saveMockState(current);
+    return { leaseId, completed: false, lease, receipt: null, reason: completion };
+  }
+  lease.status = "released";
+  lease.releasedAt = new Date().toISOString();
+  const receipt =
+    buildWorkerCompletionSnapshot(current).receipts.find((item) => item.kind === lease.kind && item.jobId === lease.jobId) || null;
+  saveMockState(current);
+  return { leaseId, completed: true, lease, receipt, reason: "completed" };
 }
 
 export function getWorkerLeaseSnapshot(): WorkerLeaseSnapshot {

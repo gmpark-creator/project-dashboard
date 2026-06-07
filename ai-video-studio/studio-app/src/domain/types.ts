@@ -679,6 +679,20 @@ export type WorkerLeaseRenewResult = {
   reason: "renewed" | "not_found" | "token_mismatch" | "not_active";
 };
 
+export type WorkerLeaseCompletionInput = {
+  token: string;
+  status: "succeeded" | "failed";
+  error?: Partial<ErrorResponse>;
+};
+
+export type WorkerLeaseCompletionResult = {
+  leaseId: string;
+  completed: boolean;
+  lease: WorkerLease | null;
+  receipt: WorkerCompletionReceipt | null;
+  reason: "completed" | "not_found" | "token_mismatch" | "not_active" | "job_not_active" | "unsupported_status";
+};
+
 export type WorkerLeaseSnapshot = {
   generatedAt: string;
   summary: {

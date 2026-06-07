@@ -36,7 +36,7 @@ import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
-import { createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
+import { completeWorkerLease, createWorkerLease, getWorkerLeaseSnapshot, releaseWorkerLease, renewWorkerLease } from "../src/server/worker-leases";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -134,6 +134,40 @@ assert.ok(
   "cancelled generation jobs should write a refund ledger entry"
 );
 
+const workerCompletionProject = createProject({
+  title: "Worker completion contract",
+  idea: "A leased worker job that should complete through the lease API",
+  intent: "product_ad"
+});
+const workerImageJob = createImageJob({
+  projectId: workerCompletionProject.id,
+  prompt: "Worker-completed product image",
+  purpose: "product",
+  role: "product",
+  aspect: "9:16",
+  style: "clean",
+  count: 1
+});
+const completionLease = createWorkerLease({ workerId: "completion-worker-a", kind: "image_generation", ttlSec: 30 });
+assert.equal(completionLease.reason, "leased", "worker completion setup should lease an image job");
+assert.equal(completionLease.lease?.jobId, workerImageJob.job.id, "worker completion lease should target the image job");
+assert.ok(completionLease.lease, "worker completion lease should exist");
+const wrongCompletion = completeWorkerLease(completionLease.lease.id, { token: "wrong-token", status: "succeeded" });
+assert.equal(wrongCompletion.completed, false, "worker completion should reject token mismatch");
+assert.equal(wrongCompletion.reason, "token_mismatch", "worker completion should report token mismatch");
+const completedWorkerJob = completeWorkerLease(completionLease.lease.id, { token: completionLease.lease.token, status: "succeeded" });
+assert.equal(completedWorkerJob.completed, true, "worker completion should complete an active leased job");
+assert.equal(completedWorkerJob.reason, "completed", "worker completion should report completion");
+assert.equal(completedWorkerJob.lease?.status, "released", "worker completion should release the lease");
+assert.equal(completedWorkerJob.receipt?.kind, "image_generation", "worker completion should return an image completion receipt");
+assert.equal(completedWorkerJob.receipt?.status, "succeeded", "worker completion receipt should mark success");
+assert.ok(completedWorkerJob.receipt?.artifacts.some((artifact) => artifact.role === "image_asset"), "worker completion receipt should include image artifacts");
+assert.ok(completedWorkerJob.receipt?.artifacts.some((artifact) => artifact.role === "image_thumbnail"), "worker completion receipt should include thumbnail artifacts");
+assert.equal(completedWorkerJob.receipt?.summary.capturedCredits, 4, "worker completion receipt should capture image credits");
+const duplicateCompletion = completeWorkerLease(completionLease.lease.id, { token: completionLease.lease.token, status: "succeeded" });
+assert.equal(duplicateCompletion.completed, false, "worker completion should not re-complete released leases");
+assert.equal(duplicateCompletion.reason, "not_active", "worker completion should report inactive released leases");
+
 const project = createProject({
   title: "테스트 쇼츠",
   idea: "딸기라떼 쇼츠",
@@ -205,7 +239,8 @@ assert.equal(imageDispatchItem.invocation.jobId, imageJobResult.job.id, "image d
 assert.equal(workerDispatch.summary.imageGeneration, 1, "worker dispatch summary should count active image jobs");
 assert.equal(workerDispatch.summary.total, workerDispatch.items.length, "worker dispatch total should match item count");
 let workerLeases = getWorkerLeaseSnapshot();
-assert.equal(workerLeases.summary.total, 0, "fresh mock state should have no worker leases");
+assert.equal(workerLeases.summary.active, 0, "worker lease setup should have no active leases before leasing image work");
+const releasedLeasesBeforeImage = workerLeases.summary.released;
 const imageLease = createWorkerLease({ workerId: "image-worker-a", kind: "image_generation", ttlSec: 30 });
 assert.equal(imageLease.reason, "leased", "worker lease should lease active image work");
 assert.equal(imageLease.lease?.kind, "image_generation", "image worker lease should preserve dispatch kind");
@@ -230,7 +265,7 @@ const imageRelease = releaseWorkerLease(imageLease.lease.id, imageLease.lease.to
 assert.equal(imageRelease.released, true, "worker lease should release with matching token");
 assert.equal(imageRelease.reason, "released", "worker lease release should report success");
 workerLeases = getWorkerLeaseSnapshot();
-assert.equal(workerLeases.summary.released, 1, "worker lease snapshot should count released leases");
+assert.equal(workerLeases.summary.released, releasedLeasesBeforeImage + 1, "worker lease snapshot should count newly released leases");
 assert.equal(workerLeases.summary.active, 0, "worker lease snapshot should have no active leases after release");
 forceDueJobs("imageJobs");
 tickJobs();
@@ -495,16 +530,17 @@ assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "
 assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "refund" && transaction.action === "generateShot"), "credit ledger should refund failed video generations");
 assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "upgradeTake"), "credit ledger should capture publishing upgrades");
 assert.ok(bundle.creditTransactions.some((transaction) => transaction.kind === "capture" && transaction.action === "startRender"), "credit ledger should capture completed renders");
-const capturedCredits = bundle.creditTransactions
+const allCreditTransactions = getMockState().creditTransactions;
+const capturedCredits = allCreditTransactions
   .filter((transaction) => transaction.kind === "capture")
   .reduce((total, transaction) => total + transaction.credits, 0);
-const openReservedCredits = bundle.creditTransactions.reduce((total, transaction) => {
+const openReservedCredits = allCreditTransactions.reduce((total, transaction) => {
   if (transaction.kind === "reserve") return total + transaction.credits;
   if (transaction.kind === "capture" || transaction.kind === "refund") return total - transaction.credits;
   return total;
 }, 0);
-assert.equal(bundle.credits.spent, capturedCredits, "spent credits should match captured ledger entries");
-assert.equal(bundle.credits.reserved, Math.max(0, openReservedCredits), "reserved credits should match open ledger reservations");
+assert.equal(bundle.credits.spent, capturedCredits, "spent credits should match global captured ledger entries");
+assert.equal(bundle.credits.reserved, Math.max(0, openReservedCredits), "reserved credits should match global open ledger reservations");
 const renderedBundle = bundle;
 assert.ok(
   renderedBundle.renderJobs.every((job) => job.renderPlan.shots.length + job.renderPlan.missingShotIds.length === renderedBundle.shots.length),

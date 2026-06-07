@@ -971,6 +971,36 @@
         }
       }
     },
+    "/system/worker-leases/{leaseId}/complete": {
+      "post": {
+        "operationId": "completeWorkerLease",
+        "parameters": [
+          { "name": "leaseId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^wlease_" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leased worker job completed and reconciled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseCompletionResult" }
+              }
+            }
+          },
+          "404": { "description": "Lease not found" },
+          "409": { "description": "Lease token mismatch, inactive lease, inactive job, or unsupported completion status" },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/worker-completions": {
       "get": {
         "operationId": "getWorkerCompletionSnapshot",
