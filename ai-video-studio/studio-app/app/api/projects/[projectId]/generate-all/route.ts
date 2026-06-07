@@ -23,6 +23,9 @@ export async function POST(request: Request, context: { params: Promise<{ projec
     return apiError("BAD_REQUEST", "지원하지 않는 생성 품질입니다.", 400);
   }
   const tier = typeof tierInput === "string" ? (tierInput as Tier) : "fast";
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(generateAll(projectId, { tier }), { status: 202 });
   } catch (error) {

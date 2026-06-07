@@ -58,6 +58,9 @@ export async function POST(request: Request, context: { params: Promise<{ projec
     return apiError("BAD_REQUEST", "이미지 생성 개수는 1개 이상 4개 이하의 정수여야 합니다.", 400);
   }
   const style = typeof body.style === "string" ? body.style : undefined;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(
       createImageJob({

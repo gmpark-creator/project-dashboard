@@ -22,6 +22,9 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
     return apiError("BAD_REQUEST", "재생성 수정 요청은 문자열이어야 합니다.", 400);
   }
   const tweaks = typeof body.tweaks === "string" ? body.tweaks : undefined;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(regenerate(shotId, { scope: body.scope, tweaks }), { status: 202 });
   } catch (error) {

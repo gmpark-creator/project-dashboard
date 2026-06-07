@@ -26,6 +26,9 @@ export async function POST(request: Request, context: { params: Promise<{ takeId
     return apiError("BAD_REQUEST", "지원하지 않는 승급 모드입니다.", 400);
   }
   const mode = modeInput === "auto" || typeof modeInput === "undefined" ? undefined : (modeInput as UpgradeMode);
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(upgradeTake(takeId, { mode }), { status: 202 });
   } catch (error) {

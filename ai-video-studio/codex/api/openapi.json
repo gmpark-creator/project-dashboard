@@ -444,6 +444,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -504,6 +512,14 @@
           },
           "404": {
             "description": "Shot not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -711,6 +727,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -834,6 +858,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -893,6 +925,14 @@
           },
           "404": {
             "description": "Done take not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -1103,6 +1143,14 @@
           },
           "409": {
             "description": "Equivalent render work is already active",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed work requests are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }

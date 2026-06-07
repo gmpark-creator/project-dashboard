@@ -31,6 +31,9 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   }
   const tier = typeof tierInput === "string" ? (tierInput as Tier) : "fast";
   const takeCount = typeof takeCountInput === "number" ? takeCountInput : 3;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed work requests are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(generateShot(shotId, { tier, takeCount }), { status: 202 });
   } catch (error) {
