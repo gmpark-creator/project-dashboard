@@ -140,6 +140,14 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Idea or intent is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }

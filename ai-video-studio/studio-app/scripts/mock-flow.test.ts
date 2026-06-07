@@ -7,6 +7,7 @@ import {
   cancelJob,
   createImageJob,
   createProject,
+  decomposeIdea,
   deleteImageAsset,
   detachImageFromShot,
   estimateCost,
@@ -125,6 +126,11 @@ for (const name of readinessEnvNames) {
 }
 
 resetMockState();
+
+const decomposedStoryboard = decomposeIdea({ idea: "Preview a launch teaser before saving a project", intent: "product_ad" });
+assert.equal(decomposedStoryboard.scenes.length, 4, "decomposeIdea should return preview scenes");
+assert.equal(decomposedStoryboard.shots.length, 10, "decomposeIdea should return preview shots");
+assert.equal(decomposedStoryboard.shots[0].projectId, "prj_preview", "decomposeIdea should use preview project id when no project id is supplied");
 
 const affordableCost = estimateCost("generateShot", { takeCount: 1 });
 assert.equal(affordableCost.affordable, true, "cost estimate should mark normal mock balance as affordable");

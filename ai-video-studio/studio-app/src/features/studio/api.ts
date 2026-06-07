@@ -56,6 +56,8 @@ export const studioApi = {
   listProjects: () => json<{ projects: Project[] }>("/api/projects"),
   createProject: (input: { title?: string; idea: string; intent: Intent }) =>
     json<Project>("/api/projects", { method: "POST", body: JSON.stringify(input) }),
+  decomposeIdea: (input: { idea: string; intent: Intent; script?: string; attachments?: Array<{ url: string; kind: "image" | "script" | "product_url" | "reference" }> }) =>
+    json<{ scenes: Scene[]; shots: Shot[] }>("/api/storyboard/decompose", { method: "POST", body: JSON.stringify(input) }),
   getBundle: (projectId: string) => json<ProjectBundle>(`/api/projects/${projectId}`),
   updateStoryboard: (projectId: string, input: { scenes?: Array<Partial<Scene> & { id?: string }>; shots?: Array<Partial<Shot> & { id?: string }> }) =>
     json<ProjectBundle>(`/api/projects/${projectId}/storyboard`, { method: "PUT", body: JSON.stringify(input) }),
