@@ -215,6 +215,7 @@ const requiredOperations = new Set([
   "getWorkerRetryExecutionSnapshot",
   "executeWorkerRetry"
 ]);
+const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {
   for (const method of [path.get, path.post, path.put, path.patch, path.delete]) {
@@ -240,6 +241,10 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
+    }
+    if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
+      assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);
+      assert.ok(operation.responses?.["402"], `credit guarded operation ${operation.operationId} missing 402 response`);
     }
     if (pathName.startsWith("/system/")) {
       assert.ok(operation.responses?.["401"], `system path ${pathName} ${method.toUpperCase()} missing 401 response`);
