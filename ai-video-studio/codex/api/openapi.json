@@ -66,6 +66,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Project" }
               }
             }
+          },
+          "400": {
+            "description": "Idea or intent is missing",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -85,7 +93,14 @@
               }
             }
           },
-          "404": { "description": "Project not found" }
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -508,7 +523,15 @@
           }
         },
         "responses": {
-          "200": { "description": "Take selected" }
+          "200": { "description": "Take selected" },
+          "400": {
+            "description": "Missing take id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -663,6 +686,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CostEstimate" }
               }
             }
+          },
+          "400": {
+            "description": "Missing cost action",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -708,6 +739,14 @@
               }
             }
           },
+          "400": {
+            "description": "Missing render specs",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "402": {
             "description": "Insufficient credits to reserve this work",
             "content": {
@@ -748,7 +787,14 @@
               }
             }
           },
-          "400": { "description": "Missing render job id" }
+          "400": {
+            "description": "Missing render job id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -781,7 +827,14 @@
               }
             }
           },
-          "400": { "description": "Missing render spec" }
+          "400": {
+            "description": "Missing render spec",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          }
         }
       }
     },
