@@ -115,6 +115,7 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("FROM cutpilot_generation_jobs")) {
       if (sql.includes("WHERE id = $1") && params?.[0] !== genJobId) return [];
+      const status = sql.includes("ORDER BY updated_at DESC") ? "done" : "queued";
       return [
         {
           id: genJobId,
@@ -122,10 +123,10 @@ class FakeClient implements PgQueryable {
           shot_id: shotId,
           take_id: takeId,
           retry_of_job_id: null,
-          status: "queued",
-          progress: 0,
-          eta_sec: 6,
-          stage: "queued",
+          status,
+          progress: status === "done" ? 1 : 0,
+          eta_sec: status === "done" ? 0 : 6,
+          stage: status === "done" ? "done" : "queued",
           should_fail: false,
           due_at: 1,
           error: null,
@@ -303,6 +304,13 @@ async function main() {
   const leases = await adapter.getWorkerLeaseSnapshot();
   assert.equal(leases.summary.active, 1, "live read adapter should build worker lease snapshots from persisted leases");
   assert.equal(leases.leases[0].dispatchKey, `provider_generation:${genJobId}`, "live worker lease snapshots should preserve dispatch keys");
+
+  const completions = await adapter.getWorkerCompletionSnapshot();
+  assert.equal(completions.summary.total, 1, "live read adapter should build worker completion snapshots from persisted terminal jobs");
+  assert.equal(completions.summary.succeeded, 1, "live completion snapshots should count succeeded jobs");
+  assert.equal(completions.receipts[0].jobId, genJobId, "live completion snapshots should preserve receipt job ids");
+  assert.equal(completions.receipts[0].summary.artifactCount, 1, "live completion snapshots should attach persisted artifacts");
+  assert.equal(completions.receipts[0].summary.capturedCredits, 18, "live completion snapshots should attach persisted credit captures");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),

@@ -21,6 +21,7 @@ import type {
 } from "../domain/types";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { buildQueueSnapshotFromJobs } from "./queue-snapshot";
+import { buildWorkerCompletionSnapshotFromJobs } from "./worker-completions";
 import { buildWorkerDispatchSnapshotFromJobs } from "./worker-dispatch";
 
 type Row = Record<string, unknown>;
@@ -490,6 +491,17 @@ export class PostgresLivePersistenceReadAdapter {
       },
       leases
     };
+  }
+
+  async getWorkerCompletionSnapshot() {
+    const generationJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs ORDER BY updated_at DESC")).rows.map((row) =>
+      rowGenerationJob(row, [])
+    );
+    const imageJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs ORDER BY updated_at DESC")).rows.map(rowImageJob);
+    const renderJobs = (await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs ORDER BY updated_at DESC")).rows.map(rowRenderJob);
+    const mediaArtifacts = (await this.client.query<Row>("SELECT * FROM cutpilot_media_artifacts ORDER BY created_at ASC")).rows.map(rowMediaArtifact);
+    const creditTransactions = (await this.client.query<Row>("SELECT * FROM cutpilot_credit_transactions ORDER BY created_at ASC")).rows.map(rowCreditTransaction);
+    return buildWorkerCompletionSnapshotFromJobs({ generationJobs, imageJobs, renderJobs, mediaArtifacts, creditTransactions });
   }
 
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {

@@ -13,6 +13,7 @@ import {
   getLivePersistenceReadAdapter,
   getLiveQueueSnapshot,
   getLiveWorkerDispatchSnapshot,
+  getLiveWorkerCompletionSnapshot,
   getLiveWorkerLeaseSnapshot,
   generateAllLiveShots,
   generateLiveShot,
@@ -68,6 +69,11 @@ async function main() {
       () => getLiveWorkerLeaseSnapshot(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live worker lease snapshots should fail closed when the read switch is disabled"
+    );
+    await assert.rejects(
+      () => getLiveWorkerCompletionSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker completion snapshots should fail closed when the read switch is disabled"
     );
     await assert.rejects(
       () => createLiveProject({ idea: "Disabled live write", intent: "product_ad" }),
@@ -210,6 +216,11 @@ async function main() {
       () => getLiveWorkerLeaseSnapshot(),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker lease snapshots should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => getLiveWorkerCompletionSnapshot(),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker completion snapshots should require DATABASE_URL"
     );
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     assert.equal(liveProjectWritesEnabled(), true, "live project writes should be enabled by an explicit switch");

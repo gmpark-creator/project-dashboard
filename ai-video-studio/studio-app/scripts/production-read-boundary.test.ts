@@ -6,6 +6,7 @@ import { GET as listAssetsRoute } from "../app/api/projects/[projectId]/assets/r
 import { POST as previewRenderRoute } from "../app/api/projects/[projectId]/render-preview/route";
 import { GET as queueRoute } from "../app/api/system/queue/route";
 import { GET as workerDispatchRoute } from "../app/api/system/worker-dispatch/route";
+import { GET as workerCompletionsRoute } from "../app/api/system/worker-completions/route";
 import { GET as workerLeasesRoute } from "../app/api/system/worker-leases/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
@@ -73,6 +74,7 @@ async function main() {
     await assertUnavailable("system queue", await queueRoute(systemRequest()));
     await assertUnavailable("worker dispatch", await workerDispatchRoute(systemRequest()));
     await assertUnavailable("worker leases", await workerLeasesRoute(systemRequest()));
+    await assertUnavailable("worker completions", await workerCompletionsRoute(systemRequest()));
     await assertUnavailable(
       "render preview",
       await previewRenderRoute(
@@ -115,6 +117,10 @@ async function main() {
     const liveWorkerLeasesBody = (await liveWorkerLeasesWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerLeasesWithoutDb.status, 503, "live worker lease snapshot should fail closed without DATABASE_URL");
     assert.equal(liveWorkerLeasesBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease snapshot should expose live persistence unavailability");
+    const liveWorkerCompletionsWithoutDb = await workerCompletionsRoute(systemRequest());
+    const liveWorkerCompletionsBody = (await liveWorkerCompletionsWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerCompletionsWithoutDb.status, 503, "live worker completion snapshot should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerCompletionsBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker completion snapshot should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

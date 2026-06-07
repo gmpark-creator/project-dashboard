@@ -103,6 +103,10 @@ export async function getLiveWorkerLeaseSnapshot() {
   return getLivePersistenceReadAdapter().getWorkerLeaseSnapshot();
 }
 
+export async function getLiveWorkerCompletionSnapshot() {
+  return getLivePersistenceReadAdapter().getWorkerCompletionSnapshot();
+}
+
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;

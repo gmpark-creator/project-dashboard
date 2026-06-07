@@ -15,6 +15,7 @@ import type {
 import { getMockState } from "./mock-service";
 
 type TerminalJob = GenerationJob | ImageJob | RenderJob;
+type CompletionSource = Pick<StudioState, "generationJobs" | "imageJobs" | "renderJobs" | "mediaArtifacts" | "creditTransactions">;
 
 function terminal(status: JobStatus) {
   return status === "done" || status === "failed" || status === "cancelled";
@@ -31,11 +32,11 @@ function sumCredits(transactions: CreditTransaction[], kind: CreditTransaction["
   return transactions.filter((transaction) => transaction.kind === kind).reduce((total, transaction) => total + transaction.credits, 0);
 }
 
-function artifactsForJob(current: StudioState, jobId: string): MediaArtifact[] {
+function artifactsForJob(current: Pick<CompletionSource, "mediaArtifacts">, jobId: string): MediaArtifact[] {
   return current.mediaArtifacts.filter((artifact) => artifact.sourceJobId === jobId);
 }
 
-function transactionsForJob(current: StudioState, jobId: string): CreditTransaction[] {
+function transactionsForJob(current: Pick<CompletionSource, "creditTransactions">, jobId: string): CreditTransaction[] {
   return current.creditTransactions.filter((transaction) => transaction.jobId === jobId);
 }
 
@@ -70,7 +71,7 @@ function buildReceipt(input: {
   };
 }
 
-function generationReceipt(current: StudioState, job: GenerationJob) {
+function generationReceipt(current: CompletionSource, job: GenerationJob) {
   return buildReceipt({
     kind: "provider_generation",
     job,
@@ -80,7 +81,7 @@ function generationReceipt(current: StudioState, job: GenerationJob) {
   });
 }
 
-function imageReceipt(current: StudioState, job: ImageJob) {
+function imageReceipt(current: CompletionSource, job: ImageJob) {
   return buildReceipt({
     kind: "image_generation",
     job,
@@ -90,7 +91,7 @@ function imageReceipt(current: StudioState, job: ImageJob) {
   });
 }
 
-function renderReceipt(current: StudioState, job: RenderJob) {
+function renderReceipt(current: CompletionSource, job: RenderJob) {
   return buildReceipt({
     kind: "render",
     job,
@@ -101,6 +102,23 @@ function renderReceipt(current: StudioState, job: RenderJob) {
 }
 
 export function buildWorkerCompletionSnapshot(current: StudioState): WorkerCompletionSnapshot {
+  return buildWorkerCompletionSnapshotFromJobs({
+    generationJobs: current.generationJobs,
+    imageJobs: current.imageJobs,
+    renderJobs: current.renderJobs,
+    mediaArtifacts: current.mediaArtifacts,
+    creditTransactions: current.creditTransactions
+  });
+}
+
+export function buildWorkerCompletionSnapshotFromJobs(input: {
+  generationJobs: GenerationJob[];
+  imageJobs: ImageJob[];
+  renderJobs: RenderJob[];
+  mediaArtifacts: MediaArtifact[];
+  creditTransactions: CreditTransaction[];
+}): WorkerCompletionSnapshot {
+  const current: CompletionSource = input;
   const receipts = [
     ...current.generationJobs.filter((job) => terminal(job.status)).map((job) => generationReceipt(current, job)),
     ...current.imageJobs.filter((job) => terminal(job.status)).map((job) => imageReceipt(current, job)),

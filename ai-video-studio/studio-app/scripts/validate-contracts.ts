@@ -836,8 +836,10 @@ function assertProductionReadBoundary() {
   const renderPreviewRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "render-preview", "route.ts"), "utf8");
   const queueRoute = readFileSync(join(appApiDir, "system", "queue", "route.ts"), "utf8");
   const workerDispatchRoute = readFileSync(join(appApiDir, "system", "worker-dispatch", "route.ts"), "utf8");
+  const workerCompletionsRoute = readFileSync(join(appApiDir, "system", "worker-completions", "route.ts"), "utf8");
   const workerLeasesRoute = readFileSync(join(appApiDir, "system", "worker-leases", "route.ts"), "utf8");
   const queueSnapshotSource = readFileSync(join(serverDir, "queue-snapshot.ts"), "utf8");
+  const workerCompletionsSource = readFileSync(join(serverDir, "worker-completions.ts"), "utf8");
   const workerDispatchSource = readFileSync(join(serverDir, "worker-dispatch.ts"), "utf8");
   assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_READS"), "live persistence runtime must require an explicit live read switch");
   assert.ok(liveRuntimeSource.includes("DATABASE_URL"), "live persistence runtime must require DATABASE_URL");
@@ -845,6 +847,7 @@ function assertProductionReadBoundary() {
   assert.ok(liveRenderPreviewSource.includes("buildLiveRenderPreview"), "live render preview must expose a pure builder");
   assert.ok(liveRenderPreviewSource.includes("buildLiveRenderPlan"), "live render preview must build render plans from live bundles");
   assert.ok(queueSnapshotSource.includes("buildQueueSnapshotFromJobs"), "queue snapshot builder must support persisted job inputs");
+  assert.ok(workerCompletionsSource.includes("buildWorkerCompletionSnapshotFromJobs"), "worker completion builder must support persisted job inputs");
   assert.ok(workerDispatchSource.includes("buildWorkerDispatchSnapshotFromJobs"), "worker dispatch builder must support persisted job inputs");
   assert.ok(projectListRoute.includes("listLiveProjects()"), "project list route must support live project reads behind the switch");
   assert.ok(projectBundleRoute.includes("getLiveProjectBundle(projectId)"), "project bundle route must support live project reads behind the switch");
@@ -853,10 +856,12 @@ function assertProductionReadBoundary() {
   assert.ok(renderPreviewRoute.includes("previewLiveRender(projectId"), "render preview route must support live render preview behind the switch");
   assert.ok(queueRoute.includes("getLiveQueueSnapshot()"), "system queue route must support live queue reads behind the switch");
   assert.ok(workerDispatchRoute.includes("getLiveWorkerDispatchSnapshot()"), "worker dispatch route must support live dispatch reads behind the switch");
+  assert.ok(workerCompletionsRoute.includes("getLiveWorkerCompletionSnapshot()"), "worker completions route must support live completion reads behind the switch");
   assert.ok(workerLeasesRoute.includes("getLiveWorkerLeaseSnapshot()"), "worker leases route must support live lease reads behind the switch");
   assert.ok(workerLeasesRoute.includes("createLiveWorkerLease(leaseRequest)"), "worker leases route must support live lease creation behind the switch");
   assert.ok(liveRuntimeSource.includes("getLiveQueueSnapshot"), "live persistence runtime must expose live queue snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerDispatchSnapshot"), "live persistence runtime must expose live worker dispatch snapshots");
+  assert.ok(liveRuntimeSource.includes("getLiveWorkerCompletionSnapshot"), "live persistence runtime must expose live worker completion snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerLeaseSnapshot"), "live persistence runtime must expose live worker lease snapshots");
   assert.ok(liveRuntimeSource.includes("createLiveWorkerLease"), "live persistence runtime must expose live worker lease creation");
   assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
@@ -866,9 +871,11 @@ function assertProductionReadBoundary() {
   assert.ok(renderPreviewRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "render preview route must fail closed when live persistence is unavailable");
   assert.ok(queueRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "system queue route must fail closed when live persistence is unavailable");
   assert.ok(workerDispatchRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker dispatch route must fail closed when live persistence is unavailable");
+  assert.ok(workerCompletionsRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker completions route must fail closed when live persistence is unavailable");
   assert.ok(workerLeasesRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker leases route must fail closed when live persistence is unavailable");
   assert.ok(queueRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "system queue route must fail closed in production without live reads");
   assert.ok(workerDispatchRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker dispatch route must fail closed in production without live reads");
+  assert.ok(workerCompletionsRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker completions route must fail closed in production without live reads");
   assert.ok(workerLeasesRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker leases route must fail closed in production without live reads");
   assert.ok(workerLeasesRoute.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "worker leases route must fail closed in production without live writes");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
