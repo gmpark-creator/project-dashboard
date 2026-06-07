@@ -14,7 +14,12 @@ function readJson<T>(path: string): T {
 }
 
 type HttpMethod = (typeof httpMethods)[number];
-type OpenApiOperation = { operationId?: string; requestBody?: unknown; responses?: Record<string, unknown> };
+type OpenApiOperation = {
+  operationId?: string;
+  parameters?: Array<{ name?: string; in?: string; required?: boolean; schema?: { type?: string; pattern?: string } }>;
+  requestBody?: unknown;
+  responses?: Record<string, unknown>;
+};
 type OpenApiPathItem = Partial<Record<HttpMethod, OpenApiOperation>>;
 
 type Capabilities = {
@@ -309,6 +314,14 @@ const requiredOperations = new Set([
 const creditGuardedOperations = new Set(["createImageJob", "generateShot", "generateAll", "regenerate", "upgradeTake", "startRender"]);
 const documentedJsonSuccessStatuses = new Set(["200", "201", "202"]);
 const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", "422", "503"]);
+const pathParameterPatterns = new Map([
+  ["projectId", "^prj_"],
+  ["shotId", "^sht_"],
+  ["takeId", "^tak_"],
+  ["assetId", "^img_"],
+  ["leaseId", "^wlease_"],
+  ["jobId", "^(gen_|ijob_|rnd_)"]
+]);
 const resultShapedErrorResponses = new Map([
   ["cancelJob:404", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
   ["cancelJob:409", "../schemas/domain.schema.json#/$defs/CancelJobResult"],
@@ -356,6 +369,21 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (!operation) continue;
     assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
     assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
+    const pathParameters = new Map((operation.parameters || []).filter((parameter) => parameter.in === "path").map((parameter) => [parameter.name, parameter]));
+    for (const [, parameterName] of pathName.matchAll(/\{([^}]+)\}/g)) {
+      const parameter = pathParameters.get(parameterName);
+      assert.ok(parameter, `openapi path ${pathName} ${method.toUpperCase()} missing path parameter ${parameterName}`);
+      assert.equal(parameter.required, true, `openapi path ${pathName} ${method.toUpperCase()} path parameter ${parameterName} must be required`);
+      assert.equal(parameter.schema?.type, "string", `openapi path ${pathName} ${method.toUpperCase()} path parameter ${parameterName} must be a string`);
+      const expectedPattern = pathParameterPatterns.get(parameterName);
+      if (expectedPattern) {
+        assert.equal(
+          parameter.schema?.pattern,
+          expectedPattern,
+          `openapi path ${pathName} ${method.toUpperCase()} path parameter ${parameterName} must use pattern ${expectedPattern}`
+        );
+      }
+    }
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
       assertClosedObjectSchemas(requestJsonSchema(operation), `${operation.operationId || method.toUpperCase()} ${pathName}`);
