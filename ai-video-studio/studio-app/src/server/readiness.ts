@@ -1,9 +1,11 @@
 import type { RuntimeReadiness } from "../domain/types";
+import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
 const storageEnv = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"];
 const queueEnv = ["CUTPILOT_QUEUE_URL"];
 const adminEnv = ["CUTPILOT_ADMIN_TOKEN"];
+const decomposerProviderEnv = ["DECOMPOSER_PROVIDER"];
 
 function value(name: string) {
   return process.env[name]?.trim() || "";
@@ -59,6 +61,12 @@ function invalid(names: string[]) {
   return names.filter((name) => present(name) && !validEnvValue(name));
 }
 
+function decomposerCredentialEnv(provider: string) {
+  if (provider === "openai") return ["OPENAI_API_KEY"];
+  if (provider === "anthropic") return ["ANTHROPIC_API_KEY"];
+  return [];
+}
+
 function envStatus(missingNames: string[], invalidNames: string[], production: boolean) {
   return missingNames.length || invalidNames.length ? (production ? "fail" : "warn") : "pass";
 }
@@ -85,13 +93,40 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const missingStorageEnv = missing(storageEnv);
   const missingQueueEnv = missing(queueEnv);
   const missingAdminEnv = missing(adminEnv);
+  const decomposerProvider = configuredStoryDecomposerProvider();
+  const decomposerProviderMissingEnv = present("DECOMPOSER_PROVIDER") ? [] : decomposerProviderEnv;
+  const decomposerProviderInvalidEnv = isStoryDecomposerProvider(decomposerProvider) ? [] : decomposerProviderEnv;
+  const missingDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? missing(decomposerCredentialEnv(decomposerProvider)) : [];
   const invalidProviderEnv = invalid(providerEnv);
   const invalidStorageEnv = invalid(storageEnv);
   const invalidQueueEnv = invalid(queueEnv);
   const invalidAdminEnv = invalid(adminEnv);
-  const missingEnv = [...missingProviderEnv, ...missingStorageEnv, ...missingQueueEnv, ...missingAdminEnv];
-  const invalidEnv = [...invalidProviderEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv];
+  const invalidDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? invalid(decomposerCredentialEnv(decomposerProvider)) : [];
+  const missingDecomposerEnv = [...decomposerProviderMissingEnv, ...missingDecomposerCredentialEnv];
+  const invalidDecomposerEnv = [...decomposerProviderInvalidEnv, ...invalidDecomposerCredentialEnv];
+  const missingEnv = [...missingProviderEnv, ...missingStorageEnv, ...missingQueueEnv, ...missingAdminEnv, ...missingDecomposerEnv];
+  const invalidEnv = [...invalidProviderEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv, ...invalidDecomposerEnv];
   const production = mode === "production";
+  const liveDecomposerImplemented = false;
+  const decomposerConfigured = isStoryDecomposerProvider(decomposerProvider) && decomposerProvider !== "mock";
+  const decomposerStatus: RuntimeReadiness["checks"][number]["status"] =
+    !isStoryDecomposerProvider(decomposerProvider) || missingDecomposerEnv.length || invalidDecomposerEnv.length
+      ? production
+        ? "fail"
+        : "warn"
+      : production && (!decomposerConfigured || !liveDecomposerImplemented)
+        ? "fail"
+        : "warn";
+  const decomposerDetail =
+    !isStoryDecomposerProvider(decomposerProvider)
+      ? `Invalid story decomposer provider: ${decomposerProvider}.`
+      : missingDecomposerEnv.length || invalidDecomposerEnv.length
+        ? envDetail("story decomposer", missingDecomposerEnv, invalidDecomposerEnv, "Story decomposer env is present.")
+        : production && decomposerProvider === "mock"
+          ? "Production mode requires a live story decomposer provider."
+          : production && !liveDecomposerImplemented
+            ? "Live story decomposer adapter boundary is configured, but the live adapter implementation is not yet available."
+            : "Mock story decomposer is active for local preview.";
 
   const checks: RuntimeReadiness["checks"] = [
     check(
@@ -112,6 +147,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       envStatus(missingProviderEnv, invalidProviderEnv, production),
       envDetail("provider", missingProviderEnv, invalidProviderEnv, "Provider credential env is present and format-checked.")
     ),
+    check("story_decomposer", "Story decomposer", decomposerStatus, decomposerDetail),
     check(
       "object_storage",
       "Object storage",

@@ -46,11 +46,13 @@ import { executeWorkerRetry, getWorkerRetryExecutionSnapshot, getWorkerRetryPlan
 import { buildStorageCleanupPlan, executeStorageCleanup, getStorageCleanupExecutionSnapshot, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
+import { decomposeStoryboard, StoryDecomposerUnavailableError } from "../src/server/story-decomposer";
 import { requireSystemAccess } from "../src/server/system-access";
 
 const originalPersist = process.env.CUTPILOT_MOCK_PERSIST;
 const originalRuntimeMode = process.env.CUTPILOT_RUNTIME_MODE;
-const readinessEnvNames = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT", "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "CUTPILOT_QUEUE_URL", "CUTPILOT_ADMIN_TOKEN"];
+const originalDecomposerProvider = process.env.DECOMPOSER_PROVIDER;
+const readinessEnvNames = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT", "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "CUTPILOT_QUEUE_URL", "CUTPILOT_ADMIN_TOKEN", "DECOMPOSER_PROVIDER", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"];
 const originalReadinessEnv = new Map(readinessEnvNames.map((name) => [name, process.env[name]] as const));
 const defaultStateFile = join(process.cwd(), "data", "cutpilot-mock-state.json");
 const originalStateFile = existsSync(defaultStateFile) ? readFileSync(defaultStateFile, "utf8") : null;
@@ -80,12 +82,14 @@ assert.equal(readiness.mode, "mock", "readiness should default to mock mode");
 assert.equal(readiness.ready, true, "mock readiness should be usable without production credentials");
 assert.deepEqual(readiness.invalidEnv, [], "missing mock readiness env should not be reported as invalid env");
 assert.ok(readiness.checks.some((check) => check.id === "provider_credentials" && check.status === "warn"), "mock readiness should warn about missing provider credentials");
+assert.ok(readiness.checks.some((check) => check.id === "story_decomposer" && check.status === "warn"), "mock readiness should warn about story decomposer configuration");
 assert.ok(readiness.checks.some((check) => check.id === "worker_output_policy" && check.status === "warn"), "mock readiness should warn that worker outputs are not required");
 assert.ok(readiness.checks.some((check) => check.id === "admin_access" && check.status === "warn"), "mock readiness should warn about missing admin access token");
 assert.equal(requireSystemAccess(new Request("http://cutpilot.local/api/system/metrics")), null, "mock system endpoints should not require an admin token");
 process.env.CUTPILOT_RUNTIME_MODE = "production";
 const productionReadiness = getRuntimeReadiness();
 assert.ok(productionReadiness.checks.some((check) => check.id === "worker_output_policy" && check.status === "pass"), "production readiness should enforce worker output payloads");
+assert.ok(productionReadiness.checks.some((check) => check.id === "story_decomposer" && check.status === "fail"), "production readiness should fail without a live story decomposer");
 process.env.RUNWAY_API_KEY = "runway_live_key_123456";
 process.env.LUMA_API_KEY = "luma_live_key_123456";
 process.env.GOOGLE_VERTEX_PROJECT = "cutpilot-prod";
@@ -95,9 +99,12 @@ process.env.R2_SECRET_ACCESS_KEY = "secret123456789";
 process.env.R2_BUCKET = "cutpilot-prod-media";
 process.env.CUTPILOT_QUEUE_URL = "https://queue.cutpilot.local/workers";
 process.env.CUTPILOT_ADMIN_TOKEN = "valid-admin-token-123";
+process.env.DECOMPOSER_PROVIDER = "openai";
+process.env.OPENAI_API_KEY = "openai_live_key_123456";
 const validProductionReadiness = getRuntimeReadiness();
-assert.equal(validProductionReadiness.ready, true, "production readiness should pass when required env is present and valid-shaped");
+assert.equal(validProductionReadiness.ready, false, "production readiness should fail until a live story decomposer adapter is implemented");
 assert.deepEqual(validProductionReadiness.invalidEnv, [], "valid-shaped production env should not report invalid env");
+assert.ok(validProductionReadiness.checks.some((check) => check.id === "story_decomposer" && check.status === "fail"), "configured live story decomposer should fail until the live adapter is implemented");
 process.env.CUTPILOT_QUEUE_URL = "not-a-url";
 process.env.CUTPILOT_ADMIN_TOKEN = "short";
 const invalidProductionReadiness = getRuntimeReadiness();
@@ -119,6 +126,8 @@ const headerAccess = requireSystemAccess(new Request("http://cutpilot.local/api/
 assert.equal(headerAccess, null, "production system endpoints should accept the configured admin header");
 if (typeof originalRuntimeMode === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
 else process.env.CUTPILOT_RUNTIME_MODE = originalRuntimeMode;
+if (typeof originalDecomposerProvider === "undefined") delete process.env.DECOMPOSER_PROVIDER;
+else process.env.DECOMPOSER_PROVIDER = originalDecomposerProvider;
 for (const name of readinessEnvNames) {
   const value = originalReadinessEnv.get(name);
   if (typeof value === "undefined") delete process.env[name];
@@ -132,6 +141,17 @@ assert.equal(decomposedStoryboard.scenes.length, 4, "decomposeIdea should return
 assert.equal(decomposedStoryboard.shots.length, 10, "decomposeIdea should return preview shots");
 assert.equal(decomposedStoryboard.shots[0].projectId, "prj_preview", "decomposeIdea should use preview project id when no project id is supplied");
 assert.ok(decomposedStoryboard.shots.every((shot) => shot.requirements.tier === "fast"), "decomposeIdea should use the template tier");
+delete process.env.DECOMPOSER_PROVIDER;
+const adapterStoryboard = decomposeStoryboard({ idea: "Preview via adapter", intent: "brand" });
+assert.equal(adapterStoryboard.shots.length, 10, "mock story decomposer adapter should preserve the storyboard shape");
+process.env.DECOMPOSER_PROVIDER = "openai";
+assert.throws(
+  () => decomposeStoryboard({ idea: "Preview via live adapter", intent: "brand" }),
+  StoryDecomposerUnavailableError,
+  "live story decomposer providers should fail closed until implemented"
+);
+if (typeof originalDecomposerProvider === "undefined") delete process.env.DECOMPOSER_PROVIDER;
+else process.env.DECOMPOSER_PROVIDER = originalDecomposerProvider;
 
 const advancedTierProject = createProject({
   title: "Advanced tier contract",

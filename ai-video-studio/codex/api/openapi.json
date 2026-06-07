@@ -177,6 +177,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Configured story decomposer provider is unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
