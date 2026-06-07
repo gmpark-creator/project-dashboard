@@ -106,6 +106,11 @@ async function main() {
     assert.equal(liveAudioWithoutDb.status, 503, "live audio update should fail closed without DATABASE_URL");
     assert.equal(liveAudioWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live audio update should report live persistence unavailability");
 
+    const liveDefaultRenderWithoutDb = await setDefaultRenderRoute(request("POST", { renderJobId: "rnd_default" }), context({ projectId: "prj_production" }));
+    const liveDefaultRenderWithoutDbBody = (await liveDefaultRenderWithoutDb.json()) as { code?: string };
+    assert.equal(liveDefaultRenderWithoutDb.status, 503, "live default render update should fail closed without DATABASE_URL");
+    assert.equal(liveDefaultRenderWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live default render update should report live persistence unavailability");
+
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

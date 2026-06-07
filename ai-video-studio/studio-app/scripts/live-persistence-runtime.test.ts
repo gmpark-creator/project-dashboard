@@ -8,6 +8,7 @@ import {
   liveProjectReadsEnabled,
   liveProjectWritesEnabled,
   setLiveAudio,
+  setLiveDefaultRender,
   updateLiveShotDirection
 } from "../src/server/live-persistence-runtime";
 
@@ -54,6 +55,11 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live audio writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () => setLiveDefaultRender("prj_disabled", "rnd_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live default render writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -83,6 +89,11 @@ async function main() {
       () => setLiveAudio("prj_missing_db", { transitions: "none" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live audio writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => setLiveDefaultRender("prj_missing_db", "rnd_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live default render writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

@@ -113,6 +113,13 @@ export async function setLiveAudio(projectId: string, patch: LiveEditAudioPatch)
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).setAudio(projectId, patch));
 }
 
+export async function setLiveDefaultRender(projectId: string, renderJobId: string) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).setDefaultRender(projectId, renderJobId));
+}
+
 export async function closeLivePersistencePoolForTests() {
   const current = pool;
   pool = null;

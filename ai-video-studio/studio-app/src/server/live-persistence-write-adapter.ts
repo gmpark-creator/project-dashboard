@@ -1,6 +1,7 @@
 import type { DirectionSpec, EditState, Project, Shot } from "../domain/types";
 import { buildLiveDefaultEditState, buildLiveProjectCreateRecords, type LiveProjectCreateInput } from "./live-project-builder";
 import type { PgQueryable } from "./live-persistence-migrations";
+import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 
 type Row = Record<string, unknown>;
 export type LiveEditAudioPatch = Partial<Pick<EditState, "captions" | "bgm" | "voiceover" | "transitions">>;
@@ -295,6 +296,35 @@ export class PostgresLivePersistenceWriteAdapter {
       await this.client.query("UPDATE cutpilot_projects SET updated_at = $2 WHERE id = $1", [projectId, updatedAt]);
       await this.client.query("COMMIT");
       return updated;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async setDefaultRender(projectId: string, renderJobId: string) {
+    await this.client.query("BEGIN");
+    try {
+      await this.requireProject(projectId);
+      const renderJobs = await this.client.query<Row>(
+        "SELECT * FROM cutpilot_render_jobs WHERE id = $1 AND project_id = $2 LIMIT 1 FOR UPDATE",
+        [renderJobId, projectId]
+      );
+      const renderJob = renderJobs.rows[0];
+      if (!renderJob) throw new Error("Render job not found");
+      if (renderJob.status !== "done") throw new Error("Only completed renders can be the default version");
+
+      const updatedAt = now();
+      const thumbUrl = nullableString(renderJob.output_url) || nullableString(renderJob.share_url);
+      await this.client.query("UPDATE cutpilot_projects SET default_render_job_id = $2, thumb_url = $3, updated_at = $4 WHERE id = $1", [
+        projectId,
+        renderJobId,
+        thumbUrl,
+        updatedAt
+      ]);
+      const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
+      await this.client.query("COMMIT");
+      return bundle;
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

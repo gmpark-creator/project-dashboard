@@ -7,15 +7,30 @@ class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
   failOnShotInsert = false;
   projectExists = true;
+  defaultRenderJobId: string | null = null;
+  projectThumbUrl: string | null = null;
   editRows: Record<string, unknown>[] = [];
+  renderJobRow: Record<string, unknown> | null = null;
   shotRows: Record<string, unknown>[] = [];
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
     if (this.failOnShotInsert && sql.includes("INSERT INTO cutpilot_shots")) throw new Error("shot insert failed");
+    if (sql.includes("SELECT p.*, a.balance_credits")) {
+      const projectRow = this.bundleProjectRow() as unknown as T;
+      return { rows: this.projectExists ? [projectRow] : [] };
+    }
     if (sql.includes("SELECT id FROM cutpilot_projects")) {
       const projectRow = { id: params?.[0] } as unknown as T;
       return { rows: this.projectExists ? [projectRow] : [] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE id")) {
+      const renderJobRow = this.renderJobRow as unknown as T;
+      return { rows: this.renderJobRow ? [renderJobRow] : [] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE project_id")) {
+      const renderJobRow = this.renderJobRow as unknown as T;
+      return { rows: this.renderJobRow ? [renderJobRow] : [] };
     }
     if (sql.includes("SELECT * FROM cutpilot_project_edit_states")) return { rows: this.editRows as T[] };
     if (sql.includes("INSERT INTO cutpilot_project_edit_states") && sql.includes("ON CONFLICT")) {
@@ -29,14 +44,56 @@ class FakeClient implements PgQueryable {
       } as unknown as T;
       return { rows: [updated] };
     }
+    if (sql.includes("UPDATE cutpilot_projects SET default_render_job_id")) {
+      this.defaultRenderJobId = String(params?.[1]);
+      this.projectThumbUrl = typeof params?.[2] === "string" ? params[2] : null;
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_projects")) return { rows: [] as T[] };
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
+    if (
+      sql.includes("SELECT * FROM cutpilot_scenes") ||
+      sql.includes("SELECT * FROM cutpilot_takes") ||
+      sql.includes("SELECT pa.*") ||
+      sql.includes("SELECT * FROM cutpilot_generation_jobs") ||
+      sql.includes("SELECT * FROM cutpilot_image_assets") ||
+      sql.includes("SELECT * FROM cutpilot_image_jobs") ||
+      sql.includes("SELECT * FROM cutpilot_asset_usages") ||
+      sql.includes("SELECT * FROM cutpilot_reference_boards") ||
+      sql.includes("SELECT * FROM cutpilot_credit_transactions") ||
+      sql.includes("SELECT * FROM cutpilot_media_artifacts")
+    ) {
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_shots")) {
       const current = this.shotRows[0];
       const updated = current ? ({ ...current, direction_spec: params?.[1] } as unknown as T) : null;
       return { rows: updated ? [updated] : [] };
     }
     return { rows: [] as T[] };
+  }
+
+  private bundleProjectRow() {
+    return {
+      id: "prj_live",
+      credit_account_id: "acct_live",
+      title: "Live project",
+      idea: "Create a live project",
+      intent: "product_ad",
+      status: "edited",
+      aspect: "9:16",
+      target_duration_sec: 30,
+      progress: { shotsDone: 0, shotsTotal: 0 },
+      characters: [],
+      thumb_url: this.projectThumbUrl,
+      default_render_job_id: this.defaultRenderJobId,
+      credits: { spent: 0, estimateRemaining: 180 },
+      created_at: "2026-06-07T00:00:00.000Z",
+      updated_at: "2026-06-07T00:00:00.000Z",
+      balance_credits: 1240,
+      spent_credits: 0,
+      reserved_credits: 0
+    };
   }
 }
 
@@ -84,6 +141,27 @@ function fakeEditRow() {
     voiceover: { enabled: false, voice: "Voice A", source: "licensed_tts" },
     transitions: "soft",
     commands: []
+  };
+}
+
+function fakeRenderJob(status: "queued" | "running" | "done" | "failed" = "done") {
+  return {
+    id: "rnd_done",
+    project_id: "prj_live",
+    retry_of_job_id: null,
+    spec: { resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in" },
+    stage: "done",
+    progress: status === "done" ? 100 : 20,
+    status,
+    output_url: "https://assets.cutpilot.local/renders/rnd_done.mp4",
+    share_url: "https://cutpilot.local/share/rnd_done",
+    eta_sec: null,
+    due_at: Date.now(),
+    created_at: "2026-06-07T00:00:00.000Z",
+    updated_at: "2026-06-07T00:00:00.000Z",
+    error: null,
+    rights_review: { required: false, assetIds: [], items: [] },
+    render_plan: { timeline: [], audioMix: true, captions: true }
   };
 }
 
@@ -178,6 +256,24 @@ async function main() {
     "live edit state updates should surface missing projects"
   );
   assert.equal(missingProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live edit state updates should roll back missing projects");
+
+  const defaultRenderClient = new FakeClient();
+  defaultRenderClient.renderJobRow = fakeRenderJob("done");
+  const defaultBundle = await new PostgresLivePersistenceWriteAdapter(defaultRenderClient).setDefaultRender("prj_live", "rnd_done");
+  assert.equal(defaultBundle?.project.defaultRenderJobId, "rnd_done", "live default render update should return the updated project bundle");
+  assert.equal(defaultBundle?.project.thumbUrl, "https://assets.cutpilot.local/renders/rnd_done.mp4", "live default render update should use render output as the thumbnail");
+  assert.ok(defaultRenderClient.queries.some((query) => query.sql.includes("SELECT * FROM cutpilot_render_jobs") && query.sql.includes("FOR UPDATE")), "live default render update should lock the render job");
+  assert.ok(defaultRenderClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET default_render_job_id")), "live default render update should persist default render selection");
+  assert.equal(defaultRenderClient.queries.at(-1)?.sql, "COMMIT", "live default render update should commit successful updates");
+
+  const unfinishedRenderClient = new FakeClient();
+  unfinishedRenderClient.renderJobRow = fakeRenderJob("running");
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(unfinishedRenderClient).setDefaultRender("prj_live", "rnd_done"),
+    /Only completed renders can be the default version/,
+    "live default render update should reject unfinished renders"
+  );
+  assert.equal(unfinishedRenderClient.queries.at(-1)?.sql, "ROLLBACK", "live default render update should roll back unfinished renders");
 
   console.log("live-persistence-write-adapter.test OK", {
     insertStatements: client.queries.filter((query) => query.sql.includes("INSERT INTO")).length
