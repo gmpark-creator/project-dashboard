@@ -369,13 +369,19 @@ function assertProductionPersistenceReadinessBoundary() {
 
 function assertProductionProviderReadinessBoundary() {
   const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const providerExecutionContractSource = readFileSync(join(serverDir, "provider-execution-contract.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
 
   assert.ok(readinessSource.includes('providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"]'), "readiness must require provider execution env");
   assert.ok(readinessSource.includes("liveProviderExecutionImplemented = false"), "readiness must expose the missing live provider execution adapter");
+  assert.ok(readinessSource.includes("providerExecutionContractVersion"), "readiness must name the provider execution contract version");
+  assert.ok(providerExecutionContractSource.includes('providerExecutionContractVersion = "provider_execution_v1"'), "provider execution contract must expose a stable version");
+  assert.ok(providerExecutionContractSource.includes("PROVIDER_UNAVAILABLE"), "provider execution contract must define the unavailable error code");
+  assert.ok(providerExecutionContractSource.includes("validateProviderExecutionResult"), "provider execution contract must expose result validation");
   assert.ok(readinessSource.includes("providerExecutionStatus"), "readiness must derive provider execution status from the adapter boundary");
   assert.ok(readinessSource.includes('check("provider_execution", "Provider execution"'), "readiness must include a provider execution check");
   assert.ok(testMock.includes("scripts/production-provider-readiness.test.ts"), "test:mock must include production provider readiness coverage");
+  assert.ok(testMock.includes("scripts/provider-execution-contract.test.ts"), "test:mock must include provider execution contract coverage");
 }
 
 function assertProductionQueueReadinessBoundary() {

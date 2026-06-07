@@ -1,6 +1,7 @@
 import type { RuntimeReadiness } from "../domain/types";
 import { livePersistenceSchemaVersion } from "./live-persistence-contract";
 import { configuredObjectStorageProvider, isObjectStorageProvider } from "./object-storage";
+import { providerExecutionContractVersion } from "./provider-execution-contract";
 import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
@@ -155,7 +156,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     providerExecutionBaseStatus !== "pass"
       ? envDetail("provider", missingProviderEnv, invalidProviderEnv, "Provider credential env is present and format-checked.")
       : production && !liveProviderExecutionImplemented
-        ? "Provider credential env is configured, but the live provider execution adapter is not yet available."
+        ? `Provider credential env is configured for ${providerExecutionContractVersion}, but the live provider execution adapter is not yet available.`
         : "Mock provider execution is active for local preview.";
   const storageBaseStatus = envStatus(missingStorageEnv, invalidStorageEnv, production);
   const objectStorageStatus: RuntimeReadiness["checks"][number]["status"] =
