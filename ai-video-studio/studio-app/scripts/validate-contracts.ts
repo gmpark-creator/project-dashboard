@@ -57,6 +57,9 @@ for (const defName of [
   "MediaArtifactCleanup",
   "MediaArtifactInventoryItem",
   "MediaArtifactInventory",
+  "StorageCleanupAction",
+  "StorageCleanupPlanItem",
+  "StorageCleanupPlan",
   "QueueJobKind",
   "QueueJobSnapshot",
   "JobQueueSnapshot",
@@ -108,6 +111,7 @@ const requiredOperations = new Set([
   "getRuntimeReadiness",
   "getSystemMetrics",
   "getMediaArtifactInventory",
+  "getStorageCleanupPlan",
   "getJobQueueSnapshot",
   "getWorkerDispatchSnapshot",
   "getWorkerCompletionSnapshot"

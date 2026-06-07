@@ -12,6 +12,7 @@ import {
   forceDueJobs,
   generateAll,
   generateShot,
+  getMockState,
   getProjectBundle,
   previewRender,
   registerExternalImage,
@@ -35,6 +36,7 @@ import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
+import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
@@ -572,6 +574,26 @@ assert.equal(inventory.summary.orphaned, 0, "mock flow should not leave orphaned
 assert.ok(inventory.artifacts.every((item) => item.artifact.storageKey.startsWith(`projects/${item.artifact.projectId}/`)), "artifact inventory should expose production-shaped storage keys");
 assert.ok(inventory.artifacts.some((item) => item.artifact.role === "render_output" && item.cleanup === "retain"), "render outputs should be retained while their jobs exist");
 assert.ok(inventory.artifacts.some((item) => item.artifact.status === "external" && item.cleanup === "review_external"), "external artifacts should be marked for review instead of deletion");
+const cleanupPlan = getStorageCleanupPlan();
+assert.equal(cleanupPlan.summary.total, inventory.summary.total, "storage cleanup plan should cover the artifact inventory");
+assert.equal(cleanupPlan.summary.reviewExternal, inventory.summary.reviewExternal, "storage cleanup plan should preserve external review counts");
+assert.equal(cleanupPlan.summary.deleteCandidates, 0, "completed mock flow should not leave delete candidates");
+assert.ok(cleanupPlan.items.some((item) => item.action === "retain" && item.safeToDelete === false), "retained artifacts should not be safe to delete");
+assert.ok(cleanupPlan.items.some((item) => item.action === "review_external" && item.safeToDelete === false), "external review artifacts should not be deleted automatically");
+
+const cleanupSourceState = getMockState();
+const orphanBaseArtifact = cleanupSourceState.mediaArtifacts.find((artifact) => artifact.ownerType === "imageAsset" && artifact.status === "stored");
+assert.ok(orphanBaseArtifact, "mock state should have a stored image artifact for orphan cleanup simulation");
+const orphanState = {
+  ...cleanupSourceState,
+  imageAssets: cleanupSourceState.imageAssets.filter((asset) => asset.id !== orphanBaseArtifact.ownerId)
+};
+const orphanCleanupPlan = buildStorageCleanupPlan(orphanState);
+const orphanCleanupItem = orphanCleanupPlan.items.find((item) => item.artifact.id === orphanBaseArtifact.id);
+assert.equal(orphanCleanupItem?.cleanup, "orphaned", "simulated missing owner should mark artifact orphaned");
+assert.equal(orphanCleanupItem?.action, "delete_object", "orphaned stored artifacts should become delete candidates");
+assert.equal(orphanCleanupItem?.safeToDelete, true, "orphaned stored artifacts should be safe to delete");
+assert.ok(orphanCleanupPlan.summary.deleteCandidates > cleanupPlan.summary.deleteCandidates, "orphan cleanup plan should increase delete candidates");
 
 console.log("mock-flow.test OK", {
   shots: bundle.shots.length,

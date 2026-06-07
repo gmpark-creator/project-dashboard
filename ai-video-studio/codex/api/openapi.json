@@ -780,6 +780,23 @@
         }
       }
     },
+    "/system/storage-cleanup": {
+      "get": {
+        "operationId": "getStorageCleanupPlan",
+        "responses": {
+          "200": {
+            "description": "Read-only storage cleanup plan for retained, external-review, and delete-candidate artifacts",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/StorageCleanupPlan" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/queue": {
       "get": {
         "operationId": "getJobQueueSnapshot",

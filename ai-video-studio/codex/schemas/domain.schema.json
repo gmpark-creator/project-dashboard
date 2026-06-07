@@ -243,6 +243,48 @@
         "artifacts": { "type": "array", "items": { "$ref": "#/$defs/MediaArtifactInventoryItem" } }
       }
     },
+    "StorageCleanupAction": {
+      "type": "string",
+      "enum": ["retain", "review_external", "delete_object"]
+    },
+    "StorageCleanupPlanItem": {
+      "type": "object",
+      "required": ["artifact", "cleanup", "action", "storageKey", "ownerExists", "referenced", "referenceCount", "safeToDelete", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "artifact": { "$ref": "#/$defs/MediaArtifact" },
+        "cleanup": { "$ref": "#/$defs/MediaArtifactCleanup" },
+        "action": { "$ref": "#/$defs/StorageCleanupAction" },
+        "storageKey": { "type": "string" },
+        "ownerExists": { "type": "boolean" },
+        "referenced": { "type": "boolean" },
+        "referenceCount": { "type": "integer", "minimum": 0 },
+        "safeToDelete": { "type": "boolean" },
+        "reason": { "type": "string" }
+      }
+    },
+    "StorageCleanupPlan": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "retain", "reviewExternal", "deleteCandidates", "knownReclaimableBytes", "unknownReclaimableItems"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "retain": { "type": "integer", "minimum": 0 },
+            "reviewExternal": { "type": "integer", "minimum": 0 },
+            "deleteCandidates": { "type": "integer", "minimum": 0 },
+            "knownReclaimableBytes": { "type": "number", "minimum": 0 },
+            "unknownReclaimableItems": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/StorageCleanupPlanItem" } }
+      }
+    },
     "CancelJobResult": {
       "type": "object",
       "required": ["jobId", "kind", "projectId", "cancelled", "status", "refundedCredits", "reason"],
@@ -1312,6 +1354,7 @@
     "creditTransaction": { "$ref": "#/$defs/CreditTransaction" },
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "mediaArtifactInventory": { "$ref": "#/$defs/MediaArtifactInventory" },
+    "storageCleanupPlan": { "$ref": "#/$defs/StorageCleanupPlan" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },

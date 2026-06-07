@@ -511,6 +511,33 @@ export type MediaArtifactInventory = {
   artifacts: MediaArtifactInventoryItem[];
 };
 
+export type StorageCleanupAction = "retain" | "review_external" | "delete_object";
+
+export type StorageCleanupPlanItem = {
+  artifact: MediaArtifact;
+  cleanup: MediaArtifactCleanup;
+  action: StorageCleanupAction;
+  storageKey: string;
+  ownerExists: boolean;
+  referenced: boolean;
+  referenceCount: number;
+  safeToDelete: boolean;
+  reason: string;
+};
+
+export type StorageCleanupPlan = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    retain: number;
+    reviewExternal: number;
+    deleteCandidates: number;
+    knownReclaimableBytes: number;
+    unknownReclaimableItems: number;
+  };
+  items: StorageCleanupPlanItem[];
+};
+
 export type CancelJobResult = {
   jobId: string;
   kind: "generationJob" | "renderJob" | "imageJob" | null;
