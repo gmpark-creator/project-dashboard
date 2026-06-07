@@ -12,6 +12,7 @@ class FakeClient implements PgQueryable {
   editRows: Record<string, unknown>[] = [];
   renderJobRow: Record<string, unknown> | null = null;
   shotRows: Record<string, unknown>[] = [];
+  takeRow: Record<string, unknown> | null = null;
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
@@ -50,7 +51,12 @@ class FakeClient implements PgQueryable {
       return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_projects")) return { rows: [] as T[] };
+    if (sql.includes("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id")) {
+      const rows = this.shotRows.map((shot) => ({ status: shot.status, selected_take_id: shot.selected_take_id })) as unknown as T[];
+      return { rows };
+    }
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (
       sql.includes("SELECT * FROM cutpilot_scenes") ||
       sql.includes("SELECT * FROM cutpilot_takes") ||
@@ -64,6 +70,15 @@ class FakeClient implements PgQueryable {
       sql.includes("SELECT * FROM cutpilot_media_artifacts")
     ) {
       return { rows: [] as T[] };
+    }
+    if (sql.includes("UPDATE cutpilot_shots SET selected_take_id")) {
+      const current = this.shotRows[0];
+      if (current) {
+        current.selected_take_id = params?.[1];
+        current.status = params?.[2];
+      }
+      const updated = current ? (current as unknown as T) : null;
+      return { rows: updated ? [updated] : [] };
     }
     if (sql.includes("UPDATE cutpilot_shots")) {
       const current = this.shotRows[0];
@@ -130,6 +145,23 @@ function fakeShotRow() {
     quality_flags: [],
     reference_image_ids: [],
     direction_spec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: ["blur"], notes: "" }
+  };
+}
+
+function fakeTakeRow(status: "queued" | "running" | "done" | "failed" = "done") {
+  return {
+    id: "tak_done",
+    shot_id: "sht_live",
+    project_id: "prj_live",
+    label: "A",
+    status,
+    video_url: "https://assets.cutpilot.local/takes/tak_done.mp4",
+    poster_url: "https://assets.cutpilot.local/takes/tak_done.jpg",
+    duration_sec: 3,
+    tier: "fast",
+    engine_used: "mock",
+    metrics: { overall: 0.9 },
+    created_at: "2026-06-07T00:00:00.000Z"
   };
 }
 
@@ -227,6 +259,27 @@ async function main() {
     "live direction update should surface missing shots"
   );
   assert.equal(missingShotClient.queries.at(-1)?.sql, "ROLLBACK", "live direction update should roll back missing shot updates");
+
+  const selectTakeClient = new FakeClient();
+  selectTakeClient.shotRows = [fakeShotRow()];
+  selectTakeClient.takeRow = fakeTakeRow("done");
+  const selectedShot = await new PostgresLivePersistenceWriteAdapter(selectTakeClient).selectTake("sht_live", "tak_done");
+  assert.equal(selectedShot.selectedTakeId, "tak_done", "live take selection should persist selected take id");
+  assert.equal(selectedShot.status, "selected", "live take selection should mark shots selected");
+  assert.ok(selectTakeClient.queries.some((query) => query.sql.includes("SELECT * FROM cutpilot_takes") && query.sql.includes("FOR UPDATE")), "live take selection should lock the take row");
+  assert.ok(selectTakeClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_shots SET selected_take_id")), "live take selection should update the shot");
+  assert.ok(selectTakeClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET progress")), "live take selection should refresh project progress");
+  assert.equal(selectTakeClient.queries.at(-1)?.sql, "COMMIT", "live take selection should commit successful selections");
+
+  const queuedTakeClient = new FakeClient();
+  queuedTakeClient.shotRows = [fakeShotRow()];
+  queuedTakeClient.takeRow = fakeTakeRow("running");
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(queuedTakeClient).selectTake("sht_live", "tak_done"),
+    /Selectable take not found/,
+    "live take selection should reject unfinished takes"
+  );
+  assert.equal(queuedTakeClient.queries.at(-1)?.sql, "ROLLBACK", "live take selection should roll back unfinished takes");
 
   const editClient = new FakeClient();
   editClient.editRows = [fakeEditRow()];

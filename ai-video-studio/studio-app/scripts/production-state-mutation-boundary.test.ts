@@ -96,6 +96,11 @@ async function main() {
     assert.equal(liveDirectionWithoutDb.status, 503, "live shot direction update should fail closed without DATABASE_URL");
     assert.equal(liveDirectionWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live shot direction update should report live persistence unavailability");
 
+    const liveSelectTakeWithoutDb = await selectTakeRoute(request("POST", { takeId: "tak_selected" }), context({ shotId: "sht_production" }));
+    const liveSelectTakeWithoutDbBody = (await liveSelectTakeWithoutDb.json()) as { code?: string };
+    assert.equal(liveSelectTakeWithoutDb.status, 503, "live take selection should fail closed without DATABASE_URL");
+    assert.equal(liveSelectTakeWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live take selection should report live persistence unavailability");
+
     const liveEditWithoutDb = await applyEditRoute(request("POST", { command: "trim opening" }), context({ projectId: "prj_production" }));
     const liveEditWithoutDbBody = (await liveEditWithoutDb.json()) as { code?: string };
     assert.equal(liveEditWithoutDb.status, 503, "live edit update should fail closed without DATABASE_URL");

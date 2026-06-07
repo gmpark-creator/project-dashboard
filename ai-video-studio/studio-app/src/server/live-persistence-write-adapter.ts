@@ -76,6 +76,20 @@ function mergeDirectionPatch(current: DirectionSpec, patch: Partial<DirectionSpe
   };
 }
 
+function projectStatusFromShots(shots: Array<{ status: string; selected_take_id: unknown }>) {
+  const hasRunning = shots.some((shot) => shot.status === "generating");
+  const hasReview = shots.some((shot) => shot.status === "reviewing" || shot.status === "failed");
+  const selectedCount = shots.filter((shot) => Boolean(shot.selected_take_id)).length;
+  return hasRunning ? "generating" : hasReview ? "reviewing" : selectedCount ? "edited" : "storyboarded";
+}
+
+function projectProgressFromShots(shots: Array<{ status: string; selected_take_id: unknown }>) {
+  return {
+    shotsDone: shots.filter((shot) => Boolean(shot.selected_take_id) || shot.status === "reviewing" || shot.status === "selected").length,
+    shotsTotal: shots.length
+  };
+}
+
 function rowEditState(row: Row | null, projectId: string): EditState {
   if (!row) return buildLiveDefaultEditState(projectId);
   return {
@@ -259,6 +273,41 @@ export class PostgresLivePersistenceWriteAdapter {
       ]);
       await this.client.query("COMMIT");
       return rowShot(updated.rows[0] || { ...currentRow, direction_spec: directionSpec });
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async selectTake(shotId: string, takeId: string): Promise<Shot> {
+    await this.client.query("BEGIN");
+    try {
+      const shots = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [shotId]);
+      const currentRow = shots.rows[0];
+      if (!currentRow) throw new Error("Selectable take not found");
+      const current = rowShot(currentRow);
+
+      const takes = await this.client.query<Row>("SELECT * FROM cutpilot_takes WHERE id = $1 AND shot_id = $2 AND project_id = $3 LIMIT 1 FOR UPDATE", [
+        takeId,
+        shotId,
+        current.projectId
+      ]);
+      const take = takes.rows[0];
+      if (!take || take.status !== "done") throw new Error("Selectable take not found");
+
+      const updated = await this.client.query<Row>(
+        "UPDATE cutpilot_shots SET selected_take_id = $2, status = $3 WHERE id = $1 RETURNING *",
+        [shotId, takeId, "selected"]
+      );
+      const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [current.projectId]);
+      await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+        current.projectId,
+        json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+        projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+        now()
+      ]);
+      await this.client.query("COMMIT");
+      return rowShot(updated.rows[0] || { ...currentRow, selected_take_id: takeId, status: "selected" });
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

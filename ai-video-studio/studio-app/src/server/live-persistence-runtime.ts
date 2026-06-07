@@ -99,6 +99,13 @@ export async function updateLiveShotDirection(shotId: string, patch: Partial<Dir
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).updateShotDirection(shotId, patch));
 }
 
+export async function selectLiveTake(shotId: string, takeId: string) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).selectTake(shotId, takeId));
+}
+
 export async function applyLiveEdit(projectId: string, command?: string) {
   if (!liveProjectWritesEnabled()) {
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");

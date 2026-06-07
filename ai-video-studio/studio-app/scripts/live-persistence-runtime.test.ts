@@ -7,6 +7,7 @@ import {
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
   liveProjectWritesEnabled,
+  selectLiveTake,
   setLiveAudio,
   setLiveDefaultRender,
   updateLiveShotDirection
@@ -46,6 +47,11 @@ async function main() {
       "live shot direction writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
+      () => selectLiveTake("sht_disabled", "tak_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live take selection writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
       () => applyLiveEdit("prj_disabled", "trim opening"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live edit writes should fail closed when the switch is disabled"
@@ -79,6 +85,11 @@ async function main() {
       () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live shot direction writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => selectLiveTake("sht_missing_db", "tak_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live take selection writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => applyLiveEdit("prj_missing_db", "trim opening"),
