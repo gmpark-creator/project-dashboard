@@ -78,6 +78,7 @@ assertProductionProviderReadinessBoundary();
 assertProductionQueueReadinessBoundary();
 assertProductionProjectCreateBoundary();
 assertProductionWorkRequestBoundary();
+assertProductionStateMutationBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -417,6 +418,105 @@ function assertProductionWorkRequestBoundary() {
   }
 
   assert.ok(testMock.includes("scripts/production-work-request-boundary.test.ts"), "test:mock must include production work request boundary coverage");
+}
+
+function assertProductionStateMutationBoundary() {
+  const guardedRoutes = [
+    {
+      route: join(appApiDir, "jobs", "[jobId]", "cancel", "route.ts"),
+      path: "/jobs/{jobId}/cancel",
+      method: "post" as const,
+      operationId: "cancelJob",
+      serviceCall: "cancelJob(jobId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "direction", "route.ts"),
+      path: "/shots/{shotId}/direction",
+      method: "patch" as const,
+      operationId: "updateShotDirection",
+      serviceCall: "updateShotDirection(shotId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "storyboard", "route.ts"),
+      path: "/projects/{projectId}/storyboard",
+      method: "put" as const,
+      operationId: "updateStoryboard",
+      serviceCall: "updateStoryboard(projectId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "select-take", "route.ts"),
+      path: "/shots/{shotId}/select-take",
+      method: "post" as const,
+      operationId: "selectTake",
+      serviceCall: "selectTake(shotId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "assets", "route.ts"),
+      path: "/projects/{projectId}/assets",
+      method: "post" as const,
+      operationId: "registerExternalImage",
+      serviceCall: "registerExternalImage({"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "assets", "[assetId]", "route.ts"),
+      path: "/projects/{projectId}/assets/{assetId}",
+      method: "delete" as const,
+      operationId: "deleteImageAsset",
+      serviceCall: "deleteImageAsset(projectId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "references", "route.ts"),
+      path: "/shots/{shotId}/references",
+      method: "post" as const,
+      operationId: "attachImageToShot",
+      serviceCall: "attachImageToShot(shotId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "references", "[assetId]", "route.ts"),
+      path: "/shots/{shotId}/references/{assetId}",
+      method: "delete" as const,
+      operationId: "detachImageFromShot",
+      serviceCall: "detachImageFromShot(shotId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "edits", "route.ts"),
+      path: "/projects/{projectId}/edits",
+      method: "post" as const,
+      operationId: "applyEdit",
+      serviceCall: "applyEdit(projectId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "audio", "route.ts"),
+      path: "/projects/{projectId}/audio",
+      method: "put" as const,
+      operationId: "setAudio",
+      serviceCall: "setAudio(projectId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "default-render", "route.ts"),
+      path: "/projects/{projectId}/default-render",
+      method: "post" as const,
+      operationId: "setDefaultRender",
+      serviceCall: "setDefaultRender(projectId"
+    }
+  ];
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  for (const item of guardedRoutes) {
+    const routeSource = readFileSync(item.route, "utf8");
+    const operation = openApi.paths[item.path]?.[item.method];
+    const productionCheck = routeSource.indexOf('CUTPILOT_RUNTIME_MODE === "production"');
+    const serviceCall = routeSource.indexOf(item.serviceCall);
+
+    assert.equal(operation?.operationId, item.operationId, `${item.path} must keep the expected operation id`);
+    assert.notEqual(productionCheck, -1, `${item.operationId} route must branch on production mode`);
+    assert.notEqual(serviceCall, -1, `${item.operationId} route must still call its mock service in mock mode`);
+    assert.ok(productionCheck < serviceCall, `${item.operationId} route must reject production mock mutation before service call`);
+    assert.ok(routeSource.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), `${item.operationId} route must return a stable production unavailable code`);
+    assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed state changes are unavailable"), `${item.operationId} 503 must document mock state mutation production unavailability`);
+  }
+
+  assert.ok(testMock.includes("scripts/production-state-mutation-boundary.test.ts"), "test:mock must include production state mutation boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
