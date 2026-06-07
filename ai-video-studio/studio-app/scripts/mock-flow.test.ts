@@ -232,6 +232,39 @@ assert.equal(productionValidOutput.completed, true, "production worker completio
 if (typeof runtimeModeBeforeOutputPolicy === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
 else process.env.CUTPILOT_RUNTIME_MODE = runtimeModeBeforeOutputPolicy;
 
+const fullVariantOutputJob = createImageJob({
+  projectId: workerCompletionProject.id,
+  prompt: "Production worker output coverage image",
+  purpose: "product",
+  role: "product",
+  aspect: "9:16",
+  style: "clean",
+  count: 2
+});
+const fullVariantOutputLease = createWorkerLease({ workerId: "completion-worker-full-variant-output", kind: "image_generation", ttlSec: 30 });
+assert.equal(fullVariantOutputLease.reason, "leased", "full variant output setup should lease an image job");
+assert.equal(fullVariantOutputLease.lease?.jobId, fullVariantOutputJob.job.id, "full variant output lease should target the coverage image job");
+assert.ok(fullVariantOutputLease.lease, "full variant output lease should exist");
+const partialVariantOutput = completeWorkerLease(fullVariantOutputLease.lease.id, {
+  token: fullVariantOutputLease.lease.token,
+  status: "succeeded",
+  requireOutputs: true,
+  outputs: { imageVariants: [{ variantId: fullVariantOutputJob.job.variants[0].id, imageUrl: "https://assets.cutpilot.local/partial-variant-output-a.png" }] }
+});
+assert.equal(partialVariantOutput.reason, "invalid_outputs", "required image outputs should cover every requested variant");
+const fullVariantOutput = completeWorkerLease(fullVariantOutputLease.lease.id, {
+  token: fullVariantOutputLease.lease.token,
+  status: "succeeded",
+  requireOutputs: true,
+  outputs: {
+    imageVariants: fullVariantOutputJob.job.variants.map((variant, index) => ({
+      variantId: variant.id,
+      imageUrl: `https://assets.cutpilot.local/full-variant-output-${index}.png`
+    }))
+  }
+});
+assert.equal(fullVariantOutput.completed, true, "worker completion should accept required outputs for every requested image variant");
+
 const retryImageJob = createImageJob({
   projectId: workerCompletionProject.id,
   prompt: "Worker-failed retryable product image",

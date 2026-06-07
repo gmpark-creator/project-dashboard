@@ -63,14 +63,21 @@ function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>) {
   return Boolean(output.imageVariants?.some((variant) => !validUrl(variant.imageUrl) || (variant.thumbUrl ? !validUrl(variant.thumbUrl) : false)));
 }
 
-function validRequiredOutput(kind: WorkerDispatchKind, input: Partial<WorkerLeaseCompletionInput>) {
+function imageOutputCoversAllVariants(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
+  const job = current.imageJobs.find((item) => item.id === lease.jobId);
+  const variants = input.outputs?.imageVariants || [];
+  if (!job || !variants.length) return false;
+  return job.variants.every((variant, index) => variants.some((item) => item.variantId === variant.id) || Boolean(variants[index]));
+}
+
+function validRequiredOutput(current: StudioState, lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>) {
   if (hasInvalidProvidedOutput(input)) return false;
   const requireOutputs = input.requireOutputs === true || process.env.CUTPILOT_RUNTIME_MODE === "production";
   if (!requireOutputs) return true;
   const output = input.outputs;
   if (!output) return false;
-  if (kind === "image_generation") return Boolean(output.imageVariants?.length);
-  if (kind === "provider_generation") return validUrl(output.videoUrl);
+  if (lease.kind === "image_generation") return imageOutputCoversAllVariants(current, lease, input);
+  if (lease.kind === "provider_generation") return validUrl(output.videoUrl);
   return validUrl(output.renderOutputUrl) || validUrl(output.videoUrl);
 }
 
@@ -173,7 +180,7 @@ export function completeWorkerLease(leaseId: string, input: Partial<WorkerLeaseC
     saveMockState(current);
     return { leaseId, completed: false, lease, receipt: null, reason: "unsupported_status" };
   }
-  if (status === "succeeded" && !validRequiredOutput(lease.kind, input)) {
+  if (status === "succeeded" && !validRequiredOutput(current, lease, input)) {
     saveMockState(current);
     return { leaseId, completed: false, lease, receipt: null, reason: "invalid_outputs" };
   }
