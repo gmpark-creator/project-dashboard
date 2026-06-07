@@ -7,6 +7,7 @@ const codexDir = join(root, "codex");
 const appApiDir = join(process.cwd(), "app", "api");
 const appDir = join(process.cwd(), "app");
 const featureDir = join(process.cwd(), "src", "features");
+const scriptsDir = join(process.cwd(), "scripts");
 const httpMethods = ["get", "post", "put", "patch", "delete"] as const;
 
 function readJson<T>(path: string): T {
@@ -43,9 +44,11 @@ type Routing = {
 const capabilities = readJson<Capabilities>(join(codexDir, "config", "provider-capabilities.json"));
 const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"));
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
+const packageJson = readJson<{ scripts?: Record<string, string> }>(join(process.cwd(), "package.json"));
 const openApiPath = join(codexDir, "api", "openapi.json");
 assertNoDuplicateOpenApiResponseCodes(openApiPath);
 assertUserUiHidesProviderNames();
+assertMockTestsAreScripted();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
 
 function countChar(input: string, char: string) {
@@ -136,6 +139,14 @@ function assertUserUiHidesProviderNames() {
     for (const term of bannedTerms) {
       assert.ok(!source.includes(term), `user UI source ${file} exposes provider/model term ${term}`);
     }
+  }
+}
+
+function assertMockTestsAreScripted() {
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+  const testFiles = readdirSync(scriptsDir).filter((name) => name.endsWith(".test.ts"));
+  for (const file of testFiles) {
+    assert.ok(testMock.includes(`scripts/${file}`), `test:mock missing scripts/${file}`);
   }
 }
 
