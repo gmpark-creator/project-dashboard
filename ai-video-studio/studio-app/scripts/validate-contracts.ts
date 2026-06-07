@@ -77,6 +77,7 @@ assertProductionPersistenceReadinessBoundary();
 assertProductionProviderReadinessBoundary();
 assertProductionQueueReadinessBoundary();
 assertProductionProjectCreateBoundary();
+assertProductionWorkRequestBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -358,6 +359,64 @@ function assertProductionProjectCreateBoundary() {
   assert.ok(routeSource.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "project creation route must return a stable production unavailable code");
   assert.ok(JSON.stringify(createProject503).includes("Mock-backed project creation is unavailable"), "createProject 503 must document mock mutation production unavailability");
   assert.ok(testMock.includes("scripts/production-project-create-boundary.test.ts"), "test:mock must include production project creation boundary coverage");
+}
+
+function assertProductionWorkRequestBoundary() {
+  const guardedRoutes = [
+    {
+      route: join(appApiDir, "projects", "[projectId]", "generate-all", "route.ts"),
+      path: "/projects/{projectId}/generate-all",
+      operationId: "generateAll",
+      serviceCall: "generateAll(projectId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "generate", "route.ts"),
+      path: "/shots/{shotId}/generate",
+      operationId: "generateShot",
+      serviceCall: "generateShot(shotId"
+    },
+    {
+      route: join(appApiDir, "shots", "[shotId]", "regenerate", "route.ts"),
+      path: "/shots/{shotId}/regenerate",
+      operationId: "regenerate",
+      serviceCall: "regenerate(shotId"
+    },
+    {
+      route: join(appApiDir, "takes", "[takeId]", "upgrade", "route.ts"),
+      path: "/takes/{takeId}/upgrade",
+      operationId: "upgradeTake",
+      serviceCall: "upgradeTake(takeId"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "image-jobs", "route.ts"),
+      path: "/projects/{projectId}/image-jobs",
+      operationId: "createImageJob",
+      serviceCall: "createImageJob({"
+    },
+    {
+      route: join(appApiDir, "projects", "[projectId]", "renders", "route.ts"),
+      path: "/projects/{projectId}/renders",
+      operationId: "startRender",
+      serviceCall: "startRender(projectId"
+    }
+  ];
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  for (const item of guardedRoutes) {
+    const routeSource = readFileSync(item.route, "utf8");
+    const operation = openApi.paths[item.path]?.post;
+    const productionCheck = routeSource.indexOf('CUTPILOT_RUNTIME_MODE === "production"');
+    const serviceCall = routeSource.indexOf(item.serviceCall);
+
+    assert.equal(operation?.operationId, item.operationId, `${item.path} must keep the expected operation id`);
+    assert.notEqual(productionCheck, -1, `${item.operationId} route must branch on production mode`);
+    assert.notEqual(serviceCall, -1, `${item.operationId} route must still call its mock service in mock mode`);
+    assert.ok(productionCheck < serviceCall, `${item.operationId} route must reject production mock mutation before service call`);
+    assert.ok(routeSource.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), `${item.operationId} route must return a stable production unavailable code`);
+    assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed work requests are unavailable"), `${item.operationId} 503 must document mock work request production unavailability`);
+  }
+
+  assert.ok(testMock.includes("scripts/production-work-request-boundary.test.ts"), "test:mock must include production work request boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
