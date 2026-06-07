@@ -295,9 +295,18 @@ const resultShapedErrorResponses = new Map([
   ["executeWorkerRetry:409", "../schemas/domain.schema.json#/$defs/WorkerRetryExecutionResult"]
 ]);
 const operationIds = new Set<string>();
-for (const path of Object.values(openApi.paths)) {
-  for (const method of [path.get, path.post, path.put, path.patch, path.delete]) {
-    if (method?.operationId) operationIds.add(method.operationId);
+const operationOwners = new Map<string, string>();
+for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
+  for (const method of httpMethods) {
+    const operation = pathItem[method];
+    if (!operation?.operationId) continue;
+    const owner = `${method.toUpperCase()} ${pathName}`;
+    assert.ok(
+      !operationOwners.has(operation.operationId),
+      `openapi duplicate operationId ${operation.operationId} at ${owner} and ${operationOwners.get(operation.operationId)}`
+    );
+    operationOwners.set(operation.operationId, owner);
+    operationIds.add(operation.operationId);
   }
 }
 for (const operation of requiredOperations) {
