@@ -297,6 +297,7 @@ for (const rule of routing.rules) {
 }
 
 for (const defName of [
+  "Saec",
   "ImageAsset",
   "ImageJob",
   "AssetKind",

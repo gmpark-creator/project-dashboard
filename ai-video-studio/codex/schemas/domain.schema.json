@@ -48,7 +48,7 @@
       "type": "string",
       "enum": ["photoreal", "product", "character", "background", "style", "poster", "thumbnail", "transparent"]
     },
-    "SAEC": {
+    "Saec": {
       "type": "object",
       "required": ["subject", "action", "environment", "camera", "framing", "lighting", "style", "negative"],
       "additionalProperties": false,
@@ -975,7 +975,7 @@
         "order": { "type": "integer", "minimum": 0 },
         "title": { "type": "string" },
         "durationSec": { "type": "number", "minimum": 1, "maximum": 16 },
-        "saec": { "$ref": "#/$defs/SAEC" },
+        "saec": { "$ref": "#/$defs/Saec" },
         "requirements": { "$ref": "#/$defs/ShotRequirements" },
         "status": { "$ref": "#/$defs/ShotStatus" },
         "selectedTakeId": { "type": ["string", "null"], "pattern": "^tak_" },
@@ -1267,7 +1267,7 @@
         "projectId": { "type": "string", "pattern": "^prj_" },
         "shotId": { "type": "string", "pattern": "^sht_" },
         "durationSec": { "type": "integer", "minimum": 1 },
-        "saec": { "$ref": "#/$defs/SAEC" },
+        "saec": { "$ref": "#/$defs/Saec" },
         "directionSpec": { "$ref": "#/$defs/DirectionSpec" },
         "requirements": { "$ref": "#/$defs/ShotRequirements" },
         "references": {
