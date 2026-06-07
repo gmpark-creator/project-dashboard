@@ -6,12 +6,55 @@ import type { PgQueryable } from "../src/server/live-persistence-migrations";
 class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
   failOnShotInsert = false;
+  shotRows: Record<string, unknown>[] = [];
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
     if (this.failOnShotInsert && sql.includes("INSERT INTO cutpilot_shots")) throw new Error("shot insert failed");
+    if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
+    if (sql.includes("UPDATE cutpilot_shots")) {
+      const current = this.shotRows[0];
+      const updated = current ? ({ ...current, direction_spec: params?.[1] } as unknown as T) : null;
+      return { rows: updated ? [updated] : [] };
+    }
     return { rows: [] as T[] };
   }
+}
+
+function fakeShotRow() {
+  return {
+    id: "sht_live",
+    project_id: "prj_live",
+    scene_id: "scn_live",
+    order_index: 0,
+    title: "Opening frame",
+    duration_sec: 3,
+    saec: {
+      subject: "Product",
+      action: "Show",
+      environment: "Studio",
+      camera: "push",
+      framing: "wide",
+      lighting: "soft",
+      style: "clean",
+      negative: ""
+    },
+    requirements: {
+      tier: "fast",
+      aspect: "9:16",
+      imageToVideo: false,
+      needsLipsyncAudio: false,
+      motionHeavy: false,
+      characterLock: false,
+      characterId: null,
+      region: "US"
+    },
+    status: "pending",
+    selected_take_id: null,
+    quality_flags: [],
+    reference_image_ids: [],
+    direction_spec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: ["blur"], notes: "" }
+  };
 }
 
 async function main() {
@@ -55,6 +98,27 @@ async function main() {
     "live write adapter should surface insert errors"
   );
   assert.equal(failingClient.queries.at(-1)?.sql, "ROLLBACK", "live write adapter should roll back failed creation");
+
+  const directionClient = new FakeClient();
+  directionClient.shotRows = [fakeShotRow()];
+  const updatedShot = await new PostgresLivePersistenceWriteAdapter(directionClient).updateShotDirection("sht_live", {
+    motion: "locked",
+    avoid: [" flicker ", ""]
+  });
+  assert.equal(updatedShot.directionSpec.motion, "locked", "live write adapter should merge direction patches");
+  assert.deepEqual(updatedShot.directionSpec.avoid, ["flicker"], "live write adapter should normalize direction avoid terms");
+  assert.equal(directionClient.queries[0].sql, "BEGIN", "live direction update should begin a transaction");
+  assert.ok(directionClient.queries.some((query) => query.sql.includes("SELECT * FROM cutpilot_shots") && query.sql.includes("FOR UPDATE")), "live direction update should lock the shot row");
+  assert.ok(directionClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_shots")), "live direction update should update shot direction spec");
+  assert.equal(directionClient.queries.at(-1)?.sql, "COMMIT", "live direction update should commit successful updates");
+
+  const missingShotClient = new FakeClient();
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(missingShotClient).updateShotDirection("sht_missing", { camera: "locked" }),
+    /Shot not found/,
+    "live direction update should surface missing shots"
+  );
+  assert.equal(missingShotClient.queries.at(-1)?.sql, "ROLLBACK", "live direction update should roll back missing shot updates");
 
   console.log("live-persistence-write-adapter.test OK", {
     insertStatements: client.queries.filter((query) => query.sql.includes("INSERT INTO")).length

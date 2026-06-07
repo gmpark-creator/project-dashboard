@@ -510,6 +510,8 @@ function assertProductionWorkRequestBoundary() {
 }
 
 function assertProductionStateMutationBoundary() {
+  const liveRuntimeSource = readFileSync(join(serverDir, "live-persistence-runtime.ts"), "utf8");
+  const writeAdapterSource = readFileSync(join(serverDir, "live-persistence-write-adapter.ts"), "utf8");
   const guardedRoutes = [
     {
       route: join(appApiDir, "jobs", "[jobId]", "cancel", "route.ts"),
@@ -605,6 +607,13 @@ function assertProductionStateMutationBoundary() {
     assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed state changes are unavailable"), `${item.operationId} 503 must document mock state mutation production unavailability`);
   }
 
+  const shotDirectionRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "direction", "route.ts"), "utf8");
+  assert.ok(shotDirectionRouteSource.includes("liveProjectWritesEnabled()"), "shot direction route must require the live write switch for live state changes");
+  assert.ok(shotDirectionRouteSource.includes("updateLiveShotDirection(shotId"), "shot direction route must call the live direction update adapter");
+  assert.ok(shotDirectionRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot direction route must fail closed when live persistence is unavailable");
+  assert.ok(liveRuntimeSource.includes("updateLiveShotDirection"), "live persistence runtime must expose live shot direction updates");
+  assert.ok(writeAdapterSource.includes("updateShotDirection"), "live write adapter must implement shot direction updates");
+  assert.ok(writeAdapterSource.includes("UPDATE cutpilot_shots"), "live write adapter must persist shot direction updates");
   assert.ok(testMock.includes("scripts/production-state-mutation-boundary.test.ts"), "test:mock must include production state mutation boundary coverage");
 }
 

@@ -5,7 +5,8 @@ import {
   getLivePersistenceReadAdapter,
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
-  liveProjectWritesEnabled
+  liveProjectWritesEnabled,
+  updateLiveShotDirection
 } from "../src/server/live-persistence-runtime";
 
 const managedEnvNames = ["CUTPILOT_ENABLE_LIVE_READS", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL", "DATABASE_SSL", "DATABASE_SSL_REJECT_UNAUTHORIZED"];
@@ -36,6 +37,11 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live project writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () => updateLiveShotDirection("sht_disabled", { camera: "locked" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live shot direction writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -50,6 +56,11 @@ async function main() {
       () => createLiveProject({ idea: "Missing DB live write", intent: "product_ad" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live project writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live shot direction writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

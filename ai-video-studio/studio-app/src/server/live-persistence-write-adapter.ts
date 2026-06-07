@@ -1,9 +1,73 @@
-import type { Project } from "../domain/types";
+import type { DirectionSpec, Project, Shot } from "../domain/types";
 import { buildLiveProjectCreateRecords, type LiveProjectCreateInput } from "./live-project-builder";
 import type { PgQueryable } from "./live-persistence-migrations";
 
+type Row = Record<string, unknown>;
+
 function json(value: unknown) {
   return JSON.stringify(value);
+}
+
+function jsonValue<T>(value: unknown, fallback: T): T {
+  if (value === null || typeof value === "undefined") return fallback;
+  if (typeof value === "string") return JSON.parse(value) as T;
+  return value as T;
+}
+
+function nullableString(value: unknown) {
+  return value === null || typeof value === "undefined" ? null : String(value);
+}
+
+function rowShot(row: Row): Shot {
+  return {
+    id: String(row.id),
+    projectId: String(row.project_id),
+    sceneId: String(row.scene_id),
+    order: Number(row.order_index),
+    title: String(row.title),
+    durationSec: Number(row.duration_sec),
+    saec: jsonValue<Shot["saec"]>(row.saec, {
+      subject: "",
+      action: "",
+      environment: "",
+      camera: "",
+      framing: "",
+      lighting: "",
+      style: "",
+      negative: ""
+    }),
+    requirements: jsonValue<Shot["requirements"]>(row.requirements, {
+      tier: "fast",
+      aspect: "9:16",
+      imageToVideo: false,
+      needsLipsyncAudio: false,
+      motionHeavy: false,
+      characterLock: false,
+      characterId: null,
+      region: "global"
+    }),
+    status: row.status as Shot["status"],
+    selectedTakeId: nullableString(row.selected_take_id),
+    qualityFlags: jsonValue<Shot["qualityFlags"]>(row.quality_flags, []),
+    referenceImageIds: jsonValue<Shot["referenceImageIds"]>(row.reference_image_ids, []),
+    directionSpec: jsonValue<Shot["directionSpec"]>(row.direction_spec, {
+      camera: "",
+      composition: "",
+      lighting: "",
+      motion: "",
+      style: "",
+      avoid: [],
+      notes: ""
+    })
+  };
+}
+
+function mergeDirectionPatch(current: DirectionSpec, patch: Partial<DirectionSpec>): DirectionSpec {
+  return {
+    ...current,
+    ...patch,
+    avoid: patch.avoid ? patch.avoid.map((item) => item.trim()).filter(Boolean) : current.avoid
+  };
 }
 
 export class PostgresLivePersistenceWriteAdapter {
@@ -119,6 +183,27 @@ export class PostgresLivePersistenceWriteAdapter {
       );
       await this.client.query("COMMIT");
       return records.project;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async updateShotDirection(shotId: string, patch: Partial<DirectionSpec>): Promise<Shot> {
+    await this.client.query("BEGIN");
+    try {
+      const shots = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [shotId]);
+      const currentRow = shots.rows[0];
+      if (!currentRow) throw new Error("Shot not found");
+
+      const current = rowShot(currentRow);
+      const directionSpec = mergeDirectionPatch(current.directionSpec, patch);
+      const updated = await this.client.query<Row>("UPDATE cutpilot_shots SET direction_spec = $2::jsonb WHERE id = $1 RETURNING *", [
+        shotId,
+        json(directionSpec)
+      ]);
+      await this.client.query("COMMIT");
+      return rowShot(updated.rows[0] || { ...currentRow, direction_spec: directionSpec });
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

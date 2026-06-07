@@ -12,7 +12,7 @@ import { DELETE as detachImageFromShotRoute } from "../app/api/shots/[shotId]/re
 import { POST as selectTakeRoute } from "../app/api/shots/[shotId]/select-take/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE"];
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL"];
 
 function request(method: string, body?: unknown, url = "http://cutpilot.local/api/test") {
   return new Request(url, {
@@ -59,6 +59,8 @@ async function main() {
   resetMockState();
   try {
     process.env.CUTPILOT_RUNTIME_MODE = "production";
+    delete process.env.CUTPILOT_ENABLE_LIVE_WRITES;
+    delete process.env.DATABASE_URL;
     const before = stateFingerprint();
 
     await assertUnavailable("job cancellation", await cancelJobRoute(request("POST"), context({ jobId: "gen_production" })));
@@ -87,6 +89,12 @@ async function main() {
     await assertUnavailable("edit command", await applyEditRoute(request("POST", { command: "trim opening" }), context({ projectId: "prj_production" })));
     await assertUnavailable("audio settings", await setAudioRoute(request("PUT", { transitions: "none" }), context({ projectId: "prj_production" })));
     await assertUnavailable("default render selection", await setDefaultRenderRoute(request("POST", { renderJobId: "rnd_default" }), context({ projectId: "prj_production" })));
+
+    process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
+    const liveDirectionWithoutDb = await updateShotDirectionRoute(request("PATCH", { camera: "locked" }), context({ shotId: "sht_production" }));
+    const liveDirectionWithoutDbBody = (await liveDirectionWithoutDb.json()) as { code?: string };
+    assert.equal(liveDirectionWithoutDb.status, 503, "live shot direction update should fail closed without DATABASE_URL");
+    assert.equal(liveDirectionWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live shot direction update should report live persistence unavailability");
 
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {

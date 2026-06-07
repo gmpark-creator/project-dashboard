@@ -2,7 +2,7 @@ import { Pool, type PoolClient } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 import { PostgresLivePersistenceWriteAdapter } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
-import type { ExportSpec } from "../domain/types";
+import type { DirectionSpec, ExportSpec } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
 
 let pool: Pool | null = null;
@@ -90,6 +90,13 @@ export async function createLiveProject(input: LiveProjectCreateInput) {
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).createProject(input));
+}
+
+export async function updateLiveShotDirection(shotId: string, patch: Partial<DirectionSpec>) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).updateShotDirection(shotId, patch));
 }
 
 export async function closeLivePersistencePoolForTests() {
