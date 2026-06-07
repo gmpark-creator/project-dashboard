@@ -6,11 +6,30 @@ import type { PgQueryable } from "../src/server/live-persistence-migrations";
 class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
   failOnShotInsert = false;
+  projectExists = true;
+  editRows: Record<string, unknown>[] = [];
   shotRows: Record<string, unknown>[] = [];
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
     if (this.failOnShotInsert && sql.includes("INSERT INTO cutpilot_shots")) throw new Error("shot insert failed");
+    if (sql.includes("SELECT id FROM cutpilot_projects")) {
+      const projectRow = { id: params?.[0] } as unknown as T;
+      return { rows: this.projectExists ? [projectRow] : [] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_project_edit_states")) return { rows: this.editRows as T[] };
+    if (sql.includes("INSERT INTO cutpilot_project_edit_states") && sql.includes("ON CONFLICT")) {
+      const updated = {
+        project_id: params?.[0],
+        captions: params?.[1],
+        bgm: params?.[2],
+        voiceover: params?.[3],
+        transitions: params?.[4],
+        commands: params?.[5]
+      } as unknown as T;
+      return { rows: [updated] };
+    }
+    if (sql.includes("UPDATE cutpilot_projects")) return { rows: [] as T[] };
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("UPDATE cutpilot_shots")) {
       const current = this.shotRows[0];
@@ -54,6 +73,17 @@ function fakeShotRow() {
     quality_flags: [],
     reference_image_ids: [],
     direction_spec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: ["blur"], notes: "" }
+  };
+}
+
+function fakeEditRow() {
+  return {
+    project_id: "prj_live",
+    captions: { enabled: true, mode: "burn-in", source: "script-first" },
+    bgm: { enabled: true, track: "licensed track", ducking: true },
+    voiceover: { enabled: false, voice: "Voice A", source: "licensed_tts" },
+    transitions: "soft",
+    commands: []
   };
 }
 
@@ -119,6 +149,35 @@ async function main() {
     "live direction update should surface missing shots"
   );
   assert.equal(missingShotClient.queries.at(-1)?.sql, "ROLLBACK", "live direction update should roll back missing shot updates");
+
+  const editClient = new FakeClient();
+  editClient.editRows = [fakeEditRow()];
+  const edited = await new PostgresLivePersistenceWriteAdapter(editClient).applyEdit("prj_live", "trim opening");
+  assert.equal(edited.commands.length, 1, "live edit update should append edit commands");
+  assert.equal(edited.commands[0].command, "trim opening", "live edit update should preserve the edit command");
+  assert.ok(editClient.queries.some((query) => query.sql.includes("SELECT id FROM cutpilot_projects") && query.sql.includes("FOR UPDATE")), "live edit update should lock the project row");
+  assert.ok(editClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_project_edit_states") && query.sql.includes("ON CONFLICT")), "live edit update should upsert edit state");
+  assert.ok(editClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET status")), "live edit update should mark projects edited");
+  assert.equal(editClient.queries.at(-1)?.sql, "COMMIT", "live edit update should commit successful updates");
+
+  const audioClient = new FakeClient();
+  const audio = await new PostgresLivePersistenceWriteAdapter(audioClient).setAudio("prj_live", {
+    transitions: "none",
+    captions: { enabled: false, mode: "srt", source: "script-first" }
+  });
+  assert.equal(audio.transitions, "none", "live audio update should apply transition patches");
+  assert.equal(audio.captions.enabled, false, "live audio update should apply caption patches");
+  assert.ok(audioClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_project_edit_states") && query.sql.includes("ON CONFLICT")), "live audio update should upsert edit state");
+  assert.equal(audioClient.queries.at(-1)?.sql, "COMMIT", "live audio update should commit successful updates");
+
+  const missingProjectClient = new FakeClient();
+  missingProjectClient.projectExists = false;
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(missingProjectClient).setAudio("prj_missing", { transitions: "none" }),
+    /Project not found/,
+    "live edit state updates should surface missing projects"
+  );
+  assert.equal(missingProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live edit state updates should roll back missing projects");
 
   console.log("live-persistence-write-adapter.test OK", {
     insertStatements: client.queries.filter((query) => query.sql.includes("INSERT INTO")).length

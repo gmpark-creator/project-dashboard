@@ -1,6 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
-import { PostgresLivePersistenceWriteAdapter } from "./live-persistence-write-adapter";
+import { PostgresLivePersistenceWriteAdapter, type LiveEditAudioPatch } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
 import type { DirectionSpec, ExportSpec } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
@@ -97,6 +97,20 @@ export async function updateLiveShotDirection(shotId: string, patch: Partial<Dir
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).updateShotDirection(shotId, patch));
+}
+
+export async function applyLiveEdit(projectId: string, command?: string) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).applyEdit(projectId, command));
+}
+
+export async function setLiveAudio(projectId: string, patch: LiveEditAudioPatch) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).setAudio(projectId, patch));
 }
 
 export async function closeLivePersistencePoolForTests() {

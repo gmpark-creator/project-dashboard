@@ -614,6 +614,18 @@ function assertProductionStateMutationBoundary() {
   assert.ok(liveRuntimeSource.includes("updateLiveShotDirection"), "live persistence runtime must expose live shot direction updates");
   assert.ok(writeAdapterSource.includes("updateShotDirection"), "live write adapter must implement shot direction updates");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_shots"), "live write adapter must persist shot direction updates");
+  const editRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "edits", "route.ts"), "utf8");
+  const audioRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "audio", "route.ts"), "utf8");
+  assert.ok(editRouteSource.includes("liveProjectWritesEnabled()"), "edit route must require the live write switch for live state changes");
+  assert.ok(editRouteSource.includes("applyLiveEdit(projectId"), "edit route must call the live edit adapter");
+  assert.ok(editRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "edit route must fail closed when live persistence is unavailable");
+  assert.ok(audioRouteSource.includes("liveProjectWritesEnabled()"), "audio route must require the live write switch for live state changes");
+  assert.ok(audioRouteSource.includes("setLiveAudio(projectId"), "audio route must call the live audio adapter");
+  assert.ok(audioRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "audio route must fail closed when live persistence is unavailable");
+  assert.ok(liveRuntimeSource.includes("applyLiveEdit"), "live persistence runtime must expose live edit updates");
+  assert.ok(liveRuntimeSource.includes("setLiveAudio"), "live persistence runtime must expose live audio updates");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_project_edit_states"), "live write adapter must upsert edit state");
+  assert.ok(writeAdapterSource.includes("ON CONFLICT (project_id)"), "live write adapter must keep edit state upserts idempotent");
   assert.ok(testMock.includes("scripts/production-state-mutation-boundary.test.ts"), "test:mock must include production state mutation boundary coverage");
 }
 
