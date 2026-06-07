@@ -392,6 +392,7 @@ const documentedJsonErrorStatuses = new Set(["400", "401", "402", "404", "409", 
 const serviceConflictOperations = new Set(["setDefaultRender", "startRender"]);
 const errorResponseRef = "../schemas/domain.schema.json#/$defs/ErrorResponse";
 const insufficientCreditsResponseRef = "../schemas/domain.schema.json#/$defs/InsufficientCreditsResponse";
+const parameterLocations = new Set(["path", "query", "header", "cookie"]);
 const pathParameterPatterns = new Map([
   ["projectId", "^prj_"],
   ["shotId", "^sht_"],
@@ -443,13 +444,24 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
   const exportedMethods = exportedRouteMethods(routeFile);
   if (pathName.startsWith("/system/")) {
     assert.ok(routeSource.includes("requireSystemAccess("), `system route ${pathName} missing requireSystemAccess guard`);
-  }
-  for (const method of httpMethods) {
-    const operation = pathItem[method];
-    if (!operation) continue;
-    assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
-    assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
-    const pathParameters = new Map((operation.parameters || []).filter((parameter) => parameter.in === "path").map((parameter) => [parameter.name, parameter]));
+    }
+    for (const method of httpMethods) {
+      const operation = pathItem[method];
+      if (!operation) continue;
+      assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
+      assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
+      const operationParameters = operation.parameters || [];
+      const operationParameterKeys = new Set<string>();
+      for (const parameter of operationParameters) {
+        assert.ok(parameter.name, `openapi path ${pathName} ${method.toUpperCase()} parameter missing name`);
+        assert.ok(parameter.in, `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} missing location`);
+        assert.ok(parameterLocations.has(parameter.in), `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} has unsupported location ${parameter.in}`);
+        assert.ok(parameter.schema, `openapi path ${pathName} ${method.toUpperCase()} parameter ${parameter.name} missing schema`);
+        const parameterKey = `${parameter.in}:${parameter.name}`;
+        assert.ok(!operationParameterKeys.has(parameterKey), `openapi path ${pathName} ${method.toUpperCase()} has duplicate parameter ${parameterKey}`);
+        operationParameterKeys.add(parameterKey);
+      }
+      const pathParameters = new Map((operation.parameters || []).filter((parameter) => parameter.in === "path").map((parameter) => [parameter.name, parameter]));
     for (const [, parameterName] of pathName.matchAll(/\{([^}]+)\}/g)) {
       const parameter = pathParameters.get(parameterName);
       assert.ok(parameter, `openapi path ${pathName} ${method.toUpperCase()} missing path parameter ${parameterName}`);
