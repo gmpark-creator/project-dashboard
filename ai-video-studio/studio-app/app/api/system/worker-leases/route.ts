@@ -35,6 +35,11 @@ export async function POST(request: Request) {
   ) {
     return apiError("BAD_REQUEST", "worker lease TTL은 5초 이상 600초 이하의 정수여야 합니다.", 400);
   }
-  const result = createWorkerLease(body as Partial<WorkerLeaseRequest>);
+  const leaseRequest: Partial<WorkerLeaseRequest> = {
+    workerId: typeof body.workerId === "string" ? body.workerId : undefined,
+    kind: typeof body.kind === "string" ? (body.kind as WorkerLeaseRequest["kind"]) : undefined,
+    ttlSec: typeof body.ttlSec === "number" ? body.ttlSec : undefined
+  };
+  const result = createWorkerLease(leaseRequest);
   return NextResponse.json(result, { status: result.lease ? 201 : 200 });
 }
