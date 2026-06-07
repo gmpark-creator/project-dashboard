@@ -419,6 +419,25 @@ export class PostgresLivePersistenceReadAdapter {
     return imageAssets.rows.map(rowImageAsset);
   }
 
+  async getJob(jobId: string): Promise<GenerationJob | ImageJob | RenderJob | null> {
+    if (jobId.startsWith("gen_")) {
+      const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs WHERE id = $1 LIMIT 1", [jobId]);
+      const row = jobs.rows[0];
+      if (!row) return null;
+      const attemptRows = await this.client.query<Row>("SELECT * FROM cutpilot_provider_attempts WHERE generation_job_id = $1 ORDER BY started_at ASC", [jobId]);
+      return rowGenerationJob(row, attemptRows.rows.map(rowProviderAttempt));
+    }
+    if (jobId.startsWith("ijob_")) {
+      const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs WHERE id = $1 LIMIT 1", [jobId]);
+      return jobs.rows[0] ? rowImageJob(jobs.rows[0]) : null;
+    }
+    if (jobId.startsWith("rnd_")) {
+      const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs WHERE id = $1 LIMIT 1", [jobId]);
+      return jobs.rows[0] ? rowRenderJob(jobs.rows[0]) : null;
+    }
+    return null;
+  }
+
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {
     const projects = await this.client.query<Row>(
       `

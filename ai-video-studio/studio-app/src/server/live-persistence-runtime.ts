@@ -54,6 +54,10 @@ export async function listLiveImageAssets(projectId: string) {
   return getLivePersistenceReadAdapter().listImageAssets(projectId);
 }
 
+export async function getLiveJob(jobId: string) {
+  return getLivePersistenceReadAdapter().getJob(jobId);
+}
+
 export async function closeLivePersistencePoolForTests() {
   const current = pool;
   pool = null;

@@ -15,11 +15,11 @@ class FakeClient implements PgQueryable {
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
-    const rows = this.rowsFor(sql);
+    const rows = this.rowsFor(sql, params);
     return { rows: rows as T[] };
   }
 
-  private rowsFor(sql: string): Record<string, unknown>[] {
+  private rowsFor(sql: string, params?: unknown[]): Record<string, unknown>[] {
     if (sql.includes("FROM cutpilot_projects p")) {
       return [
         {
@@ -114,6 +114,7 @@ class FakeClient implements PgQueryable {
       ];
     }
     if (sql.includes("FROM cutpilot_generation_jobs")) {
+      if (sql.includes("WHERE id = $1") && params?.[0] !== genJobId) return [];
       return [
         {
           id: genJobId,
@@ -266,6 +267,11 @@ async function main() {
   const assets = await adapter.listImageAssets(projectId);
   assert.equal(assets.length, 1, "live read adapter should list image assets directly");
   assert.equal(assets[0].id, assetId, "live read adapter should preserve image asset ids");
+
+  const generationJob = await adapter.getJob(genJobId);
+  assert.equal(generationJob?.id, genJobId, "live read adapter should read generation jobs by id");
+  assert.equal(generationJob && "providerAttempts" in generationJob ? generationJob.providerAttempts[0].requestId : null, "req_live_read", "live generation job reads should attach provider attempts");
+  assert.equal(await adapter.getJob("gen_missing"), null, "live read adapter should return null for missing generation jobs");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),

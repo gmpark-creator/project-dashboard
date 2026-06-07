@@ -79,6 +79,10 @@ async function main() {
     const liveAssetReadBody = (await liveAssetReadWithoutDb.json()) as { code?: string };
     assert.equal(liveAssetReadWithoutDb.status, 503, "live asset reads should fail closed without DATABASE_URL");
     assert.equal(liveAssetReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live asset reads should expose live persistence unavailability");
+    const liveJobReadWithoutDb = await getJobRoute(request("GET"), context({ jobId: "gen_production" }));
+    const liveJobReadBody = (await liveJobReadWithoutDb.json()) as { code?: string };
+    assert.equal(liveJobReadWithoutDb.status, 503, "live job reads should fail closed without DATABASE_URL");
+    assert.equal(liveJobReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live job reads should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);
