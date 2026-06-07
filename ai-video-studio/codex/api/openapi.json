@@ -686,6 +686,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditState" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid edit command request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -710,6 +718,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/EditState" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid audio patch request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           }
