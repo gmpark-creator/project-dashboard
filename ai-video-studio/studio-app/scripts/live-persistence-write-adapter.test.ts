@@ -12,6 +12,7 @@ class FakeClient implements PgQueryable {
   projectThumbUrl: string | null = null;
   editRows: Record<string, unknown>[] = [];
   renderJobRow: Record<string, unknown> | null = null;
+  sceneRows: Record<string, unknown>[] = [];
   shotRows: Record<string, unknown>[] = [];
   takeRow: Record<string, unknown> | null = null;
   imageAssetRow: Record<string, unknown> | null = null;
@@ -45,6 +46,20 @@ class FakeClient implements PgQueryable {
     if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE project_id")) {
       const renderJobRow = this.renderJobRow as unknown as T;
       return { rows: this.renderJobRow ? [renderJobRow] : [] };
+    }
+    if (sql.includes("SELECT id FROM cutpilot_scenes")) {
+      const scene = this.sceneRows.find((row) => row.id === params?.[0] && row.project_id === params?.[1]);
+      return { rows: scene ? ([{ id: scene.id } as unknown as T]) : [] };
+    }
+    if (sql.includes("UPDATE cutpilot_scenes SET")) {
+      const scene = this.sceneRows.find((row) => row.id === params?.[0] && row.project_id === params?.[1]);
+      if (scene) {
+        if (typeof params?.[2] === "number") scene.order_index = params[2];
+        if (typeof params?.[3] === "string") scene.title = params[3];
+        if (typeof params?.[4] === "string") scene.setting = params[4];
+        if (typeof params?.[5] === "string") scene.time_of_day = params[5];
+      }
+      return { rows: [] as T[] };
     }
     if (sql.includes("SELECT * FROM cutpilot_project_edit_states")) return { rows: this.editRows as T[] };
     if (sql.includes("SELECT COUNT(*) AS count FROM cutpilot_image_assets")) {
@@ -136,6 +151,22 @@ class FakeClient implements PgQueryable {
       const updated = current ? (current as unknown as T) : null;
       return { rows: updated ? [updated] : [] };
     }
+    if (sql.includes("UPDATE cutpilot_shots SET") && sql.includes("scene_id = $2")) {
+      const current = this.shotRows.find((shot) => shot.id === params?.[0]) || this.shotRows[0];
+      if (current) {
+        current.scene_id = params?.[1];
+        current.order_index = params?.[2];
+        current.title = params?.[3];
+        current.duration_sec = params?.[4];
+        current.saec = typeof params?.[5] === "string" ? JSON.parse(params[5]) : params?.[5];
+        current.requirements = typeof params?.[6] === "string" ? JSON.parse(params[6]) : params?.[6];
+        current.status = params?.[7];
+        current.selected_take_id = params?.[8] ?? null;
+        current.quality_flags = typeof params?.[9] === "string" ? JSON.parse(params[9]) : params?.[9];
+        current.direction_spec = typeof params?.[10] === "string" ? JSON.parse(params[10]) : params?.[10];
+      }
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_shots")) {
       const current = this.shotRows[0];
       const updated = current ? ({ ...current, direction_spec: params?.[1] } as unknown as T) : null;
@@ -201,6 +232,17 @@ function fakeShotRow(): Record<string, unknown> {
     quality_flags: [],
     reference_image_ids: [],
     direction_spec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: ["blur"], notes: "" }
+  };
+}
+
+function fakeSceneRow(): Record<string, unknown> {
+  return {
+    id: "scn_live",
+    project_id: "prj_live",
+    order_index: 0,
+    title: "Opening",
+    setting: "Studio",
+    time_of_day: "day"
   };
 }
 
@@ -356,6 +398,35 @@ async function main() {
     "live take selection should reject unfinished takes"
   );
   assert.equal(queuedTakeClient.queries.at(-1)?.sql, "ROLLBACK", "live take selection should roll back unfinished takes");
+
+  const storyboardClient = new FakeClient();
+  const storyboardShot = fakeShotRow();
+  storyboardShot.status = "selected";
+  storyboardShot.selected_take_id = "tak_done";
+  storyboardShot.quality_flags = [{ axis: "motion", score: 0.4, hint: "Retry" }];
+  storyboardClient.sceneRows = [fakeSceneRow()];
+  storyboardClient.shotRows = [storyboardShot];
+  const storyboardBundle = await new PostgresLivePersistenceWriteAdapter(storyboardClient).updateStoryboard("prj_live", {
+    scenes: [{ id: "scn_live", title: " New opening " }],
+    shots: [{ id: "sht_live", title: " Updated shot ", durationSec: 30, directionSpec: { avoid: [" blur ", ""] } }]
+  });
+  assert.equal(storyboardClient.sceneRows[0].title, "New opening", "live storyboard update should update scene fields");
+  assert.equal(storyboardBundle?.shots[0].title, "Updated shot", "live storyboard update should return the updated shot");
+  assert.equal(storyboardBundle?.shots[0].durationSec, 16, "live storyboard update should clamp shot duration");
+  assert.equal(storyboardBundle?.shots[0].selectedTakeId, null, "live storyboard update should clear selected takes after shot changes");
+  assert.equal(storyboardBundle?.shots[0].status, "pending", "live storyboard update should reset selected shots to pending");
+  assert.deepEqual(storyboardBundle?.shots[0].directionSpec.avoid, ["blur"], "live storyboard update should normalize direction avoid terms");
+  assert.ok(storyboardClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET progress")), "live storyboard update should refresh project progress");
+  assert.equal(storyboardClient.queries.at(-1)?.sql, "COMMIT", "live storyboard update should commit successful updates");
+
+  const missingStoryboardProjectClient = new FakeClient();
+  missingStoryboardProjectClient.projectExists = false;
+  await assert.rejects(
+    () => new PostgresLivePersistenceWriteAdapter(missingStoryboardProjectClient).updateStoryboard("prj_missing", { scenes: [], shots: [] }),
+    /Project not found/,
+    "live storyboard update should surface missing projects"
+  );
+  assert.equal(missingStoryboardProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live storyboard update should roll back missing projects");
 
   const editClient = new FakeClient();
   editClient.editRows = [fakeEditRow()];

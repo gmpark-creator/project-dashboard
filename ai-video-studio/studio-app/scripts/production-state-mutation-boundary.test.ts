@@ -101,6 +101,11 @@ async function main() {
     assert.equal(liveSelectTakeWithoutDb.status, 503, "live take selection should fail closed without DATABASE_URL");
     assert.equal(liveSelectTakeWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live take selection should report live persistence unavailability");
 
+    const liveStoryboardWithoutDb = await updateStoryboardRoute(request("PUT", { scenes: [], shots: [] }), context({ projectId: "prj_production" }));
+    const liveStoryboardWithoutDbBody = (await liveStoryboardWithoutDb.json()) as { code?: string };
+    assert.equal(liveStoryboardWithoutDb.status, 503, "live storyboard update should fail closed without DATABASE_URL");
+    assert.equal(liveStoryboardWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live storyboard update should report live persistence unavailability");
+
     const liveAssetRegistrationWithoutDb = await registerExternalImageRoute(
       request("POST", { label: "Reference", url: "https://assets.cutpilot.local/reference.png", role: "product", aspect: "9:16", rightsConfirmed: true }),
       context({ projectId: "prj_production" })

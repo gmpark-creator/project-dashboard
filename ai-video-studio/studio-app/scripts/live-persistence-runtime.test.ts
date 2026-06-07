@@ -14,6 +14,7 @@ import {
   selectLiveTake,
   setLiveAudio,
   setLiveDefaultRender,
+  updateLiveStoryboard,
   updateLiveShotDirection
 } from "../src/server/live-persistence-runtime";
 
@@ -54,6 +55,11 @@ async function main() {
       () => selectLiveTake("sht_disabled", "tak_disabled"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live take selection writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => updateLiveStoryboard("prj_disabled", { scenes: [], shots: [] }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live storyboard writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => applyLiveEdit("prj_disabled", "trim opening"),
@@ -120,6 +126,11 @@ async function main() {
       () => selectLiveTake("sht_missing_db", "tak_missing_db"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live take selection writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => updateLiveStoryboard("prj_missing_db", { scenes: [], shots: [] }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live storyboard writes should require DATABASE_URL"
     );
     await assert.rejects(
       () => applyLiveEdit("prj_missing_db", "trim opening"),

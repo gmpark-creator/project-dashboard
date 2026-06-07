@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, DirectionSpec, EditState, Project, Shot } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, DirectionSpec, EditState, Project, ProjectBundle, Scene, Shot } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -24,6 +24,17 @@ export type LiveExternalImageInput = {
 export type LiveShotReferenceInput = {
   assetId: string;
   mode: AssetUsage["mode"];
+};
+export type LiveStoryboardScenePatch = Partial<Pick<Scene, "order" | "title" | "setting" | "timeOfDay">> & { id: string };
+export type LiveStoryboardShotPatch = Partial<Pick<Shot, "order" | "sceneId" | "title" | "durationSec">> & {
+  id: string;
+  saec?: Partial<Shot["saec"]>;
+  requirements?: Partial<Shot["requirements"]>;
+  directionSpec?: Partial<Shot["directionSpec"]>;
+};
+export type LiveStoryboardUpdateInput = {
+  scenes?: LiveStoryboardScenePatch[];
+  shots?: LiveStoryboardShotPatch[];
 };
 type ReferenceBoardImageBucket = keyof Pick<
   ReferenceBoard,
@@ -457,6 +468,123 @@ export class PostgresLivePersistenceWriteAdapter {
       ]);
       await this.client.query("COMMIT");
       return rowShot(updated.rows[0] || { ...currentRow, selected_take_id: takeId, status: "selected" });
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async updateStoryboard(projectId: string, input: LiveStoryboardUpdateInput): Promise<ProjectBundle | null> {
+    await this.client.query("BEGIN");
+    try {
+      await this.requireProject(projectId);
+      for (const patch of input.scenes || []) {
+        await this.client.query(
+          `
+          UPDATE cutpilot_scenes SET
+            order_index = COALESCE($3, order_index),
+            title = COALESCE($4, title),
+            setting = COALESCE($5, setting),
+            time_of_day = COALESCE($6, time_of_day)
+          WHERE id = $1 AND project_id = $2
+        `,
+          [
+            patch.id,
+            projectId,
+            typeof patch.order === "number" ? patch.order : null,
+            typeof patch.title === "string" && patch.title.trim() ? patch.title.trim() : null,
+            typeof patch.setting === "string" ? patch.setting : null,
+            typeof patch.timeOfDay === "string" ? patch.timeOfDay : null
+          ]
+        );
+      }
+
+      for (const patch of input.shots || []) {
+        const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 AND project_id = $2 FOR UPDATE", [patch.id, projectId]);
+        const shotRow = shotRows.rows[0];
+        if (!shotRow) continue;
+        const shot = rowShot(shotRow);
+        const before = JSON.stringify({
+          sceneId: shot.sceneId,
+          order: shot.order,
+          title: shot.title,
+          durationSec: shot.durationSec,
+          saec: shot.saec,
+          requirements: shot.requirements,
+          directionSpec: shot.directionSpec
+        });
+
+        let sceneId = shot.sceneId;
+        if (typeof patch.sceneId === "string") {
+          const scenes = await this.client.query<Row>("SELECT id FROM cutpilot_scenes WHERE id = $1 AND project_id = $2 LIMIT 1", [patch.sceneId, projectId]);
+          if (scenes.rows[0]) sceneId = patch.sceneId;
+        }
+        const nextShot: Shot = {
+          ...shot,
+          sceneId,
+          order: typeof patch.order === "number" ? patch.order : shot.order,
+          title: typeof patch.title === "string" && patch.title.trim() ? patch.title.trim() : shot.title,
+          durationSec: typeof patch.durationSec === "number" ? Math.max(1, Math.min(16, patch.durationSec)) : shot.durationSec,
+          saec: patch.saec ? { ...shot.saec, ...patch.saec } : shot.saec,
+          requirements: patch.requirements ? { ...shot.requirements, ...patch.requirements } : shot.requirements,
+          directionSpec: patch.directionSpec ? mergeDirectionPatch(shot.directionSpec, patch.directionSpec) : shot.directionSpec
+        };
+        const after = JSON.stringify({
+          sceneId: nextShot.sceneId,
+          order: nextShot.order,
+          title: nextShot.title,
+          durationSec: nextShot.durationSec,
+          saec: nextShot.saec,
+          requirements: nextShot.requirements,
+          directionSpec: nextShot.directionSpec
+        });
+        if (before !== after) {
+          nextShot.selectedTakeId = null;
+          nextShot.qualityFlags = [];
+          if (nextShot.status === "selected" || nextShot.status === "reviewing" || nextShot.status === "failed") nextShot.status = "pending";
+        }
+
+        await this.client.query(
+          `
+          UPDATE cutpilot_shots SET
+            scene_id = $2,
+            order_index = $3,
+            title = $4,
+            duration_sec = $5,
+            saec = $6,
+            requirements = $7,
+            status = $8,
+            selected_take_id = $9,
+            quality_flags = $10,
+            direction_spec = $11
+          WHERE id = $1
+        `,
+          [
+            nextShot.id,
+            nextShot.sceneId,
+            nextShot.order,
+            nextShot.title,
+            nextShot.durationSec,
+            json(nextShot.saec),
+            json(nextShot.requirements),
+            nextShot.status,
+            nextShot.selectedTakeId,
+            json(nextShot.qualityFlags),
+            json(nextShot.directionSpec)
+          ]
+        );
+      }
+
+      const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [projectId]);
+      await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+        projectId,
+        json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+        projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+        now()
+      ]);
+      const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
+      await this.client.query("COMMIT");
+      return bundle;
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;
