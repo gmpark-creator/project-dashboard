@@ -227,8 +227,14 @@ for (const defName of [
 
 const requiredOperations = new Set([
   "applyEdit",
+  "createProject",
+  "decomposeIdea",
+  "estimateCost",
+  "generateAll",
+  "getJob",
   "getProjectBundle",
   "listImageAssets",
+  "listProjects",
   "registerExternalImage",
   "createImageJob",
   "cancelJob",
@@ -241,6 +247,10 @@ const requiredOperations = new Set([
   "updateStoryboard",
   "updateShotDirection",
   "generateShot",
+  "regenerate",
+  "selectTake",
+  "startRender",
+  "upgradeTake",
   "getRuntimeReadiness",
   "getSystemMetrics",
   "getProviderHealthSnapshot",
@@ -314,6 +324,6 @@ console.log("validate-contracts OK", {
   providers: capabilities.providers.length,
   routingRules: routing.rules.length,
   templates: templateFiles.length,
-  visualMakerOps: requiredOperations.size,
+  requiredOperations: requiredOperations.size,
   openApiRoutes: Object.keys(openApi.paths).length
 });
