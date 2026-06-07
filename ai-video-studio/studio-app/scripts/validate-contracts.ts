@@ -444,6 +444,12 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       assert.ok(routeSource.includes("pathParamsError("), `path route ${pathName} ${method.toUpperCase()} missing pathParamsError guard`);
       assert.ok(operation.responses?.["400"], `path route ${pathName} ${method.toUpperCase()} missing 400 response`);
     }
+    for (const parameter of operation.parameters || []) {
+      if (parameter.in === "query" && parameter.schema?.type === "boolean") {
+        assert.ok(routeSource.includes("booleanQueryParam("), `boolean query route ${operation.operationId} missing booleanQueryParam guard`);
+        assert.ok(operation.responses?.["400"], `boolean query route ${operation.operationId} missing 400 response`);
+      }
+    }
     if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
       assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);
       assert.ok(operation.responses?.["402"], `credit guarded operation ${operation.operationId} missing 402 response`);
