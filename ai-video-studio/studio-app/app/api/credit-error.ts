@@ -6,7 +6,7 @@ export function creditReservationResponse(error: unknown) {
   return NextResponse.json(
     {
       code: "INSUFFICIENT_CREDITS",
-      userMessage: "사용 가능한 크레딧이 부족합니다.",
+      userMessage: "Not enough available credits.",
       retryable: false,
       fallbackSuggested: false,
       estimate: error.estimate
