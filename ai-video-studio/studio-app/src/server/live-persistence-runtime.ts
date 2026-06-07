@@ -7,6 +7,7 @@ import {
   type LiveGenerateAllInput,
   type LiveImageJobInput,
   type LiveShotGenerateInput,
+  type LiveStartRenderInput,
   type LiveStoryboardUpdateInput,
   type LiveShotReferenceInput,
   type LiveTakeUpgradeInput
@@ -142,6 +143,13 @@ export async function setLiveDefaultRender(projectId: string, renderJobId: strin
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).setDefaultRender(projectId, renderJobId));
+}
+
+export async function startLiveRender(projectId: string, input: LiveStartRenderInput) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).startRender(projectId, input));
 }
 
 export async function registerLiveExternalImage(input: LiveExternalImageInput) {

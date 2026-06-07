@@ -510,6 +510,7 @@ function assertProductionWorkRequestBoundary() {
 
   const imageJobRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "image-jobs", "route.ts"), "utf8");
   const generateAllRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "generate-all", "route.ts"), "utf8");
+  const renderRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "renders", "route.ts"), "utf8");
   const shotGenerateRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "generate", "route.ts"), "utf8");
   const shotRegenerateRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "regenerate", "route.ts"), "utf8");
   const takeUpgradeRouteSource = readFileSync(join(appApiDir, "takes", "[takeId]", "upgrade", "route.ts"), "utf8");
@@ -519,6 +520,9 @@ function assertProductionWorkRequestBoundary() {
   assert.ok(generateAllRouteSource.includes("liveProjectWritesEnabled()"), "generate-all route must require the live write switch for live work requests");
   assert.ok(generateAllRouteSource.includes("generateAllLiveShots(projectId"), "generate-all route must call the live generate-all adapter");
   assert.ok(generateAllRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "generate-all route must fail closed when live persistence is unavailable");
+  assert.ok(renderRouteSource.includes("liveProjectWritesEnabled()"), "render route must require the live write switch for live work requests");
+  assert.ok(renderRouteSource.includes("startLiveRender(projectId"), "render route must call the live render enqueue adapter");
+  assert.ok(renderRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "render route must fail closed when live persistence is unavailable");
   assert.ok(shotGenerateRouteSource.includes("liveProjectWritesEnabled()"), "shot generate route must require the live write switch for live work requests");
   assert.ok(shotGenerateRouteSource.includes("generateLiveShot(shotId"), "shot generate route must call the live shot generation adapter");
   assert.ok(shotGenerateRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot generate route must fail closed when live persistence is unavailable");
@@ -531,20 +535,25 @@ function assertProductionWorkRequestBoundary() {
   assert.ok(takeUpgradeRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "take upgrade route must fail closed when live persistence is unavailable");
   assert.ok(liveRuntimeSource.includes("createLiveImageJob"), "live persistence runtime must expose live image job enqueue");
   assert.ok(liveRuntimeSource.includes("generateAllLiveShots"), "live persistence runtime must expose live generate-all enqueue");
+  assert.ok(liveRuntimeSource.includes("startLiveRender"), "live persistence runtime must expose live render enqueue");
   assert.ok(liveRuntimeSource.includes("generateLiveShot"), "live persistence runtime must expose live shot generation enqueue");
   assert.ok(liveRuntimeSource.includes("upgradeLiveTake"), "live persistence runtime must expose live take upgrade enqueue");
   assert.ok(writeAdapterSource.includes("createImageJob"), "live write adapter must implement live image job enqueue");
   assert.ok(writeAdapterSource.includes("generateAll"), "live write adapter must implement live generate-all enqueue");
+  assert.ok(writeAdapterSource.includes("startRender"), "live write adapter must implement live render enqueue");
   assert.ok(writeAdapterSource.includes("generateShot"), "live write adapter must implement live shot generation enqueue");
   assert.ok(writeAdapterSource.includes("upgradeTake"), "live write adapter must implement live take upgrade enqueue");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_image_jobs"), "live write adapter must persist image jobs");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_takes"), "live write adapter must persist generated takes");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_generation_jobs"), "live write adapter must persist generation jobs");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_provider_attempts"), "live write adapter must persist initial provider attempts");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_render_jobs"), "live write adapter must persist render jobs");
+  assert.ok(writeAdapterSource.includes("buildLiveRenderPreview"), "live write adapter must use live render preview planning");
   assert.ok(writeAdapterSource.includes("upgrade_source_take_id"), "live write adapter must persist upgrade source takes");
   assert.ok(writeAdapterSource.includes('"generateImages"'), "live write adapter must reserve image generation credits");
   assert.ok(writeAdapterSource.includes('"generateShot"'), "live write adapter must reserve shot generation credits");
   assert.ok(writeAdapterSource.includes('"upgradeTake"'), "live write adapter must reserve take upgrade credits");
+  assert.ok(writeAdapterSource.includes('"startRender"'), "live write adapter must reserve render credits");
   assert.ok(writeAdapterSource.includes('"reserve"'), "live write adapter must record reserve ledger entries");
   assert.ok(testMock.includes("scripts/production-work-request-boundary.test.ts"), "test:mock must include production work request boundary coverage");
 }

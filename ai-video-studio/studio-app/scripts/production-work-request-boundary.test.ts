@@ -108,6 +108,13 @@ async function main() {
       "live take upgrade",
       await upgradeTakeRoute(request({ mode: "auto" }), context({ takeId: "tak_production" }))
     );
+    await assertLivePersistenceUnavailable(
+      "live render start",
+      await startRenderRoute(
+        request({ specs: [{ resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" }] }),
+        context({ projectId: "prj_production" })
+      )
+    );
 
     assert.equal(stateFingerprint(), before, "failed production work requests should not mutate mock state");
   } finally {

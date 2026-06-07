@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, Scene, Shot, Take, Tier } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -9,6 +9,7 @@ import {
 } from "./live-project-builder";
 import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
+import { buildLiveRenderPreview } from "./live-render-preview";
 import { CreditReservationError } from "./mock-service";
 import { chooseProviderRoute } from "./provider-routing";
 
@@ -47,6 +48,10 @@ export type LiveGenerateAllInput = {
 };
 export type LiveTakeUpgradeInput = {
   mode?: NonNullable<Take["upgradeMode"]>;
+};
+export type LiveStartRenderInput = {
+  specs: ExportSpec[];
+  retryOfJobId?: string | null;
 };
 export type LiveStoryboardScenePatch = Partial<Pick<Scene, "order" | "title" | "setting" | "timeOfDay">> & { id: string };
 export type LiveStoryboardShotPatch = Partial<Pick<Shot, "order" | "sceneId" | "title" | "durationSec">> & {
@@ -182,6 +187,10 @@ function imageVariantScoreLabel(index: number): ImageVariant["scoreLabel"] {
 
 function takeLabel(index: number) {
   return String.fromCharCode(65 + index);
+}
+
+function renderSpecKey(spec: ExportSpec) {
+  return `${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`;
 }
 
 function providerAttempt(target: GenerationJob["routing"]["selected"], startedAt: string): ProviderAttempt {
@@ -882,6 +891,99 @@ export class PostgresLivePersistenceWriteAdapter {
       const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
       await this.client.query("COMMIT");
       return bundle;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async startRender(projectId: string, input: LiveStartRenderInput): Promise<{ jobs: RenderJob[] }> {
+    await this.client.query("BEGIN");
+    try {
+      await this.requireProject(projectId);
+      const activeRows = await this.client.query<Row>(
+        "SELECT spec FROM cutpilot_render_jobs WHERE project_id = $1 AND status IN ('queued', 'running') FOR UPDATE",
+        [projectId]
+      );
+      const activeSpecs = new Set(
+        activeRows.rows.map((row) =>
+          renderSpecKey(jsonValue<ExportSpec>(row.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" }))
+        )
+      );
+      const nextSpecs = input.specs.filter((spec) => !activeSpecs.has(renderSpecKey(spec)));
+      if (!nextSpecs.length) throw new Error("Render job already active");
+
+      const requiredCredits = nextSpecs.length * 16;
+      const available = await this.availableCredits(projectId);
+      if (available < requiredCredits) throw new CreditReservationError(requiredCredits, available);
+
+      const bundle = await new PostgresLivePersistenceReadAdapter(this.client).getProjectBundle(projectId);
+      if (!bundle) throw new Error("Project not found");
+      const jobs: RenderJob[] = [];
+
+      for (let index = 0; index < nextSpecs.length; index += 1) {
+        const spec = nextSpecs[index];
+        const preview = buildLiveRenderPreview(bundle, spec);
+        const timestamp = now();
+        const job: RenderJob = {
+          id: uid("rnd"),
+          projectId,
+          retryOfJobId: input.retryOfJobId || null,
+          spec,
+          stage: "assemble",
+          progress: 0,
+          status: "queued",
+          outputUrl: null,
+          shareUrl: null,
+          etaSec: 90 - index * 14,
+          dueAt: Date.now() + 4200 + index * 1200,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          error: null,
+          rightsReview: preview.rightsReview,
+          renderPlan: preview.renderPlan
+        };
+        await this.reserveCredits({
+          projectId,
+          jobId: job.id,
+          action: "startRender",
+          credits: 16,
+          note: `${job.spec.cut} render reserved`
+        });
+        await this.client.query(
+          `
+          INSERT INTO cutpilot_render_jobs (
+            id, project_id, retry_of_job_id, spec, stage, progress, status,
+            output_url, share_url, eta_sec, due_at, error, rights_review,
+            render_plan, created_at, updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        `,
+          [
+            job.id,
+            job.projectId,
+            job.retryOfJobId,
+            json(job.spec),
+            job.stage,
+            job.progress,
+            job.status,
+            job.outputUrl,
+            job.shareUrl,
+            job.etaSec,
+            job.dueAt,
+            job.error ? json(job.error) : null,
+            json(job.rightsReview),
+            json(job.renderPlan),
+            job.createdAt,
+            job.updatedAt
+          ]
+        );
+        jobs.push(job);
+      }
+
+      await this.client.query("UPDATE cutpilot_projects SET status = $2, updated_at = $3 WHERE id = $1", [projectId, "rendering", now()]);
+      await this.client.query("COMMIT");
+      return { jobs };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

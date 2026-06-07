@@ -51,6 +51,10 @@ class FakeClient implements PgQueryable {
       const renderJobRow = this.renderJobRow as unknown as T;
       return { rows: this.renderJobRow ? [renderJobRow] : [] };
     }
+    if (sql.includes("SELECT spec FROM cutpilot_render_jobs")) {
+      const active = this.renderJobRow && (this.renderJobRow.status === "queued" || this.renderJobRow.status === "running");
+      return { rows: active ? ([{ spec: this.renderJobRow?.spec } as unknown as T]) : [] };
+    }
     if (sql.includes("SELECT * FROM cutpilot_generation_jobs WHERE id")) return { rows: this.generationJobRow ? ([this.generationJobRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_jobs WHERE id")) return { rows: this.imageJobRow ? ([this.imageJobRow as unknown as T]) : [] };
     if (sql.includes("SELECT id FROM cutpilot_render_jobs WHERE project_id")) return { rows: this.activeRenderExists ? ([{ id: "rnd_active" } as unknown as T]) : [] };
@@ -133,6 +137,7 @@ class FakeClient implements PgQueryable {
     if (sql.includes("INSERT INTO cutpilot_takes")) return { rows: [] as T[] };
     if (sql.includes("INSERT INTO cutpilot_generation_jobs")) return { rows: [] as T[] };
     if (sql.includes("INSERT INTO cutpilot_provider_attempts")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_render_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_generation_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
@@ -151,6 +156,7 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_takes WHERE project_id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
     if (sql.includes("FROM cutpilot_asset_usages u")) return { rows: [] as T[] };
     if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
@@ -453,6 +459,34 @@ async function main() {
     "live write adapter should surface insert errors"
   );
   assert.equal(failingClient.queries.at(-1)?.sql, "ROLLBACK", "live write adapter should roll back failed creation");
+
+  const renderClient = new FakeClient();
+  renderClient.shotRows = [fakeShotRow()];
+  renderClient.takeRow = fakeTakeRow("done");
+  const renderResult = await new PostgresLivePersistenceWriteAdapter(renderClient).startRender("prj_live", {
+    specs: [{ resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" }]
+  });
+  assert.equal(renderResult.jobs.length, 1, "live render enqueue should create render jobs");
+  assert.equal(renderResult.jobs[0].status, "queued", "live render enqueue should start jobs queued");
+  assert.equal(renderResult.jobs[0].stage, "assemble", "live render enqueue should start at the assemble stage");
+  assert.equal(renderResult.jobs[0].renderPlan.shots.length, 1, "live render enqueue should include available done takes in the render plan");
+  assert.equal(renderClient.creditReserved, 16, "live render enqueue should reserve render credits");
+  assert.equal(renderClient.creditTransactionCount, 1, "live render enqueue should record a reserve transaction");
+  assert.ok(renderClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_render_jobs")), "live render enqueue should insert render jobs");
+  assert.ok(renderClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_projects SET status")), "live render enqueue should mark projects rendering");
+  assert.equal(renderClient.queries.at(-1)?.sql, "COMMIT", "live render enqueue should commit successful jobs");
+
+  const duplicateRenderClient = new FakeClient();
+  duplicateRenderClient.renderJobRow = fakeRenderJob("queued");
+  await assert.rejects(
+    () =>
+      new PostgresLivePersistenceWriteAdapter(duplicateRenderClient).startRender("prj_live", {
+        specs: [duplicateRenderClient.renderJobRow?.spec as { resolution: "1080p"; cut: "15s"; aspect: "9:16"; caption: "burn-in" }]
+      }),
+    /Render job already active/,
+    "live render enqueue should reject fully duplicated active specs"
+  );
+  assert.equal(duplicateRenderClient.queries.at(-1)?.sql, "ROLLBACK", "live render enqueue should roll back duplicate requests");
 
   const imageJobClient = new FakeClient();
   const imageJobResult = await new PostgresLivePersistenceWriteAdapter(imageJobClient).createImageJob({

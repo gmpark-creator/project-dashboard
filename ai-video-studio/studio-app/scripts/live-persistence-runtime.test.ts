@@ -18,6 +18,7 @@ import {
   selectLiveTake,
   setLiveAudio,
   setLiveDefaultRender,
+  startLiveRender,
   updateLiveStoryboard,
   updateLiveShotDirection,
   upgradeLiveTake
@@ -80,6 +81,11 @@ async function main() {
       () => setLiveDefaultRender("prj_disabled", "rnd_disabled"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live default render writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => startLiveRender("prj_disabled", { specs: [{ resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" }] }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live render enqueue writes should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () =>
@@ -184,6 +190,11 @@ async function main() {
       () => setLiveDefaultRender("prj_missing_db", "rnd_missing_db"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live default render writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => startLiveRender("prj_missing_db", { specs: [{ resolution: "720p", cut: "6s", aspect: "9:16", caption: "none" }] }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live render enqueue writes should require DATABASE_URL"
     );
     await assert.rejects(
       () =>
