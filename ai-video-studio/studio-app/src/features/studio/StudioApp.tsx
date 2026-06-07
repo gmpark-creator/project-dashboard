@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, Take } from "@/domain/types";
+import type { Aspect, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobStatus, JobStatusCounts, Project, ProjectBundle, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export";
@@ -307,6 +307,132 @@ function RuntimeReadinessBadge({ readiness }: { readiness: RuntimeReadiness | nu
   );
 }
 
+// 운영 지표용 컴팩트 스탯 한 칸. 큰 숫자 + 작은 라벨. tone으로만(초록/빨강) 방향을 읽게 해
+// 사인 혼동을 피한다. 내부 id·엔진명은 다루지 않고 집계 수치만 표시한다.
+function Metric({ label, value, tone }: { label: string; value: string | number; tone?: "ok" | "warn" }) {
+  return (
+    <div className="metric">
+      <span className={`metric-value${tone ? ` tone-${tone}` : ""}`}>{value}</span>
+      <span className="metric-label">{label}</span>
+    </div>
+  );
+}
+
+// 잡 상태 → 운영자용 한국어 라벨과 배지 톤. 진행/대기=중립·활성(시안), 완료=초록, 실패=빨강,
+// 취소=중립. 작업 현황 줄에서 0이 아닌 상태만 칩으로 노출해 컴팩트하게 유지한다.
+const metricJobStatusMeta: Array<{ key: keyof JobStatusCounts; label: string; tone: "active" | "ok" | "warn" | "" }> = [
+  { key: "running", label: "진행", tone: "active" },
+  { key: "queued", label: "대기", tone: "active" },
+  { key: "done", label: "완료", tone: "ok" },
+  { key: "failed", label: "실패", tone: "warn" },
+  { key: "cancelled", label: "취소", tone: "" }
+];
+
+function MetricJobRow({ name, counts }: { name: string; counts: JobStatusCounts }) {
+  const shown = metricJobStatusMeta.filter((status) => counts[status.key] > 0);
+  return (
+    <div className="metric-job-row">
+      <span className="metric-job-name">{name}</span>
+      {shown.length ? (
+        <span className="metric-job-counts">
+          {shown.map((status) => (
+            <span key={status.key} className={`metric-job-count${status.tone ? ` tone-${status.tone}` : ""}`}>
+              {status.label} {counts[status.key]}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className="metric-job-empty">없음</span>
+      )}
+    </div>
+  );
+}
+
+function formatAvgLatency(ms: number | null) {
+  if (ms === null) return "—";
+  if (ms >= 1000) return `${(ms / 1000).toFixed(1)}초`;
+  return `${ms}ms`;
+}
+
+// 운영자용 시스템/운영 지표 surface. 전체 프로젝트의 프로덕션 상태·크레딧·작업 현황·엔진 시도 결과·
+// 미디어 산출물을 한 패널에 컴팩트하게 모은다. 엔진/모델 이름, 잡·자산 id, 원시 프롬프트, 환경변수
+// 값은 다루지 않고 집계 수치만 보여준다. 데이터는 GET /api/system/metrics(SystemMetrics)에서 온다.
+function SystemMetricsPanel({ metrics }: { metrics: SystemMetrics }) {
+  const inFlight =
+    metrics.jobs.generation.queued +
+    metrics.jobs.generation.running +
+    metrics.jobs.image.queued +
+    metrics.jobs.image.running +
+    metrics.jobs.render.queued +
+    metrics.jobs.render.running;
+  const time = readinessTime(metrics.generatedAt);
+  return (
+    <section className="panel metrics" aria-label="운영 지표">
+      <div className="head">
+        <div>
+          <h2>운영 지표</h2>
+          <p className="hint">전체 프로젝트의 작업·크레딧·산출물 현황을 한눈에 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${inFlight ? "fast" : "ok"}`}>{inFlight ? `진행 중 작업 ${inFlight}건` : "진행 중 작업 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">프로덕션</span>
+          <div className="metric-row">
+            <Metric label="프로젝트" value={metrics.projects.total} />
+            <Metric label="진행 중" value={metrics.projects.active} />
+            <Metric label="완료" value={metrics.projects.done} tone={metrics.projects.done ? "ok" : undefined} />
+            <Metric label="실패" value={metrics.projects.failed} tone={metrics.projects.failed ? "warn" : undefined} />
+            <Metric label="진행 중 작업" value={inFlight} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">크레딧 ⚡</span>
+          <div className="metric-row">
+            <Metric label="사용 가능" value={metrics.credits.available} />
+            <Metric label="예약" value={metrics.credits.reserved} />
+            <Metric label="사용" value={metrics.credits.spent} />
+            <Metric label="사용 확정" value={metrics.credits.captured} />
+            <Metric label="환불" value={metrics.credits.refunded} tone={metrics.credits.refunded ? "ok" : undefined} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">작업 현황</span>
+          <div className="metric-jobs">
+            <MetricJobRow name="영상 생성" counts={metrics.jobs.generation} />
+            <MetricJobRow name="이미지" counts={metrics.jobs.image} />
+            <MetricJobRow name="내보내기" counts={metrics.jobs.render} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">엔진 시도 결과</span>
+          <div className="metric-row">
+            <Metric label="시도" value={metrics.providerAttempts.total} />
+            <Metric label="성공" value={metrics.providerAttempts.succeeded} tone={metrics.providerAttempts.succeeded ? "ok" : undefined} />
+            <Metric label="실패" value={metrics.providerAttempts.failed} tone={metrics.providerAttempts.failed ? "warn" : undefined} />
+            <Metric label="재시도 가능" value={metrics.providerAttempts.retryableFailures} />
+            <Metric label="대체 권장" value={metrics.providerAttempts.fallbackSuggested} />
+            <Metric label="평균 응답" value={formatAvgLatency(metrics.providerAttempts.avgLatencyMs)} />
+          </div>
+          <p className="hint metrics-note">엔진·모델 이름은 표시하지 않고 시도 결과만 집계합니다.</p>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">미디어 산출물</span>
+          <div className="metric-row">
+            <Metric label="전체" value={metrics.mediaArtifacts.total} />
+            <Metric label="이미지" value={metrics.mediaArtifacts.images} />
+            <Metric label="영상" value={metrics.mediaArtifacts.videos} />
+            <Metric label="외부 연결" value={metrics.mediaArtifacts.external} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -319,7 +445,15 @@ export function StudioApp() {
   // 중복 취소를 막고, 해당 버튼만 "취소 중…"으로 표시한다.
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<RuntimeReadiness | null>(null);
+  const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const toastTimer = useRef<number | null>(null);
+  // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
+  const tickCount = useRef(0);
+
+  // 운영 지표 조회. 실패해도 패널만 숨기고 본 작업 흐름은 막지 않는다(읽기 전용 부가 정보).
+  function loadMetrics() {
+    studioApi.getSystemMetrics().then(setMetrics).catch(() => {});
+  }
 
   const selectedShot = useMemo(() => {
     if (!bundle?.shots.length) return null;
@@ -362,9 +496,14 @@ export function StudioApp() {
 
   useEffect(() => {
     refresh().catch((error) => notify(error.message));
+    loadMetrics();
     const id = window.setInterval(async () => {
       await studioApi.tick();
       await refresh();
+      // 지표는 tick으로 잡 상태가 진행되며 바뀌므로 라이브로 유지하되, 매 틱 호출은 과해서
+      // 약 5틱(~6초)마다 한 번만 갱신한다. 액션 직후에는 run/cancel 경로에서 즉시 갱신한다.
+      tickCount.current += 1;
+      if (tickCount.current % 5 === 0) loadMetrics();
     }, 1200);
     return () => {
       window.clearInterval(id);
@@ -389,6 +528,7 @@ export function StudioApp() {
       await action();
       notify(message);
       await refresh();
+      loadMetrics();
     } catch (error) {
       notify(error instanceof Error ? error.message : "작업 중 오류가 발생했습니다.");
     }
@@ -411,6 +551,7 @@ export function StudioApp() {
       notify("작업을 취소하지 못했습니다. 이미 끝났을 수 있어 화면을 새로고침합니다.");
     } finally {
       await refresh().catch(() => {});
+      loadMetrics();
       setCancelingJobId(null);
     }
   }
@@ -441,6 +582,7 @@ export function StudioApp() {
       }
     } finally {
       await refresh().catch(() => {});
+      loadMetrics();
       setCancelingJobId(null);
     }
   }
@@ -493,6 +635,7 @@ export function StudioApp() {
           {view === "dashboard" ? (
             <Dashboard
               projects={projects}
+              metrics={metrics}
               onNew={() => goToView("new")}
               onImages={() => goToView("images")}
               onOpen={async (projectId) => {
@@ -634,11 +777,13 @@ export function StudioApp() {
 
 function Dashboard({
   projects,
+  metrics,
   onNew,
   onImages,
   onOpen
 }: {
   projects: Project[];
+  metrics: SystemMetrics | null;
   onNew: () => void;
   onImages: () => void;
   onOpen: (projectId: string) => void;
@@ -663,6 +808,7 @@ function Dashboard({
   }
   return (
     <>
+      {metrics ? <SystemMetricsPanel metrics={metrics} /> : null}
       <div className="head">
         <div>
           <h2>이어서 작업하기</h2>
