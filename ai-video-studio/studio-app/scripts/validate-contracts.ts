@@ -245,6 +245,13 @@ function responseJsonSchema(response: unknown) {
   return (response as { content?: Record<string, { schema?: unknown }> }).content?.["application/json"]?.schema || null;
 }
 
+function assertOnlyJsonContent(value: unknown, owner: string) {
+  assert.ok(value && typeof value === "object", `${owner} must be an object`);
+  const content = (value as { content?: unknown }).content;
+  assert.ok(content && typeof content === "object" && !Array.isArray(content), `${owner} must declare content`);
+  assert.deepEqual(Object.keys(content), ["application/json"], `${owner} content must only declare application/json`);
+}
+
 function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[] = []) {
   if (!schema || typeof schema !== "object") return;
   const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; required?: unknown; items?: unknown };
@@ -717,6 +724,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       const requestBody = operation.requestBody as { required?: unknown };
       const requestSchema = requestJsonSchema(operation);
       assert.equal(typeof requestBody.required, "boolean", `openapi path ${pathName} ${method.toUpperCase()} requestBody.required must be boolean`);
+      assertOnlyJsonContent(requestBody, `openapi path ${pathName} ${method.toUpperCase()} requestBody`);
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
       assert.ok(routeSource.includes("readJsonObject("), `request body route ${operation.operationId} missing readJsonObject parser`);
       assert.ok(requestSchema, `openapi path ${pathName} ${method.toUpperCase()} requestBody missing application/json schema`);
@@ -745,6 +753,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (operation.operationId) {
       for (const [code, response] of Object.entries(operation.responses || {})) {
         if (documentedJsonSuccessStatuses.has(code) || documentedJsonErrorStatuses.has(code)) {
+          assertOnlyJsonContent(response, `${operation.operationId} ${code} response`);
           assert.ok(jsonSchema(response), `${operation.operationId} ${code} response must declare an application/json schema`);
         }
         assertClosedObjectSchemas(responseJsonSchema(response), `${operation.operationId || method.toUpperCase()} ${code} response`);
