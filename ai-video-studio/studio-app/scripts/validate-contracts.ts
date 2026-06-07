@@ -71,6 +71,7 @@ assertVerificationChainIsComplete();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
 assertStorageCleanupObjectStorageBoundary();
 assertMockTickProductionBoundary();
+assertProductionAutoTickIsDisabled();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -273,6 +274,20 @@ function assertMockTickProductionBoundary() {
   assert.ok(JSON.stringify(tick503).includes("Mock job ticking is unavailable"), "tickJobs 503 must document mock tick production unavailability");
   assert.ok(studioSource.includes("await studioApi.tick()"), "studio interval must still use the mock tick endpoint for local preview");
   assert.ok(studioSource.includes("Production does not expose the mock tick endpoint."), "studio interval must catch production mock tick failures");
+}
+
+function assertProductionAutoTickIsDisabled() {
+  const mockServiceSource = readFileSync(join(serverDir, "mock-service.ts"), "utf8");
+  const tickStart = mockServiceSource.indexOf("export function tickJobs()");
+  const productionReturn = mockServiceSource.indexOf('process.env.CUTPILOT_RUNTIME_MODE === "production"', tickStart);
+  const firstImageLoop = mockServiceSource.indexOf("for (const job of current.imageJobs)", tickStart);
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  assert.notEqual(tickStart, -1, "mock service must export tickJobs");
+  assert.notEqual(productionReturn, -1, "tickJobs must check production mode");
+  assert.notEqual(firstImageLoop, -1, "tickJobs must still contain the mock image job advancement loop");
+  assert.ok(productionReturn < firstImageLoop, "tickJobs must return before auto-advancing mock jobs in production mode");
+  assert.ok(testMock.includes("scripts/production-auto-tick-boundary.test.ts"), "test:mock must include production auto-tick boundary coverage");
 }
 
 function jsonSchema(response: unknown) {
