@@ -230,6 +230,30 @@ function assertExportedDomainTypesHaveSchemas() {
   }
 }
 
+function parseStringLiteralUnionTypes(source: string) {
+  const unions = new Map<string, string[]>();
+  for (const [, typeName, expression] of source.matchAll(/^export type (\w+) = ([^;]+);/gm)) {
+    const values = expression.split("|").map((part) => part.trim());
+    if (!values.length || !values.every((value) => /^"[^"]*"$/.test(value))) continue;
+    unions.set(
+      typeName,
+      values.map((value) => value.slice(1, -1))
+    );
+  }
+  return unions;
+}
+
+function assertDomainStringLiteralUnionsMatchSchemaEnums() {
+  const unions = parseStringLiteralUnionTypes(readFileSync(domainTypesPath, "utf8"));
+  for (const [typeName, values] of unions) {
+    const schema = domainSchema.$defs[typeName] as { type?: unknown; enum?: unknown };
+    assert.ok(schema, `domain schema missing exported TypeScript type ${typeName}`);
+    assert.equal(schema.type, "string", `domain schema ${typeName} must use type string for TypeScript string literal union`);
+    assert.ok(Array.isArray(schema.enum), `domain schema ${typeName} must declare an enum for TypeScript string literal union`);
+    assert.deepEqual(schema.enum, values, `domain schema ${typeName} enum must match TypeScript string literal union`);
+  }
+}
+
 function assertKnownDomainSchemaRefs(value: unknown, path: string[] = []) {
   if (!value || typeof value !== "object") return;
   const ref = (value as { $ref?: unknown }).$ref;
@@ -273,6 +297,7 @@ assertKnownLocalSchemaRefs(domainSchema, domainSchema, ["domainSchema"]);
 assertUniqueEnumValues(domainSchema, "domain schema", ["domainSchema"]);
 assertUniqueEnumValues(openApi, "openapi", ["openapi"]);
 assertExportedDomainTypesHaveSchemas();
+assertDomainStringLiteralUnionsMatchSchemaEnums();
 
 for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
   assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
