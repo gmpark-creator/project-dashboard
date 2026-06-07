@@ -140,6 +140,13 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       : production && !liveObjectStorageDeleteImplemented
         ? `Object storage provider ${objectStorageProvider} is configured, but live object deletion is not yet implemented.`
         : "Mock object storage is active for local cleanup.";
+  const mockPersistenceDisabled = process.env.CUTPILOT_MOCK_PERSIST === "0";
+  const mockPersistenceStatus: RuntimeReadiness["checks"][number]["status"] = production ? "pass" : mockPersistenceDisabled ? "warn" : "pass";
+  const mockPersistenceDetail = production
+    ? "File-backed mock state is disabled in production mode."
+    : mockPersistenceDisabled
+      ? "File-backed mock state is disabled."
+      : "File-backed mock state is enabled by default.";
 
   const checks: RuntimeReadiness["checks"] = [
     check(
@@ -151,8 +158,8 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     check(
       "mock_persistence",
       "Mock persistence",
-      process.env.CUTPILOT_MOCK_PERSIST === "0" ? "warn" : "pass",
-      process.env.CUTPILOT_MOCK_PERSIST === "0" ? "File-backed mock state is disabled." : "File-backed mock state is enabled by default."
+      mockPersistenceStatus,
+      mockPersistenceDetail
     ),
     check(
       "provider_credentials",

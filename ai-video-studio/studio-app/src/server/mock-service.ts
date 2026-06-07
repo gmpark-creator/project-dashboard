@@ -96,6 +96,7 @@ function mockPosterUrl(id: string, label: string) {
 }
 
 function shouldPersistMockState() {
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") return false;
   return process.env.CUTPILOT_MOCK_PERSIST !== "0";
 }
 
