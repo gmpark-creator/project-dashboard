@@ -1,8 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { GenerationPromptPackage, ProviderRouteTarget, ProviderRoutingDecision, Shot, Tier } from "../domain/types";
-
-export type ProviderHealthStatus = "healthy" | "degraded" | "down";
+import type { GenerationPromptPackage, ProviderHealthSnapshot, ProviderHealthStatus, ProviderRouteTarget, ProviderRoutingDecision, Shot, Tier } from "../domain/types";
 
 type RoutingRule = {
   id: string;
@@ -56,6 +54,34 @@ export function setProviderHealth(target: ProviderRouteTarget, status: ProviderH
 
 export function resetProviderHealth() {
   providerHealthOverrides.clear();
+}
+
+export function getProviderHealthSnapshot(): ProviderHealthSnapshot {
+  const targets = capabilities.providers.flatMap((provider) =>
+    provider.models.map((model) => {
+      const health = providerHealthOverrides.get(routeKey({ provider: provider.provider, model: model.id }));
+      return {
+        provider: provider.provider,
+        model: model.id,
+        status: health?.status || "healthy",
+        reason: health?.reason || null,
+        checkedAt: health?.checkedAt || null,
+        input: model.input || ["text"],
+        supportsAudio: typeof model.supportsAudio === "undefined" ? null : model.supportsAudio
+      };
+    })
+  );
+
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      total: targets.length,
+      healthy: targets.filter((target) => target.status === "healthy").length,
+      degraded: targets.filter((target) => target.status === "degraded").length,
+      down: targets.filter((target) => target.status === "down").length
+    },
+    targets
+  };
 }
 
 function findModel(target: ProviderRouteTarget) {

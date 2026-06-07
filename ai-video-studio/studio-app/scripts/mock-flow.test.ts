@@ -37,7 +37,7 @@ import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocat
 import { getWorkerCompletionSnapshot } from "../src/server/worker-completions";
 import { getWorkerDispatchSnapshot } from "../src/server/worker-dispatch";
 import { buildStorageCleanupPlan, getStorageCleanupPlan } from "../src/server/storage-cleanup";
-import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
+import { chooseProviderRoute, getProviderHealthSnapshot, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
 import { requireSystemAccess } from "../src/server/system-access";
 
@@ -323,7 +323,17 @@ assert.deepEqual(
   ["luma:ray-flash-2", "runway:gen4_turbo", "google-vertex:veo-3.1-fast-generate-001"],
   "fast image-to-video takes should split across configured provider candidates"
 );
+let providerHealth = getProviderHealthSnapshot();
+assert.ok(providerHealth.summary.total > 0, "provider health snapshot should include configured provider models");
+assert.equal(providerHealth.summary.down, 0, "provider health should default to no down targets");
+assert.equal(providerHealth.summary.healthy, providerHealth.summary.total, "provider health should default all targets to healthy");
 setProviderHealth({ provider: "luma", model: "ray-flash-2" }, "down", "synthetic outage");
+providerHealth = getProviderHealthSnapshot();
+const lumaHealth = providerHealth.targets.find((target) => target.provider === "luma" && target.model === "ray-flash-2");
+assert.equal(lumaHealth?.status, "down", "provider health snapshot should expose down overrides");
+assert.equal(lumaHealth?.reason, "synthetic outage", "provider health snapshot should expose down reasons");
+assert.ok(lumaHealth?.checkedAt, "provider health snapshot should expose override check time");
+assert.equal(providerHealth.summary.down, 1, "provider health summary should count down targets");
 const reroutedForHealth = chooseProviderRoute(referencedShot, referencedShotJob.promptPackage, 0);
 assert.equal(reroutedForHealth.selected.provider, "runway", "down provider candidates should be skipped before route selection");
 assert.ok(
@@ -341,6 +351,8 @@ assert.equal(
   "all configured image-to-video candidates should be rejected for provider health before mock fallback"
 );
 resetProviderHealth();
+providerHealth = getProviderHealthSnapshot();
+assert.equal(providerHealth.summary.down, 0, "reset provider health should clear down targets");
 assert.deepEqual(
   referencedShotJob.promptPackage.routingHints.characterReferenceAssetIds,
   [externalAsset.id],

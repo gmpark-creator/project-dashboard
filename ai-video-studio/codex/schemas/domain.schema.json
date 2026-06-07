@@ -720,6 +720,44 @@
         "model": { "type": "string" }
       }
     },
+    "ProviderHealthStatus": {
+      "type": "string",
+      "enum": ["healthy", "degraded", "down"]
+    },
+    "ProviderHealthTarget": {
+      "type": "object",
+      "required": ["provider", "model", "status", "reason", "checkedAt", "input", "supportsAudio"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "model": { "type": "string" },
+        "status": { "$ref": "#/$defs/ProviderHealthStatus" },
+        "reason": { "type": ["string", "null"] },
+        "checkedAt": { "type": ["string", "null"], "format": "date-time" },
+        "input": { "type": "array", "items": { "type": "string" } },
+        "supportsAudio": { "type": ["boolean", "string", "null"] }
+      }
+    },
+    "ProviderHealthSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "targets"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "healthy", "degraded", "down"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "healthy": { "type": "integer", "minimum": 0 },
+            "degraded": { "type": "integer", "minimum": 0 },
+            "down": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "targets": { "type": "array", "items": { "$ref": "#/$defs/ProviderHealthTarget" } }
+      }
+    },
     "ProviderRoutingDecision": {
       "type": "object",
       "required": ["ruleId", "selected", "candidates", "rejected", "splitTakeIndex", "fallbackEnabled", "hiddenFromUser"],
@@ -1365,6 +1403,7 @@
     "shot": { "$ref": "#/$defs/Shot" },
     "take": { "$ref": "#/$defs/Take" },
     "generationJob": { "$ref": "#/$defs/GenerationJob" },
+    "providerHealthSnapshot": { "$ref": "#/$defs/ProviderHealthSnapshot" },
     "imageWorkerInvocation": { "$ref": "#/$defs/ImageWorkerInvocation" },
     "providerInvocation": { "$ref": "#/$defs/ProviderInvocation" },
     "renderWorkerInvocation": { "$ref": "#/$defs/RenderWorkerInvocation" },

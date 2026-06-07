@@ -378,6 +378,29 @@ export type ProviderRouteTarget = {
   model: string;
 };
 
+export type ProviderHealthStatus = "healthy" | "degraded" | "down";
+
+export type ProviderHealthTarget = {
+  provider: string;
+  model: string;
+  status: ProviderHealthStatus;
+  reason: string | null;
+  checkedAt: string | null;
+  input: string[];
+  supportsAudio: boolean | string | null;
+};
+
+export type ProviderHealthSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    healthy: number;
+    degraded: number;
+    down: number;
+  };
+  targets: ProviderHealthTarget[];
+};
+
 export type ProviderRoutingDecision = {
   ruleId: string;
   selected: ProviderRouteTarget;

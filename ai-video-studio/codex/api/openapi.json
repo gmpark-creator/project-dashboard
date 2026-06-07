@@ -763,6 +763,23 @@
         }
       }
     },
+    "/system/provider-health": {
+      "get": {
+        "operationId": "getProviderHealthSnapshot",
+        "responses": {
+          "200": {
+            "description": "Read-only provider/model health snapshot for routing operations",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ProviderHealthSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/media-artifacts": {
       "get": {
         "operationId": "getMediaArtifactInventory",
