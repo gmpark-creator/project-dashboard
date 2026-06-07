@@ -271,7 +271,7 @@ function assertStorageCleanupObjectStorageBoundary() {
   assert.ok(routeSource.includes('apiError("OBJECT_STORAGE_UNAVAILABLE"'), "storage cleanup route must return the object storage unavailable code");
   assert.ok(JSON.stringify(executeCleanup503).includes("object storage deletion is unavailable"), "executeStorageCleanup 503 must document object storage unavailability");
   assert.ok(readinessSource.includes("liveObjectStorageDeleteImplemented = true"), "readiness must expose the implemented live object storage delete adapter");
-  assert.ok(readinessSource.includes("liveObjectStorageIngestImplemented = false"), "readiness must expose the missing live object storage ingest adapter");
+  assert.ok(readinessSource.includes("liveObjectStorageIngestImplemented = true"), "readiness must expose the implemented live object storage ingest adapter");
   assert.ok((packageJson.scripts?.["test:mock"] || "").includes("scripts/object-storage-ingest-boundary.test.ts"), "test:mock must include object storage ingest boundary coverage");
   assert.ok(readinessSource.includes("objectStorageStatus"), "readiness must derive object storage status from the adapter boundary");
 }

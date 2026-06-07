@@ -94,8 +94,8 @@ async function main() {
 
     const readiness = getRuntimeReadiness();
     const objectStorageCheck = readiness.checks.find((check) => check.id === "object_storage");
-    assert.equal(objectStorageCheck?.status, "fail", "production readiness should fail until live object ingest is implemented");
-    assert.ok(objectStorageCheck?.detail.includes("live object ingest adapter"), "production readiness should describe the remaining live ingest adapter gap");
+    assert.equal(objectStorageCheck?.status, "pass", "production readiness should pass object storage when R2 env is valid");
+    assert.ok(objectStorageCheck?.detail.includes("live ingest and deletion"), "production readiness should describe live object storage support");
 
     let deleteCalls = 0;
     globalThis.fetch = (async (url, init) => {

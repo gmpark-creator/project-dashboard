@@ -65,9 +65,9 @@ function amzTimestamp(date = new Date()) {
   };
 }
 
-function r2Env(name: "R2_ACCOUNT_ID" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY" | "R2_BUCKET") {
+function r2Env(name: "R2_ACCOUNT_ID" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY" | "R2_BUCKET", operation: "delete" | "ingest" = "delete") {
   const value = process.env[name]?.trim();
-  if (!value) throw new ObjectStorageUnavailableError("r2", "", "delete");
+  if (!value) throw new ObjectStorageUnavailableError("r2", "", operation);
   return value;
 }
 
@@ -75,16 +75,16 @@ function encodeStoragePathPart(value: string) {
   return encodeURIComponent(value).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
 }
 
-function normalizedStorageKey(storageKey: string) {
+function normalizedStorageKey(storageKey: string, operation: "delete" | "ingest" = "delete") {
   const key = storageKey.trim().replace(/^\/+/, "");
-  if (!key) throw new ObjectStorageUnavailableError("r2", storageKey, "delete");
+  if (!key) throw new ObjectStorageUnavailableError("r2", storageKey, operation);
   return key;
 }
 
-function r2Url(storageKey: string) {
-  const accountId = r2Env("R2_ACCOUNT_ID");
-  const bucket = r2Env("R2_BUCKET");
-  const key = normalizedStorageKey(storageKey)
+function r2Url(storageKey: string, operation: "delete" | "ingest" = "delete") {
+  const accountId = r2Env("R2_ACCOUNT_ID", operation);
+  const bucket = r2Env("R2_BUCKET", operation);
+  const key = normalizedStorageKey(storageKey, operation)
     .split("/")
     .map(encodeStoragePathPart)
     .join("/");
@@ -98,18 +98,32 @@ function r2SigningKey(secretAccessKey: string, date: string) {
   return hmac(kService, "aws4_request");
 }
 
-function signedR2Headers(method: "DELETE", url: URL) {
-  const accessKeyId = r2Env("R2_ACCESS_KEY_ID");
-  const secretAccessKey = r2Env("R2_SECRET_ACCESS_KEY");
+function signedR2Headers(
+  method: "DELETE" | "PUT",
+  url: URL,
+  payload: string | Buffer,
+  operation: "delete" | "ingest",
+  headers: Record<string, string> = {}
+) {
+  const accessKeyId = r2Env("R2_ACCESS_KEY_ID", operation);
+  const secretAccessKey = r2Env("R2_SECRET_ACCESS_KEY", operation);
   const { date, dateTime } = amzTimestamp();
-  const payloadHash = sha256Hex("");
-  const canonicalHeaders = `host:${url.host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${dateTime}\n`;
-  const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+  const payloadHash = sha256Hex(payload);
+  const signingHeaders: Record<string, string> = {
+    ...Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value])),
+    host: url.host,
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": dateTime
+  };
+  const signedHeaderNames = Object.keys(signingHeaders).sort();
+  const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${signingHeaders[name]}`).join("\n") + "\n";
+  const signedHeaders = signedHeaderNames.join(";");
   const canonicalRequest = [method, url.pathname, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
   const credentialScope = `${date}/auto/s3/aws4_request`;
   const stringToSign = ["AWS4-HMAC-SHA256", dateTime, credentialScope, sha256Hex(canonicalRequest)].join("\n");
   const signature = hmacHex(r2SigningKey(secretAccessKey, date), stringToSign);
   return {
+    ...headers,
     Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
     "x-amz-content-sha256": payloadHash,
     "x-amz-date": dateTime
@@ -120,10 +134,32 @@ async function deleteR2Object(storageKey: string): Promise<StoredObjectDeleteRes
   const url = r2Url(storageKey);
   const response = await fetch(url, {
     method: "DELETE",
-    headers: signedR2Headers("DELETE", url)
+    headers: signedR2Headers("DELETE", url, "", "delete")
   });
   if (!response.ok) throw new ObjectStorageUnavailableError("r2", storageKey);
   return { provider: "r2", storageKey, deleted: true };
+}
+
+async function ingestR2Object(input: StoredObjectIngestInput): Promise<StoredObjectIngestResult> {
+  const source = await fetch(input.sourceUrl);
+  if (!source.ok) throw new ObjectStorageUnavailableError("r2", input.storageKey, "ingest");
+  const body = Buffer.from(await source.arrayBuffer());
+  const url = r2Url(input.storageKey, "ingest");
+  const headers = { "Content-Type": input.contentType };
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: signedR2Headers("PUT", url, body, "ingest", headers),
+    body
+  });
+  if (!response.ok) throw new ObjectStorageUnavailableError("r2", input.storageKey, "ingest");
+  return {
+    provider: "r2",
+    storageKey: input.storageKey,
+    url: url.toString(),
+    contentType: input.contentType,
+    bytes: input.bytes ?? body.byteLength,
+    copied: true
+  };
 }
 
 export async function deleteStoredObject(storageKey: string): Promise<StoredObjectDeleteResult> {
@@ -136,7 +172,7 @@ export async function deleteStoredObject(storageKey: string): Promise<StoredObje
   throw new ObjectStorageUnavailableError(provider, storageKey);
 }
 
-export function ingestStoredObject(input: StoredObjectIngestInput): StoredObjectIngestResult {
+export async function ingestStoredObject(input: StoredObjectIngestInput): Promise<StoredObjectIngestResult> {
   const provider = configuredObjectStorageProvider();
   const production = process.env.CUTPILOT_RUNTIME_MODE === "production";
   if (provider === "mock" && !production) {
@@ -149,5 +185,6 @@ export function ingestStoredObject(input: StoredObjectIngestInput): StoredObject
       copied: true
     };
   }
+  if (provider === "r2") return ingestR2Object(input);
   throw new ObjectStorageUnavailableError(provider, input.storageKey, "ingest");
 }
