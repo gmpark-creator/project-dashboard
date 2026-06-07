@@ -5,6 +5,8 @@ import { join } from "node:path";
 const root = join(process.cwd(), "..");
 const codexDir = join(root, "codex");
 const appApiDir = join(process.cwd(), "app", "api");
+const appDir = join(process.cwd(), "app");
+const featureDir = join(process.cwd(), "src", "features");
 const httpMethods = ["get", "post", "put", "patch", "delete"] as const;
 
 function readJson<T>(path: string): T {
@@ -34,6 +36,7 @@ const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
 const openApiPath = join(codexDir, "api", "openapi.json");
 assertNoDuplicateOpenApiResponseCodes(openApiPath);
+assertUserUiHidesProviderNames();
 const openApi = readJson<{ paths: Record<string, OpenApiPathItem> }>(openApiPath);
 
 function countChar(input: string, char: string) {
@@ -86,6 +89,25 @@ function exportedRouteMethods(routeFile: string) {
   return new Set(
     httpMethods.filter((method) => new RegExp(`export\\s+(async\\s+)?function\\s+${method.toUpperCase()}\\b`).test(source))
   );
+}
+
+function sourceFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return sourceFiles(path);
+    return /\.(ts|tsx|css|mjs)$/.test(entry.name) ? [path] : [];
+  });
+}
+
+function assertUserUiHidesProviderNames() {
+  const bannedTerms = ["Runway", "Veo", "VEO", "Luma", "Vertex", "Firefly", "Gen-4", "Gen4", "gen4", "ray-2", "veo-3", "veo3"];
+  for (const file of [...sourceFiles(appDir), ...sourceFiles(featureDir)]) {
+    const source = readFileSync(file, "utf8");
+    for (const term of bannedTerms) {
+      assert.ok(!source.includes(term), `user UI source ${file} exposes provider/model term ${term}`);
+    }
+  }
 }
 
 const knownModels = new Set<string>();
