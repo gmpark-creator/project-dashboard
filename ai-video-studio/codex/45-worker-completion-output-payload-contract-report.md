@@ -12,12 +12,13 @@ Worker lease completion could mark jobs as succeeded or failed, but it could not
 - Image worker completion now preserves supplied image and thumbnail URLs.
 - Provider generation completion now preserves supplied `videoUrl` and `posterUrl`.
 - Render completion now preserves supplied `renderOutputUrl` or `videoUrl`, plus optional `shareUrl`.
+- Added `requireOutputs` so production worker callbacks can reject missing or invalid successful output payloads before mutating jobs.
 - Extended JSON Schema and `validate-contracts.ts`.
 - Extended `mock-flow.test.ts` to verify image worker output URLs are retained in completion receipts.
 
 ## Notes
 
-- Output payloads are optional; existing mock-only completion behavior still works.
+- Output payloads are optional unless `requireOutputs=true`; existing mock-only completion behavior still works.
 - This is still mock-backed and does not validate object-store ownership or signed URL provenance.
 - Production workers can now use the completion endpoint shape without relying on generated mock URLs.
 

@@ -590,6 +590,7 @@
       "properties": {
         "token": { "type": "string" },
         "status": { "type": "string", "enum": ["succeeded", "failed"] },
+        "requireOutputs": { "type": "boolean" },
         "error": {
           "type": "object",
           "additionalProperties": false,
@@ -622,7 +623,7 @@
             { "type": "null" }
           ]
         },
-        "reason": { "type": "string", "enum": ["completed", "not_found", "token_mismatch", "not_active", "job_not_active", "unsupported_status"] }
+        "reason": { "type": "string", "enum": ["completed", "not_found", "token_mismatch", "not_active", "job_not_active", "unsupported_status", "invalid_outputs"] }
       }
     },
     "WorkerLeaseSnapshot": {

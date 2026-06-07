@@ -736,6 +736,7 @@ export type WorkerLeaseCompletionInput = {
   status: "succeeded" | "failed";
   error?: Partial<ErrorResponse>;
   outputs?: WorkerLeaseCompletionOutput;
+  requireOutputs?: boolean;
 };
 
 export type WorkerLeaseCompletionResult = {
@@ -743,7 +744,7 @@ export type WorkerLeaseCompletionResult = {
   completed: boolean;
   lease: WorkerLease | null;
   receipt: WorkerCompletionReceipt | null;
-  reason: "completed" | "not_found" | "token_mismatch" | "not_active" | "job_not_active" | "unsupported_status";
+  reason: "completed" | "not_found" | "token_mismatch" | "not_active" | "job_not_active" | "unsupported_status" | "invalid_outputs";
 };
 
 export type WorkerLeaseSnapshot = {

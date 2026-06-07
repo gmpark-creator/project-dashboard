@@ -11,8 +11,9 @@ export async function POST(request: Request, context: { params: Promise<{ leaseI
     token: typeof body.token === "string" ? body.token : undefined,
     status: body.status,
     error: body.error,
-    outputs: body.outputs
+    outputs: body.outputs,
+    requireOutputs: body.requireOutputs === true
   });
-  const status = result.completed ? 200 : result.reason === "not_found" ? 404 : 409;
+  const status = result.completed ? 200 : result.reason === "not_found" ? 404 : result.reason === "invalid_outputs" ? 422 : 409;
   return NextResponse.json(result, { status });
 }

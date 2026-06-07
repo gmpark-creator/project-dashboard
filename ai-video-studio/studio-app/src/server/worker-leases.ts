@@ -43,6 +43,36 @@ function normalizeRequest(input: Partial<WorkerLeaseRequest> = {}): WorkerLeaseR
   };
 }
 
+function validUrl(value: string | undefined) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" || parsed.protocol === "data:" || parsed.protocol === "mock:";
+  } catch {
+    return false;
+  }
+}
+
+function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>) {
+  const output = input.outputs;
+  if (!output) return false;
+  if (output.videoUrl && !validUrl(output.videoUrl)) return true;
+  if (output.posterUrl && !validUrl(output.posterUrl)) return true;
+  if (output.renderOutputUrl && !validUrl(output.renderOutputUrl)) return true;
+  if (output.shareUrl && !validUrl(output.shareUrl)) return true;
+  return Boolean(output.imageVariants?.some((variant) => !validUrl(variant.imageUrl) || (variant.thumbUrl ? !validUrl(variant.thumbUrl) : false)));
+}
+
+function validRequiredOutput(kind: WorkerDispatchKind, input: Partial<WorkerLeaseCompletionInput>) {
+  if (hasInvalidProvidedOutput(input)) return false;
+  if (!input.requireOutputs) return true;
+  const output = input.outputs;
+  if (!output) return false;
+  if (kind === "image_generation") return Boolean(output.imageVariants?.length);
+  if (kind === "provider_generation") return validUrl(output.videoUrl);
+  return validUrl(output.renderOutputUrl) || validUrl(output.videoUrl);
+}
+
 export function createWorkerLease(input: Partial<WorkerLeaseRequest> = {}): WorkerLeaseResult {
   const current = getMutableMockState();
   expireLeases(current);
@@ -141,6 +171,10 @@ export function completeWorkerLease(leaseId: string, input: Partial<WorkerLeaseC
   if (status !== "succeeded" && status !== "failed") {
     saveMockState(current);
     return { leaseId, completed: false, lease, receipt: null, reason: "unsupported_status" };
+  }
+  if (status === "succeeded" && !validRequiredOutput(lease.kind, input)) {
+    saveMockState(current);
+    return { leaseId, completed: false, lease, receipt: null, reason: "invalid_outputs" };
   }
   const completion = completeLeasedWorkerJob(current, lease, { token: input.token, status, error: input.error, outputs: input.outputs });
   if (completion !== "completed") {

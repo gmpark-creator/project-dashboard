@@ -184,11 +184,15 @@ const outputLease = createWorkerLease({ workerId: "completion-worker-output", ki
 assert.equal(outputLease.reason, "leased", "worker output setup should lease an image job");
 assert.equal(outputLease.lease?.jobId, outputImageJob.job.id, "worker output setup should target the output image job");
 assert.ok(outputLease.lease, "worker output lease should exist");
+const missingRequiredOutput = completeWorkerLease(outputLease.lease.id, { token: outputLease.lease.token, status: "succeeded", requireOutputs: true });
+assert.equal(missingRequiredOutput.completed, false, "worker completion should reject missing required output payloads");
+assert.equal(missingRequiredOutput.reason, "invalid_outputs", "worker completion should report invalid output payloads before mutating jobs");
 const workerImageOutputUrl = "https://assets.cutpilot.local/worker-output-image.png";
 const workerThumbOutputUrl = "https://assets.cutpilot.local/worker-output-thumb.jpg";
 const completedOutputJob = completeWorkerLease(outputLease.lease.id, {
   token: outputLease.lease.token,
   status: "succeeded",
+  requireOutputs: true,
   outputs: {
     imageVariants: [{ variantId: outputImageJob.job.variants[0].id, imageUrl: workerImageOutputUrl, thumbUrl: workerThumbOutputUrl }]
   }
