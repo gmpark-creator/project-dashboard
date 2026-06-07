@@ -719,10 +719,23 @@ export type WorkerLeaseRenewResult = {
   reason: "renewed" | "not_found" | "token_mismatch" | "not_active";
 };
 
+export type WorkerLeaseCompletionOutput = {
+  videoUrl?: string;
+  posterUrl?: string;
+  renderOutputUrl?: string;
+  shareUrl?: string;
+  imageVariants?: Array<{
+    variantId?: string;
+    imageUrl: string;
+    thumbUrl?: string;
+  }>;
+};
+
 export type WorkerLeaseCompletionInput = {
   token: string;
   status: "succeeded" | "failed";
   error?: Partial<ErrorResponse>;
+  outputs?: WorkerLeaseCompletionOutput;
 };
 
 export type WorkerLeaseCompletionResult = {

@@ -912,6 +912,7 @@ function makeImageAsset(
     label: string;
     prompt: string;
     url?: string;
+    thumbUrl?: string;
     aspect: Aspect;
     rights: ImageAsset["rights"];
     sourceJobId?: string | null;
@@ -927,7 +928,7 @@ function makeImageAsset(
     label: input.label,
     prompt: input.prompt,
     url: input.url || `mock://image/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.png`,
-    thumbUrl: `mock://thumb/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.jpg`,
+    thumbUrl: input.thumbUrl || `mock://thumb/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.jpg`,
     aspect: input.aspect,
     width: size.width,
     height: size.height,
@@ -1157,10 +1158,10 @@ function makeGenerationJob(
   return job;
 }
 
-function completeTake(current: StudioState, take: Take, shot: Shot, sourceJobId: string) {
+function completeTake(current: StudioState, take: Take, shot: Shot, sourceJobId: string, output?: WorkerLeaseCompletionInput["outputs"]) {
   take.status = "done";
-  take.videoUrl = mockVideoUrl(take.id);
-  take.posterUrl = mockPosterUrl(take.id, `Shot ${shot.order + 1} option ${take.label}`);
+  take.videoUrl = output?.videoUrl || mockVideoUrl(take.id);
+  take.posterUrl = output?.posterUrl || mockPosterUrl(take.id, `Shot ${shot.order + 1} option ${take.label}`);
   const motion = shot.order === 4 || shot.order === 8 ? 2 : 4 + ((shot.order + take.label.length) % 2);
   take.metrics = {
     fidelity: 4,
@@ -1581,7 +1582,7 @@ function workerError(input: WorkerLeaseCompletionInput, fallbackCode: string, fa
   };
 }
 
-function completeImageWorkerJob(current: StudioState, job: ImageJob) {
+function completeImageWorkerJob(current: StudioState, job: ImageJob, output?: WorkerLeaseCompletionInput["outputs"]) {
   job.status = "done";
   job.progress = 1;
   job.stage = "done";
@@ -1590,12 +1591,15 @@ function completeImageWorkerJob(current: StudioState, job: ImageJob) {
   job.updatedAt = now();
   job.variants = job.variants.map((variant, index) => {
     if (variant.assetId) return { ...variant, status: "done" };
+    const outputVariant = output?.imageVariants?.find((item) => item.variantId === variant.id) || output?.imageVariants?.[index];
     const asset = makeImageAsset(current, {
       projectId: job.projectId,
       role: job.role,
       source: "image_maker",
       label: `${job.purpose} ${variant.label}`,
       prompt: `${job.prompt} / ${job.style}`,
+      url: outputVariant?.imageUrl,
+      thumbUrl: outputVariant?.thumbUrl,
       aspect: job.aspect,
       sourceJobId: job.id,
       rights: {
@@ -1626,7 +1630,7 @@ function failImageWorkerJob(current: StudioState, job: ImageJob, error: ErrorRes
   refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants failed by worker and were refunded" });
 }
 
-function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, timestamp = Date.now()) {
+function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, timestamp = Date.now(), output?: WorkerLeaseCompletionInput["outputs"]) {
   const take = current.takes.find((item) => item.id === job.takeId);
   const shot = current.shots.find((item) => item.id === job.shotId);
   job.status = "done";
@@ -1636,7 +1640,7 @@ function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, t
   job.error = null;
   job.updatedAt = now();
   finishProviderAttempt(job, "succeeded", null, timestamp);
-  if (take && shot) completeTake(current, take, shot, job.id);
+  if (take && shot) completeTake(current, take, shot, job.id, output);
   if (shot) {
     const doneTakes = current.takes.filter((item) => item.shotId === shot.id && item.status === "done");
     shot.status = "reviewing";
@@ -1696,15 +1700,15 @@ function failGenerationWorkerJob(current: StudioState, job: GenerationJob, error
   });
 }
 
-function completeRenderWorkerJob(current: StudioState, job: RenderJob) {
+function completeRenderWorkerJob(current: StudioState, job: RenderJob, output?: WorkerLeaseCompletionInput["outputs"]) {
   job.status = "done";
   job.progress = 1;
   job.stage = "done";
   job.etaSec = 0;
   job.error = null;
   job.updatedAt = now();
-  job.outputUrl = mockVideoUrl(job.id);
-  job.shareUrl = mockShareUrl(job.id);
+  job.outputUrl = output?.renderOutputUrl || output?.videoUrl || mockVideoUrl(job.id);
+  job.shareUrl = output?.shareUrl || mockShareUrl(job.id);
   recordRenderArtifact(current, job);
   captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed by worker` });
   const project = current.projects.find((item) => item.id === job.projectId);
@@ -1734,21 +1738,21 @@ export function completeLeasedWorkerJob(current: StudioState, lease: WorkerLease
   if (lease.kind === "image_generation") {
     const job = current.imageJobs.find((item) => item.id === lease.jobId);
     if (!job || !isActiveJob(job.status)) return "job_not_active";
-    if (input.status === "succeeded") completeImageWorkerJob(current, job);
+    if (input.status === "succeeded") completeImageWorkerJob(current, job, input.outputs);
     else failImageWorkerJob(current, job, workerError(input, "IMAGE_WORKER_FAILED", "이미지 생성 작업이 실패했습니다."));
     return "completed";
   }
   if (lease.kind === "provider_generation") {
     const job = current.generationJobs.find((item) => item.id === lease.jobId);
     if (!job || !isActiveJob(job.status)) return "job_not_active";
-    if (input.status === "succeeded") completeGenerationWorkerJob(current, job, timestamp);
+    if (input.status === "succeeded") completeGenerationWorkerJob(current, job, timestamp, input.outputs);
     else failGenerationWorkerJob(current, job, workerError(input, "PROVIDER_WORKER_FAILED", "영상 생성 작업이 실패했습니다."), timestamp);
     return "completed";
   }
   if (lease.kind === "render") {
     const job = current.renderJobs.find((item) => item.id === lease.jobId);
     if (!job || !isActiveJob(job.status)) return "job_not_active";
-    if (input.status === "succeeded") completeRenderWorkerJob(current, job);
+    if (input.status === "succeeded") completeRenderWorkerJob(current, job, input.outputs);
     else failRenderWorkerJob(current, job, workerError(input, "RENDER_WORKER_FAILED", "렌더 작업이 실패했습니다."));
     return "completed";
   }

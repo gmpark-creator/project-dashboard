@@ -171,6 +171,32 @@ const duplicateCompletion = completeWorkerLease(completionLease.lease.id, { toke
 assert.equal(duplicateCompletion.completed, false, "worker completion should not re-complete released leases");
 assert.equal(duplicateCompletion.reason, "not_active", "worker completion should report inactive released leases");
 
+const outputImageJob = createImageJob({
+  projectId: workerCompletionProject.id,
+  prompt: "Worker output payload product image",
+  purpose: "product",
+  role: "product",
+  aspect: "9:16",
+  style: "clean",
+  count: 1
+});
+const outputLease = createWorkerLease({ workerId: "completion-worker-output", kind: "image_generation", ttlSec: 30 });
+assert.equal(outputLease.reason, "leased", "worker output setup should lease an image job");
+assert.equal(outputLease.lease?.jobId, outputImageJob.job.id, "worker output setup should target the output image job");
+assert.ok(outputLease.lease, "worker output lease should exist");
+const workerImageOutputUrl = "https://assets.cutpilot.local/worker-output-image.png";
+const workerThumbOutputUrl = "https://assets.cutpilot.local/worker-output-thumb.jpg";
+const completedOutputJob = completeWorkerLease(outputLease.lease.id, {
+  token: outputLease.lease.token,
+  status: "succeeded",
+  outputs: {
+    imageVariants: [{ variantId: outputImageJob.job.variants[0].id, imageUrl: workerImageOutputUrl, thumbUrl: workerThumbOutputUrl }]
+  }
+});
+assert.equal(completedOutputJob.completed, true, "worker completion should accept production-shaped output payloads");
+assert.ok(completedOutputJob.receipt?.artifacts.some((artifact) => artifact.url === workerImageOutputUrl), "worker completion should preserve supplied image output URLs");
+assert.ok(completedOutputJob.receipt?.artifacts.some((artifact) => artifact.url === workerThumbOutputUrl), "worker completion should preserve supplied thumbnail output URLs");
+
 const retryImageJob = createImageJob({
   projectId: workerCompletionProject.id,
   prompt: "Worker-failed retryable product image",

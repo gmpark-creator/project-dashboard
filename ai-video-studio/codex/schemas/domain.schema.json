@@ -560,6 +560,29 @@
         "reason": { "type": "string", "enum": ["renewed", "not_found", "token_mismatch", "not_active"] }
       }
     },
+    "WorkerLeaseCompletionOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "videoUrl": { "type": "string", "format": "uri" },
+        "posterUrl": { "type": "string" },
+        "renderOutputUrl": { "type": "string", "format": "uri" },
+        "shareUrl": { "type": "string", "format": "uri" },
+        "imageVariants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["imageUrl"],
+            "additionalProperties": false,
+            "properties": {
+              "variantId": { "type": "string", "pattern": "^ivar_" },
+              "imageUrl": { "type": "string", "format": "uri" },
+              "thumbUrl": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
     "WorkerLeaseCompletionInput": {
       "type": "object",
       "required": ["token", "status"],
@@ -576,7 +599,8 @@
             "retryable": { "type": "boolean" },
             "fallbackSuggested": { "type": "boolean" }
           }
-        }
+        },
+        "outputs": { "$ref": "#/$defs/WorkerLeaseCompletionOutput" }
       }
     },
     "WorkerLeaseCompletionResult": {

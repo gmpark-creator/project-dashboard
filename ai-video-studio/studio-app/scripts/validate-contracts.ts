@@ -75,6 +75,7 @@ for (const defName of [
   "WorkerLeaseResult",
   "WorkerLeaseReleaseResult",
   "WorkerLeaseRenewResult",
+  "WorkerLeaseCompletionOutput",
   "WorkerLeaseCompletionInput",
   "WorkerLeaseCompletionResult",
   "WorkerLeaseSnapshot",

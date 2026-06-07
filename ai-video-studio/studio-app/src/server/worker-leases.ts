@@ -142,7 +142,7 @@ export function completeWorkerLease(leaseId: string, input: Partial<WorkerLeaseC
     saveMockState(current);
     return { leaseId, completed: false, lease, receipt: null, reason: "unsupported_status" };
   }
-  const completion = completeLeasedWorkerJob(current, lease, { token: input.token, status, error: input.error });
+  const completion = completeLeasedWorkerJob(current, lease, { token: input.token, status, error: input.error, outputs: input.outputs });
   if (completion !== "completed") {
     saveMockState(current);
     return { leaseId, completed: false, lease, receipt: null, reason: completion };

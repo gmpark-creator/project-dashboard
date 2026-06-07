@@ -10,7 +10,8 @@ export async function POST(request: Request, context: { params: Promise<{ leaseI
   const result = completeWorkerLease(leaseId, {
     token: typeof body.token === "string" ? body.token : undefined,
     status: body.status,
-    error: body.error
+    error: body.error,
+    outputs: body.outputs
   });
   const status = result.completed ? 200 : result.reason === "not_found" ? 404 : 409;
   return NextResponse.json(result, { status });
