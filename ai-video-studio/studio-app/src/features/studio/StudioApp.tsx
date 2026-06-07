@@ -762,8 +762,8 @@ function WorkerDispatchPanel({ dispatch }: { dispatch: WorkerDispatchSnapshot })
         <div className="queue-list">
           <span className="metric-block-label">진행·대기 작업</span>
           <ul>
-            {rows.map((item, index) => (
-              <li className="queue-row" key={`${item.kind}-${item.updatedAt}-${index}`}>
+            {rows.map((item) => (
+              <li className="queue-row" key={item.dispatchKey}>
                 <div className="queue-main">
                   <strong className="queue-title">{workerKindLabels[item.kind]}</strong>
                   <span className="queue-sub">
@@ -835,7 +835,7 @@ function WorkerLeasePanel({ leases }: { leases: WorkerLeaseSnapshot }) {
         <div className="queue-list">
           <span className="metric-block-label">최근 리스</span>
           <ul>
-            {rows.map((lease, index) => {
+            {rows.map((lease) => {
               const meta = leaseStatusMeta[lease.status];
               const when =
                 lease.status === "active"
@@ -846,7 +846,7 @@ function WorkerLeasePanel({ leases }: { leases: WorkerLeaseSnapshot }) {
                       : "반납됨"
                     : "만료됨";
               return (
-                <li className="queue-row" key={`${lease.kind}-${lease.leasedAt}-${index}`}>
+                <li className="queue-row" key={lease.id}>
                   <div className="queue-main">
                     <strong className="queue-title">{workerKindLabels[lease.kind]}</strong>
                     <span className="queue-sub">{formatLedgerTime(lease.leasedAt)} 점유</span>
@@ -916,10 +916,10 @@ function WorkerCompletionPanel({ completions }: { completions: WorkerCompletionS
         <div className="queue-list">
           <span className="metric-block-label">최근 완료</span>
           <ul>
-            {rows.map((receipt, index) => {
+            {rows.map((receipt) => {
               const meta = completionStatusMeta[receipt.status];
               return (
-                <li className="queue-row" key={`${receipt.kind}-${receipt.completedAt}-${index}`}>
+                <li className="queue-row" key={receipt.completionKey}>
                   <div className="queue-main">
                     <strong className="queue-title">{workerKindLabels[receipt.kind]}</strong>
                     <span className="queue-sub">
@@ -991,8 +991,8 @@ function WorkerRetryPlanPanel({ plan }: { plan: WorkerRetryPlan }) {
         <div className="queue-list">
           <span className="metric-block-label">계획 항목</span>
           <ul>
-            {rows.map((item, index) => (
-              <li className="queue-row" key={`${item.receipt.kind}-${index}`}>
+            {rows.map((item) => (
+              <li className="queue-row" key={item.receipt.completionKey}>
                 <div className="queue-main">
                   <strong className="queue-title">{workerKindLabels[item.receipt.kind]}</strong>
                   <span className="queue-sub">
@@ -1056,8 +1056,8 @@ function WorkerRetryExecutionPanel({ executions }: { executions: WorkerRetryExec
         <div className="queue-list">
           <span className="metric-block-label">최근 재시도</span>
           <ul>
-            {rows.map((item, index) => (
-              <li className="queue-row" key={`${item.record.createdAt}-${index}`}>
+            {rows.map((item) => (
+              <li className="queue-row" key={item.record.id}>
                 <div className="queue-main">
                   <strong className="queue-title">{retryActionLabels[item.record.action]}</strong>
                   <span className="queue-sub">
@@ -1217,10 +1217,10 @@ function StorageCleanupPlanPanel({ plan }: { plan: StorageCleanupPlan }) {
         <div className="artifact-list">
           <span className="metric-block-label">정리 후보</span>
           <ul>
-            {rows.map((item, index) => {
+            {rows.map((item) => {
               const meta = cleanupActionMeta[item.action];
               return (
-                <li className="artifact-row" key={`${item.artifact.createdAt}-${index}`}>
+                <li className="artifact-row" key={item.artifact.id}>
                   <div className="artifact-main">
                     <strong className="artifact-title">{artifactRoleLabels[item.artifact.role]}</strong>
                     <span className="artifact-sub">
@@ -1279,8 +1279,8 @@ function StorageCleanupExecutionPanel({ executions }: { executions: StorageClean
         <div className="artifact-list">
           <span className="metric-block-label">최근 정리</span>
           <ul>
-            {rows.map((record, index) => (
-              <li className="artifact-row" key={`${record.createdAt}-${index}`}>
+            {rows.map((record) => (
+              <li className="artifact-row" key={record.id}>
                 <div className="artifact-main">
                   <strong className="artifact-title">산출물 삭제</strong>
                   <span className="artifact-sub">{record.bytes !== null ? `${formatBytes(record.bytes)} 회수` : "용량 미상"}</span>
@@ -1360,9 +1360,9 @@ function OpsSummaryStrip({
         </div>
       </div>
       <div className="ops-summary-grid">
-        {tiles.map((tile, index) => (
+        {tiles.map((tile) => (
           <button
-            key={`${tile.target}-${index}`}
+            key={tile.label}
             type="button"
             className={`ops-tile${tile.tone ? ` tone-${tile.tone}` : ""}`}
             onClick={() => scrollTo(tile.target)}
@@ -1667,7 +1667,7 @@ export function StudioApp() {
 
   return (
     <div className="shell">
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? <div className="toast" role="status" aria-live="polite" aria-atomic="true">{toast}</div> : null}
       <aside className="rail">
         <div className="brand">
           <span className="mark">CP</span>
