@@ -170,6 +170,32 @@ function assertKnownDomainSchemaRefs(value: unknown, path: string[] = []) {
 
 assertKnownDomainSchemaRefs(openApi, ["openapi"]);
 
+function resolveJsonPointer(root: unknown, pointer: string) {
+  if (pointer === "#") return root;
+  if (!pointer.startsWith("#/")) return undefined;
+  return pointer
+    .slice(2)
+    .split("/")
+    .reduce<unknown>((value, segment) => {
+      if (!value || typeof value !== "object") return undefined;
+      const key = segment.replace(/~1/g, "/").replace(/~0/g, "~");
+      return (value as Record<string, unknown>)[key];
+    }, root);
+}
+
+function assertKnownLocalSchemaRefs(value: unknown, root: unknown, path: string[] = []) {
+  if (!value || typeof value !== "object") return;
+  const ref = (value as { $ref?: unknown }).$ref;
+  if (typeof ref === "string" && ref.startsWith("#/")) {
+    assert.notEqual(resolveJsonPointer(root, ref), undefined, `domain schema ref ${ref} at ${path.join(".")} does not resolve`);
+  }
+  for (const [key, child] of Object.entries(value)) {
+    assertKnownLocalSchemaRefs(child, root, [...path, key]);
+  }
+}
+
+assertKnownLocalSchemaRefs(domainSchema, domainSchema, ["domainSchema"]);
+
 const knownModels = new Set<string>();
 for (const provider of capabilities.providers) {
   assert.ok(provider.provider.trim(), "provider capability entry missing provider id");
