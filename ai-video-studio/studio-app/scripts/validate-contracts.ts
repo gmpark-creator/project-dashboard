@@ -252,6 +252,13 @@ function assertOnlyJsonContent(value: unknown, owner: string) {
   assert.deepEqual(Object.keys(content), ["application/json"], `${owner} content must only declare application/json`);
 }
 
+function assertOpenApiResponseDescription(response: unknown, owner: string) {
+  assert.ok(response && typeof response === "object", `${owner} response must be an object`);
+  const description = (response as { description?: unknown }).description;
+  assert.equal(typeof description, "string", `${owner} response must declare a description`);
+  assert.ok((description as string).trim(), `${owner} response description must not be empty`);
+}
+
 function assertClosedObjectSchemas(schema: unknown, owner: string, path: string[] = []) {
   if (!schema || typeof schema !== "object") return;
   const objectSchema = schema as { type?: string; additionalProperties?: unknown; properties?: Record<string, unknown>; required?: unknown; items?: unknown };
@@ -752,6 +759,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     }
     if (operation.operationId) {
       for (const [code, response] of Object.entries(operation.responses || {})) {
+        assertOpenApiResponseDescription(response, `${operation.operationId} ${code}`);
         if (documentedJsonSuccessStatuses.has(code) || documentedJsonErrorStatuses.has(code)) {
           assertOnlyJsonContent(response, `${operation.operationId} ${code} response`);
           assert.ok(jsonSchema(response), `${operation.operationId} ${code} response must declare an application/json schema`);
