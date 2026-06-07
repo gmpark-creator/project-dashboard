@@ -165,6 +165,19 @@ function routeSuccessStatuses(methodSource: string) {
   return statuses;
 }
 
+function routeExplicitResponseStatuses(methodSource: string) {
+  const statuses = new Set<string>();
+  for (const [, expression] of methodSource.matchAll(/\bstatus\s*[:=]\s*([^;\n}]*)/g)) {
+    for (const [, status] of expression.matchAll(/\b([1-5]\d\d)\b/g)) {
+      statuses.add(status);
+    }
+  }
+  for (const [, status] of methodSource.matchAll(/apiError\([^\n;]*,\s*(\d{3})\s*\)/g)) {
+    statuses.add(status);
+  }
+  return statuses;
+}
+
 function routeBooleanQueryParams(methodSource: string) {
   return new Set([...methodSource.matchAll(/booleanQueryParam\([^,]+,\s*"([^"]+)"/g)].map((match) => match[1]));
 }
@@ -585,8 +598,15 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
       const methodSource = routeMethodSource(routeSource, method);
       assert.ok(methodSource, `openapi path ${pathName} ${method.toUpperCase()} missing route method source in ${routeFile}`);
+      const documentedResponseStatuses = new Set(Object.keys(operation.responses || {}));
       const documentedSuccessStatuses = new Set(Object.keys(operation.responses || {}).filter((code) => documentedJsonSuccessStatuses.has(code)));
       const implementedSuccessStatuses = routeSuccessStatuses(methodSource);
+      for (const status of routeExplicitResponseStatuses(methodSource)) {
+        assert.ok(
+          documentedResponseStatuses.has(status),
+          `route ${operation.operationId} returns explicit status ${status} but OpenAPI does not document it`
+        );
+      }
       for (const status of implementedSuccessStatuses) {
         assert.ok(
           documentedSuccessStatuses.has(status),
