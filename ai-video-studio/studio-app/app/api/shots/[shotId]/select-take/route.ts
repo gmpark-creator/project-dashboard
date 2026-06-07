@@ -14,6 +14,9 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   if (!body || typeof body.takeId !== "string" || !body.takeId.startsWith("tak_")) {
     return apiError("BAD_REQUEST", "선택할 후보가 필요합니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(selectTake(shotId, body.takeId));
   } catch (error) {

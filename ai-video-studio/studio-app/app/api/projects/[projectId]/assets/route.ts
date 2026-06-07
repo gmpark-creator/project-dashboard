@@ -58,6 +58,9 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   if (typeof body.rightsConfirmed !== "undefined" && typeof body.rightsConfirmed !== "boolean") {
     return apiError("BAD_REQUEST", "권리 확인 값은 boolean이어야 합니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(
       registerExternalImage({

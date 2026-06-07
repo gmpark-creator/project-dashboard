@@ -29,6 +29,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ shotI
   if (!body || !isDirectionPatch(body)) {
     return apiError("BAD_REQUEST", "연출 설정 형식이 올바르지 않습니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(updateShotDirection(shotId, body));
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteImageAsset } from "@/server/mock-service";
+import { apiError } from "../../../../error-response";
 import { serviceErrorResponse } from "../../../../service-error";
 import { pathParamsError } from "../../../../path-params";
 import { booleanQueryParam } from "../../../../query-params";
@@ -12,6 +13,9 @@ export async function DELETE(request: Request, context: { params: Promise<{ proj
   const url = new URL(request.url);
   const force = booleanQueryParam(url, "force", false);
   if (force.error) return force.error;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     const result = deleteImageAsset(projectId, assetId, { force: force.value });
     return NextResponse.json(result, { status: result.blockedByUsage ? 409 : 200 });

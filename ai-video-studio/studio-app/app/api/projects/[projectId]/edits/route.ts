@@ -18,6 +18,9 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   ) {
     return apiError("BAD_REQUEST", "편집 명령 형식이 올바르지 않습니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(applyEdit(projectId, typeof body.command === "string" ? body.command : undefined));
   } catch (error) {

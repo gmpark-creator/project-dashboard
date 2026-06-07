@@ -30,6 +30,9 @@ export async function POST(request: Request, context: { params: Promise<{ shotId
   if (typeof body.mode !== "string" || !validUsageModes.has(body.mode as AssetUsage["mode"])) {
     return apiError("BAD_REQUEST", "지원하지 않는 참조 모드입니다.", 400);
   }
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed state changes are not available in production mode.", 503);
+  }
   try {
     return NextResponse.json(
       attachImageToShot(shotId, {

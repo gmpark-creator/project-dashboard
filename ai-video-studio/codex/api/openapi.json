@@ -235,6 +235,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -331,6 +339,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -370,6 +386,14 @@
           },
           "404": {
             "description": "Image asset not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -575,6 +599,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -605,6 +637,14 @@
           },
           "404": {
             "description": "Shot or image asset not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -659,6 +699,14 @@
           },
           "404": {
             "description": "Shot not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -779,6 +827,14 @@
           },
           "404": {
             "description": "Selectable take not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -980,6 +1036,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
@@ -1017,6 +1081,14 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -1208,6 +1280,14 @@
           },
           "409": {
             "description": "Render job is not completed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -2128,6 +2208,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CancelJobResult" }
+              }
+            }
+          },
+          "503": {
+            "description": "Mock-backed state changes are unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           }
