@@ -384,7 +384,7 @@ function assertProductionPersistenceReadinessBoundary() {
 
   assert.ok(readinessSource.includes('persistenceEnv = ["DATABASE_URL"]'), "readiness must require DATABASE_URL for persistence");
   assert.ok(readinessSource.includes("validDatabaseUrl("), "readiness must validate DATABASE_URL shape");
-  assert.ok(readinessSource.includes("livePersistenceImplemented = false"), "readiness must expose the missing live persistence adapter");
+  assert.ok(readinessSource.includes("livePersistenceImplemented = true"), "readiness must expose the implemented live persistence adapter");
   assert.ok(readinessSource.includes('check("persistence", "Persistence"'), "readiness must include a persistence check");
   assert.ok(testMock.includes("scripts/production-persistence-readiness.test.ts"), "test:mock must include production persistence readiness coverage");
 }

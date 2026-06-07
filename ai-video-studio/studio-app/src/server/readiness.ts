@@ -128,7 +128,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const production = mode === "production";
   const liveDecomposerImplemented = false;
   const liveProviderExecutionImplemented = false;
-  const livePersistenceImplemented = false;
+  const livePersistenceImplemented = true;
   const liveObjectStorageDeleteImplemented = true;
   const liveObjectStorageIngestImplemented = true;
   const liveQueueWorkerImplemented = false;
@@ -190,7 +190,9 @@ export function getRuntimeReadiness(): RuntimeReadiness {
       ? envDetail("persistence", missingPersistenceEnv, invalidPersistenceEnv, "Persistence env is present and URL-shaped.")
       : production && !livePersistenceImplemented
         ? `Production persistence env is configured for ${livePersistenceSchemaVersion}, but the live persistence adapter is not yet available.`
-        : "Mock in-memory persistence is active for local preview.";
+        : production
+          ? `Live persistence adapter is configured for ${livePersistenceSchemaVersion}.`
+          : "Mock in-memory persistence is active for local preview.";
   const queueBaseStatus = envStatus(missingQueueEnv, invalidQueueEnv, production);
   const queueStatus: RuntimeReadiness["checks"][number]["status"] =
     queueBaseStatus !== "pass" ? queueBaseStatus : production && !liveQueueWorkerImplemented ? "fail" : "pass";

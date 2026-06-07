@@ -30,7 +30,8 @@ async function main() {
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";
     const configuredReadiness = getRuntimeReadiness();
     const persistenceCheck = configuredReadiness.checks.find((check) => check.id === "persistence");
-    assert.equal(persistenceCheck?.status, "fail", "production readiness should fail until live persistence is implemented");
+    assert.equal(persistenceCheck?.status, "pass", "production readiness should pass persistence when DATABASE_URL is valid");
+    assert.ok(persistenceCheck?.detail.includes("cutpilot_postgres_v1"), "production readiness should name the live persistence schema version");
     assert.equal(configuredReadiness.invalidEnv.includes("DATABASE_URL"), false, "valid-shaped DATABASE_URL should not be invalid");
     assert.equal(configuredReadiness.missingEnv.includes("DATABASE_URL"), false, "valid-shaped DATABASE_URL should not be missing");
 
