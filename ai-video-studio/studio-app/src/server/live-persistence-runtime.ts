@@ -1,6 +1,11 @@
 import { Pool, type PoolClient } from "pg";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
-import { PostgresLivePersistenceWriteAdapter, type LiveEditAudioPatch, type LiveExternalImageInput } from "./live-persistence-write-adapter";
+import {
+  PostgresLivePersistenceWriteAdapter,
+  type LiveEditAudioPatch,
+  type LiveExternalImageInput,
+  type LiveShotReferenceInput
+} from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
 import type { DirectionSpec, ExportSpec } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
@@ -132,6 +137,20 @@ export async function registerLiveExternalImage(input: LiveExternalImageInput) {
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).registerExternalImage(input));
+}
+
+export async function attachLiveImageToShot(shotId: string, input: LiveShotReferenceInput) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).attachImageToShot(shotId, input));
+}
+
+export async function detachLiveImageFromShot(shotId: string, assetId: string) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).detachImageFromShot(shotId, assetId));
 }
 
 export async function closeLivePersistencePoolForTests() {

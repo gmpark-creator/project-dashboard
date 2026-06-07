@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  attachLiveImageToShot,
   applyLiveEdit,
   closeLivePersistencePoolForTests,
   createLiveProject,
+  detachLiveImageFromShot,
   getLivePersistenceReadAdapter,
   LivePersistenceUnavailableError,
   liveProjectReadsEnabled,
@@ -78,6 +80,16 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live external image writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () => attachLiveImageToShot("sht_disabled", { assetId: "img_disabled", mode: "first_frame" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live reference attachment writes should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => detachLiveImageFromShot("sht_disabled", "img_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live reference detach writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -128,6 +140,16 @@ async function main() {
         }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live external image writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => attachLiveImageToShot("sht_missing_db", { assetId: "img_missing_db", mode: "first_frame" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live reference attachment writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => detachLiveImageFromShot("sht_missing_db", "img_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live reference detach writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

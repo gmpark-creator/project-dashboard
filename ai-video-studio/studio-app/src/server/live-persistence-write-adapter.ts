@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { DirectionSpec, EditState, Project, Shot } from "../domain/types";
-import type { Aspect, ImageAsset, ImageAssetRole, ReferenceBoard } from "../domain/types";
+import type { AssetUsage, DirectionSpec, EditState, Project, Shot } from "../domain/types";
+import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
   buildLiveDefaultReferenceBoard,
@@ -20,6 +20,10 @@ export type LiveExternalImageInput = {
   aspect?: Aspect;
   prompt?: string;
   rightsConfirmed?: boolean;
+};
+export type LiveShotReferenceInput = {
+  assetId: string;
+  mode: AssetUsage["mode"];
 };
 type ReferenceBoardImageBucket = keyof Pick<
   ReferenceBoard,
@@ -140,6 +144,18 @@ function projectProgressFromShots(shots: Array<{ status: string; selected_take_i
   };
 }
 
+function nextReferenceRequirements(shot: Shot, modes: AssetUsage["mode"][], intent: Intent): Shot["requirements"] {
+  const hasFrameReference = modes.some((mode) => mode === "first_frame" || mode === "last_frame");
+  const hasCharacterReference = modes.some((mode) => mode === "character_reference");
+  const baselineCharacterLock = intent === "education" || intent === "brand";
+  return {
+    ...shot.requirements,
+    imageToVideo: hasFrameReference,
+    characterLock: hasCharacterReference || baselineCharacterLock,
+    characterId: hasCharacterReference ? shot.requirements.characterId : baselineCharacterLock ? shot.requirements.characterId : null
+  };
+}
+
 function rowEditState(row: Row | null, projectId: string): EditState {
   if (!row) return buildLiveDefaultEditState(projectId);
   return {
@@ -240,6 +256,19 @@ export class PostgresLivePersistenceWriteAdapter {
         updatedAt
       ]
     );
+  }
+
+  private async referenceUsageModes(projectId: string, shotId: string) {
+    const rows = await this.client.query<Row>(
+      "SELECT mode FROM cutpilot_asset_usages WHERE project_id = $1 AND target = $2 AND target_id = $3",
+      [projectId, "shot", shotId]
+    );
+    return rows.rows.map((row) => row.mode as AssetUsage["mode"]);
+  }
+
+  private async projectIntent(projectId: string) {
+    const rows = await this.client.query<Row>("SELECT intent FROM cutpilot_projects WHERE id = $1 LIMIT 1", [projectId]);
+    return (rows.rows[0]?.intent || "product_ad") as Intent;
   }
 
   async createProject(input: LiveProjectCreateInput): Promise<Project> {
@@ -547,6 +576,80 @@ export class PostgresLivePersistenceWriteAdapter {
       await this.client.query("UPDATE cutpilot_projects SET updated_at = $2 WHERE id = $1", [input.projectId, timestamp]);
       await this.client.query("COMMIT");
       return asset;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async attachImageToShot(shotId: string, input: LiveShotReferenceInput): Promise<Shot> {
+    await this.client.query("BEGIN");
+    try {
+      const shots = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [shotId]);
+      const shotRow = shots.rows[0];
+      const assets = await this.client.query<Row>("SELECT * FROM cutpilot_image_assets WHERE id = $1 FOR UPDATE", [input.assetId]);
+      const assetRow = assets.rows[0];
+      if (!shotRow || !assetRow || String(shotRow.project_id) !== String(assetRow.project_id)) {
+        throw new Error("Shot or image asset not found");
+      }
+
+      const shot = rowShot(shotRow);
+      const referenceImageIds = shot.referenceImageIds.includes(input.assetId) ? shot.referenceImageIds : [...shot.referenceImageIds, input.assetId];
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_asset_usages (asset_id, project_id, target, target_id, role, mode, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (asset_id, target, target_id, mode) DO NOTHING
+      `,
+        [input.assetId, shot.projectId, "shot", shot.id, assetRow.role, input.mode, now()]
+      );
+
+      const boardRows = await this.client.query<Row>("SELECT * FROM cutpilot_reference_boards WHERE project_id = $1 FOR UPDATE", [shot.projectId]);
+      const board = rowReferenceBoard(boardRows.rows[0] || null, shot.projectId);
+      const bucket = boardBucket(assetRow.role as ImageAssetRole);
+      if (!board[bucket].includes(input.assetId)) board[bucket] = [...board[bucket], input.assetId];
+      await this.upsertReferenceBoard(board, now());
+
+      const requirements = nextReferenceRequirements(shot, await this.referenceUsageModes(shot.projectId, shot.id), await this.projectIntent(shot.projectId));
+      const updated = await this.client.query<Row>(
+        "UPDATE cutpilot_shots SET reference_image_ids = $2, requirements = $3 WHERE id = $1 RETURNING *",
+        [shot.id, json(referenceImageIds), json(requirements)]
+      );
+      await this.client.query("COMMIT");
+      return rowShot(updated.rows[0] || { ...shotRow, reference_image_ids: referenceImageIds, requirements });
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async detachImageFromShot(shotId: string, assetId: string): Promise<Shot> {
+    await this.client.query("BEGIN");
+    try {
+      const shots = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 FOR UPDATE", [shotId]);
+      const shotRow = shots.rows[0];
+      const assets = await this.client.query<Row>("SELECT * FROM cutpilot_image_assets WHERE id = $1 FOR UPDATE", [assetId]);
+      const assetRow = assets.rows[0];
+      if (!shotRow || !assetRow || String(shotRow.project_id) !== String(assetRow.project_id)) {
+        throw new Error("Shot or image asset not found");
+      }
+
+      const shot = rowShot(shotRow);
+      const referenceImageIds = shot.referenceImageIds.filter((id) => id !== assetId);
+      await this.client.query("DELETE FROM cutpilot_asset_usages WHERE asset_id = $1 AND project_id = $2 AND target = $3 AND target_id = $4", [
+        assetId,
+        shot.projectId,
+        "shot",
+        shot.id
+      ]);
+
+      const requirements = nextReferenceRequirements(shot, await this.referenceUsageModes(shot.projectId, shot.id), await this.projectIntent(shot.projectId));
+      const updated = await this.client.query<Row>(
+        "UPDATE cutpilot_shots SET reference_image_ids = $2, requirements = $3 WHERE id = $1 RETURNING *",
+        [shot.id, json(referenceImageIds), json(requirements)]
+      );
+      await this.client.query("COMMIT");
+      return rowShot(updated.rows[0] || { ...shotRow, reference_image_ids: referenceImageIds, requirements });
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

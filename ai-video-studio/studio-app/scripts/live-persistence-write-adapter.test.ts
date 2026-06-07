@@ -14,6 +14,9 @@ class FakeClient implements PgQueryable {
   renderJobRow: Record<string, unknown> | null = null;
   shotRows: Record<string, unknown>[] = [];
   takeRow: Record<string, unknown> | null = null;
+  imageAssetRow: Record<string, unknown> | null = null;
+  assetUsageRows: Record<string, unknown>[] = [];
+  projectIntent = "product_ad";
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
@@ -28,6 +31,10 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("SELECT id FROM cutpilot_projects")) {
       const projectRow = { id: params?.[0] } as unknown as T;
+      return { rows: this.projectExists ? [projectRow] : [] };
+    }
+    if (sql.includes("SELECT intent FROM cutpilot_projects")) {
+      const projectRow = { intent: this.projectIntent } as unknown as T;
       return { rows: this.projectExists ? [projectRow] : [] };
     }
     if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE id")) {
@@ -52,6 +59,17 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("INSERT INTO cutpilot_image_assets")) return { rows: [] as T[] };
     if (sql.includes("INSERT INTO cutpilot_reference_boards")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_asset_usages")) {
+      const usage = { asset_id: params?.[0], project_id: params?.[1], target: params?.[2], target_id: params?.[3], role: params?.[4], mode: params?.[5] };
+      if (!this.assetUsageRows.some((row) => row.asset_id === usage.asset_id && row.target_id === usage.target_id && row.mode === usage.mode)) {
+        this.assetUsageRows.push(usage);
+      }
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("DELETE FROM cutpilot_asset_usages")) {
+      this.assetUsageRows = this.assetUsageRows.filter((row) => !(row.asset_id === params?.[0] && row.project_id === params?.[1] && row.target === params?.[2] && row.target_id === params?.[3]));
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_projects SET default_render_job_id")) {
       this.defaultRenderJobId = String(params?.[1]);
       this.projectThumbUrl = typeof params?.[2] === "string" ? params[2] : null;
@@ -64,6 +82,8 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
+    if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
     if (
       sql.includes("SELECT * FROM cutpilot_scenes") ||
       sql.includes("SELECT * FROM cutpilot_takes") ||
@@ -83,6 +103,15 @@ class FakeClient implements PgQueryable {
       if (current) {
         current.selected_take_id = params?.[1];
         current.status = params?.[2];
+      }
+      const updated = current ? (current as unknown as T) : null;
+      return { rows: updated ? [updated] : [] };
+    }
+    if (sql.includes("UPDATE cutpilot_shots SET reference_image_ids")) {
+      const current = this.shotRows[0];
+      if (current) {
+        current.reference_image_ids = typeof params?.[1] === "string" ? JSON.parse(params[1]) : params?.[1];
+        current.requirements = typeof params?.[2] === "string" ? JSON.parse(params[2]) : params?.[2];
       }
       const updated = current ? (current as unknown as T) : null;
       return { rows: updated ? [updated] : [] };
@@ -119,7 +148,7 @@ class FakeClient implements PgQueryable {
   }
 }
 
-function fakeShotRow() {
+function fakeShotRow(): Record<string, unknown> {
   return {
     id: "sht_live",
     project_id: "prj_live",
@@ -152,6 +181,26 @@ function fakeShotRow() {
     quality_flags: [],
     reference_image_ids: [],
     direction_spec: { camera: "push", composition: "center", lighting: "soft", motion: "slow", style: "clean", avoid: ["blur"], notes: "" }
+  };
+}
+
+function fakeImageAssetRow() {
+  return {
+    id: "img_ref",
+    project_id: "prj_live",
+    kind: "image",
+    role: "product",
+    source: "external",
+    label: "Reference",
+    prompt: "Reference image",
+    url: "https://assets.cutpilot.local/reference.png",
+    thumb_url: "https://assets.cutpilot.local/reference.png",
+    aspect: "9:16",
+    width: 1080,
+    height: 1920,
+    rights: { status: "user_confirmed", note: "ok" },
+    created_at: "2026-06-07T00:00:00.000Z",
+    updated_at: "2026-06-07T00:00:00.000Z"
   };
 }
 
@@ -350,6 +399,45 @@ async function main() {
     "live external image registration should surface missing projects"
   );
   assert.equal(missingImageProjectClient.queries.at(-1)?.sql, "ROLLBACK", "live external image registration should roll back missing projects");
+
+  const attachReferenceClient = new FakeClient();
+  attachReferenceClient.shotRows = [fakeShotRow()];
+  attachReferenceClient.imageAssetRow = fakeImageAssetRow();
+  const attachedShot = await new PostgresLivePersistenceWriteAdapter(attachReferenceClient).attachImageToShot("sht_live", {
+    assetId: "img_ref",
+    mode: "first_frame"
+  });
+  assert.deepEqual(attachedShot.referenceImageIds, ["img_ref"], "live reference attachment should add image references to the shot");
+  assert.equal(attachedShot.requirements.imageToVideo, true, "live reference attachment should enable image-to-video for frame references");
+  assert.ok(attachReferenceClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_asset_usages")), "live reference attachment should insert asset usages");
+  assert.ok(attachReferenceClient.queries.some((query) => query.sql.includes("UPDATE cutpilot_shots SET reference_image_ids")), "live reference attachment should persist shot references");
+  assert.equal(attachReferenceClient.queries.at(-1)?.sql, "COMMIT", "live reference attachment should commit successful updates");
+
+  const detachReferenceClient = new FakeClient();
+  const referencedShot = fakeShotRow();
+  referencedShot.reference_image_ids = ["img_ref"];
+  referencedShot.requirements = { ...(referencedShot.requirements as Record<string, unknown>), imageToVideo: true };
+  detachReferenceClient.shotRows = [referencedShot];
+  detachReferenceClient.imageAssetRow = fakeImageAssetRow();
+  detachReferenceClient.assetUsageRows = [{ asset_id: "img_ref", project_id: "prj_live", target: "shot", target_id: "sht_live", mode: "first_frame" }];
+  const detachedShot = await new PostgresLivePersistenceWriteAdapter(detachReferenceClient).detachImageFromShot("sht_live", "img_ref");
+  assert.deepEqual(detachedShot.referenceImageIds, [], "live reference detach should remove image references from the shot");
+  assert.equal(detachedShot.requirements.imageToVideo, false, "live reference detach should disable image-to-video when no frame references remain");
+  assert.ok(detachReferenceClient.queries.some((query) => query.sql.includes("DELETE FROM cutpilot_asset_usages")), "live reference detach should remove shot asset usages");
+  assert.equal(detachReferenceClient.queries.at(-1)?.sql, "COMMIT", "live reference detach should commit successful updates");
+
+  const missingReferenceAssetClient = new FakeClient();
+  missingReferenceAssetClient.shotRows = [fakeShotRow()];
+  await assert.rejects(
+    () =>
+      new PostgresLivePersistenceWriteAdapter(missingReferenceAssetClient).attachImageToShot("sht_live", {
+        assetId: "img_missing",
+        mode: "first_frame"
+      }),
+    /Shot or image asset not found/,
+    "live reference attachment should surface missing assets"
+  );
+  assert.equal(missingReferenceAssetClient.queries.at(-1)?.sql, "ROLLBACK", "live reference attachment should roll back missing assets");
 
   const defaultRenderClient = new FakeClient();
   defaultRenderClient.renderJobRow = fakeRenderJob("done");
