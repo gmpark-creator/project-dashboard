@@ -355,10 +355,27 @@ const productionMockSchemeOutput = completeWorkerLease(productionOutputPolicyLea
 assert.equal(productionMockSchemeOutput.completed, false, "production worker completion should reject mock-scheme output URLs");
 assert.equal(productionMockSchemeOutput.reason, "invalid_outputs", "production worker completion should treat non-https output URLs as invalid outputs");
 const productionOutputUrl = "https://assets.cutpilot.local/production-output-policy-image.png";
-const productionValidOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
+const productionMissingStorageKeyOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
   token: productionOutputPolicyLease.lease.token,
   status: "succeeded",
   outputs: { imageVariants: [{ variantId: productionOutputPolicyJob.job.variants[0].id, imageUrl: productionOutputUrl }] }
+});
+assert.equal(productionMissingStorageKeyOutput.completed, false, "production worker completion should require output storage keys");
+assert.equal(productionMissingStorageKeyOutput.reason, "invalid_outputs", "production worker completion should treat missing storage keys as invalid outputs");
+const productionValidOutput = completeWorkerLease(productionOutputPolicyLease.lease.id, {
+  token: productionOutputPolicyLease.lease.token,
+  status: "succeeded",
+  outputs: {
+    imageVariants: [
+      {
+        variantId: productionOutputPolicyJob.job.variants[0].id,
+        imageUrl: productionOutputUrl,
+        imageStorageKey: `projects/${productionOutputPolicyJob.job.projectId}/imageJob/${productionOutputPolicyJob.job.id}/variants/${productionOutputPolicyJob.job.variants[0].id}/image_asset`,
+        thumbUrl: "https://assets.cutpilot.local/production-output-policy-thumb.jpg",
+        thumbnailStorageKey: `projects/${productionOutputPolicyJob.job.projectId}/imageJob/${productionOutputPolicyJob.job.id}/variants/${productionOutputPolicyJob.job.variants[0].id}/image_thumbnail`
+      }
+    ]
+  }
 });
 assert.equal(productionValidOutput.completed, true, "production worker completion should accept valid output payloads");
 if (typeof runtimeModeBeforeOutputPolicy === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
