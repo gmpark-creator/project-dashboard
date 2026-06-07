@@ -73,6 +73,7 @@ assertStorageCleanupObjectStorageBoundary();
 assertMockTickProductionBoundary();
 assertProductionAutoTickIsDisabled();
 assertProductionMockPersistenceIsDisabled();
+assertProductionPersistenceReadinessBoundary();
 
 function countChar(input: string, char: string) {
   return [...input].filter((item) => item === char).length;
@@ -305,6 +306,17 @@ function assertProductionMockPersistenceIsDisabled() {
   assert.ok(productionReturn < envPersistReturn, "production mode must disable mock persistence before CUTPILOT_MOCK_PERSIST is considered");
   assert.ok(readinessSource.includes("File-backed mock state is disabled in production mode."), "readiness must state mock persistence is disabled in production");
   assert.ok(testMock.includes("scripts/production-mock-persistence-boundary.test.ts"), "test:mock must include production mock persistence boundary coverage");
+}
+
+function assertProductionPersistenceReadinessBoundary() {
+  const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+
+  assert.ok(readinessSource.includes('persistenceEnv = ["DATABASE_URL"]'), "readiness must require DATABASE_URL for persistence");
+  assert.ok(readinessSource.includes("validDatabaseUrl("), "readiness must validate DATABASE_URL shape");
+  assert.ok(readinessSource.includes("livePersistenceImplemented = false"), "readiness must expose the missing live persistence adapter");
+  assert.ok(readinessSource.includes('check("persistence", "Persistence"'), "readiness must include a persistence check");
+  assert.ok(testMock.includes("scripts/production-persistence-readiness.test.ts"), "test:mock must include production persistence readiness coverage");
 }
 
 function jsonSchema(response: unknown) {
