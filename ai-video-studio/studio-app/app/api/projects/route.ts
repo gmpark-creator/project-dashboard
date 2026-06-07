@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { INTENT_TEMPLATES } from "@/domain/templates";
 import { createProject, listProjects } from "@/server/mock-service";
+import { listLiveProjects, liveProjectReadsEnabled, LivePersistenceUnavailableError } from "@/server/live-persistence-runtime";
 import type { Aspect, Intent, Tier } from "@/domain/types";
 import { apiError } from "../error-response";
 import { isJsonObject, readJsonObject } from "../json-body";
@@ -8,8 +9,18 @@ import { isJsonObject, readJsonObject } from "../json-body";
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validTiers = new Set<Tier>(["fast", "economy", "final"]);
 
-export function GET() {
+export async function GET() {
   if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    if (liveProjectReadsEnabled()) {
+      try {
+        return NextResponse.json({ projects: await listLiveProjects() });
+      } catch (error) {
+        if (error instanceof LivePersistenceUnavailableError) {
+          return apiError("LIVE_PERSISTENCE_UNAVAILABLE", error.message, 503);
+        }
+        throw error;
+      }
+    }
     return apiError("MOCK_READ_UNAVAILABLE", "Mock-backed reads are not available in production mode.", 503);
   }
   return NextResponse.json({ projects: listProjects() });

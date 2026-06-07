@@ -595,6 +595,7 @@ function assertProductionStateMutationBoundary() {
 }
 
 function assertProductionReadBoundary() {
+  const liveRuntimeSource = readFileSync(join(serverDir, "live-persistence-runtime.ts"), "utf8");
   const guardedRoutes = [
     {
       route: join(appApiDir, "projects", "route.ts"),
@@ -648,7 +649,17 @@ function assertProductionReadBoundary() {
     assert.ok(JSON.stringify(operation?.responses?.["503"]).includes("Mock-backed reads are unavailable"), `${item.operationId} 503 must document mock read production unavailability`);
   }
 
+  const projectListRoute = readFileSync(join(appApiDir, "projects", "route.ts"), "utf8");
+  const projectBundleRoute = readFileSync(join(appApiDir, "projects", "[projectId]", "route.ts"), "utf8");
+  assert.ok(liveRuntimeSource.includes("CUTPILOT_ENABLE_LIVE_READS"), "live persistence runtime must require an explicit live read switch");
+  assert.ok(liveRuntimeSource.includes("DATABASE_URL"), "live persistence runtime must require DATABASE_URL");
+  assert.ok(liveRuntimeSource.includes("PostgresLivePersistenceReadAdapter"), "live persistence runtime must return the Postgres read adapter");
+  assert.ok(projectListRoute.includes("listLiveProjects()"), "project list route must support live project reads behind the switch");
+  assert.ok(projectBundleRoute.includes("getLiveProjectBundle(projectId)"), "project bundle route must support live project reads behind the switch");
+  assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
+  assert.ok(projectBundleRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project bundle route must fail closed when live persistence is unavailable");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
+  assert.ok(testMock.includes("scripts/live-persistence-runtime.test.ts"), "test:mock must include live persistence runtime coverage");
 }
 
 function jsonSchema(response: unknown) {

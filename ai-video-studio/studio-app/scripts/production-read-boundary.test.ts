@@ -6,7 +6,7 @@ import { GET as listAssetsRoute } from "../app/api/projects/[projectId]/assets/r
 import { POST as previewRenderRoute } from "../app/api/projects/[projectId]/render-preview/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE"];
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL"];
 
 function request(method: string, body?: unknown) {
   return new Request("http://cutpilot.local/api/test", {
@@ -52,9 +52,11 @@ async function main() {
   resetMockState();
   try {
     process.env.CUTPILOT_RUNTIME_MODE = "production";
+    delete process.env.CUTPILOT_ENABLE_LIVE_READS;
+    delete process.env.DATABASE_URL;
     const before = stateFingerprint();
 
-    await assertUnavailable("project list", listProjectsRoute());
+    await assertUnavailable("project list", await listProjectsRoute());
     await assertUnavailable("project bundle", await getProjectRoute(request("GET"), context({ projectId: "prj_production" })));
     await assertUnavailable("job read", await getJobRoute(request("GET"), context({ jobId: "gen_production" })));
     await assertUnavailable("asset list", await listAssetsRoute(request("GET"), context({ projectId: "prj_production" })));
@@ -67,6 +69,13 @@ async function main() {
     );
 
     assert.equal(stateFingerprint(), before, "failed production reads should not advance or mutate mock state");
+
+    process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
+    const liveReadWithoutDb = await listProjectsRoute();
+    const liveReadBody = (await liveReadWithoutDb.json()) as { code?: string };
+    assert.equal(liveReadWithoutDb.status, 503, "live project reads should fail closed without DATABASE_URL");
+    assert.equal(liveReadBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live project reads should expose live persistence unavailability");
+    assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);
     resetMockState();
