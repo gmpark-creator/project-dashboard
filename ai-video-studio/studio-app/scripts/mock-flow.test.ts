@@ -128,6 +128,11 @@ resetMockState();
 const affordableCost = estimateCost("generateShot", { takeCount: 1 });
 assert.equal(affordableCost.affordable, true, "cost estimate should mark normal mock balance as affordable");
 assert.equal(affordableCost.shortfallCredits, 0, "affordable cost estimates should not report a shortfall");
+const creditGuardProject = createProject({
+  title: "Credit guard project",
+  idea: "A small project used to verify insufficient credit guards",
+  intent: "product_ad"
+});
 const creditStressState = getMutableMockState();
 const originalCredits = { ...creditStressState.credits };
 creditStressState.credits = { balance: 0, spent: 0, reserved: 0 };
@@ -136,6 +141,20 @@ const insufficientCost = estimateCost("startRender");
 assert.equal(insufficientCost.affordable, false, "cost estimate should flag insufficient available credits");
 assert.equal(insufficientCost.availableCredits, 0, "cost estimate should expose current available credits");
 assert.equal(insufficientCost.shortfallCredits, insufficientCost.credits, "insufficient estimates should expose the missing credits");
+assert.throws(
+  () =>
+    createImageJob({
+      projectId: creditGuardProject.id,
+      prompt: "Credit guard image",
+      purpose: "product",
+      role: "product",
+      aspect: "9:16",
+      count: 1
+    }),
+  /INSUFFICIENT_CREDITS/,
+  "reserve-backed actions should fail before creating jobs when credits are insufficient"
+);
+assert.equal(getMockState().imageJobs.some((job) => job.projectId === creditGuardProject.id), false, "insufficient credit failures should not leave queued image jobs");
 const restoredCreditState = getMutableMockState();
 restoredCreditState.credits = originalCredits;
 saveMockState(restoredCreditState);

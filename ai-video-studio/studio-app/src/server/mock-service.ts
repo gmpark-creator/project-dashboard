@@ -9,6 +9,7 @@ import type {
   AssetUsage,
   AssetUsageMode,
   CancelJobResult,
+  CostEstimate,
   CreditTransaction,
   EditState,
   ErrorResponse,
@@ -55,6 +56,26 @@ function uid(prefix: string) {
 
 const PLAYABLE_MOCK_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 const MARGIN_POLICY_VERSION = "sandbox-v1";
+
+export class CreditReservationError extends Error {
+  estimate: CostEstimate;
+
+  constructor(credits: number, availableCredits: number) {
+    super("INSUFFICIENT_CREDITS");
+    this.name = "CreditReservationError";
+    this.estimate = {
+      credits,
+      etaSec: 0,
+      availableCredits,
+      affordable: false,
+      shortfallCredits: Math.max(0, credits - availableCredits)
+    };
+  }
+}
+
+export function isCreditReservationError(error: unknown): error is CreditReservationError {
+  return error instanceof CreditReservationError;
+}
 
 function mockVideoUrl(id: string) {
   return `${PLAYABLE_MOCK_VIDEO_URL}#${encodeURIComponent(id)}`;
@@ -427,6 +448,11 @@ function availableCredits(current: StudioState) {
   return Math.max(0, current.credits.balance - current.credits.spent - current.credits.reserved);
 }
 
+function assertCanReserveCredits(current: StudioState, credits: number) {
+  const available = availableCredits(current);
+  if (available < credits) throw new CreditReservationError(credits, available);
+}
+
 function mockProviderCostUsd(kind: CreditTransaction["kind"], credits: number) {
   if (kind !== "capture") return null;
   return Number((credits * 0.035).toFixed(2));
@@ -453,6 +479,7 @@ function addCreditTransaction(
 }
 
 function reserveCredits(current: StudioState, input: { projectId: string; jobId: string | null; action: CreditTransaction["action"]; credits: number; note: string }) {
+  assertCanReserveCredits(current, input.credits);
   current.credits.reserved += input.credits;
   return addCreditTransaction(current, { ...input, kind: "reserve" });
 }
@@ -983,6 +1010,7 @@ export function createImageJob(input: {
   if (!project) throw new Error("Project not found");
   if (!prompt) throw new Error("이미지 아이디어를 입력해 주세요.");
   const count = Math.max(1, Math.min(input.count || 4, 4));
+  assertCanReserveCredits(current, count * 4);
   const variants: ImageVariant[] = Array.from({ length: count }, (_, index) => ({
     id: uid("ivar"),
     assetId: null,
@@ -1214,6 +1242,7 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
   const takes: Take[] = [];
   const jobs: GenerationJob[] = [];
 
+  assertCanReserveCredits(current, takeCount * 6);
   applyReferenceRequirements(current, shot);
   shot.status = "generating";
   shot.requirements.tier = tier;
@@ -1235,7 +1264,10 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
 
 export function generateAll(projectId: string, options: { tier?: Tier } = {}) {
   const queued: GenerationJob[] = [];
-  const shots = state().shots.filter((shot) => shot.projectId === projectId);
+  const current = state();
+  const shots = current.shots.filter((shot) => shot.projectId === projectId);
+  const targetShots = shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
+  assertCanReserveCredits(current, targetShots.length * 18);
   for (const shot of shots) {
     if (shot.status === "pending" || shot.status === "failed") {
       queued.push(...generateShot(shot.id, { tier: options.tier || "fast", takeCount: 3 }).jobs);
@@ -1260,6 +1292,7 @@ export function regenerate(shotId: string, options: { scope: "shot" | "segment";
   const current = state();
   const shot = current.shots.find((item) => item.id === shotId);
   if (!shot) throw new Error("Shot not found");
+  assertCanReserveCredits(current, 12);
   shot.qualityFlags = [
     {
       axis: "completeness",
@@ -1280,6 +1313,7 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   if (!source || source.status !== "done") throw new Error("Done take not found");
   const shot = current.shots.find((item) => item.id === source.shotId);
   if (!shot) throw new Error("Source shot not found");
+  assertCanReserveCredits(current, 22);
   applyReferenceRequirements(current, shot);
   shot.requirements.tier = "final";
   const promptPackage = buildGenerationPromptPackage(current, shot);
@@ -1466,6 +1500,7 @@ export function startRender(projectId: string, specs: ExportSpec[], options: { r
   );
   const nextSpecs = specs.filter((spec) => !activeSpecs.has(`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`));
   if (!nextSpecs.length) throw new Error("이미 같은 내보내기 작업이 진행 중입니다.");
+  assertCanReserveCredits(current, nextSpecs.length * 16);
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   for (const shot of shots) {
     if (!shot.selectedTakeId) {
