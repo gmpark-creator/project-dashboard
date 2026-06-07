@@ -561,7 +561,7 @@ function refreshProject(current: StudioState, projectId: string) {
   project.credits.estimateRemaining = Math.max(0, 180 - current.credits.spent);
 }
 
-function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "aspect">, idea: string) {
+function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "aspect"> & { tier: Tier }, idea: string) {
   const sceneSpecs = [
     ["오프닝", "핵심 장면을 빠르게 보여주는 시작"],
     ["디테일", "제품이나 메시지의 강점"],
@@ -610,7 +610,7 @@ function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "asp
         negative: "흔들림, 플리커, 모핑, 텍스트 왜곡"
       },
       requirements: {
-        tier: "fast",
+        tier: project.tier,
         aspect: project.aspect,
         imageToVideo: false,
         needsLipsyncAudio: false,
@@ -652,7 +652,7 @@ export function createProject(input: { title?: string; idea: string; intent: Int
     createdAt: now(),
     updatedAt: now()
   };
-  const storyboard = buildStoryboard(project, idea);
+  const storyboard = buildStoryboard({ ...project, tier: input.advanced?.tier || template.defaults.tier }, idea);
   project.progress = { shotsDone: 0, shotsTotal: storyboard.shots.length };
   current.projects.unshift(project);
   current.scenes.push(...storyboard.scenes);
@@ -670,7 +670,8 @@ export function decomposeIdea(input: { projectId?: string; idea: string; intent:
       id: input.projectId || "prj_preview",
       title: input.idea.slice(0, 20) || "스토리보드 미리보기",
       intent: input.intent,
-      aspect: template.defaults.aspect
+      aspect: template.defaults.aspect,
+      tier: template.defaults.tier
     },
     input.idea
   );

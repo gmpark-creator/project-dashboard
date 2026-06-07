@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { INTENT_TEMPLATES } from "@/domain/templates";
 import { createProject, listProjects } from "@/server/mock-service";
-import type { Aspect, Intent } from "@/domain/types";
+import type { Aspect, Intent, Tier } from "@/domain/types";
 import { apiError } from "../error-response";
 import { isJsonObject, readJsonObject } from "../json-body";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
+const validTiers = new Set<Tier>(["fast", "economy", "final"]);
 
 export function GET() {
   return NextResponse.json({ projects: listProjects() });
@@ -37,10 +38,15 @@ export async function POST(request: Request) {
   if (typeof durationSec !== "undefined" && (typeof durationSec !== "number" || !Number.isInteger(durationSec) || durationSec < 1)) {
     return apiError("BAD_REQUEST", "영상 길이는 1초 이상의 정수여야 합니다.", 400);
   }
+  const tier = advancedInput?.tier;
+  if (typeof tier !== "undefined" && (typeof tier !== "string" || !validTiers.has(tier as Tier))) {
+    return apiError("BAD_REQUEST", "지원하지 않는 생성 품질 단계입니다.", 400);
+  }
   const advanced = advancedInput
     ? {
         aspect: aspect as Aspect | undefined,
-        durationSec: durationSec as number | undefined
+        durationSec: durationSec as number | undefined,
+        tier: tier as Tier | undefined
       }
     : undefined;
   return NextResponse.json(createProject({ title, idea, intent: body.intent as Intent, advanced }), { status: 201 });

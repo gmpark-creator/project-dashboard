@@ -131,6 +131,18 @@ const decomposedStoryboard = decomposeIdea({ idea: "Preview a launch teaser befo
 assert.equal(decomposedStoryboard.scenes.length, 4, "decomposeIdea should return preview scenes");
 assert.equal(decomposedStoryboard.shots.length, 10, "decomposeIdea should return preview shots");
 assert.equal(decomposedStoryboard.shots[0].projectId, "prj_preview", "decomposeIdea should use preview project id when no project id is supplied");
+assert.ok(decomposedStoryboard.shots.every((shot) => shot.requirements.tier === "fast"), "decomposeIdea should use the template tier");
+
+const advancedTierProject = createProject({
+  title: "Advanced tier contract",
+  idea: "A launch video that starts directly at final quality",
+  intent: "product_ad",
+  advanced: { aspect: "1:1", durationSec: 45, tier: "final" }
+});
+const advancedTierBundle = getProjectBundle(advancedTierProject.id);
+assert.equal(advancedTierProject.aspect, "1:1", "advanced project creation should keep the requested aspect");
+assert.equal(advancedTierProject.targetDurationSec, 45, "advanced project creation should keep the requested duration");
+assert.ok(advancedTierBundle?.shots.every((shot) => shot.requirements.tier === "final"), "advanced project creation should apply the requested tier to storyboard shots");
 
 const affordableCost = estimateCost("generateShot", { takeCount: 1 });
 assert.equal(affordableCost.affordable, true, "cost estimate should mark normal mock balance as affordable");
