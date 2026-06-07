@@ -479,6 +479,28 @@
         "reason": { "type": "string", "enum": ["released", "not_found", "token_mismatch", "not_active"] }
       }
     },
+    "WorkerLeaseRenewResult": {
+      "type": "object",
+      "required": ["leaseId", "renewed", "lease", "status", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "leaseId": { "type": "string", "pattern": "^wlease_" },
+        "renewed": { "type": "boolean" },
+        "lease": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerLease" },
+            { "type": "null" }
+          ]
+        },
+        "status": {
+          "anyOf": [
+            { "$ref": "#/$defs/WorkerLeaseStatus" },
+            { "type": "null" }
+          ]
+        },
+        "reason": { "type": "string", "enum": ["renewed", "not_found", "token_mismatch", "not_active"] }
+      }
+    },
     "WorkerLeaseSnapshot": {
       "type": "object",
       "required": ["generatedAt", "summary", "leases"],
@@ -1490,6 +1512,7 @@
     "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "workerDispatchSnapshot": { "$ref": "#/$defs/WorkerDispatchSnapshot" },
     "workerLeaseSnapshot": { "$ref": "#/$defs/WorkerLeaseSnapshot" },
+    "workerLeaseRenewResult": { "$ref": "#/$defs/WorkerLeaseRenewResult" },
     "workerCompletionSnapshot": { "$ref": "#/$defs/WorkerCompletionSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },

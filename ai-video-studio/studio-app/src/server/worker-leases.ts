@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { StudioState, WorkerDispatchKind, WorkerLease, WorkerLeaseReleaseResult, WorkerLeaseRequest, WorkerLeaseResult, WorkerLeaseSnapshot } from "../domain/types";
+import type { StudioState, WorkerDispatchKind, WorkerLease, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult, WorkerLeaseSnapshot } from "../domain/types";
 import { getMutableMockState, saveMockState } from "./mock-service";
 import { buildWorkerDispatchSnapshot } from "./worker-dispatch";
 
@@ -97,6 +97,27 @@ export function releaseWorkerLease(leaseId: string, token: string | null | undef
   lease.releasedAt = new Date().toISOString();
   saveMockState(current);
   return { leaseId, released: true, status: lease.status, reason: "released" };
+}
+
+export function renewWorkerLease(leaseId: string, input: { token?: string | null; ttlSec?: number } = {}): WorkerLeaseRenewResult {
+  const current = getMutableMockState();
+  expireLeases(current);
+  const lease = current.workerLeases.find((item) => item.id === leaseId);
+  if (!lease) {
+    saveMockState(current);
+    return { leaseId, renewed: false, lease: null, status: null, reason: "not_found" };
+  }
+  if (lease.token !== input.token) {
+    saveMockState(current);
+    return { leaseId, renewed: false, lease, status: lease.status, reason: "token_mismatch" };
+  }
+  if (lease.status !== "active") {
+    saveMockState(current);
+    return { leaseId, renewed: false, lease, status: lease.status, reason: "not_active" };
+  }
+  lease.expiresAt = new Date(Date.now() + clampTtl(input.ttlSec) * 1000).toISOString();
+  saveMockState(current);
+  return { leaseId, renewed: true, lease, status: lease.status, reason: "renewed" };
 }
 
 export function getWorkerLeaseSnapshot(): WorkerLeaseSnapshot {

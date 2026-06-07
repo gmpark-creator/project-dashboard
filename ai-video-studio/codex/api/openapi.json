@@ -933,6 +933,44 @@
         }
       }
     },
+    "/system/worker-leases/{leaseId}/renew": {
+      "post": {
+        "operationId": "renewWorkerLease",
+        "parameters": [
+          { "name": "leaseId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^wlease_" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "additionalProperties": false,
+                "properties": {
+                  "token": { "type": "string" },
+                  "ttlSec": { "type": "integer", "minimum": 5, "maximum": 600 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker lease renewed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/WorkerLeaseRenewResult" }
+              }
+            }
+          },
+          "404": { "description": "Lease not found" },
+          "409": { "description": "Lease token mismatch or lease is not active" },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/system/worker-completions": {
       "get": {
         "operationId": "getWorkerCompletionSnapshot",

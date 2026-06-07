@@ -671,6 +671,14 @@ export type WorkerLeaseReleaseResult = {
   reason: "released" | "not_found" | "token_mismatch" | "not_active";
 };
 
+export type WorkerLeaseRenewResult = {
+  leaseId: string;
+  renewed: boolean;
+  lease: WorkerLease | null;
+  status: WorkerLeaseStatus | null;
+  reason: "renewed" | "not_found" | "token_mismatch" | "not_active";
+};
+
 export type WorkerLeaseSnapshot = {
   generatedAt: string;
   summary: {

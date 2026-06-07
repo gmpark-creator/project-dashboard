@@ -71,6 +71,7 @@ for (const defName of [
   "WorkerLeaseRequest",
   "WorkerLeaseResult",
   "WorkerLeaseReleaseResult",
+  "WorkerLeaseRenewResult",
   "WorkerLeaseSnapshot",
   "WorkerCompletionStatus",
   "WorkerCompletionReceipt",
@@ -127,6 +128,7 @@ const requiredOperations = new Set([
   "getWorkerLeaseSnapshot",
   "createWorkerLease",
   "releaseWorkerLease",
+  "renewWorkerLease",
   "getWorkerCompletionSnapshot"
 ]);
 const operationIds = new Set<string>();
