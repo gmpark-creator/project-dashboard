@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
-import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
+import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, StorageCleanupAction, StorageCleanupExecutionSnapshot, StorageCleanupPlan, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
 import { studioApi } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export" | "ops";
@@ -1168,8 +1168,140 @@ function ReadinessConsolePanel({ readiness }: { readiness: RuntimeReadiness }) {
   );
 }
 
-// 운영 콘솔. 워커·큐·엔진·런타임 상태를 한 화면에 모은 읽기 전용 운영자 surface. 로드된 패널만 렌더하고
-// 권한/네트워크로 모두 실패하면 안내를 보여준다. 이 화면은 어떤 작업도 변경·중단하지 않는다.
+const cleanupActionMeta: Record<StorageCleanupAction, { label: string; tone: string }> = {
+  retain: { label: "보관", tone: "ok" },
+  review_external: { label: "외부 확인", tone: "fast" },
+  delete_object: { label: "삭제 후보", tone: "warn" }
+};
+
+// 스토리지 정리 계획. 저장 산출물을 보관/외부 확인/삭제 후보로 분류한 읽기 전용 계획. 실제 삭제는 운영
+// 런북(Codex 백엔드) 영역이라 이 화면에서 실행하지 않는다. storageKey·artifact id는 노출하지 않고
+// 보관 역할·종류·정리 분류·참조 수·용량만 보여준다.
+function StorageCleanupPlanPanel({ plan }: { plan: StorageCleanupPlan }) {
+  const { summary } = plan;
+  const time = readinessTime(plan.generatedAt);
+  const rank = (action: StorageCleanupAction) => (action === "delete_object" ? 0 : action === "review_external" ? 1 : 2);
+  const rows = [...plan.items].sort((a, b) => rank(a.action) - rank(b.action)).slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="스토리지 정리 계획">
+      <div className="head">
+        <div>
+          <h2>스토리지 정리 계획</h2>
+          <p className="hint">저장 산출물의 정리 후보를 읽기 전용으로 분류합니다. 이 화면에서 삭제하지 않습니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.deleteCandidates ? "warn" : "ok"}`}>{summary.deleteCandidates ? `삭제 후보 ${summary.deleteCandidates}건` : "정리 양호"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">정리 분류</span>
+          <div className="metric-row">
+            <Metric label="전체" value={summary.total} />
+            <Metric label="보관" value={summary.retain} tone={summary.retain ? "ok" : undefined} />
+            <Metric label="외부 확인" value={summary.reviewExternal} tone={summary.reviewExternal ? "warn" : undefined} />
+            <Metric label="삭제 후보" value={summary.deleteCandidates} tone={summary.deleteCandidates ? "warn" : undefined} />
+          </div>
+        </div>
+        <div className="metric-block">
+          <span className="metric-block-label">회수 가능 용량</span>
+          <div className="metric-row">
+            <Metric label="회수 가능" value={formatBytes(summary.knownReclaimableBytes)} />
+            <Metric label="용량 미상" value={`${summary.unknownReclaimableItems}건`} />
+          </div>
+          <p className="hint metrics-note">정리 계획은 읽기 전용 안내입니다. 실제 삭제는 운영 런북에서 수행합니다.</p>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="artifact-list">
+          <span className="metric-block-label">정리 후보</span>
+          <ul>
+            {rows.map((item, index) => {
+              const meta = cleanupActionMeta[item.action];
+              return (
+                <li className="artifact-row" key={`${item.artifact.createdAt}-${index}`}>
+                  <div className="artifact-main">
+                    <strong className="artifact-title">{artifactRoleLabels[item.artifact.role]}</strong>
+                    <span className="artifact-sub">
+                      {artifactKindLabels[item.artifact.kind]} · {item.referenced ? `참조 ${item.referenceCount}` : "참조 없음"}
+                      {item.artifact.bytes !== null ? ` · ${formatBytes(item.artifact.bytes)}` : ""}
+                    </span>
+                  </div>
+                  <div className="artifact-side">
+                    <span className={`badge ${meta.tone}`}>{meta.label}</span>
+                    <span className="artifact-meta">{formatLedgerTime(item.artifact.createdAt)}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">정리할 산출물이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+// 스토리지 정리 실행 이력. 실제로 정리(삭제)된 산출물 기록. id·artifactId·projectId·storageKey·reason은
+// 노출하지 않고 회수 용량·시각만 보여준다.
+function StorageCleanupExecutionPanel({ executions }: { executions: StorageCleanupExecutionSnapshot }) {
+  const { summary } = executions;
+  const time = readinessTime(executions.generatedAt);
+  const rows = [...executions.records]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
+  return (
+    <section className="panel metrics" aria-label="스토리지 정리 실행">
+      <div className="head">
+        <div>
+          <h2>스토리지 정리 실행</h2>
+          <p className="hint">실제 정리(삭제)된 산출물 이력을 읽기 전용으로 요약합니다.</p>
+        </div>
+        <div className="metrics-meta">
+          <span className={`badge ${summary.deleted ? "fast" : "ok"}`}>{summary.deleted ? `정리 ${summary.deleted}건` : "정리 이력 없음"}</span>
+          {time ? <span className="hint">{time} 기준</span> : null}
+        </div>
+      </div>
+      <div className="metric-blocks">
+        <div className="metric-block">
+          <span className="metric-block-label">정리 실행 현황</span>
+          <div className="metric-row">
+            <Metric label="기록" value={summary.total} />
+            <Metric label="삭제됨" value={summary.deleted} />
+            <Metric label="회수 용량" value={formatBytes(summary.knownReclaimedBytes)} />
+            <Metric label="용량 미상" value={`${summary.unknownReclaimedItems}건`} />
+          </div>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="artifact-list">
+          <span className="metric-block-label">최근 정리</span>
+          <ul>
+            {rows.map((record, index) => (
+              <li className="artifact-row" key={`${record.createdAt}-${index}`}>
+                <div className="artifact-main">
+                  <strong className="artifact-title">산출물 삭제</strong>
+                  <span className="artifact-sub">{record.bytes !== null ? `${formatBytes(record.bytes)} 회수` : "용량 미상"}</span>
+                </div>
+                <div className="artifact-side">
+                  <span className="badge">삭제됨</span>
+                  <span className="artifact-meta">{formatLedgerTime(record.createdAt)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="empty compact-empty">아직 정리 실행 이력이 없습니다.</div>
+      )}
+    </section>
+  );
+}
+
+// 운영 콘솔. 워커·큐·엔진·런타임·스토리지 상태를 한 화면에 모은 읽기 전용 운영자 surface. 로드된 패널만
+// 렌더하고 권한/네트워크로 모두 실패하면 안내를 보여준다. 이 화면은 어떤 작업도 변경·중단하지 않는다.
 function OperationsConsole({
   readiness,
   metrics,
@@ -1179,7 +1311,10 @@ function OperationsConsole({
   completions,
   retryPlan,
   retryExecutions,
-  providerHealth
+  providerHealth,
+  inventory,
+  cleanupPlan,
+  cleanupExecutions
 }: {
   readiness: RuntimeReadiness | null;
   metrics: SystemMetrics | null;
@@ -1190,15 +1325,18 @@ function OperationsConsole({
   retryPlan: WorkerRetryPlan | null;
   retryExecutions: WorkerRetryExecutionSnapshot | null;
   providerHealth: ProviderHealthSnapshot | null;
+  inventory: MediaArtifactInventory | null;
+  cleanupPlan: StorageCleanupPlan | null;
+  cleanupExecutions: StorageCleanupExecutionSnapshot | null;
 }) {
   const anyLoaded =
-    readiness || metrics || queue || dispatch || leases || completions || retryPlan || retryExecutions || providerHealth;
+    readiness || metrics || queue || dispatch || leases || completions || retryPlan || retryExecutions || providerHealth || inventory || cleanupPlan || cleanupExecutions;
   return (
     <>
       <div className="head">
         <div>
           <h2>운영 콘솔</h2>
-          <p className="hint">워커·큐·엔진·런타임 상태를 한곳에서 읽기 전용으로 점검합니다. 이 화면에서는 어떤 작업도 멈추거나 변경하지 않습니다.</p>
+          <p className="hint">워커·큐·엔진·런타임·스토리지 상태를 한곳에서 읽기 전용으로 점검합니다. 이 화면에서는 어떤 작업도 멈추거나 변경하지 않습니다.</p>
         </div>
       </div>
       {readiness ? <ReadinessConsolePanel readiness={readiness} /> : null}
@@ -1210,6 +1348,9 @@ function OperationsConsole({
       {retryPlan ? <WorkerRetryPlanPanel plan={retryPlan} /> : null}
       {retryExecutions ? <WorkerRetryExecutionPanel executions={retryExecutions} /> : null}
       {providerHealth ? <ProviderHealthPanel health={providerHealth} /> : null}
+      {inventory ? <MediaArtifactInventoryPanel inventory={inventory} /> : null}
+      {cleanupPlan ? <StorageCleanupPlanPanel plan={cleanupPlan} /> : null}
+      {cleanupExecutions ? <StorageCleanupExecutionPanel executions={cleanupExecutions} /> : null}
       {!anyLoaded ? (
         <div className="empty">
           <div>
@@ -1244,6 +1385,8 @@ export function StudioApp() {
   const [retryPlan, setRetryPlan] = useState<WorkerRetryPlan | null>(null);
   const [retryExecutions, setRetryExecutions] = useState<WorkerRetryExecutionSnapshot | null>(null);
   const [providerHealth, setProviderHealth] = useState<ProviderHealthSnapshot | null>(null);
+  const [cleanupPlan, setCleanupPlan] = useState<StorageCleanupPlan | null>(null);
+  const [cleanupExecutions, setCleanupExecutions] = useState<StorageCleanupExecutionSnapshot | null>(null);
   const toastTimer = useRef<number | null>(null);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
@@ -1272,8 +1415,11 @@ export function StudioApp() {
     studioApi.getWorkerRetryPlan().then(setRetryPlan).catch(() => {});
     studioApi.getWorkerRetryExecutions().then(setRetryExecutions).catch(() => {});
     studioApi.getProviderHealth().then(setProviderHealth).catch(() => {});
+    studioApi.getStorageCleanupPlan().then(setCleanupPlan).catch(() => {});
+    studioApi.getStorageCleanupExecutions().then(setCleanupExecutions).catch(() => {});
     loadMetrics();
     loadQueue();
+    loadInventory();
   }
 
   const selectedShot = useMemo(() => {
@@ -1630,6 +1776,9 @@ export function StudioApp() {
               retryPlan={retryPlan}
               retryExecutions={retryExecutions}
               providerHealth={providerHealth}
+              inventory={inventory}
+              cleanupPlan={cleanupPlan}
+              cleanupExecutions={cleanupExecutions}
             />
           ) : null}
         </section>
