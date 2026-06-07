@@ -115,7 +115,7 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("FROM cutpilot_generation_jobs")) {
       if (sql.includes("WHERE id = $1") && params?.[0] !== genJobId) return [];
-      const status = sql.includes("ORDER BY updated_at DESC") ? "done" : "queued";
+      const status = sql.includes("ORDER BY updated_at DESC") ? "failed" : "queued";
       return [
         {
           id: genJobId,
@@ -124,12 +124,12 @@ class FakeClient implements PgQueryable {
           take_id: takeId,
           retry_of_job_id: null,
           status,
-          progress: status === "done" ? 1 : 0,
-          eta_sec: status === "done" ? 0 : 6,
-          stage: status === "done" ? "done" : "queued",
+          progress: status === "failed" ? 1 : 0,
+          eta_sec: status === "failed" ? 0 : 6,
+          stage: status === "failed" ? "failed" : "queued",
           should_fail: false,
           due_at: 1,
-          error: null,
+          error: status === "failed" ? { code: "WORKER_FAILED", userMessage: "Worker failed", retryable: true, fallbackSuggested: true } : null,
           prompt_package: {
             projectId,
             shotId,
@@ -307,10 +307,15 @@ async function main() {
 
   const completions = await adapter.getWorkerCompletionSnapshot();
   assert.equal(completions.summary.total, 1, "live read adapter should build worker completion snapshots from persisted terminal jobs");
-  assert.equal(completions.summary.succeeded, 1, "live completion snapshots should count succeeded jobs");
+  assert.equal(completions.summary.failed, 1, "live completion snapshots should count failed jobs");
   assert.equal(completions.receipts[0].jobId, genJobId, "live completion snapshots should preserve receipt job ids");
   assert.equal(completions.receipts[0].summary.artifactCount, 1, "live completion snapshots should attach persisted artifacts");
   assert.equal(completions.receipts[0].summary.capturedCredits, 18, "live completion snapshots should attach persisted credit captures");
+
+  const retryPlan = await adapter.getWorkerRetryPlan();
+  assert.equal(retryPlan.summary.totalFailed, 1, "live read adapter should build retry plans from failed completion receipts");
+  assert.equal(retryPlan.summary.retryable, 1, "live retry plans should count retryable failures");
+  assert.equal(retryPlan.items[0].action, "retry_provider_generation", "live retry plans should preserve provider retry actions");
 
   assert.ok(
     client.queries.some((query) => query.sql.includes("FROM cutpilot_projects p")),

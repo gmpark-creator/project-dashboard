@@ -8,6 +8,7 @@ import { GET as queueRoute } from "../app/api/system/queue/route";
 import { GET as workerDispatchRoute } from "../app/api/system/worker-dispatch/route";
 import { GET as workerCompletionsRoute } from "../app/api/system/worker-completions/route";
 import { GET as workerLeasesRoute } from "../app/api/system/worker-leases/route";
+import { GET as workerRetriesRoute } from "../app/api/system/worker-retries/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
 const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_READS", "DATABASE_URL", "CUTPILOT_ADMIN_TOKEN"];
@@ -75,6 +76,7 @@ async function main() {
     await assertUnavailable("worker dispatch", await workerDispatchRoute(systemRequest()));
     await assertUnavailable("worker leases", await workerLeasesRoute(systemRequest()));
     await assertUnavailable("worker completions", await workerCompletionsRoute(systemRequest()));
+    await assertUnavailable("worker retries", await workerRetriesRoute(systemRequest()));
     await assertUnavailable(
       "render preview",
       await previewRenderRoute(
@@ -121,6 +123,10 @@ async function main() {
     const liveWorkerCompletionsBody = (await liveWorkerCompletionsWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerCompletionsWithoutDb.status, 503, "live worker completion snapshot should fail closed without DATABASE_URL");
     assert.equal(liveWorkerCompletionsBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker completion snapshot should expose live persistence unavailability");
+    const liveWorkerRetriesWithoutDb = await workerRetriesRoute(systemRequest());
+    const liveWorkerRetriesBody = (await liveWorkerRetriesWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerRetriesWithoutDb.status, 503, "live worker retry plan should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerRetriesBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker retry plan should expose live persistence unavailability");
     assert.equal(stateFingerprint(), before, "failed live production reads should not mutate mock state");
   } finally {
     restoreEnv(originalEnv);

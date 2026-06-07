@@ -838,6 +838,7 @@ function assertProductionReadBoundary() {
   const workerDispatchRoute = readFileSync(join(appApiDir, "system", "worker-dispatch", "route.ts"), "utf8");
   const workerCompletionsRoute = readFileSync(join(appApiDir, "system", "worker-completions", "route.ts"), "utf8");
   const workerLeasesRoute = readFileSync(join(appApiDir, "system", "worker-leases", "route.ts"), "utf8");
+  const workerRetriesRoute = readFileSync(join(appApiDir, "system", "worker-retries", "route.ts"), "utf8");
   const queueSnapshotSource = readFileSync(join(serverDir, "queue-snapshot.ts"), "utf8");
   const workerCompletionsSource = readFileSync(join(serverDir, "worker-completions.ts"), "utf8");
   const workerDispatchSource = readFileSync(join(serverDir, "worker-dispatch.ts"), "utf8");
@@ -858,11 +859,13 @@ function assertProductionReadBoundary() {
   assert.ok(workerDispatchRoute.includes("getLiveWorkerDispatchSnapshot()"), "worker dispatch route must support live dispatch reads behind the switch");
   assert.ok(workerCompletionsRoute.includes("getLiveWorkerCompletionSnapshot()"), "worker completions route must support live completion reads behind the switch");
   assert.ok(workerLeasesRoute.includes("getLiveWorkerLeaseSnapshot()"), "worker leases route must support live lease reads behind the switch");
+  assert.ok(workerRetriesRoute.includes("getLiveWorkerRetryPlan()"), "worker retries route must support live retry reads behind the switch");
   assert.ok(workerLeasesRoute.includes("createLiveWorkerLease(leaseRequest)"), "worker leases route must support live lease creation behind the switch");
   assert.ok(liveRuntimeSource.includes("getLiveQueueSnapshot"), "live persistence runtime must expose live queue snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerDispatchSnapshot"), "live persistence runtime must expose live worker dispatch snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerCompletionSnapshot"), "live persistence runtime must expose live worker completion snapshots");
   assert.ok(liveRuntimeSource.includes("getLiveWorkerLeaseSnapshot"), "live persistence runtime must expose live worker lease snapshots");
+  assert.ok(liveRuntimeSource.includes("getLiveWorkerRetryPlan"), "live persistence runtime must expose live worker retry plans");
   assert.ok(liveRuntimeSource.includes("createLiveWorkerLease"), "live persistence runtime must expose live worker lease creation");
   assert.ok(projectListRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project list route must fail closed when live persistence is unavailable");
   assert.ok(projectBundleRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "project bundle route must fail closed when live persistence is unavailable");
@@ -873,10 +876,12 @@ function assertProductionReadBoundary() {
   assert.ok(workerDispatchRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker dispatch route must fail closed when live persistence is unavailable");
   assert.ok(workerCompletionsRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker completions route must fail closed when live persistence is unavailable");
   assert.ok(workerLeasesRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker leases route must fail closed when live persistence is unavailable");
+  assert.ok(workerRetriesRoute.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker retries route must fail closed when live persistence is unavailable");
   assert.ok(queueRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "system queue route must fail closed in production without live reads");
   assert.ok(workerDispatchRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker dispatch route must fail closed in production without live reads");
   assert.ok(workerCompletionsRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker completions route must fail closed in production without live reads");
   assert.ok(workerLeasesRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker leases route must fail closed in production without live reads");
+  assert.ok(workerRetriesRoute.includes('apiError("MOCK_READ_UNAVAILABLE"'), "worker retries route must fail closed in production without live reads");
   assert.ok(workerLeasesRoute.includes('apiError("MOCK_MUTATION_UNAVAILABLE"'), "worker leases route must fail closed in production without live writes");
   assert.ok(testMock.includes("scripts/production-read-boundary.test.ts"), "test:mock must include production read boundary coverage");
   assert.ok(testMock.includes("scripts/live-persistence-runtime.test.ts"), "test:mock must include live persistence runtime coverage");

@@ -23,6 +23,7 @@ import type { PgQueryable } from "./live-persistence-migrations";
 import { buildQueueSnapshotFromJobs } from "./queue-snapshot";
 import { buildWorkerCompletionSnapshotFromJobs } from "./worker-completions";
 import { buildWorkerDispatchSnapshotFromJobs } from "./worker-dispatch";
+import { buildWorkerRetryPlan } from "./worker-retries";
 
 type Row = Record<string, unknown>;
 
@@ -502,6 +503,10 @@ export class PostgresLivePersistenceReadAdapter {
     const mediaArtifacts = (await this.client.query<Row>("SELECT * FROM cutpilot_media_artifacts ORDER BY created_at ASC")).rows.map(rowMediaArtifact);
     const creditTransactions = (await this.client.query<Row>("SELECT * FROM cutpilot_credit_transactions ORDER BY created_at ASC")).rows.map(rowCreditTransaction);
     return buildWorkerCompletionSnapshotFromJobs({ generationJobs, imageJobs, renderJobs, mediaArtifacts, creditTransactions });
+  }
+
+  async getWorkerRetryPlan() {
+    return buildWorkerRetryPlan((await this.getWorkerCompletionSnapshot()).receipts);
   }
 
   async getProjectBundle(projectId: string): Promise<ProjectBundle | null> {

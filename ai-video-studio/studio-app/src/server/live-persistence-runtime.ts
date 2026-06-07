@@ -107,6 +107,10 @@ export async function getLiveWorkerCompletionSnapshot() {
   return getLivePersistenceReadAdapter().getWorkerCompletionSnapshot();
 }
 
+export async function getLiveWorkerRetryPlan() {
+  return getLivePersistenceReadAdapter().getWorkerRetryPlan();
+}
+
 export async function previewLiveRender(projectId: string, spec: ExportSpec) {
   const bundle = await getLivePersistenceReadAdapter().getProjectBundle(projectId);
   return bundle ? buildLiveRenderPreview(bundle, spec) : null;
