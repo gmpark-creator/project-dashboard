@@ -1127,38 +1127,73 @@ function ProviderHealthPanel({ health }: { health: ProviderHealthSnapshot }) {
 
 // 운영 콘솔용 런타임 점검 패널. 상단 배지(RuntimeReadinessBadge)와 같은 데이터를 쓰되, 콘솔에서는
 // 클릭 없이 점검 항목을 펼쳐 보여준다. 환경변수는 이름만 노출하고 값은 보여주지 않는다.
+// 점검 항목별 한국어 액션 힌트(프로덕션 준비 체크리스트용). 무엇을 설정해야 정상이 되는지 안내한다.
+// provider/model 실명은 쓰지 않고 개념(프로바이더 키·오브젝트 스토리지 등)으로만 설명한다.
+const readinessHints: Record<string, string> = {
+  runtime_mode: "프로덕션 전환 시 운영 모드로 전환됩니다.",
+  mock_persistence: "파일 기반 목업 저장소가 켜져 있습니다.",
+  persistence: "프로덕션 데이터베이스 연결이 필요합니다.",
+  provider_credentials: "생성 엔진 사용을 위한 프로바이더 키가 필요합니다.",
+  provider_execution: "엔진 실행을 위한 프로바이더 키가 필요합니다.",
+  story_decomposer: "스토리 분해 엔진 설정이 필요합니다.",
+  object_storage: "산출물 저장용 오브젝트 스토리지가 필요합니다.",
+  queue_worker: "비동기 작업 큐 연결이 필요합니다.",
+  worker_output_policy: "프로덕션에서는 실제 산출물이 있어야 완료로 인정됩니다.",
+  admin_access: "운영자 API 보호용 관리자 토큰이 필요합니다."
+};
+
 function ReadinessConsolePanel({ readiness }: { readiness: RuntimeReadiness }) {
   const production = readiness.mode === "production";
   const attention = readiness.checks.filter((item) => item.status === "warn" || item.status === "fail").length;
+  const passCount = readiness.checks.filter((item) => item.status === "pass").length;
+  const total = readiness.checks.length;
   const time = readinessTime(readiness.generatedAt);
   const modeLabel = production ? "운영 모드" : "목업 모드";
-  const stateLabel = production ? (readiness.ready ? "준비됨" : "점검 필요") : attention ? "확인 권장" : "정상";
   return (
     <section className="panel metrics" aria-label="런타임 점검">
       <div className="head">
         <div>
-          <h2>런타임 점검</h2>
-          <p className="hint">{modeLabel} · {stateLabel}</p>
+          <h2>런타임 점검 · 프로덕션 준비</h2>
+          <p className="hint">
+            {modeLabel} · 점검 {passCount}/{total} 정상
+            {!production && attention ? " · 아래 항목은 프로덕션 전환 시 필요합니다" : ""}
+          </p>
         </div>
         <div className="metrics-meta">
-          <span className={`badge ${attention ? "warn" : "ok"}`}>{attention ? `확인 권장 ${attention}건` : "정상"}</span>
+          <span className={`badge ${production ? (readiness.ready ? "ok" : "warn") : attention ? "warn" : "ok"}`}>
+            {production ? (readiness.ready ? "준비됨" : "점검 필요") : attention ? `설정 필요 ${attention}건` : "정상"}
+          </span>
           {time ? <span className="hint">{time} 점검</span> : null}
         </div>
       </div>
       <ul className="readiness-list">
-        {readiness.checks.map((item) => (
-          <li key={item.id} className={`readiness-item status-${item.status}`}>
-            <span className="readiness-item-dot" aria-hidden="true" />
-            <span className="readiness-item-label">{readinessCheckLabels[item.id] || item.label}</span>
-            <span className="readiness-item-status">{readinessStatusText[item.status]}</span>
-          </li>
-        ))}
+        {readiness.checks.map((item) => {
+          const hint = item.status !== "pass" ? readinessHints[item.id] : undefined;
+          return (
+            <li key={item.id} className={`readiness-item status-${item.status}`}>
+              <span className="readiness-item-dot" aria-hidden="true" />
+              <span className="readiness-item-label">{readinessCheckLabels[item.id] || item.label}</span>
+              <span className="readiness-item-status">{readinessStatusText[item.status]}</span>
+              {hint ? <span className="readiness-item-hint">{hint}</span> : null}
+            </li>
+          );
+        })}
       </ul>
       {readiness.missingEnv.length ? (
         <div className="readiness-env">
-          <span className="readiness-env-title">누락 환경변수</span>
+          <span className="readiness-env-title">{production ? "누락된 필수 환경변수" : "프로덕션 전환에 필요한 환경변수"}</span>
           <div className="readiness-env-chips">
             {readiness.missingEnv.map((name) => (
+              <code key={name} className="readiness-env-chip">{name}</code>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {readiness.invalidEnv.length ? (
+        <div className="readiness-env">
+          <span className="readiness-env-title">형식이 올바르지 않은 환경변수</span>
+          <div className="readiness-env-chips">
+            {readiness.invalidEnv.map((name) => (
               <code key={name} className="readiness-env-chip">{name}</code>
             ))}
           </div>
