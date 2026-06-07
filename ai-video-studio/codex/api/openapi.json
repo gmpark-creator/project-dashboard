@@ -556,7 +556,7 @@
                 "type": "object",
                 "required": ["takeId"],
                 "properties": {
-                  "takeId": { "type": "string" }
+                  "takeId": { "type": "string", "pattern": "^tak_" }
                 }
               }
             }
@@ -565,7 +565,7 @@
         "responses": {
           "200": { "description": "Take selected" },
           "400": {
-            "description": "Missing take id",
+            "description": "Missing or invalid take id",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -853,7 +853,7 @@
             }
           },
           "400": {
-            "description": "Missing render job id",
+            "description": "Missing or invalid render job id",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
