@@ -4,9 +4,13 @@ import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
 import { serviceErrorResponse } from "../../../service-error";
+import { pathParamsError } from "../../../path-params";
 
 export async function POST(request: Request, context: { params: Promise<{ shotId: string }> }) {
-  const { shotId } = await context.params;
+  const params = await context.params;
+  const pathError = pathParamsError(params);
+  if (pathError) return pathError;
+  const { shotId } = params;
   const body = await readJsonObject(request);
   if (!body) {
     return apiError("BAD_REQUEST", "요청 형식이 올바르지 않습니다.", 400);

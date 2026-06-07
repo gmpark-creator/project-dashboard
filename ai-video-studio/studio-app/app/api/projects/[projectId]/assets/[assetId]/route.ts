@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { deleteImageAsset } from "@/server/mock-service";
 import { serviceErrorResponse } from "../../../../service-error";
+import { pathParamsError } from "../../../../path-params";
 
 export async function DELETE(request: Request, context: { params: Promise<{ projectId: string; assetId: string }> }) {
-  const { projectId, assetId } = await context.params;
+  const params = await context.params;
+  const pathError = pathParamsError(params);
+  if (pathError) return pathError;
+  const { projectId, assetId } = params;
   const url = new URL(request.url);
   const force = url.searchParams.get("force") === "true";
   try {

@@ -6,9 +6,13 @@ import { apiError } from "../../../error-response";
 import { isExportSpec } from "../../../export-spec";
 import { readJsonObject } from "../../../json-body";
 import { serviceErrorResponse } from "../../../service-error";
+import { pathParamsError } from "../../../path-params";
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = await context.params;
+  const params = await context.params;
+  const pathError = pathParamsError(params);
+  if (pathError) return pathError;
+  const { projectId } = params;
   const body = await readJsonObject(request);
   const specs = body?.specs;
   if (!Array.isArray(specs) || specs.length === 0 || !specs.every(isExportSpec)) {

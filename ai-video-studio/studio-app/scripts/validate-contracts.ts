@@ -440,6 +440,10 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
         assert.ok(operation.responses?.["409"], `service conflict route ${operation.operationId} missing 409 response`);
       }
     }
+    if (pathName.includes("{")) {
+      assert.ok(routeSource.includes("pathParamsError("), `path route ${pathName} ${method.toUpperCase()} missing pathParamsError guard`);
+      assert.ok(operation.responses?.["400"], `path route ${pathName} ${method.toUpperCase()} missing 400 response`);
+    }
     if (operation.operationId && creditGuardedOperations.has(operation.operationId)) {
       assert.ok(routeSource.includes("creditReservationResponse("), `credit guarded operation ${operation.operationId} missing route credit handler`);
       assert.ok(operation.responses?.["402"], `credit guarded operation ${operation.operationId} missing 402 response`);

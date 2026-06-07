@@ -96,6 +96,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid project id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "404": {
             "description": "Project not found",
             "content": {
@@ -240,6 +248,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid project id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "404": {
             "description": "Project not found",
             "content": {
@@ -317,6 +333,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/AssetDeleteResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid project or image asset id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           },
@@ -536,6 +560,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/Shot" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid shot or image asset id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           },
@@ -1890,6 +1922,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid job id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "404": {
             "description": "Failed worker job is not in the retry plan",
             "content": {
@@ -1946,6 +1986,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid job id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
           "404": {
             "description": "Job not found",
             "content": {
@@ -1969,6 +2017,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/CancelJobResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid job id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
           },

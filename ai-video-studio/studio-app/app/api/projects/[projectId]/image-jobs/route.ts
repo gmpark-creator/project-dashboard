@@ -5,6 +5,7 @@ import { creditReservationResponse } from "../../../credit-error";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
 import { serviceErrorResponse } from "../../../service-error";
+import { pathParamsError } from "../../../path-params";
 
 const validAspects = new Set<Aspect>(["9:16", "16:9", "1:1", "4:5"]);
 const validPurposes = new Set<ImageMakerPurpose>([
@@ -29,7 +30,10 @@ const validRoles = new Set<ImageAssetRole>([
 ]);
 
 export async function POST(request: Request, context: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = await context.params;
+  const params = await context.params;
+  const pathError = pathParamsError(params);
+  if (pathError) return pathError;
+  const { projectId } = params;
   const body = await readJsonObject(request);
   if (!body) {
     return apiError("BAD_REQUEST", "요청 형식이 올바르지 않습니다.", 400);

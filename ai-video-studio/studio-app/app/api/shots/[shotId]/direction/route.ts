@@ -4,6 +4,7 @@ import type { DirectionSpec } from "@/domain/types";
 import { apiError } from "../../../error-response";
 import { readJsonObject } from "../../../json-body";
 import { serviceErrorResponse } from "../../../service-error";
+import { pathParamsError } from "../../../path-params";
 
 const directionKeys = new Set(["camera", "composition", "lighting", "motion", "style", "avoid", "notes"]);
 const stringDirectionKeys = new Set(["camera", "composition", "lighting", "motion", "style", "notes"]);
@@ -20,7 +21,10 @@ function isDirectionPatch(value: Record<string, unknown>): value is Partial<Dire
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ shotId: string }> }) {
-  const { shotId } = await context.params;
+  const params = await context.params;
+  const pathError = pathParamsError(params);
+  if (pathError) return pathError;
+  const { shotId } = params;
   const body = await readJsonObject(request);
   if (!body || !isDirectionPatch(body)) {
     return apiError("BAD_REQUEST", "연출 설정 형식이 올바르지 않습니다.", 400);
