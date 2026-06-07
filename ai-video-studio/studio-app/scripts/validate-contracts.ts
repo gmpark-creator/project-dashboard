@@ -12,7 +12,7 @@ function readJson<T>(path: string): T {
 }
 
 type HttpMethod = (typeof httpMethods)[number];
-type OpenApiOperation = { operationId?: string };
+type OpenApiOperation = { operationId?: string; requestBody?: unknown; responses?: Record<string, unknown> };
 type OpenApiPathItem = Partial<Record<HttpMethod, OpenApiOperation>>;
 
 type Capabilities = {
@@ -234,6 +234,9 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     if (!operation) continue;
     assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
     assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
+    if (operation.requestBody) {
+      assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
+    }
   }
 }
 
