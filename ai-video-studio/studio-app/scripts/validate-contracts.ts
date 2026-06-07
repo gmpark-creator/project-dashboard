@@ -73,6 +73,7 @@ assertStorageCleanupObjectStorageBoundary();
 assertMockTickProductionBoundary();
 assertProductionAutoTickIsDisabled();
 assertProductionMockPersistenceIsDisabled();
+assertPersistenceSchemaBoundary();
 assertProductionPersistenceReadinessBoundary();
 assertProductionProviderReadinessBoundary();
 assertProductionQueueReadinessBoundary();
@@ -317,6 +318,36 @@ function assertProductionMockPersistenceIsDisabled() {
   assert.ok(readinessSource.includes("File-backed mock state is disabled in production mode."), "readiness must state mock persistence is disabled in production");
   assert.ok(testMock.includes("scripts/production-mock-persistence-boundary.test.ts"), "test:mock must include production mock persistence boundary coverage");
   assert.ok(testMock.includes("scripts/mock-state-store-boundary.test.ts"), "test:mock must include mock state store boundary coverage");
+}
+
+function assertPersistenceSchemaBoundary() {
+  const schemaSource = readFileSync(join(codexDir, "persistence", "postgres-schema.sql"), "utf8");
+  const testMock = packageJson.scripts?.["test:mock"] || "";
+  const requiredTables = [
+    "cutpilot_projects",
+    "cutpilot_scenes",
+    "cutpilot_shots",
+    "cutpilot_takes",
+    "cutpilot_generation_jobs",
+    "cutpilot_provider_attempts",
+    "cutpilot_image_assets",
+    "cutpilot_image_jobs",
+    "cutpilot_render_jobs",
+    "cutpilot_credit_transactions",
+    "cutpilot_media_artifacts",
+    "cutpilot_worker_leases",
+    "cutpilot_worker_retry_records"
+  ];
+
+  for (const table of requiredTables) {
+    assert.ok(schemaSource.includes(`CREATE TABLE ${table}`), `persistence schema missing ${table}`);
+  }
+  assert.equal(schemaSource.includes("CREATE TABLE cutpilot_studio_state"), false, "persistence schema must not collapse live state into a single blob table");
+  assert.ok(schemaSource.includes("REFERENCES cutpilot_projects(id) ON DELETE CASCADE"), "persistence schema must anchor child tables to projects");
+  assert.ok(schemaSource.includes("cutpilot_provider_attempts"), "persistence schema must preserve provider attempt telemetry");
+  assert.ok(schemaSource.includes("provider_cost_usd numeric"), "persistence schema must preserve provider cost ledger fields");
+  assert.ok(schemaSource.includes("storage_key text NOT NULL"), "persistence schema must preserve storage artifact keys");
+  assert.ok(testMock.includes("scripts/persistence-schema-boundary.test.ts"), "test:mock must include persistence schema boundary coverage");
 }
 
 function assertProductionPersistenceReadinessBoundary() {
