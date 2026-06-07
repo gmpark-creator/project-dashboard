@@ -124,6 +124,46 @@ function exportedRouteMethods(routeFile: string) {
   );
 }
 
+function routeMethodSource(routeSource: string, method: HttpMethod) {
+  const match = new RegExp(`export\\s+(async\\s+)?function\\s+${method.toUpperCase()}\\b`).exec(routeSource);
+  if (!match) return "";
+  const parameterStart = routeSource.indexOf("(", match.index);
+  assert.notEqual(parameterStart, -1, `route method ${method.toUpperCase()} missing parameter list`);
+  let parameterDepth = 0;
+  let parameterEnd = -1;
+  for (let index = parameterStart; index < routeSource.length; index += 1) {
+    const char = routeSource[index];
+    if (char === "(") parameterDepth += 1;
+    if (char === ")") parameterDepth -= 1;
+    if (parameterDepth === 0) {
+      parameterEnd = index;
+      break;
+    }
+  }
+  assert.notEqual(parameterEnd, -1, `route method ${method.toUpperCase()} parameter list did not close`);
+  const bodyStart = routeSource.indexOf("{", parameterEnd);
+  assert.notEqual(bodyStart, -1, `route method ${method.toUpperCase()} missing body`);
+  let depth = 0;
+  for (let index = bodyStart; index < routeSource.length; index += 1) {
+    const char = routeSource[index];
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (depth === 0) return routeSource.slice(match.index, index + 1);
+  }
+  return routeSource.slice(match.index);
+}
+
+function routeSuccessStatuses(methodSource: string) {
+  const statuses = new Set<string>();
+  for (const [, expression] of methodSource.matchAll(/\bstatus\s*[:=]\s*([^;\n}]*)/g)) {
+    for (const [, status] of expression.matchAll(/\b(20[0124])\b/g)) {
+      statuses.add(status);
+    }
+  }
+  if (methodSource.includes("NextResponse.json(") && statuses.size === 0) statuses.add("200");
+  return statuses;
+}
+
 function sourceFiles(dir: string): string[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -538,6 +578,22 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
       if (!operation) continue;
       assert.ok(operation.operationId, `openapi path ${pathName} ${method.toUpperCase()} missing operationId`);
       assert.ok(exportedMethods.has(method), `openapi path ${pathName} ${method.toUpperCase()} missing route export in ${routeFile}`);
+      const methodSource = routeMethodSource(routeSource, method);
+      assert.ok(methodSource, `openapi path ${pathName} ${method.toUpperCase()} missing route method source in ${routeFile}`);
+      const documentedSuccessStatuses = new Set(Object.keys(operation.responses || {}).filter((code) => documentedJsonSuccessStatuses.has(code)));
+      const implementedSuccessStatuses = routeSuccessStatuses(methodSource);
+      for (const status of implementedSuccessStatuses) {
+        assert.ok(
+          documentedSuccessStatuses.has(status),
+          `route ${operation.operationId} returns success status ${status} but OpenAPI does not document it`
+        );
+      }
+      for (const status of documentedSuccessStatuses) {
+        assert.ok(
+          implementedSuccessStatuses.has(status),
+          `openapi ${operation.operationId} documents success status ${status} but route does not return it`
+        );
+      }
       const operationParameters = operation.parameters || [];
       const operationParameterKeys = new Set<string>();
       for (const parameter of operationParameters) {
