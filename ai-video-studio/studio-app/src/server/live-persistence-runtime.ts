@@ -13,7 +13,7 @@ import {
   type LiveTakeUpgradeInput
 } from "./live-persistence-write-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
-import type { DirectionSpec, ExportSpec, WorkerLeaseRequest } from "../domain/types";
+import type { DirectionSpec, ExportSpec, WorkerLeaseCompletionInput, WorkerLeaseRequest } from "../domain/types";
 import type { LiveProjectCreateInput } from "./live-project-builder";
 
 let pool: Pool | null = null;
@@ -183,6 +183,13 @@ export async function renewLiveWorkerLease(leaseId: string, input: { token?: str
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
   }
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).renewWorkerLease(leaseId, input));
+}
+
+export async function completeLiveWorkerLease(leaseId: string, input: Partial<WorkerLeaseCompletionInput> = {}) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).completeWorkerLease(leaseId, input));
 }
 
 export async function registerLiveExternalImage(input: LiveExternalImageInput) {

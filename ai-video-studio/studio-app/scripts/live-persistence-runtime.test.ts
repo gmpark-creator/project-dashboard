@@ -4,6 +4,7 @@ import {
   applyLiveEdit,
   cancelLiveJob,
   closeLivePersistencePoolForTests,
+  completeLiveWorkerLease,
   createLiveWorkerLease,
   createLiveImageJob,
   createLiveProject,
@@ -87,6 +88,11 @@ async function main() {
       () => renewLiveWorkerLease("wlease_disabled", { token: "token", ttlSec: 60 }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live worker lease renewal should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => completeLiveWorkerLease("wlease_disabled", { token: "token", status: "failed" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker lease completion should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_disabled", { camera: "locked" }),
@@ -226,6 +232,11 @@ async function main() {
       () => renewLiveWorkerLease("wlease_missing_db", { token: "token", ttlSec: 60 }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker lease renewal should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => completeLiveWorkerLease("wlease_missing_db", { token: "token", status: "failed" }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker lease completion should require DATABASE_URL"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),

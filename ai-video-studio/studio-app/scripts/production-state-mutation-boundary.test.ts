@@ -10,6 +10,7 @@ import { PATCH as updateShotDirectionRoute } from "../app/api/shots/[shotId]/dir
 import { POST as attachImageToShotRoute } from "../app/api/shots/[shotId]/references/route";
 import { DELETE as detachImageFromShotRoute } from "../app/api/shots/[shotId]/references/[assetId]/route";
 import { POST as selectTakeRoute } from "../app/api/shots/[shotId]/select-take/route";
+import { POST as completeWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/complete/route";
 import { POST as releaseWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/release/route";
 import { POST as renewWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/renew/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
@@ -99,6 +100,10 @@ async function main() {
       "worker lease renewal",
       await renewWorkerLeaseRoute(request("POST", { token: "lease-token", ttlSec: 60 }), context({ leaseId: "wlease_production" }))
     );
+    await assertUnavailable(
+      "worker lease completion",
+      await completeWorkerLeaseRoute(request("POST", { token: "lease-token", status: "failed" }), context({ leaseId: "wlease_production" }))
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     const liveDirectionWithoutDb = await updateShotDirectionRoute(request("PATCH", { camera: "locked" }), context({ shotId: "sht_production" }));
@@ -174,6 +179,14 @@ async function main() {
     const liveWorkerLeaseRenewWithoutDbBody = (await liveWorkerLeaseRenewWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerLeaseRenewWithoutDb.status, 503, "live worker lease renewal should fail closed without DATABASE_URL");
     assert.equal(liveWorkerLeaseRenewWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease renewal should report live persistence unavailability");
+
+    const liveWorkerLeaseCompleteWithoutDb = await completeWorkerLeaseRoute(
+      request("POST", { token: "lease-token", status: "failed" }),
+      context({ leaseId: "wlease_production" })
+    );
+    const liveWorkerLeaseCompleteWithoutDbBody = (await liveWorkerLeaseCompleteWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerLeaseCompleteWithoutDb.status, 503, "live worker lease completion should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerLeaseCompleteWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease completion should report live persistence unavailability");
 
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {

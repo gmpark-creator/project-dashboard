@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { POST as completeWorkerLease } from "../app/api/system/worker-leases/[leaseId]/complete/route";
+import { POST as completeWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/complete/route";
 import { POST as createWorkerLease } from "../app/api/system/worker-leases/route";
 import type { WorkerLeaseCompletionInput, WorkerLeaseCompletionResult, WorkerLeaseResult } from "../src/domain/types";
 import { createImageJob, createProject, resetMockState } from "../src/server/mock-service";
+import { completeWorkerLease as completeMockWorkerLease } from "../src/server/worker-leases";
 
 const adminToken = "test-admin-token";
 
@@ -68,7 +69,7 @@ async function main() {
     const imageStorageKey = `projects/${project.id}/imageJob/${imageJob.id}/variants/${variant.id}/image_asset`;
     const thumbnailStorageKey = `projects/${project.id}/imageJob/${imageJob.id}/variants/${variant.id}/image_thumbnail`;
 
-    const missingStorageResponse = await completeWorkerLease(
+    const productionCompletionResponse = await completeWorkerLeaseRoute(
       request({
         token: leaseResult.lease.token,
         status: "succeeded",
@@ -76,54 +77,51 @@ async function main() {
       } satisfies WorkerLeaseCompletionInput),
       context({ leaseId: leaseResult.lease.id })
     );
-    assert.equal(missingStorageResponse.status, 422, "production completion route should reject missing storage keys");
-    const missingStorageResult = await json<WorkerLeaseCompletionResult>(missingStorageResponse);
+    assert.equal(productionCompletionResponse.status, 503, "production completion route should reject mock-backed completion without live writes");
+    const productionCompletionResult = await json<{ code: string }>(productionCompletionResponse);
+    assert.equal(productionCompletionResult.code, "MOCK_MUTATION_UNAVAILABLE", "production completion route should fail closed without live writes");
+
+    const missingStorageResult = completeMockWorkerLease(leaseResult.lease.id, {
+      token: leaseResult.lease.token,
+      status: "succeeded",
+      outputs: { imageVariants: [{ variantId: variant.id, imageUrl }] }
+    } satisfies WorkerLeaseCompletionInput);
     assert.equal(missingStorageResult.completed, false, "missing storage key completion should not mutate the worker job");
     assert.equal(missingStorageResult.reason, "invalid_outputs", "missing storage keys should be reported as invalid outputs");
 
-    const mismatchedStorageResponse = await completeWorkerLease(
-      request({
-        token: leaseResult.lease.token,
-        status: "succeeded",
-        outputs: {
-          imageVariants: [
-            {
-              variantId: variant.id,
-              imageUrl,
-              imageStorageKey: "projects/wrong/imageJob/wrong/variants/wrong/image_asset",
-              thumbUrl,
-              thumbnailStorageKey
-            }
-          ]
-        }
-      } satisfies WorkerLeaseCompletionInput),
-      context({ leaseId: leaseResult.lease.id })
-    );
-    assert.equal(mismatchedStorageResponse.status, 422, "production completion route should reject mismatched storage keys");
-    const mismatchedStorageResult = await json<WorkerLeaseCompletionResult>(mismatchedStorageResponse);
+    const mismatchedStorageResult = completeMockWorkerLease(leaseResult.lease.id, {
+      token: leaseResult.lease.token,
+      status: "succeeded",
+      outputs: {
+        imageVariants: [
+          {
+            variantId: variant.id,
+            imageUrl,
+            imageStorageKey: "projects/wrong/imageJob/wrong/variants/wrong/image_asset",
+            thumbUrl,
+            thumbnailStorageKey
+          }
+        ]
+      }
+    } satisfies WorkerLeaseCompletionInput);
     assert.equal(mismatchedStorageResult.completed, false, "mismatched storage key completion should keep the lease active");
     assert.equal(mismatchedStorageResult.reason, "invalid_outputs", "mismatched storage keys should be reported as invalid outputs");
 
-    const validStorageResponse = await completeWorkerLease(
-      request({
-        token: leaseResult.lease.token,
-        status: "succeeded",
-        outputs: {
-          imageVariants: [
-            {
-              variantId: variant.id,
-              imageUrl,
-              imageStorageKey,
-              thumbUrl,
-              thumbnailStorageKey
-            }
-          ]
-        }
-      } satisfies WorkerLeaseCompletionInput),
-      context({ leaseId: leaseResult.lease.id })
-    );
-    assert.equal(validStorageResponse.status, 200, "production completion route should accept matching storage keys");
-    const validStorageResult = await json<WorkerLeaseCompletionResult>(validStorageResponse);
+    const validStorageResult: WorkerLeaseCompletionResult = completeMockWorkerLease(leaseResult.lease.id, {
+      token: leaseResult.lease.token,
+      status: "succeeded",
+      outputs: {
+        imageVariants: [
+          {
+            variantId: variant.id,
+            imageUrl,
+            imageStorageKey,
+            thumbUrl,
+            thumbnailStorageKey
+          }
+        ]
+      }
+    } satisfies WorkerLeaseCompletionInput);
     assert.equal(validStorageResult.completed, true, "valid production storage keys should complete the worker lease");
     assert.equal(validStorageResult.reason, "completed", "valid production storage keys should return the completed reason");
     assert.ok(

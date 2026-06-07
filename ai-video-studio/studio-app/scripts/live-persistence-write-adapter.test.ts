@@ -19,6 +19,9 @@ class FakeClient implements PgQueryable {
   shotRows: Record<string, unknown>[] = [];
   takeRow: Record<string, unknown> | null = null;
   imageAssetRow: Record<string, unknown> | null = null;
+  imageAssetRows: Record<string, unknown>[] = [];
+  mediaArtifactRows: Record<string, unknown>[] = [];
+  creditTransactionRows: Record<string, unknown>[] = [];
   imageAssetDeleted = false;
   assetUsageRows: Record<string, unknown>[] = [];
   projectIntent = "product_ad";
@@ -93,7 +96,26 @@ class FakeClient implements PgQueryable {
       } as unknown as T;
       return { rows: [updated] };
     }
-    if (sql.includes("INSERT INTO cutpilot_image_assets")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_image_assets")) {
+      this.imageAssetRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        kind: params?.[2],
+        role: params?.[3],
+        source: params?.[4],
+        label: params?.[5],
+        prompt: params?.[6],
+        url: params?.[7],
+        thumb_url: params?.[8],
+        aspect: params?.[9],
+        width: params?.[10],
+        height: params?.[11],
+        rights: params?.[12],
+        created_at: params?.[13],
+        updated_at: params?.[14]
+      });
+      return { rows: [] as T[] };
+    }
     if (sql.includes("INSERT INTO cutpilot_reference_boards")) return { rows: [] as T[] };
     if (sql.includes("INSERT INTO cutpilot_asset_usages")) {
       const usage = { asset_id: params?.[0], project_id: params?.[1], target: params?.[2], target_id: params?.[3], role: params?.[4], mode: params?.[5] };
@@ -108,6 +130,24 @@ class FakeClient implements PgQueryable {
     }
     if (sql.includes("DELETE FROM cutpilot_asset_usages WHERE project_id = $1")) {
       this.assetUsageRows = this.assetUsageRows.filter((row) => !(row.project_id === params?.[0] && row.asset_id === params?.[1]));
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("UPDATE cutpilot_image_jobs SET status = $2")) {
+      if (this.imageJobRow && this.imageJobRow.id === params?.[0]) {
+        this.imageJobRow.status = params?.[1];
+        this.imageJobRow.progress = params?.[2];
+        this.imageJobRow.eta_sec = params?.[3];
+        if (sql.includes("stage = $5")) {
+          this.imageJobRow.stage = params?.[4];
+          this.imageJobRow.error = params?.[5];
+          this.imageJobRow.variants = typeof params?.[6] === "string" ? JSON.parse(params[6]) : params?.[6];
+          this.imageJobRow.updated_at = params?.[7];
+        } else {
+          this.imageJobRow.error = params?.[4];
+          this.imageJobRow.variants = typeof params?.[5] === "string" ? JSON.parse(params[5]) : params?.[5];
+          this.imageJobRow.updated_at = params?.[6];
+        }
+      }
       return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_image_jobs")) return { rows: [] as T[] };
@@ -126,12 +166,30 @@ class FakeClient implements PgQueryable {
       const account = { credit_account_id: "acct_live", balance_credits: this.creditBalance, spent_credits: this.creditSpent, reserved_credits: this.creditReserved } as unknown as T;
       return { rows: this.projectExists ? [account] : [] };
     }
+    if (sql.includes("UPDATE cutpilot_credit_accounts SET spent_credits")) {
+      this.creditSpent = Number(params?.[1] || 0);
+      this.creditReserved = Number(params?.[2] || 0);
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_credit_accounts")) {
       this.creditReserved = Number(params?.[1] || 0);
       return { rows: [] as T[] };
     }
     if (sql.includes("INSERT INTO cutpilot_credit_transactions")) {
       this.creditTransactionCount += 1;
+      this.creditTransactionRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        job_id: params?.[2],
+        kind: params?.[3],
+        action: params?.[4],
+        credits: params?.[5],
+        provider_cost_usd: params?.[6],
+        margin_policy_version: params?.[7],
+        balance_after: params?.[8],
+        note: params?.[9],
+        created_at: params?.[10]
+      });
       return { rows: [] as T[] };
     }
     if (sql.includes("INSERT INTO cutpilot_image_jobs")) return { rows: [] as T[] };
@@ -143,6 +201,30 @@ class FakeClient implements PgQueryable {
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_render_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_media_artifacts")) {
+      this.mediaArtifactRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        owner_type: params?.[2],
+        owner_id: params?.[3],
+        source_job_id: params?.[4],
+        kind: params?.[5],
+        role: params?.[6],
+        url: params?.[7],
+        storage_key: params?.[8],
+        content_type: params?.[9],
+        bytes: params?.[10],
+        status: params?.[11],
+        created_at: params?.[12]
+      });
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_media_artifacts WHERE source_job_id")) {
+      return { rows: this.mediaArtifactRows.filter((row) => row.source_job_id === params?.[0]) as T[] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_credit_transactions WHERE job_id")) {
+      return { rows: this.creditTransactionRows.filter((row) => row.job_id === params?.[0]) as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_worker_leases SET status = $2 WHERE status = $1")) {
       this.workerLeaseRows = this.workerLeaseRows.map((lease) =>
         lease.status === params?.[0] && new Date(String(lease.expires_at)).getTime() <= new Date(String(params?.[2])).getTime()
@@ -657,6 +739,51 @@ async function main() {
   });
   assert.equal(expiredRenewLeaseResult.renewed, false, "live worker lease renewal should reject expired leases");
   assert.equal(expiredRenewLeaseResult.reason, "not_active", "live worker lease renewal should report expired leases as not active");
+
+  const completeImageLeaseClient = new FakeClient();
+  completeImageLeaseClient.imageJobRow = fakeImageJobRow("queued");
+  completeImageLeaseClient.workerLeaseRows = [
+    fakeWorkerLeaseRow({ dispatch_key: "image_generation:ijob_live", kind: "image_generation", job_id: "ijob_live" })
+  ];
+  const originalRuntimeMode = process.env.CUTPILOT_RUNTIME_MODE;
+  try {
+    process.env.CUTPILOT_RUNTIME_MODE = "production";
+    const missingStorageCompletion = await new PostgresLivePersistenceWriteAdapter(completeImageLeaseClient).completeWorkerLease("wlease_live", {
+      token: "lease-token",
+      status: "succeeded",
+      outputs: { imageVariants: [{ variantId: "var_a", imageUrl: "https://assets.cutpilot.local/images/var_a.png" }] }
+    });
+    assert.equal(missingStorageCompletion.completed, false, "live worker completion should reject missing production storage keys");
+    assert.equal(missingStorageCompletion.reason, "invalid_outputs", "live worker completion should report invalid production outputs");
+
+    const imageStorageKey = "projects/prj_live/imageJob/ijob_live/variants/var_a/image_asset";
+    const thumbnailStorageKey = "projects/prj_live/imageJob/ijob_live/variants/var_a/image_thumbnail";
+    const imageCompletion = await new PostgresLivePersistenceWriteAdapter(completeImageLeaseClient).completeWorkerLease("wlease_live", {
+      token: "lease-token",
+      status: "succeeded",
+      outputs: {
+        imageVariants: [
+          {
+            variantId: "var_a",
+            imageUrl: "https://assets.cutpilot.local/images/var_a.png",
+            imageStorageKey,
+            thumbnailStorageKey
+          }
+        ]
+      }
+    });
+    assert.equal(imageCompletion.completed, true, "live worker completion should complete image jobs with valid storage keys");
+    assert.equal(imageCompletion.reason, "completed", "live worker completion should report completed image jobs");
+    assert.equal(imageCompletion.receipt?.status, "succeeded", "live worker completion should return a succeeded receipt");
+    assert.equal(imageCompletion.receipt?.summary.artifactCount, 2, "live worker completion should record image and thumbnail artifacts");
+    assert.equal(imageCompletion.receipt?.summary.capturedCredits, 8, "live worker completion should capture reserved image credits");
+    assert.equal(completeImageLeaseClient.workerLeaseRows[0].status, "released", "live worker completion should release completed leases");
+    assert.equal(completeImageLeaseClient.imageJobRow?.status, "done", "live worker completion should persist completed image jobs");
+    assert.equal(completeImageLeaseClient.mediaArtifactRows[0].storage_key, imageStorageKey, "live worker completion should persist worker storage keys");
+  } finally {
+    if (typeof originalRuntimeMode === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
+    else process.env.CUTPILOT_RUNTIME_MODE = originalRuntimeMode;
+  }
 
   const imageJobClient = new FakeClient();
   const imageJobResult = await new PostgresLivePersistenceWriteAdapter(imageJobClient).createImageJob({

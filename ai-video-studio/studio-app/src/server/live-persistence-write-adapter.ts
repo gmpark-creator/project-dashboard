@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerDispatchKind, WorkerLease, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ErrorResponse, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, MediaArtifact, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerCompletionReceipt, WorkerDispatchKind, WorkerLease, WorkerLeaseCompletionInput, WorkerLeaseCompletionResult, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -230,6 +230,151 @@ function rowWorkerLease(row: Row): WorkerLease {
     expiresAt,
     releasedAt: row.released_at ? iso(row.released_at) : null
   };
+}
+
+function nullableNumber(value: unknown) {
+  if (value === null || typeof value === "undefined") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function rowCreditTransaction(row: Row): CreditTransaction {
+  return {
+    id: String(row.id),
+    projectId: String(row.project_id),
+    jobId: nullableString(row.job_id),
+    kind: row.kind as CreditTransaction["kind"],
+    action: row.action as CreditTransaction["action"],
+    credits: Number(row.credits),
+    providerCostUsd: nullableNumber(row.provider_cost_usd),
+    marginPolicyVersion: String(row.margin_policy_version),
+    balanceAfter: jsonValue<CreditTransaction["balanceAfter"]>(row.balance_after, { spent: 0, reserved: 0, available: 0 }),
+    note: String(row.note),
+    createdAt: iso(row.created_at)
+  };
+}
+
+function rowMediaArtifact(row: Row): MediaArtifact {
+  return {
+    id: String(row.id),
+    projectId: String(row.project_id),
+    ownerType: row.owner_type as MediaArtifact["ownerType"],
+    ownerId: String(row.owner_id),
+    sourceJobId: nullableString(row.source_job_id),
+    kind: row.kind as MediaArtifact["kind"],
+    role: row.role as MediaArtifact["role"],
+    url: String(row.url),
+    storageKey: String(row.storage_key),
+    contentType: String(row.content_type),
+    bytes: nullableNumber(row.bytes),
+    status: row.status as MediaArtifact["status"],
+    createdAt: iso(row.created_at)
+  };
+}
+
+function workerError(input: WorkerLeaseCompletionInput, fallbackCode: string, fallbackMessage: string): ErrorResponse {
+  return {
+    code: input.error?.code?.trim() || fallbackCode,
+    userMessage: input.error?.userMessage?.trim() || fallbackMessage,
+    retryable: Boolean(input.error?.retryable ?? true),
+    fallbackSuggested: Boolean(input.error?.fallbackSuggested ?? true)
+  };
+}
+
+function validUrl(value: string | undefined, production: boolean) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    if (production) return parsed.protocol === "https:";
+    return parsed.protocol === "https:" || parsed.protocol === "http:" || parsed.protocol === "data:" || parsed.protocol === "mock:";
+  } catch {
+    return false;
+  }
+}
+
+function hasInvalidProvidedOutput(input: Partial<WorkerLeaseCompletionInput>, production: boolean) {
+  const output = input.outputs;
+  if (!output) return false;
+  if (output.videoUrl && !validUrl(output.videoUrl, production)) return true;
+  if (output.posterUrl && !validUrl(output.posterUrl, production)) return true;
+  if (output.renderOutputUrl && !validUrl(output.renderOutputUrl, production)) return true;
+  if (output.shareUrl && !validUrl(output.shareUrl, production)) return true;
+  return Boolean(
+    output.imageVariants?.some(
+      (variant) => !validUrl(variant.imageUrl, production) || (variant.thumbUrl ? !validUrl(variant.thumbUrl, production) : false)
+    )
+  );
+}
+
+function suppliedStorageKeyMatches(value: string | undefined, expected: string | null) {
+  if (typeof value === "undefined") return true;
+  return typeof value === "string" && value.length > 0 && value === expected;
+}
+
+function takeStorageKey(projectId: string, takeId: string, role: "take_video" | "take_poster") {
+  return `projects/${projectId}/take/${takeId}/${role}`;
+}
+
+function renderStorageKey(projectId: string, jobId: string) {
+  return `projects/${projectId}/renderJob/${jobId}/render_output`;
+}
+
+function imageVariantStorageKey(projectId: string, jobId: string, variantId: string, role: "image_asset" | "image_thumbnail") {
+  return `projects/${projectId}/imageJob/${jobId}/variants/${variantId}/${role}`;
+}
+
+function expectedImageVariant(variants: ImageVariant[], variantId: string | undefined, index: number) {
+  return (variantId ? variants.find((variant) => variant.id === variantId) : null) || variants[index] || null;
+}
+
+function validLiveCompletionOutput(lease: WorkerLease, input: Partial<WorkerLeaseCompletionInput>, jobRow: Row) {
+  const production = process.env.CUTPILOT_RUNTIME_MODE === "production";
+  if (hasInvalidProvidedOutput(input, production)) return false;
+  const requireOutputs = input.requireOutputs === true || production;
+  if (!requireOutputs) return true;
+  const output = input.outputs;
+  if (!output) return false;
+
+  if (lease.kind === "image_generation") {
+    const variants = jsonValue<ImageVariant[]>(jobRow.variants, []);
+    const outputVariants = output.imageVariants || [];
+    if (!outputVariants.length) return false;
+    const coveredVariantIds = new Set<string>();
+    for (const [index, variant] of outputVariants.entries()) {
+      const expected = expectedImageVariant(variants, variant.variantId, index);
+      if (!expected) return false;
+      if (!validUrl(variant.imageUrl, production)) return false;
+      if (production && (!variant.imageStorageKey || !variant.thumbnailStorageKey)) return false;
+      if (!suppliedStorageKeyMatches(variant.imageStorageKey, imageVariantStorageKey(lease.projectId, lease.jobId, expected.id, "image_asset"))) return false;
+      if (!suppliedStorageKeyMatches(variant.thumbnailStorageKey, imageVariantStorageKey(lease.projectId, lease.jobId, expected.id, "image_thumbnail"))) return false;
+      coveredVariantIds.add(expected.id);
+    }
+    return variants.every((variant) => coveredVariantIds.has(variant.id));
+  }
+
+  if (lease.kind === "provider_generation") {
+    if (!validUrl(output.videoUrl, production)) return false;
+    if (production && !output.videoStorageKey) return false;
+    if (!suppliedStorageKeyMatches(output.videoStorageKey, takeStorageKey(lease.projectId, String(jobRow.take_id), "take_video"))) return false;
+    if (!suppliedStorageKeyMatches(output.posterStorageKey, takeStorageKey(lease.projectId, String(jobRow.take_id), "take_poster"))) return false;
+    return !output.posterUrl || validUrl(output.posterUrl, production);
+  }
+
+  const renderUrl = output.renderOutputUrl || output.videoUrl;
+  if (!validUrl(renderUrl, production)) return false;
+  if (production && !output.renderStorageKey) return false;
+  return suppliedStorageKeyMatches(output.renderStorageKey, renderStorageKey(lease.projectId, lease.jobId));
+}
+
+function terminalCompletionStatus(status: JobStatus) {
+  if (status === "done") return "succeeded";
+  if (status === "failed") return "failed";
+  if (status === "cancelled") return "cancelled";
+  throw new Error("Active jobs do not have completion receipts.");
+}
+
+function sumCredits(transactions: CreditTransaction[], kind: CreditTransaction["kind"]) {
+  return transactions.filter((transaction) => transaction.kind === kind).reduce((total, transaction) => total + transaction.credits, 0);
 }
 
 function providerAttempt(target: GenerationJob["routing"]["selected"], startedAt: string): ProviderAttempt {
@@ -583,6 +728,118 @@ export class PostgresLivePersistenceWriteAdapter {
         timestamp
       ]
     );
+  }
+
+  private async captureReservedCredits(input: { projectId: string; jobId: string; action: CreditTransaction["action"]; credits: number; note: string }) {
+    const accountRows = await this.client.query<Row>(
+      `
+      SELECT p.credit_account_id, a.balance_credits, a.spent_credits, a.reserved_credits
+      FROM cutpilot_projects p
+      JOIN cutpilot_credit_accounts a ON a.id = p.credit_account_id
+      WHERE p.id = $1
+      FOR UPDATE
+    `,
+      [input.projectId]
+    );
+    const account = accountRows.rows[0];
+    if (!account) return;
+    const reserved = Math.max(0, Number(account.reserved_credits) - input.credits);
+    const spent = Number(account.spent_credits) + input.credits;
+    const balance = Number(account.balance_credits);
+    const timestamp = now();
+    await this.client.query("UPDATE cutpilot_credit_accounts SET spent_credits = $2, reserved_credits = $3, updated_at = $4 WHERE id = $1", [
+      account.credit_account_id,
+      spent,
+      reserved,
+      timestamp
+    ]);
+    await this.client.query(
+      `
+      INSERT INTO cutpilot_credit_transactions (
+        id, project_id, job_id, kind, action, credits, provider_cost_usd,
+        margin_policy_version, balance_after, note, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `,
+      [
+        uid("ctx"),
+        input.projectId,
+        input.jobId,
+        "capture",
+        input.action,
+        input.credits,
+        Number((input.credits * 0.035).toFixed(2)),
+        "sandbox-v1",
+        json({ spent, reserved, available: Math.max(0, balance - spent - reserved) }),
+        input.note,
+        timestamp
+      ]
+    );
+  }
+
+  private async insertMediaArtifact(input: Omit<MediaArtifact, "id" | "createdAt">) {
+    const createdAt = now();
+    const artifact: MediaArtifact = {
+      id: uid("art"),
+      ...input,
+      createdAt
+    };
+    await this.client.query(
+      `
+      INSERT INTO cutpilot_media_artifacts (
+        id, project_id, owner_type, owner_id, source_job_id, kind, role,
+        url, storage_key, content_type, bytes, status, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `,
+      [
+        artifact.id,
+        artifact.projectId,
+        artifact.ownerType,
+        artifact.ownerId,
+        artifact.sourceJobId,
+        artifact.kind,
+        artifact.role,
+        artifact.url,
+        artifact.storageKey,
+        artifact.contentType,
+        artifact.bytes,
+        artifact.status,
+        artifact.createdAt
+      ]
+    );
+    return artifact;
+  }
+
+  private async workerCompletionReceipt(input: {
+    kind: WorkerDispatchKind;
+    jobId: string;
+    projectId: string;
+    status: JobStatus;
+    completedAt: string;
+    error: ErrorResponse | null;
+  }): Promise<WorkerCompletionReceipt> {
+    const artifacts = (await this.client.query<Row>("SELECT * FROM cutpilot_media_artifacts WHERE source_job_id = $1 ORDER BY created_at ASC", [input.jobId])).rows.map(rowMediaArtifact);
+    const creditTransactions = (await this.client.query<Row>("SELECT * FROM cutpilot_credit_transactions WHERE job_id = $1 ORDER BY created_at ASC", [input.jobId])).rows.map(rowCreditTransaction);
+    const status = terminalCompletionStatus(input.status);
+    return {
+      completionKey: `${input.kind}:${input.jobId}:${status}`,
+      kind: input.kind,
+      jobId: input.jobId,
+      projectId: input.projectId,
+      status,
+      completedAt: input.completedAt,
+      error: input.error,
+      artifacts,
+      creditTransactions,
+      summary: {
+        artifactCount: artifacts.length,
+        storedArtifacts: artifacts.filter((artifact) => artifact.status === "stored").length,
+        externalArtifacts: artifacts.filter((artifact) => artifact.status === "external").length,
+        capturedCredits: sumCredits(creditTransactions, "capture"),
+        refundedCredits: sumCredits(creditTransactions, "refund")
+      }
+    };
   }
 
   async createProject(input: LiveProjectCreateInput): Promise<Project> {
@@ -1062,6 +1319,402 @@ export class PostgresLivePersistenceWriteAdapter {
       await this.client.query("ROLLBACK");
       throw error;
     }
+  }
+
+  async completeWorkerLease(leaseId: string, input: Partial<WorkerLeaseCompletionInput> = {}): Promise<WorkerLeaseCompletionResult> {
+    await this.client.query("BEGIN");
+    try {
+      const timestamp = now();
+      await this.expireWorkerLeases(timestamp);
+      const leaseRows = await this.client.query<Row>("SELECT * FROM cutpilot_worker_leases WHERE id = $1 LIMIT 1 FOR UPDATE", [leaseId]);
+      const lease = leaseRows.rows[0] ? rowWorkerLease(leaseRows.rows[0]) : null;
+      if (!lease) {
+        await this.client.query("COMMIT");
+        return { leaseId, completed: false, lease: null, receipt: null, reason: "not_found" };
+      }
+      if (lease.token !== input.token) {
+        await this.client.query("COMMIT");
+        return { leaseId, completed: false, lease, receipt: null, reason: "token_mismatch" };
+      }
+      if (lease.status !== "active") {
+        await this.client.query("COMMIT");
+        return { leaseId, completed: false, lease, receipt: null, reason: "not_active" };
+      }
+      if (input.status !== "succeeded" && input.status !== "failed") {
+        await this.client.query("COMMIT");
+        return { leaseId, completed: false, lease, receipt: null, reason: "unsupported_status" };
+      }
+
+      const completion = await this.completeLeasedWorkerJob(lease, input as WorkerLeaseCompletionInput, timestamp);
+      if (completion.reason !== "completed") {
+        await this.client.query("COMMIT");
+        return { leaseId, completed: false, lease, receipt: null, reason: completion.reason };
+      }
+
+      const releasedLease: WorkerLease = { ...lease, status: "released", releasedAt: timestamp };
+      await this.client.query("UPDATE cutpilot_worker_leases SET status = $2, released_at = $3 WHERE id = $1", [leaseId, "released", timestamp]);
+      await this.client.query("COMMIT");
+      return { leaseId, completed: true, lease: releasedLease, receipt: completion.receipt, reason: "completed" };
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  private async completeLeasedWorkerJob(
+    lease: WorkerLease,
+    input: WorkerLeaseCompletionInput,
+    timestamp: string
+  ): Promise<{ reason: WorkerLeaseCompletionResult["reason"]; receipt: WorkerCompletionReceipt | null }> {
+    if (lease.kind === "image_generation") return this.completeLeasedImageJob(lease, input, timestamp);
+    if (lease.kind === "provider_generation") return this.completeLeasedGenerationJob(lease, input, timestamp);
+    if (lease.kind === "render") return this.completeLeasedRenderJob(lease, input, timestamp);
+    return { reason: "unsupported_status", receipt: null };
+  }
+
+  private async completeLeasedImageJob(
+    lease: WorkerLease,
+    input: WorkerLeaseCompletionInput,
+    timestamp: string
+  ): Promise<{ reason: WorkerLeaseCompletionResult["reason"]; receipt: WorkerCompletionReceipt | null }> {
+    const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [lease.jobId]);
+    const job = jobs.rows[0];
+    if (!job || !isActiveJobStatus(job.status)) return { reason: "job_not_active", receipt: null };
+    if (input.status === "succeeded" && !validLiveCompletionOutput(lease, input, job)) return { reason: "invalid_outputs", receipt: null };
+
+    if (input.status === "failed") {
+      const error = workerError(input, "IMAGE_WORKER_FAILED", "Image generation worker failed.");
+      const variants = jsonValue<ImageVariant[]>(job.variants, []).map((variant) => ({ ...variant, status: "failed" }));
+      await this.client.query("UPDATE cutpilot_image_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, variants = $7, updated_at = $8 WHERE id = $1", [
+        lease.jobId,
+        "failed",
+        1,
+        0,
+        "failed",
+        json(error),
+        json(variants),
+        timestamp
+      ]);
+      await this.refundReservedCredits({
+        projectId: lease.projectId,
+        jobId: lease.jobId,
+        action: "generateImages",
+        credits: Number(job.count) * 4,
+        note: "Image Maker variants failed by worker and were refunded"
+      });
+      return {
+        reason: "completed",
+        receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "failed", completedAt: timestamp, error })
+      };
+    }
+
+    const variants = jsonValue<ImageVariant[]>(job.variants, []);
+    const size = imageSize(job.aspect as Aspect);
+    const nextVariants: ImageVariant[] = [];
+    for (const [index, variant] of variants.entries()) {
+      const outputVariant = input.outputs?.imageVariants?.find((item) => item.variantId === variant.id) || input.outputs?.imageVariants?.[index];
+      const assetId = variant.assetId || uid("img");
+      const imageUrl = outputVariant?.imageUrl || variant.url || `mock://image/${assetId}.png`;
+      const thumbUrl = outputVariant?.thumbUrl || variant.thumbUrl || imageUrl;
+      if (!variant.assetId) {
+        await this.client.query(
+          `
+          INSERT INTO cutpilot_image_assets (
+            id, project_id, kind, role, source, label, prompt, url, thumb_url,
+            aspect, width, height, rights, created_at, updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        `,
+          [
+            assetId,
+            lease.projectId,
+            "image",
+            job.role,
+            "image_maker",
+            `${job.purpose} ${variant.label}`,
+            `${job.prompt} / ${job.style}`,
+            imageUrl,
+            thumbUrl,
+            job.aspect,
+            size.width,
+            size.height,
+            json({ status: "generated", note: "Generated by Image Maker worker." }),
+            timestamp,
+            timestamp
+          ]
+        );
+      }
+      await this.insertMediaArtifact({
+        projectId: lease.projectId,
+        ownerType: "imageAsset",
+        ownerId: assetId,
+        sourceJobId: lease.jobId,
+        kind: "image",
+        role: "image_asset",
+        url: imageUrl,
+        storageKey: outputVariant?.imageStorageKey || imageVariantStorageKey(lease.projectId, lease.jobId, variant.id, "image_asset"),
+        contentType: "image/png",
+        bytes: null,
+        status: "stored"
+      });
+      await this.insertMediaArtifact({
+        projectId: lease.projectId,
+        ownerType: "imageAsset",
+        ownerId: assetId,
+        sourceJobId: lease.jobId,
+        kind: "image",
+        role: "image_thumbnail",
+        url: thumbUrl,
+        storageKey: outputVariant?.thumbnailStorageKey || imageVariantStorageKey(lease.projectId, lease.jobId, variant.id, "image_thumbnail"),
+        contentType: "image/jpeg",
+        bytes: null,
+        status: "stored"
+      });
+      nextVariants.push({ ...variant, assetId, status: "done", url: imageUrl, thumbUrl, scoreLabel: index === 0 ? "추천" : variant.scoreLabel });
+    }
+
+    await this.client.query("UPDATE cutpilot_image_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, variants = $7, updated_at = $8 WHERE id = $1", [
+      lease.jobId,
+      "done",
+      1,
+      0,
+      "done",
+      null,
+      json(nextVariants),
+      timestamp
+    ]);
+    await this.captureReservedCredits({
+      projectId: lease.projectId,
+      jobId: lease.jobId,
+      action: "generateImages",
+      credits: Number(job.count) * 4,
+      note: "Image Maker variants completed by worker"
+    });
+    return {
+      reason: "completed",
+      receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "done", completedAt: timestamp, error: null })
+    };
+  }
+
+  private async completeLeasedGenerationJob(
+    lease: WorkerLease,
+    input: WorkerLeaseCompletionInput,
+    timestamp: string
+  ): Promise<{ reason: WorkerLeaseCompletionResult["reason"]; receipt: WorkerCompletionReceipt | null }> {
+    const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [lease.jobId]);
+    const job = jobs.rows[0];
+    if (!job || !isActiveJobStatus(job.status)) return { reason: "job_not_active", receipt: null };
+    if (input.status === "succeeded" && !validLiveCompletionOutput(lease, input, job)) return { reason: "invalid_outputs", receipt: null };
+    const takeRows = await this.client.query<Row>("SELECT * FROM cutpilot_takes WHERE id = $1 LIMIT 1 FOR UPDATE", [job.take_id]);
+    const take = takeRows.rows[0] || null;
+    const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 LIMIT 1 FOR UPDATE", [job.shot_id]);
+    const shot = shotRows.rows[0] || null;
+    const credits = take?.upgrade_source_take_id ? 22 : 6;
+    const action: CreditTransaction["action"] = take?.upgrade_source_take_id ? "upgradeTake" : "generateShot";
+
+    if (input.status === "failed") {
+      const error = workerError(input, "PROVIDER_WORKER_FAILED", "Provider generation worker failed.");
+      await this.client.query("UPDATE cutpilot_generation_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, updated_at = $7 WHERE id = $1", [
+        lease.jobId,
+        "failed",
+        1,
+        0,
+        "failed",
+        json(error),
+        timestamp
+      ]);
+      await this.client.query("UPDATE cutpilot_provider_attempts SET status = $2, completed_at = $3, error_code = $4, retryable = $5, fallback_suggested = $6 WHERE generation_job_id = $1 AND status IN ('queued', 'submitted', 'polling')", [
+        lease.jobId,
+        "failed",
+        timestamp,
+        error.code,
+        error.retryable,
+        error.fallbackSuggested
+      ]);
+      if (take) {
+        await this.client.query("UPDATE cutpilot_takes SET status = $2, video_url = $3, poster_url = $4, metrics = $5 WHERE id = $1", [
+          take.id,
+          "failed",
+          null,
+          null,
+          json({})
+        ]);
+      }
+      if (shot) {
+        await this.client.query("UPDATE cutpilot_shots SET status = $2, quality_flags = $3 WHERE id = $1", [
+          shot.id,
+          "failed",
+          json([{ axis: "motion", score: 2, hint: "Generation failed. Retry this shot for another take." }])
+        ]);
+      }
+      await this.refundReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action, credits, note: "Video take generation failed by worker and was refunded" });
+      await this.refreshProjectProgress(lease.projectId, timestamp);
+      return {
+        reason: "completed",
+        receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "failed", completedAt: timestamp, error })
+      };
+    }
+
+    const videoUrl = input.outputs?.videoUrl || `mock://video/${lease.jobId}.mp4`;
+    const posterUrl = input.outputs?.posterUrl || null;
+    await this.client.query("UPDATE cutpilot_generation_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, updated_at = $7 WHERE id = $1", [
+      lease.jobId,
+      "done",
+      1,
+      0,
+      "done",
+      null,
+      timestamp
+    ]);
+    await this.client.query("UPDATE cutpilot_provider_attempts SET status = $2, completed_at = $3, error_code = $4, retryable = $5, fallback_suggested = $6 WHERE generation_job_id = $1 AND status IN ('queued', 'submitted', 'polling')", [
+      lease.jobId,
+      "succeeded",
+      timestamp,
+      null,
+      false,
+      false
+    ]);
+    if (take) {
+      await this.client.query("UPDATE cutpilot_takes SET status = $2, video_url = $3, poster_url = $4, metrics = $5 WHERE id = $1", [
+        take.id,
+        "done",
+        videoUrl,
+        posterUrl,
+        json({ fidelity: 0.84, consistency: 0.82, motion: 0.78, overall: 0.82 })
+      ]);
+      await this.insertMediaArtifact({
+        projectId: lease.projectId,
+        ownerType: "take",
+        ownerId: String(take.id),
+        sourceJobId: lease.jobId,
+        kind: "video",
+        role: "take_video",
+        url: videoUrl,
+        storageKey: input.outputs?.videoStorageKey || takeStorageKey(lease.projectId, String(take.id), "take_video"),
+        contentType: "video/mp4",
+        bytes: null,
+        status: "stored"
+      });
+      if (posterUrl) {
+        await this.insertMediaArtifact({
+          projectId: lease.projectId,
+          ownerType: "take",
+          ownerId: String(take.id),
+          sourceJobId: lease.jobId,
+          kind: "image",
+          role: "take_poster",
+          url: posterUrl,
+          storageKey: input.outputs?.posterStorageKey || takeStorageKey(lease.projectId, String(take.id), "take_poster"),
+          contentType: "image/jpeg",
+          bytes: null,
+          status: "stored"
+        });
+      }
+    }
+    if (shot) {
+      await this.client.query("UPDATE cutpilot_shots SET status = $2, selected_take_id = COALESCE(selected_take_id, $3), quality_flags = $4 WHERE id = $1", [
+        shot.id,
+        "reviewing",
+        job.take_id,
+        json([])
+      ]);
+    }
+    await this.captureReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action, credits, note: "Video take generation completed by worker" });
+    await this.refreshProjectProgress(lease.projectId, timestamp);
+    return {
+      reason: "completed",
+      receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "done", completedAt: timestamp, error: null })
+    };
+  }
+
+  private async completeLeasedRenderJob(
+    lease: WorkerLease,
+    input: WorkerLeaseCompletionInput,
+    timestamp: string
+  ): Promise<{ reason: WorkerLeaseCompletionResult["reason"]; receipt: WorkerCompletionReceipt | null }> {
+    const jobs = await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs WHERE id = $1 LIMIT 1 FOR UPDATE", [lease.jobId]);
+    const job = jobs.rows[0];
+    if (!job || !isActiveJobStatus(job.status)) return { reason: "job_not_active", receipt: null };
+    if (input.status === "succeeded" && !validLiveCompletionOutput(lease, input, job)) return { reason: "invalid_outputs", receipt: null };
+
+    if (input.status === "failed") {
+      const error = workerError(input, "RENDER_WORKER_FAILED", "Render worker failed.");
+      await this.client.query("UPDATE cutpilot_render_jobs SET status = $2, progress = $3, eta_sec = $4, error = $5, updated_at = $6 WHERE id = $1", [
+        lease.jobId,
+        "failed",
+        1,
+        0,
+        json(error),
+        timestamp
+      ]);
+      const spec = jsonValue<ExportSpec>(job.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" });
+      await this.refundReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: 16, note: `${spec.cut} render failed by worker and was refunded` });
+      const activeRenderRows = await this.client.query<Row>("SELECT id FROM cutpilot_render_jobs WHERE project_id = $1 AND status IN ('queued', 'running') LIMIT 1", [lease.projectId]);
+      if (!activeRenderRows.rows[0]) {
+        await this.client.query("UPDATE cutpilot_projects SET status = $2, updated_at = $3 WHERE id = $1 AND status = $4", [lease.projectId, "edited", timestamp, "rendering"]);
+      }
+      return {
+        reason: "completed",
+        receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "failed", completedAt: timestamp, error })
+      };
+    }
+
+    const outputUrl = input.outputs?.renderOutputUrl || input.outputs?.videoUrl || `mock://render/${lease.jobId}.mp4`;
+    const shareUrl = input.outputs?.shareUrl || null;
+    await this.client.query("UPDATE cutpilot_render_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, output_url = $6, share_url = $7, error = $8, updated_at = $9 WHERE id = $1", [
+      lease.jobId,
+      "done",
+      1,
+      0,
+      "done",
+      outputUrl,
+      shareUrl,
+      null,
+      timestamp
+    ]);
+    await this.insertMediaArtifact({
+      projectId: lease.projectId,
+      ownerType: "renderJob",
+      ownerId: lease.jobId,
+      sourceJobId: lease.jobId,
+      kind: "video",
+      role: "render_output",
+      url: outputUrl,
+      storageKey: input.outputs?.renderStorageKey || renderStorageKey(lease.projectId, lease.jobId),
+      contentType: "video/mp4",
+      bytes: null,
+      status: "stored"
+    });
+    const spec = jsonValue<ExportSpec>(job.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" });
+    await this.captureReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: 16, note: `${spec.cut} render completed by worker` });
+    await this.client.query("UPDATE cutpilot_projects SET default_render_job_id = COALESCE(default_render_job_id, $2), updated_at = $3 WHERE id = $1", [
+      lease.projectId,
+      lease.jobId,
+      timestamp
+    ]);
+    const unfinishedRows = await this.client.query<Row>("SELECT id FROM cutpilot_render_jobs WHERE project_id = $1 AND status != $2 LIMIT 1", [lease.projectId, "done"]);
+    if (!unfinishedRows.rows[0]) {
+      await this.client.query("UPDATE cutpilot_projects SET status = $2, thumb_url = COALESCE(thumb_url, $3), updated_at = $4 WHERE id = $1", [
+        lease.projectId,
+        "done",
+        outputUrl,
+        timestamp
+      ]);
+    }
+    return {
+      reason: "completed",
+      receipt: await this.workerCompletionReceipt({ kind: lease.kind, jobId: lease.jobId, projectId: lease.projectId, status: "done", completedAt: timestamp, error: null })
+    };
+  }
+
+  private async refreshProjectProgress(projectId: string, timestamp: string) {
+    const projectShots = await this.client.query<Row>("SELECT status, selected_take_id FROM cutpilot_shots WHERE project_id = $1", [projectId]);
+    await this.client.query("UPDATE cutpilot_projects SET progress = $2, status = $3, updated_at = $4 WHERE id = $1", [
+      projectId,
+      json(projectProgressFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>)),
+      projectStatusFromShots(projectShots.rows as Array<{ status: string; selected_take_id: unknown }>),
+      timestamp
+    ]);
   }
 
   async startRender(projectId: string, input: LiveStartRenderInput): Promise<{ jobs: RenderJob[] }> {
