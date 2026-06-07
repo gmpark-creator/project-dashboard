@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { POST as createProject } from "../app/api/projects/route";
 import { isExportSpec } from "../app/api/export-spec";
 import { readJsonObject } from "../app/api/json-body";
 
 async function read(body?: BodyInit | null) {
   return readJsonObject(new Request("http://cutpilot.local/api/test", { method: "POST", body }));
+}
+
+function request(body?: BodyInit | null) {
+  return new Request("http://cutpilot.local/api/projects", { method: "POST", body });
 }
 
 async function main() {
@@ -18,6 +23,12 @@ async function main() {
     false,
     "export specs should reject contract-external keys"
   );
+  const routeResponse = await createProject(request("[1,2,3]"));
+  assert.equal(routeResponse.status, 400, "request body routes should reject non-object JSON bodies");
+  const routeBody = (await routeResponse.json()) as { code?: string; retryable?: boolean; fallbackSuggested?: boolean };
+  assert.equal(routeBody.code, "BAD_REQUEST", "invalid route JSON bodies should return BAD_REQUEST");
+  assert.equal(routeBody.retryable, false, "invalid route JSON bodies should not be retryable");
+  assert.equal(routeBody.fallbackSuggested, false, "invalid route JSON bodies should not suggest fallback");
 
   console.log("api-json-body.test OK");
 }

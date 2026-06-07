@@ -432,6 +432,7 @@ for (const [pathName, pathItem] of Object.entries(openApi.paths)) {
     }
     if (operation.requestBody) {
       assert.ok(operation.responses?.["400"], `openapi path ${pathName} ${method.toUpperCase()} requestBody missing 400 response`);
+      assert.ok(routeSource.includes("readJsonObject("), `request body route ${operation.operationId} missing readJsonObject parser`);
       assertClosedObjectSchemas(requestJsonSchema(operation), `${operation.operationId || method.toUpperCase()} ${pathName}`);
     }
     if (routeSource.includes("serviceErrorResponse(")) {
