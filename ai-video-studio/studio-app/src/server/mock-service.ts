@@ -1852,6 +1852,7 @@ export function forceDueJobs(kind: "generationJobs" | "renderJobs" | "imageJobs"
 
 export function tickJobs() {
   const current = state();
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") return current;
   const timestamp = Date.now();
 
   for (const job of current.imageJobs) {
