@@ -378,6 +378,57 @@ const productionValidOutput = completeWorkerLease(productionOutputPolicyLease.le
   }
 });
 assert.equal(productionValidOutput.completed, true, "production worker completion should accept valid output payloads");
+
+const providerStorageProject = createProject({
+  title: "Production provider storage policy",
+  idea: "A short storage-key policy video",
+  intent: "product_ad"
+});
+const providerStorageBundle = getProjectBundle(providerStorageProject.id);
+assert.ok(providerStorageBundle, "provider storage policy project should have a bundle");
+const providerStorageJob = generateShot(providerStorageBundle.shots[0].id, { takeCount: 1 }).jobs[0];
+const providerStorageLease = createWorkerLease({ workerId: "provider-storage-policy-worker", kind: "provider_generation", ttlSec: 30 });
+assert.equal(providerStorageLease.reason, "leased", "provider storage policy setup should lease provider generation work");
+assert.equal(providerStorageLease.lease?.jobId, providerStorageJob.id, "provider storage policy lease should target the provider job");
+assert.ok(providerStorageLease.lease, "provider storage policy lease should exist");
+const providerMissingStorageKeyOutput = completeWorkerLease(providerStorageLease.lease.id, {
+  token: providerStorageLease.lease.token,
+  status: "succeeded",
+  outputs: { videoUrl: "https://assets.cutpilot.local/provider-output-policy.mp4" }
+});
+assert.equal(providerMissingStorageKeyOutput.completed, false, "production provider completion should require the take video storage key");
+const providerValidOutput = completeWorkerLease(providerStorageLease.lease.id, {
+  token: providerStorageLease.lease.token,
+  status: "succeeded",
+  outputs: {
+    videoUrl: "https://assets.cutpilot.local/provider-output-policy.mp4",
+    videoStorageKey: `projects/${providerStorageJob.projectId}/take/${providerStorageJob.takeId}/take_video`
+  }
+});
+assert.equal(providerValidOutput.completed, true, "production provider completion should accept the expected take video storage key");
+
+const providerStorageAfterVideo = getProjectBundle(providerStorageProject.id);
+assert.ok(providerStorageAfterVideo?.takes.some((take) => take.status === "done"), "provider storage policy setup should leave a done take for render");
+const renderStorageJob = startRender(providerStorageProject.id, [{ resolution: "720p", cut: "6s", aspect: providerStorageProject.aspect, caption: "none" }]).jobs[0];
+const renderStorageLease = createWorkerLease({ workerId: "render-storage-policy-worker", kind: "render", ttlSec: 30 });
+assert.equal(renderStorageLease.reason, "leased", "render storage policy setup should lease render work");
+assert.equal(renderStorageLease.lease?.jobId, renderStorageJob.id, "render storage policy lease should target the render job");
+assert.ok(renderStorageLease.lease, "render storage policy lease should exist");
+const renderMissingStorageKeyOutput = completeWorkerLease(renderStorageLease.lease.id, {
+  token: renderStorageLease.lease.token,
+  status: "succeeded",
+  outputs: { renderOutputUrl: "https://assets.cutpilot.local/render-output-policy.mp4" }
+});
+assert.equal(renderMissingStorageKeyOutput.completed, false, "production render completion should require the render output storage key");
+const renderValidOutput = completeWorkerLease(renderStorageLease.lease.id, {
+  token: renderStorageLease.lease.token,
+  status: "succeeded",
+  outputs: {
+    renderOutputUrl: "https://assets.cutpilot.local/render-output-policy.mp4",
+    renderStorageKey: `projects/${renderStorageJob.projectId}/renderJob/${renderStorageJob.id}/render_output`
+  }
+});
+assert.equal(renderValidOutput.completed, true, "production render completion should accept the expected render output storage key");
 if (typeof runtimeModeBeforeOutputPolicy === "undefined") delete process.env.CUTPILOT_RUNTIME_MODE;
 else process.env.CUTPILOT_RUNTIME_MODE = runtimeModeBeforeOutputPolicy;
 
@@ -920,7 +971,7 @@ assert.equal(bundle.mediaArtifacts.some((artifact) => artifact.ownerId === style
 
 const metrics = getSystemMetrics();
 assert.ok(metrics.projects.total >= 2, "system metrics should count all mock projects");
-assert.equal(metrics.jobs.render.done, 3, "system metrics should count completed render jobs");
+assert.ok(metrics.jobs.render.done >= 3, "system metrics should count completed render jobs");
 assert.ok(metrics.jobs.generation.cancelled >= 1, "system metrics should count cancelled generation jobs");
 assert.ok(metrics.providerAttempts.cancelled >= 1, "system metrics should count cancelled provider attempts");
 assert.ok(metrics.providerAttempts.succeeded > 0, "system metrics should count successful provider attempts");
