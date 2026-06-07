@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { isExportSpec } from "../app/api/export-spec";
 import { readJsonObject } from "../app/api/json-body";
 
 async function read(body?: BodyInit | null) {
@@ -12,6 +13,11 @@ async function main() {
   assert.equal(await read("[1,2,3]"), null, "array JSON bodies should be rejected");
   assert.equal(await read('"launch"'), null, "primitive JSON bodies should be rejected");
   assert.equal(await read('{"idea":'), null, "malformed JSON bodies should be rejected");
+  assert.equal(
+    isExportSpec({ resolution: "1080p", cut: "15s", aspect: "9:16", caption: "burn-in", extra: true }),
+    false,
+    "export specs should reject contract-external keys"
+  );
 
   console.log("api-json-body.test OK");
 }
