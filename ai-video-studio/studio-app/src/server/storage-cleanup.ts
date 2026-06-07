@@ -10,6 +10,7 @@ import type {
 } from "../domain/types";
 import { buildMediaArtifactInventory } from "./artifact-inventory";
 import { getMockState, getMutableMockState, saveMockState } from "./mock-service";
+import { deleteStoredObject } from "./object-storage";
 
 function actionFor(item: MediaArtifactInventoryItem): StorageCleanupAction {
   if (item.cleanup === "orphaned" && item.artifact.status === "stored") return "delete_object";
@@ -86,6 +87,11 @@ export function executeStorageCleanup(input: { limit?: number } = {}): StorageCl
   const selected = limit === null ? candidates : candidates.slice(0, limit);
   const selectedIds = new Set(selected.map((item) => item.artifact.id));
   const timestamp = new Date().toISOString();
+
+  for (const item of selected) {
+    deleteStoredObject(item.storageKey);
+  }
+
   const records: StorageCleanupExecutionRecord[] = selected.map((item) => ({
     id: cleanupRecordId(),
     artifactId: item.artifact.id,

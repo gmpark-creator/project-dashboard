@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { executeStorageCleanup, getStorageCleanupPlan } from "@/server/storage-cleanup";
 import { requireSystemAccess } from "@/server/system-access";
+import { ObjectStorageUnavailableError } from "@/server/object-storage";
 import { apiError } from "../../error-response";
 import { readJsonObject } from "../../json-body";
 
@@ -23,5 +24,12 @@ export async function POST(request: Request) {
   ) {
     return apiError("BAD_REQUEST", "정리 개수 제한은 0 이상의 정수여야 합니다.", 400);
   }
-  return NextResponse.json(executeStorageCleanup({ limit: typeof body.limit === "number" ? body.limit : undefined }));
+  try {
+    return NextResponse.json(executeStorageCleanup({ limit: typeof body.limit === "number" ? body.limit : undefined }));
+  } catch (error) {
+    if (error instanceof ObjectStorageUnavailableError) {
+      return apiError("OBJECT_STORAGE_UNAVAILABLE", "Object storage deletion is not available for this runtime.", 503);
+    }
+    throw error;
+  }
 }

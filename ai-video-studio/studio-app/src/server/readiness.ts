@@ -1,4 +1,5 @@
 import type { RuntimeReadiness } from "../domain/types";
+import { configuredObjectStorageProvider, isObjectStorageProvider } from "./object-storage";
 import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
@@ -98,7 +99,9 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const decomposerProviderInvalidEnv = isStoryDecomposerProvider(decomposerProvider) ? [] : decomposerProviderEnv;
   const missingDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? missing(decomposerCredentialEnv(decomposerProvider)) : [];
   const invalidProviderEnv = invalid(providerEnv);
-  const invalidStorageEnv = invalid(storageEnv);
+  const objectStorageProvider = configuredObjectStorageProvider();
+  const invalidObjectStorageProviderEnv = isObjectStorageProvider(objectStorageProvider) ? [] : ["OBJECT_STORAGE_PROVIDER"];
+  const invalidStorageEnv = [...invalid(storageEnv), ...invalidObjectStorageProviderEnv];
   const invalidQueueEnv = invalid(queueEnv);
   const invalidAdminEnv = invalid(adminEnv);
   const invalidDecomposerCredentialEnv = isStoryDecomposerProvider(decomposerProvider) ? invalid(decomposerCredentialEnv(decomposerProvider)) : [];
@@ -108,6 +111,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
   const invalidEnv = [...invalidProviderEnv, ...invalidStorageEnv, ...invalidQueueEnv, ...invalidAdminEnv, ...invalidDecomposerEnv];
   const production = mode === "production";
   const liveDecomposerImplemented = false;
+  const liveObjectStorageDeleteImplemented = false;
   const decomposerConfigured = isStoryDecomposerProvider(decomposerProvider) && decomposerProvider !== "mock";
   const decomposerStatus: RuntimeReadiness["checks"][number]["status"] =
     !isStoryDecomposerProvider(decomposerProvider) || missingDecomposerEnv.length || invalidDecomposerEnv.length
@@ -127,6 +131,15 @@ export function getRuntimeReadiness(): RuntimeReadiness {
           : production && !liveDecomposerImplemented
             ? "Live story decomposer adapter boundary is configured, but the live adapter implementation is not yet available."
             : "Mock story decomposer is active for local preview.";
+  const storageBaseStatus = envStatus(missingStorageEnv, invalidStorageEnv, production);
+  const objectStorageStatus: RuntimeReadiness["checks"][number]["status"] =
+    storageBaseStatus !== "pass" ? storageBaseStatus : production && !liveObjectStorageDeleteImplemented ? "fail" : "pass";
+  const objectStorageDetail =
+    storageBaseStatus !== "pass"
+      ? envDetail("storage", missingStorageEnv, invalidStorageEnv, "Object storage env is present and format-checked.")
+      : production && !liveObjectStorageDeleteImplemented
+        ? `Object storage provider ${objectStorageProvider} is configured, but live object deletion is not yet implemented.`
+        : "Mock object storage is active for local cleanup.";
 
   const checks: RuntimeReadiness["checks"] = [
     check(
@@ -151,8 +164,8 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     check(
       "object_storage",
       "Object storage",
-      envStatus(missingStorageEnv, invalidStorageEnv, production),
-      envDetail("storage", missingStorageEnv, invalidStorageEnv, "Object storage env is present and format-checked.")
+      objectStorageStatus,
+      objectStorageDetail
     ),
     check(
       "queue_worker",

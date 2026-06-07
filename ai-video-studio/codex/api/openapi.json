@@ -1406,7 +1406,7 @@
             }
           },
           "503": {
-            "description": "Admin access token is not configured in production mode",
+            "description": "Admin access token is not configured in production mode, or object storage deletion is unavailable",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
