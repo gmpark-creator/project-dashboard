@@ -169,6 +169,11 @@ for (const defName of [
   "RenderPlan",
   "RenderWorkerInvocation",
   "RenderRightsReview",
+  "StoryboardScenePatch",
+  "StoryboardSaecPatch",
+  "StoryboardShotRequirementsPatch",
+  "StoryboardDirectionPatch",
+  "StoryboardShotPatch",
   "StoryboardUpdateInput",
   "AssetDeleteResult"
 ]) {

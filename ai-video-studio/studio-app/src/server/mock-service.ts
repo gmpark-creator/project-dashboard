@@ -676,7 +676,15 @@ export function decomposeIdea(input: { projectId?: string; idea: string; intent:
   );
 }
 
-export function updateStoryboard(projectId: string, input: { scenes?: Array<Partial<Scene> & { id?: string }>; shots?: Array<Partial<Shot> & { id?: string }> }): ProjectBundle | null {
+type StoryboardScenePatch = Partial<Scene> & { id?: string };
+type StoryboardShotPatch = Omit<Partial<Shot>, "saec" | "requirements" | "directionSpec"> & {
+  id?: string;
+  saec?: Partial<Shot["saec"]>;
+  requirements?: Partial<Shot["requirements"]>;
+  directionSpec?: Partial<Shot["directionSpec"]>;
+};
+
+export function updateStoryboard(projectId: string, input: { scenes?: StoryboardScenePatch[]; shots?: StoryboardShotPatch[] }): ProjectBundle | null {
   const current = state();
   const project = current.projects.find((item) => item.id === projectId);
   if (!project) throw new Error("Project not found");

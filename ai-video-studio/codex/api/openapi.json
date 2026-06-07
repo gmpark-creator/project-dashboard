@@ -189,6 +189,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ProjectBundle" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid storyboard update request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }

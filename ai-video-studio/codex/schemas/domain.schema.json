@@ -1490,17 +1490,86 @@
         "renderSourceHash": { "$ref": "#/$defs/RenderSourceHash" }
       }
     },
+    "StoryboardScenePatch": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^scn_" },
+        "order": { "type": "integer", "minimum": 0 },
+        "title": { "type": "string" },
+        "setting": { "type": "string" },
+        "timeOfDay": { "type": "string" }
+      }
+    },
+    "StoryboardSaecPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "subject": { "type": "string" },
+        "action": { "type": "string" },
+        "environment": { "type": "string" },
+        "camera": { "type": "string" },
+        "framing": { "type": "string" },
+        "lighting": { "type": "string" },
+        "style": { "type": "string" },
+        "negative": { "type": "string" }
+      }
+    },
+    "StoryboardShotRequirementsPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tier": { "$ref": "#/$defs/Tier" },
+        "aspect": { "$ref": "#/$defs/Aspect" },
+        "resolution": { "type": "string", "enum": ["540p", "720p", "1080p", "4k"] },
+        "imageToVideo": { "type": "boolean" },
+        "needsLipsyncAudio": { "type": "boolean" },
+        "motionHeavy": { "type": "boolean" },
+        "characterLock": { "type": "boolean" },
+        "characterId": { "type": ["string", "null"] },
+        "region": { "type": "string" }
+      }
+    },
+    "StoryboardDirectionPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "camera": { "type": "string" },
+        "composition": { "type": "string" },
+        "lighting": { "type": "string" },
+        "motion": { "type": "string" },
+        "style": { "type": "string" },
+        "avoid": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "StoryboardShotPatch": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^sht_" },
+        "sceneId": { "type": "string", "pattern": "^scn_" },
+        "order": { "type": "integer", "minimum": 0 },
+        "title": { "type": "string" },
+        "durationSec": { "type": "number", "minimum": 1, "maximum": 16 },
+        "saec": { "$ref": "#/$defs/StoryboardSaecPatch" },
+        "requirements": { "$ref": "#/$defs/StoryboardShotRequirementsPatch" },
+        "directionSpec": { "$ref": "#/$defs/StoryboardDirectionPatch" }
+      }
+    },
     "StoryboardUpdateInput": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "scenes": {
           "type": "array",
-          "items": { "$ref": "#/$defs/Scene" }
+          "items": { "$ref": "#/$defs/StoryboardScenePatch" }
         },
         "shots": {
           "type": "array",
-          "items": { "$ref": "#/$defs/Shot" }
+          "items": { "$ref": "#/$defs/StoryboardShotPatch" }
         }
       }
     },
