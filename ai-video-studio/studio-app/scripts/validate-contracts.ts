@@ -328,6 +328,7 @@ function assertPersistenceSchemaBoundary() {
   const schemaSource = readFileSync(join(codexDir, "persistence", "postgres-schema.sql"), "utf8");
   const manifestSource = readFileSync(join(serverDir, "live-persistence-contract.ts"), "utf8");
   const migrationSource = readFileSync(join(serverDir, "live-persistence-migrations.ts"), "utf8");
+  const readAdapterSource = readFileSync(join(serverDir, "live-persistence-read-adapter.ts"), "utf8");
   const migrationRunnerSource = readFileSync(join(scriptsDir, "apply-persistence-migrations.ts"), "utf8");
   const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
@@ -361,6 +362,10 @@ function assertPersistenceSchemaBoundary() {
   assert.ok(migrationSource.includes("cutpilot_schema_migrations"), "persistence migrations must record applied schema versions");
   assert.ok(migrationSource.includes("applyLivePersistenceMigration"), "persistence migrations must expose an apply function");
   assert.ok(migrationSource.includes("ROLLBACK"), "persistence migration apply must roll back failed migrations");
+  assert.ok(readAdapterSource.includes("PostgresLivePersistenceReadAdapter"), "live persistence must expose a Postgres read adapter");
+  assert.ok(readAdapterSource.includes("async listProjects()"), "live persistence read adapter must support project list reads");
+  assert.ok(readAdapterSource.includes("async getProjectBundle(projectId: string)"), "live persistence read adapter must support project bundle reads");
+  assert.ok(readAdapterSource.includes("buildLiveRenderSourceHash"), "live persistence read adapter must compute render source hashes");
   assert.ok(migrationRunnerSource.includes("DATABASE_URL"), "persistence migration runner must require DATABASE_URL for live execution");
   assert.ok(migrationRunnerSource.includes("--dry-run"), "persistence migration runner must support dry-run inspection");
   assert.ok(packageJson.scripts?.["db:migrate"]?.includes("scripts/apply-persistence-migrations.ts"), "package scripts must expose db:migrate");
@@ -368,6 +373,7 @@ function assertPersistenceSchemaBoundary() {
   assert.ok(testMock.includes("scripts/persistence-schema-boundary.test.ts"), "test:mock must include persistence schema boundary coverage");
   assert.ok(testMock.includes("scripts/persistence-contract-manifest.test.ts"), "test:mock must include persistence manifest coverage");
   assert.ok(testMock.includes("scripts/persistence-migration-runner.test.ts"), "test:mock must include persistence migration runner coverage");
+  assert.ok(testMock.includes("scripts/live-persistence-read-adapter.test.ts"), "test:mock must include live persistence read adapter coverage");
 }
 
 function assertProductionPersistenceReadinessBoundary() {
