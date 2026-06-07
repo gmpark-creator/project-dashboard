@@ -49,5 +49,8 @@ export async function POST(request: Request) {
         tier: tier as Tier | undefined
       }
     : undefined;
+  if (process.env.CUTPILOT_RUNTIME_MODE === "production") {
+    return apiError("MOCK_MUTATION_UNAVAILABLE", "Mock-backed project creation is not available in production mode.", 503);
+  }
   return NextResponse.json(createProject({ title, idea, intent: body.intent as Intent, advanced }), { status: 201 });
 }

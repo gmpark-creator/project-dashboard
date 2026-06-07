@@ -77,6 +77,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
               }
             }
+          },
+          "503": {
+            "description": "Mock-backed project creation is unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
