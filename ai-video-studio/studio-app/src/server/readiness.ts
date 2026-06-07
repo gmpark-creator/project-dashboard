@@ -2,6 +2,7 @@ import type { RuntimeReadiness } from "../domain/types";
 import { livePersistenceSchemaVersion } from "./live-persistence-contract";
 import { configuredObjectStorageProvider, isObjectStorageProvider } from "./object-storage";
 import { providerExecutionContractVersion } from "./provider-execution-contract";
+import { queueWorkerContractVersion } from "./queue-worker-contract";
 import { configuredStoryDecomposerProvider, isStoryDecomposerProvider } from "./story-decomposer-config";
 
 const providerEnv = ["RUNWAY_API_KEY", "LUMA_API_KEY", "GOOGLE_VERTEX_PROJECT"];
@@ -195,7 +196,7 @@ export function getRuntimeReadiness(): RuntimeReadiness {
     queueBaseStatus !== "pass"
       ? envDetail("queue", missingQueueEnv, invalidQueueEnv, "Queue worker env is present and URL-shaped.")
       : production && !liveQueueWorkerImplemented
-        ? "Queue worker env is configured, but the live queue worker adapter is not yet available."
+        ? `Queue worker env is configured for ${queueWorkerContractVersion}, but the live queue worker adapter is not yet available.`
         : "Mock in-memory queue is active for local preview.";
 
   const checks: RuntimeReadiness["checks"] = [

@@ -390,13 +390,19 @@ function assertProductionProviderReadinessBoundary() {
 
 function assertProductionQueueReadinessBoundary() {
   const readinessSource = readFileSync(join(serverDir, "readiness.ts"), "utf8");
+  const queueWorkerContractSource = readFileSync(join(serverDir, "queue-worker-contract.ts"), "utf8");
   const testMock = packageJson.scripts?.["test:mock"] || "";
 
   assert.ok(readinessSource.includes('queueEnv = ["CUTPILOT_QUEUE_URL"]'), "readiness must require CUTPILOT_QUEUE_URL for queue workers");
   assert.ok(readinessSource.includes("validQueueUrl("), "readiness must validate queue URL shape");
   assert.ok(readinessSource.includes("liveQueueWorkerImplemented = false"), "readiness must expose the missing live queue worker adapter");
+  assert.ok(readinessSource.includes("queueWorkerContractVersion"), "readiness must name the queue worker contract version");
+  assert.ok(queueWorkerContractSource.includes('queueWorkerContractVersion = "queue_worker_v1"'), "queue worker contract must expose a stable version");
+  assert.ok(queueWorkerContractSource.includes("buildQueueWorkerEnvelope"), "queue worker contract must expose envelope construction");
+  assert.ok(queueWorkerContractSource.includes("validateQueueWorkerEnvelope"), "queue worker contract must expose envelope validation");
   assert.ok(readinessSource.includes("queueStatus"), "readiness must derive queue worker status from the adapter boundary");
   assert.ok(testMock.includes("scripts/production-queue-readiness.test.ts"), "test:mock must include production queue readiness coverage");
+  assert.ok(testMock.includes("scripts/queue-worker-contract.test.ts"), "test:mock must include queue worker contract coverage");
 }
 
 function assertProductionProjectCreateBoundary() {
