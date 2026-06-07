@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerDispatchKind, WorkerLease, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerDispatchKind, WorkerLease, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -71,6 +71,10 @@ type ReferenceBoardImageBucket = keyof Pick<
 
 function now() {
   return new Date().toISOString();
+}
+
+function iso(value: unknown) {
+  return value instanceof Date ? value.toISOString() : String(value);
 }
 
 function json(value: unknown) {
@@ -207,6 +211,24 @@ function normalizeWorkerLeaseRequest(input: Partial<WorkerLeaseRequest> = {}): W
     workerId: input.workerId?.trim() || "live-worker",
     kind: input.kind || "any",
     ttlSec: clampWorkerLeaseTtl(input.ttlSec)
+  };
+}
+
+function rowWorkerLease(row: Row): WorkerLease {
+  const expiresAt = iso(row.expires_at);
+  const rawStatus = row.status as WorkerLease["status"];
+  return {
+    id: String(row.id),
+    token: String(row.token),
+    dispatchKey: String(row.dispatch_key),
+    kind: row.kind as WorkerLease["kind"],
+    jobId: String(row.job_id),
+    projectId: String(row.project_id),
+    workerId: String(row.worker_id),
+    status: rawStatus === "active" && new Date(expiresAt).getTime() <= Date.now() ? "expired" : rawStatus,
+    leasedAt: iso(row.leased_at),
+    expiresAt,
+    releasedAt: row.released_at ? iso(row.released_at) : null
   };
 }
 
@@ -977,6 +999,65 @@ export class PostgresLivePersistenceWriteAdapter {
       );
       await this.client.query("COMMIT");
       return { lease, item, reason: "leased" };
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async releaseWorkerLease(leaseId: string, token: string | null | undefined): Promise<WorkerLeaseReleaseResult> {
+    await this.client.query("BEGIN");
+    try {
+      const timestamp = now();
+      await this.expireWorkerLeases(timestamp);
+      const leaseRows = await this.client.query<Row>("SELECT * FROM cutpilot_worker_leases WHERE id = $1 LIMIT 1 FOR UPDATE", [leaseId]);
+      const lease = leaseRows.rows[0] ? rowWorkerLease(leaseRows.rows[0]) : null;
+      if (!lease) {
+        await this.client.query("COMMIT");
+        return { leaseId, released: false, status: null, reason: "not_found" };
+      }
+      if (lease.token !== token) {
+        await this.client.query("COMMIT");
+        return { leaseId, released: false, status: lease.status, reason: "token_mismatch" };
+      }
+      if (lease.status !== "active") {
+        await this.client.query("COMMIT");
+        return { leaseId, released: false, status: lease.status, reason: "not_active" };
+      }
+
+      await this.client.query("UPDATE cutpilot_worker_leases SET status = $2, released_at = $3 WHERE id = $1", [leaseId, "released", timestamp]);
+      await this.client.query("COMMIT");
+      return { leaseId, released: true, status: "released", reason: "released" };
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async renewWorkerLease(leaseId: string, input: { token?: string | null; ttlSec?: number } = {}): Promise<WorkerLeaseRenewResult> {
+    await this.client.query("BEGIN");
+    try {
+      const timestamp = now();
+      await this.expireWorkerLeases(timestamp);
+      const leaseRows = await this.client.query<Row>("SELECT * FROM cutpilot_worker_leases WHERE id = $1 LIMIT 1 FOR UPDATE", [leaseId]);
+      const lease = leaseRows.rows[0] ? rowWorkerLease(leaseRows.rows[0]) : null;
+      if (!lease) {
+        await this.client.query("COMMIT");
+        return { leaseId, renewed: false, lease: null, status: null, reason: "not_found" };
+      }
+      if (lease.token !== input.token) {
+        await this.client.query("COMMIT");
+        return { leaseId, renewed: false, lease, status: lease.status, reason: "token_mismatch" };
+      }
+      if (lease.status !== "active") {
+        await this.client.query("COMMIT");
+        return { leaseId, renewed: false, lease, status: lease.status, reason: "not_active" };
+      }
+
+      const expiresAt = new Date(new Date(timestamp).getTime() + clampWorkerLeaseTtl(input.ttlSec) * 1000).toISOString();
+      await this.client.query("UPDATE cutpilot_worker_leases SET expires_at = $2 WHERE id = $1", [leaseId, expiresAt]);
+      await this.client.query("COMMIT");
+      return { leaseId, renewed: true, lease: { ...lease, expiresAt }, status: "active", reason: "renewed" };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

@@ -19,6 +19,8 @@ import {
   liveProjectReadsEnabled,
   liveProjectWritesEnabled,
   registerLiveExternalImage,
+  releaseLiveWorkerLease,
+  renewLiveWorkerLease,
   selectLiveTake,
   setLiveAudio,
   setLiveDefaultRender,
@@ -75,6 +77,16 @@ async function main() {
       () => createLiveWorkerLease({ workerId: "worker-disabled", kind: "any" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live worker lease creation should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => releaseLiveWorkerLease("wlease_disabled", "token"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker lease release should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => renewLiveWorkerLease("wlease_disabled", { token: "token", ttlSec: 60 }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker lease renewal should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_disabled", { camera: "locked" }),
@@ -204,6 +216,16 @@ async function main() {
       () => createLiveWorkerLease({ workerId: "worker-missing-db", kind: "any" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker lease creation should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => releaseLiveWorkerLease("wlease_missing_db", "token"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker lease release should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => renewLiveWorkerLease("wlease_missing_db", { token: "token", ttlSec: 60 }),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker lease renewal should require DATABASE_URL"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),

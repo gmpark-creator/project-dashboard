@@ -10,15 +10,18 @@ import { PATCH as updateShotDirectionRoute } from "../app/api/shots/[shotId]/dir
 import { POST as attachImageToShotRoute } from "../app/api/shots/[shotId]/references/route";
 import { DELETE as detachImageFromShotRoute } from "../app/api/shots/[shotId]/references/[assetId]/route";
 import { POST as selectTakeRoute } from "../app/api/shots/[shotId]/select-take/route";
+import { POST as releaseWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/release/route";
+import { POST as renewWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/renew/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
-const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL"];
+const adminToken = "production-state-admin-token";
+const managedEnvNames = ["CUTPILOT_RUNTIME_MODE", "CUTPILOT_ENABLE_LIVE_WRITES", "DATABASE_URL", "CUTPILOT_ADMIN_TOKEN"];
 
 function request(method: string, body?: unknown, url = "http://cutpilot.local/api/test") {
   return new Request(url, {
     method,
     body: typeof body === "undefined" ? undefined : JSON.stringify(body),
-    headers: typeof body === "undefined" ? undefined : { "content-type": "application/json" }
+    headers: typeof body === "undefined" ? { "x-cutpilot-admin-token": adminToken } : { "content-type": "application/json", "x-cutpilot-admin-token": adminToken }
   });
 }
 
@@ -36,6 +39,7 @@ function stateFingerprint() {
     generationJobs: state.generationJobs.length,
     imageJobs: state.imageJobs.length,
     renderJobs: state.renderJobs.length,
+    workerLeases: state.workerLeases.length,
     creditTransactions: state.creditTransactions.length
   });
 }
@@ -59,6 +63,7 @@ async function main() {
   resetMockState();
   try {
     process.env.CUTPILOT_RUNTIME_MODE = "production";
+    process.env.CUTPILOT_ADMIN_TOKEN = adminToken;
     delete process.env.CUTPILOT_ENABLE_LIVE_WRITES;
     delete process.env.DATABASE_URL;
     const before = stateFingerprint();
@@ -89,6 +94,11 @@ async function main() {
     await assertUnavailable("edit command", await applyEditRoute(request("POST", { command: "trim opening" }), context({ projectId: "prj_production" })));
     await assertUnavailable("audio settings", await setAudioRoute(request("PUT", { transitions: "none" }), context({ projectId: "prj_production" })));
     await assertUnavailable("default render selection", await setDefaultRenderRoute(request("POST", { renderJobId: "rnd_default" }), context({ projectId: "prj_production" })));
+    await assertUnavailable("worker lease release", await releaseWorkerLeaseRoute(request("POST", { token: "lease-token" }), context({ leaseId: "wlease_production" })));
+    await assertUnavailable(
+      "worker lease renewal",
+      await renewWorkerLeaseRoute(request("POST", { token: "lease-token", ttlSec: 60 }), context({ leaseId: "wlease_production" }))
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     const liveDirectionWithoutDb = await updateShotDirectionRoute(request("PATCH", { camera: "locked" }), context({ shotId: "sht_production" }));
@@ -151,6 +161,19 @@ async function main() {
     const liveCancelWithoutDbBody = (await liveCancelWithoutDb.json()) as { code?: string };
     assert.equal(liveCancelWithoutDb.status, 503, "live job cancellation should fail closed without DATABASE_URL");
     assert.equal(liveCancelWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live job cancellation should report live persistence unavailability");
+
+    const liveWorkerLeaseReleaseWithoutDb = await releaseWorkerLeaseRoute(request("POST", { token: "lease-token" }), context({ leaseId: "wlease_production" }));
+    const liveWorkerLeaseReleaseWithoutDbBody = (await liveWorkerLeaseReleaseWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerLeaseReleaseWithoutDb.status, 503, "live worker lease release should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerLeaseReleaseWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease release should report live persistence unavailability");
+
+    const liveWorkerLeaseRenewWithoutDb = await renewWorkerLeaseRoute(
+      request("POST", { token: "lease-token", ttlSec: 60 }),
+      context({ leaseId: "wlease_production" })
+    );
+    const liveWorkerLeaseRenewWithoutDbBody = (await liveWorkerLeaseRenewWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerLeaseRenewWithoutDb.status, 503, "live worker lease renewal should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerLeaseRenewWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease renewal should report live persistence unavailability");
 
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {

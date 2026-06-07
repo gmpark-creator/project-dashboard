@@ -171,6 +171,20 @@ export async function createLiveWorkerLease(input: Partial<WorkerLeaseRequest> =
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).createWorkerLease(input));
 }
 
+export async function releaseLiveWorkerLease(leaseId: string, token: string | null | undefined) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).releaseWorkerLease(leaseId, token));
+}
+
+export async function renewLiveWorkerLease(leaseId: string, input: { token?: string | null; ttlSec?: number } = {}) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).renewWorkerLease(leaseId, input));
+}
+
 export async function registerLiveExternalImage(input: LiveExternalImageInput) {
   if (!liveProjectWritesEnabled()) {
     throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");

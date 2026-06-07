@@ -1824,7 +1824,7 @@
             }
           },
           "503": {
-            "description": "Admin access token is not configured in production mode",
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
@@ -1898,7 +1898,7 @@
             }
           },
           "503": {
-            "description": "Admin access token is not configured in production mode",
+            "description": "Mock-backed state changes are unavailable in production mode",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }

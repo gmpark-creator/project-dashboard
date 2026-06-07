@@ -638,6 +638,20 @@ function assertProductionStateMutationBoundary() {
       method: "post" as const,
       operationId: "setDefaultRender",
       serviceCall: "setDefaultRender(projectId"
+    },
+    {
+      route: join(appApiDir, "system", "worker-leases", "[leaseId]", "release", "route.ts"),
+      path: "/system/worker-leases/{leaseId}/release",
+      method: "post" as const,
+      operationId: "releaseWorkerLease",
+      serviceCall: "releaseWorkerLease(leaseId"
+    },
+    {
+      route: join(appApiDir, "system", "worker-leases", "[leaseId]", "renew", "route.ts"),
+      path: "/system/worker-leases/{leaseId}/renew",
+      method: "post" as const,
+      operationId: "renewWorkerLease",
+      serviceCall: "renewWorkerLease(leaseId"
     }
   ];
   const testMock = packageJson.scripts?.["test:mock"] || "";
@@ -662,6 +676,8 @@ function assertProductionStateMutationBoundary() {
   const cancelJobRouteSource = readFileSync(join(appApiDir, "jobs", "[jobId]", "cancel", "route.ts"), "utf8");
   const attachReferenceRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "references", "route.ts"), "utf8");
   const detachReferenceRouteSource = readFileSync(join(appApiDir, "shots", "[shotId]", "references", "[assetId]", "route.ts"), "utf8");
+  const releaseWorkerLeaseRouteSource = readFileSync(join(appApiDir, "system", "worker-leases", "[leaseId]", "release", "route.ts"), "utf8");
+  const renewWorkerLeaseRouteSource = readFileSync(join(appApiDir, "system", "worker-leases", "[leaseId]", "renew", "route.ts"), "utf8");
   assert.ok(shotDirectionRouteSource.includes("liveProjectWritesEnabled()"), "shot direction route must require the live write switch for live state changes");
   assert.ok(shotDirectionRouteSource.includes("updateLiveShotDirection(shotId"), "shot direction route must call the live direction update adapter");
   assert.ok(shotDirectionRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot direction route must fail closed when live persistence is unavailable");
@@ -680,18 +696,28 @@ function assertProductionStateMutationBoundary() {
   assert.ok(detachReferenceRouteSource.includes("liveProjectWritesEnabled()"), "reference detach route must require the live write switch for live state changes");
   assert.ok(detachReferenceRouteSource.includes("detachLiveImageFromShot(shotId"), "reference detach route must call the live reference adapter");
   assert.ok(detachReferenceRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "reference detach route must fail closed when live persistence is unavailable");
+  assert.ok(releaseWorkerLeaseRouteSource.includes("liveProjectWritesEnabled()"), "worker lease release route must require the live write switch for live state changes");
+  assert.ok(releaseWorkerLeaseRouteSource.includes("releaseLiveWorkerLease(leaseId"), "worker lease release route must call the live lease release adapter");
+  assert.ok(releaseWorkerLeaseRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker lease release route must fail closed when live persistence is unavailable");
+  assert.ok(renewWorkerLeaseRouteSource.includes("liveProjectWritesEnabled()"), "worker lease renew route must require the live write switch for live state changes");
+  assert.ok(renewWorkerLeaseRouteSource.includes("renewLiveWorkerLease(leaseId"), "worker lease renew route must call the live lease renewal adapter");
+  assert.ok(renewWorkerLeaseRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker lease renew route must fail closed when live persistence is unavailable");
   assert.ok(liveRuntimeSource.includes("updateLiveShotDirection"), "live persistence runtime must expose live shot direction updates");
   assert.ok(liveRuntimeSource.includes("selectLiveTake"), "live persistence runtime must expose live take selection updates");
   assert.ok(liveRuntimeSource.includes("updateLiveStoryboard"), "live persistence runtime must expose live storyboard updates");
   assert.ok(liveRuntimeSource.includes("cancelLiveJob"), "live persistence runtime must expose live job cancellation");
   assert.ok(liveRuntimeSource.includes("attachLiveImageToShot"), "live persistence runtime must expose live reference attachment");
   assert.ok(liveRuntimeSource.includes("detachLiveImageFromShot"), "live persistence runtime must expose live reference detach");
+  assert.ok(liveRuntimeSource.includes("releaseLiveWorkerLease"), "live persistence runtime must expose live worker lease release");
+  assert.ok(liveRuntimeSource.includes("renewLiveWorkerLease"), "live persistence runtime must expose live worker lease renewal");
   assert.ok(writeAdapterSource.includes("updateShotDirection"), "live write adapter must implement shot direction updates");
   assert.ok(writeAdapterSource.includes("selectTake"), "live write adapter must implement take selection updates");
   assert.ok(writeAdapterSource.includes("updateStoryboard"), "live write adapter must implement storyboard updates");
   assert.ok(writeAdapterSource.includes("cancelJob"), "live write adapter must implement job cancellation");
   assert.ok(writeAdapterSource.includes("attachImageToShot"), "live write adapter must implement reference attachment");
   assert.ok(writeAdapterSource.includes("detachImageFromShot"), "live write adapter must implement reference detach");
+  assert.ok(writeAdapterSource.includes("releaseWorkerLease"), "live write adapter must implement worker lease release");
+  assert.ok(writeAdapterSource.includes("renewWorkerLease"), "live write adapter must implement worker lease renewal");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_shots"), "live write adapter must persist shot direction updates");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_projects SET progress"), "live write adapter must refresh project progress after take selection");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_scenes SET"), "live write adapter must update storyboard scenes");

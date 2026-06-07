@@ -143,12 +143,26 @@ class FakeClient implements PgQueryable {
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_render_jobs")) return { rows: [] as T[] };
-    if (sql.includes("UPDATE cutpilot_worker_leases SET status")) {
+    if (sql.includes("UPDATE cutpilot_worker_leases SET status = $2 WHERE status = $1")) {
       this.workerLeaseRows = this.workerLeaseRows.map((lease) =>
         lease.status === params?.[0] && new Date(String(lease.expires_at)).getTime() <= new Date(String(params?.[2])).getTime()
           ? { ...lease, status: params?.[1] }
           : lease
       );
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_worker_leases WHERE id")) {
+      const lease = this.workerLeaseRows.find((row) => row.id === params?.[0]);
+      return { rows: lease ? ([lease as unknown as T]) : [] };
+    }
+    if (sql.includes("UPDATE cutpilot_worker_leases SET status = $2, released_at = $3 WHERE id = $1")) {
+      this.workerLeaseRows = this.workerLeaseRows.map((lease) =>
+        lease.id === params?.[0] ? { ...lease, status: params?.[1], released_at: params?.[2] } : lease
+      );
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("UPDATE cutpilot_worker_leases SET expires_at = $2 WHERE id = $1")) {
+      this.workerLeaseRows = this.workerLeaseRows.map((lease) => (lease.id === params?.[0] ? { ...lease, expires_at: params?.[1] } : lease));
       return { rows: [] as T[] };
     }
     if (sql.includes("SELECT dispatch_key FROM cutpilot_worker_leases")) {
@@ -394,6 +408,23 @@ function fakeGenerationJobRow(status: "queued" | "running" | "done" | "failed" |
   };
 }
 
+function fakeWorkerLeaseRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "wlease_live",
+    token: "lease-token",
+    dispatch_key: "provider_generation:gen_live",
+    kind: "provider_generation",
+    job_id: "gen_live",
+    project_id: "prj_live",
+    worker_id: "worker-live",
+    status: "active",
+    leased_at: "2026-06-07T00:00:00.000Z",
+    expires_at: "2999-01-01T00:00:00.000Z",
+    released_at: null,
+    ...overrides
+  };
+}
+
 function fakeDispatchGenerationJobRow(status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") {
   return {
     ...fakeGenerationJobRow(status),
@@ -577,21 +608,7 @@ async function main() {
 
   const busyWorkerLeaseClient = new FakeClient();
   busyWorkerLeaseClient.generationJobRow = fakeDispatchGenerationJobRow("queued");
-  busyWorkerLeaseClient.workerLeaseRows = [
-    {
-      id: "wlease_busy",
-      token: "token",
-      dispatch_key: "provider_generation:gen_live",
-      kind: "provider_generation",
-      job_id: "gen_live",
-      project_id: "prj_live",
-      worker_id: "worker-busy",
-      status: "active",
-      leased_at: "2026-06-07T00:00:00.000Z",
-      expires_at: "2999-01-01T00:00:00.000Z",
-      released_at: null
-    }
-  ];
+  busyWorkerLeaseClient.workerLeaseRows = [fakeWorkerLeaseRow({ id: "wlease_busy", token: "token", worker_id: "worker-busy" })];
   const busyWorkerLeaseResult = await new PostgresLivePersistenceWriteAdapter(busyWorkerLeaseClient).createWorkerLease({
     workerId: "worker-live",
     kind: "provider_generation",
@@ -599,6 +616,47 @@ async function main() {
   });
   assert.equal(busyWorkerLeaseResult.reason, "no_available_work", "live worker lease creation should skip actively leased dispatch keys");
   assert.equal(busyWorkerLeaseResult.lease, null, "live worker lease creation should not create leases when no work is available");
+
+  const releaseLeaseClient = new FakeClient();
+  releaseLeaseClient.workerLeaseRows = [fakeWorkerLeaseRow()];
+  const releaseLeaseResult = await new PostgresLivePersistenceWriteAdapter(releaseLeaseClient).releaseWorkerLease("wlease_live", "lease-token");
+  assert.equal(releaseLeaseResult.released, true, "live worker lease release should release active leases with matching tokens");
+  assert.equal(releaseLeaseResult.reason, "released", "live worker lease release should report success");
+  assert.equal(releaseLeaseClient.workerLeaseRows[0].status, "released", "live worker lease release should persist released status");
+  assert.ok(releaseLeaseClient.workerLeaseRows[0].released_at, "live worker lease release should persist release timestamps");
+  assert.equal(releaseLeaseClient.queries.at(-1)?.sql, "COMMIT", "live worker lease release should commit successful releases");
+
+  const wrongReleaseLeaseClient = new FakeClient();
+  wrongReleaseLeaseClient.workerLeaseRows = [fakeWorkerLeaseRow()];
+  const wrongReleaseLeaseResult = await new PostgresLivePersistenceWriteAdapter(wrongReleaseLeaseClient).releaseWorkerLease("wlease_live", "wrong-token");
+  assert.equal(wrongReleaseLeaseResult.released, false, "live worker lease release should reject token mismatches");
+  assert.equal(wrongReleaseLeaseResult.reason, "token_mismatch", "live worker lease release should report token mismatches");
+  assert.equal(wrongReleaseLeaseClient.workerLeaseRows[0].status, "active", "live worker lease release should not mutate token mismatches");
+
+  const renewLeaseClient = new FakeClient();
+  const renewalOriginalExpiry = new Date(Date.now() + 30_000).toISOString();
+  renewLeaseClient.workerLeaseRows = [fakeWorkerLeaseRow({ expires_at: renewalOriginalExpiry })];
+  const renewLeaseResult = await new PostgresLivePersistenceWriteAdapter(renewLeaseClient).renewWorkerLease("wlease_live", {
+    token: "lease-token",
+    ttlSec: 120
+  });
+  assert.equal(renewLeaseResult.renewed, true, "live worker lease renewal should renew active leases with matching tokens");
+  assert.equal(renewLeaseResult.reason, "renewed", "live worker lease renewal should report success");
+  assert.equal(renewLeaseResult.lease?.status, "active", "live worker lease renewal should keep leases active");
+  assert.ok(
+    new Date(String(renewLeaseClient.workerLeaseRows[0].expires_at)).getTime() > new Date(renewalOriginalExpiry).getTime(),
+    "live worker lease renewal should persist extended expiries"
+  );
+  assert.equal(renewLeaseClient.queries.at(-1)?.sql, "COMMIT", "live worker lease renewal should commit successful renewals");
+
+  const expiredRenewLeaseClient = new FakeClient();
+  expiredRenewLeaseClient.workerLeaseRows = [fakeWorkerLeaseRow({ expires_at: "2000-01-01T00:00:00.000Z" })];
+  const expiredRenewLeaseResult = await new PostgresLivePersistenceWriteAdapter(expiredRenewLeaseClient).renewWorkerLease("wlease_live", {
+    token: "lease-token",
+    ttlSec: 120
+  });
+  assert.equal(expiredRenewLeaseResult.renewed, false, "live worker lease renewal should reject expired leases");
+  assert.equal(expiredRenewLeaseResult.reason, "not_active", "live worker lease renewal should report expired leases as not active");
 
   const imageJobClient = new FakeClient();
   const imageJobResult = await new PostgresLivePersistenceWriteAdapter(imageJobClient).createImageJob({
