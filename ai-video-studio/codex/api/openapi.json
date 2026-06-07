@@ -1984,6 +1984,14 @@
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/JobQueueSnapshot" }
               }
             }
+          },
+          "503": {
+            "description": "Mock job ticking is unavailable in production mode",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
           }
         }
       }
