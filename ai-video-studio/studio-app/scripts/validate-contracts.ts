@@ -48,6 +48,20 @@ const routing = readJson<Routing>(join(codexDir, "config", "routing.config.json"
 const domainSchema = readJson<{ $defs: Record<string, unknown> }>(join(codexDir, "schemas", "domain.schema.json"));
 const packageJson = readJson<{ scripts?: Record<string, string> }>(join(process.cwd(), "package.json"));
 const openApiPath = join(codexDir, "api", "openapi.json");
+const allowedSchemaOnlyDomainDefs = new Set([
+  "Character",
+  "CreditSummary",
+  "EditAudioPatch",
+  "EditCommandInput",
+  "RenderSourceHash",
+  "StoryboardDirectionPatch",
+  "StoryboardSaecPatch",
+  "StoryboardScenePatch",
+  "StoryboardShotPatch",
+  "StoryboardShotRequirementsPatch",
+  "StoryboardUpdateInput",
+  "StudioCredits"
+]);
 assertNoDuplicateOpenApiResponseCodes(openApiPath);
 assertUserUiHidesProviderNames();
 assertMockTestsAreScripted();
@@ -281,11 +295,14 @@ function assertUniqueEnumValues(value: unknown, owner: string, path: string[] = 
 }
 
 function assertExportedDomainTypesHaveSchemas() {
-  const source = readFileSync(domainTypesPath, "utf8");
-  const exportedTypes = [...source.matchAll(/^export type (\w+)/gm)].map((match) => match[1]);
-  for (const typeName of exportedTypes) {
+  for (const typeName of exportedDomainTypeNames()) {
     assert.ok(domainSchema.$defs[typeName], `domain schema missing exported TypeScript type ${typeName}`);
   }
+}
+
+function exportedDomainTypeNames() {
+  const source = readFileSync(domainTypesPath, "utf8");
+  return [...source.matchAll(/^export type (\w+)/gm)].map((match) => match[1]);
 }
 
 function parseStringLiteralUnionTypes(source: string) {
@@ -309,6 +326,34 @@ function assertDomainStringLiteralUnionsMatchSchemaEnums() {
     assert.equal(schema.type, "string", `domain schema ${typeName} must use type string for TypeScript string literal union`);
     assert.ok(Array.isArray(schema.enum), `domain schema ${typeName} must declare an enum for TypeScript string literal union`);
     assert.deepEqual(schema.enum, values, `domain schema ${typeName} enum must match TypeScript string literal union`);
+  }
+}
+
+function collectDomainRefDefNames(value: unknown, refs = new Set<string>()) {
+  if (!value || typeof value !== "object") return refs;
+  const ref = (value as { $ref?: unknown }).$ref;
+  if (typeof ref === "string") {
+    const localPrefix = "#/$defs/";
+    const domainPrefix = "../schemas/domain.schema.json#/$defs/";
+    if (ref.startsWith(localPrefix)) refs.add(ref.slice(localPrefix.length));
+    if (ref.startsWith(domainPrefix)) refs.add(ref.slice(domainPrefix.length));
+  }
+  for (const child of Object.values(value)) {
+    collectDomainRefDefNames(child, refs);
+  }
+  return refs;
+}
+
+function assertSchemaOnlyDomainDefsAreAllowed() {
+  const exportedTypes = new Set(exportedDomainTypeNames());
+  const referencedDefs = collectDomainRefDefNames(openApi, collectDomainRefDefNames(domainSchema));
+  for (const defName of Object.keys(domainSchema.$defs)) {
+    if (exportedTypes.has(defName)) continue;
+    assert.ok(allowedSchemaOnlyDomainDefs.has(defName), `domain schema-only def ${defName} must be added to the allowlist`);
+  }
+  for (const defName of allowedSchemaOnlyDomainDefs) {
+    assert.ok(domainSchema.$defs[defName], `allowed schema-only domain def ${defName} is missing`);
+    assert.ok(referencedDefs.has(defName), `allowed schema-only domain def ${defName} must be referenced by schema or OpenAPI`);
   }
 }
 
@@ -356,6 +401,7 @@ assertUniqueEnumValues(domainSchema, "domain schema", ["domainSchema"]);
 assertUniqueEnumValues(openApi, "openapi", ["openapi"]);
 assertExportedDomainTypesHaveSchemas();
 assertDomainStringLiteralUnionsMatchSchemaEnums();
+assertSchemaOnlyDomainDefsAreAllowed();
 
 for (const [defName, defSchema] of Object.entries(domainSchema.$defs)) {
   assertClosedObjectSchemas(defSchema, `domain schema ${defName}`);
