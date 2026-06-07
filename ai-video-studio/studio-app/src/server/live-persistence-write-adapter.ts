@@ -1,5 +1,43 @@
 import { randomUUID } from "node:crypto";
-import type { AssetDeleteResult, AssetUsage, CancelJobResult, CreditTransaction, DirectionSpec, EditState, ErrorResponse, ExportSpec, GenerationJob, GenerationPromptPackage, GenerationReference, ImageJob, ImageMakerPurpose, ImageVariant, JobStatus, MediaArtifact, Project, ProjectBundle, ProviderAttempt, RenderJob, Scene, Shot, Take, Tier, WorkerCompletionReceipt, WorkerDispatchKind, WorkerLease, WorkerLeaseCompletionInput, WorkerLeaseCompletionResult, WorkerLeaseReleaseResult, WorkerLeaseRenewResult, WorkerLeaseRequest, WorkerLeaseResult } from "../domain/types";
+import type {
+  AssetDeleteResult,
+  AssetUsage,
+  CancelJobResult,
+  CreditTransaction,
+  DirectionSpec,
+  EditState,
+  ErrorResponse,
+  ExportSpec,
+  GenerationJob,
+  GenerationPromptPackage,
+  GenerationReference,
+  ImageJob,
+  ImageMakerPurpose,
+  ImageVariant,
+  JobStatus,
+  MediaArtifact,
+  Project,
+  ProjectBundle,
+  ProviderAttempt,
+  QueueJobSnapshot,
+  RenderJob,
+  Scene,
+  Shot,
+  Take,
+  Tier,
+  WorkerCompletionReceipt,
+  WorkerDispatchKind,
+  WorkerLease,
+  WorkerLeaseCompletionInput,
+  WorkerLeaseCompletionResult,
+  WorkerLeaseReleaseResult,
+  WorkerLeaseRenewResult,
+  WorkerLeaseRequest,
+  WorkerLeaseResult,
+  WorkerRetryAction,
+  WorkerRetryExecutionResult,
+  WorkerRetryRecord
+} from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -197,6 +235,58 @@ function renderSpecKey(spec: ExportSpec) {
   return `${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`;
 }
 
+function active(status: JobStatus) {
+  return status === "queued" || status === "running";
+}
+
+function generationSnapshot(job: GenerationJob): QueueJobSnapshot {
+  return {
+    id: job.id,
+    projectId: job.projectId,
+    kind: "generation",
+    status: job.status,
+    stage: job.stage,
+    progress: job.progress,
+    etaSec: job.etaSec,
+    queuedAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    dueAt: job.dueAt,
+    cancelable: active(job.status)
+  };
+}
+
+function imageSnapshot(job: ImageJob): QueueJobSnapshot {
+  return {
+    id: job.id,
+    projectId: job.projectId,
+    kind: "image",
+    status: job.status,
+    stage: job.stage,
+    progress: job.progress,
+    etaSec: job.etaSec,
+    queuedAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    dueAt: job.dueAt,
+    cancelable: active(job.status)
+  };
+}
+
+function renderSnapshot(job: RenderJob): QueueJobSnapshot {
+  return {
+    id: job.id,
+    projectId: job.projectId,
+    kind: "render",
+    status: job.status,
+    stage: job.stage,
+    progress: job.progress,
+    etaSec: job.etaSec,
+    queuedAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    dueAt: job.dueAt,
+    cancelable: active(job.status)
+  };
+}
+
 function clampWorkerLeaseTtl(ttlSec: number | undefined) {
   return Math.max(5, Math.min(ttlSec || 60, 600));
 }
@@ -229,6 +319,18 @@ function rowWorkerLease(row: Row): WorkerLease {
     leasedAt: iso(row.leased_at),
     expiresAt,
     releasedAt: row.released_at ? iso(row.released_at) : null
+  };
+}
+
+function rowWorkerRetryRecord(row: Row): WorkerRetryRecord {
+  return {
+    id: String(row.id),
+    sourceJobId: String(row.source_job_id),
+    action: row.action as WorkerRetryRecord["action"],
+    replacementJobId: String(row.replacement_job_id),
+    replacementKind: row.replacement_kind as WorkerRetryRecord["replacementKind"],
+    createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at)
   };
 }
 
@@ -2465,6 +2567,153 @@ export class PostgresLivePersistenceWriteAdapter {
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;
+    }
+  }
+
+  private async workerRetryRecordForSource(sourceJobId: string) {
+    const rows = await this.client.query<Row>("SELECT * FROM cutpilot_worker_retry_records WHERE source_job_id = $1 LIMIT 1", [sourceJobId]);
+    return rows.rows[0] ? rowWorkerRetryRecord(rows.rows[0]) : null;
+  }
+
+  private async replacementForWorkerRetryRecord(record: WorkerRetryRecord) {
+    const snapshot = await new PostgresLivePersistenceReadAdapter(this.client).getWorkerRetryExecutionSnapshot();
+    return snapshot.items.find((item) => item.record.sourceJobId === record.sourceJobId)?.replacement || null;
+  }
+
+  private async alreadyExecutedWorkerRetryResult(record: WorkerRetryRecord): Promise<WorkerRetryExecutionResult> {
+    const replacement = await this.replacementForWorkerRetryRecord(record);
+    return {
+      sourceJobId: record.sourceJobId,
+      executed: Boolean(replacement),
+      action: record.action,
+      replacement,
+      retryRecord: record,
+      reason: replacement ? "already_executed" : "replacement_missing"
+    };
+  }
+
+  private async recordWorkerRetry(projectId: string, sourceJobId: string, action: WorkerRetryAction, replacement: QueueJobSnapshot) {
+    await this.client.query("BEGIN");
+    try {
+      const existingRows = await this.client.query<Row>("SELECT * FROM cutpilot_worker_retry_records WHERE source_job_id = $1 LIMIT 1 FOR UPDATE", [
+        sourceJobId
+      ]);
+      if (existingRows.rows[0]) {
+        await this.client.query("COMMIT");
+        return rowWorkerRetryRecord(existingRows.rows[0]);
+      }
+
+      const timestamp = now();
+      const record: WorkerRetryRecord = {
+        id: uid("wretry"),
+        sourceJobId,
+        action,
+        replacementJobId: replacement.id,
+        replacementKind: replacement.kind,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      };
+      await this.client.query(
+        `
+        INSERT INTO cutpilot_worker_retry_records (
+          id, project_id, source_job_id, action, replacement_job_id,
+          replacement_kind, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `,
+        [record.id, projectId, record.sourceJobId, record.action, record.replacementJobId, record.replacementKind, record.createdAt, record.updatedAt]
+      );
+      await this.client.query("COMMIT");
+      return record;
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  private async workerRetryExecutedResult(
+    sourceJobId: string,
+    action: WorkerRetryAction,
+    projectId: string,
+    replacement: QueueJobSnapshot
+  ): Promise<WorkerRetryExecutionResult> {
+    const retryRecord = await this.recordWorkerRetry(projectId, sourceJobId, action, replacement);
+    if (retryRecord.replacementJobId !== replacement.id) {
+      const recordedReplacement = await this.replacementForWorkerRetryRecord(retryRecord);
+      return {
+        sourceJobId,
+        executed: Boolean(recordedReplacement),
+        action: retryRecord.action,
+        replacement: recordedReplacement,
+        retryRecord,
+        reason: recordedReplacement ? "already_executed" : "replacement_missing"
+      };
+    }
+    return { sourceJobId, executed: true, action, replacement, retryRecord, reason: "executed" };
+  }
+
+  async executeWorkerRetry(sourceJobId: string): Promise<WorkerRetryExecutionResult> {
+    const existingRecord = await this.workerRetryRecordForSource(sourceJobId);
+    if (existingRecord) return this.alreadyExecutedWorkerRetryResult(existingRecord);
+
+    const item = (await new PostgresLivePersistenceReadAdapter(this.client).getWorkerRetryPlan()).items.find(
+      (candidate) => candidate.receipt.jobId === sourceJobId
+    );
+    if (!item) return { sourceJobId, executed: false, action: null, replacement: null, retryRecord: null, reason: "not_found" };
+    if (!item.retryable) {
+      return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_retryable" };
+    }
+
+    try {
+      if (item.action === "retry_image_generation") {
+        const sourceRows = await this.client.query<Row>("SELECT * FROM cutpilot_image_jobs WHERE id = $1 LIMIT 1", [sourceJobId]);
+        const source = sourceRows.rows[0];
+        if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
+
+        const retry = await this.createImageJob({
+          projectId: String(source.project_id),
+          prompt: String(source.prompt),
+          purpose: source.purpose as ImageMakerPurpose,
+          role: source.role as ImageAssetRole,
+          aspect: source.aspect as Aspect,
+          style: String(source.style),
+          count: Number(source.count),
+          retryOfJobId: sourceJobId
+        });
+        return this.workerRetryExecutedResult(sourceJobId, item.action, retry.job.projectId, imageSnapshot(retry.job));
+      }
+
+      if (item.action === "retry_provider_generation") {
+        const sourceRows = await this.client.query<Row>("SELECT * FROM cutpilot_generation_jobs WHERE id = $1 LIMIT 1", [sourceJobId]);
+        const source = sourceRows.rows[0];
+        if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
+
+        const promptPackage = jsonValue<GenerationPromptPackage>(source.prompt_package, {} as GenerationPromptPackage);
+        const retry = await this.generateShot(String(source.shot_id), {
+          tier: promptPackage.requirements?.tier || "fast",
+          takeCount: 1,
+          retryOfJobId: sourceJobId
+        });
+        const replacementJob = retry.jobs[0];
+        if (!replacementJob) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "retry_failed" };
+        return this.workerRetryExecutedResult(sourceJobId, item.action, replacementJob.projectId, generationSnapshot(replacementJob));
+      }
+
+      if (item.action === "retry_render") {
+        const sourceRows = await this.client.query<Row>("SELECT * FROM cutpilot_render_jobs WHERE id = $1 LIMIT 1", [sourceJobId]);
+        const source = sourceRows.rows[0];
+        if (!source) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "not_found" };
+
+        const spec = jsonValue<ExportSpec>(source.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" });
+        const retry = await this.startRender(String(source.project_id), { specs: [spec], retryOfJobId: sourceJobId });
+        const replacementJob = retry.jobs[0];
+        if (!replacementJob) return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "retry_failed" };
+        return this.workerRetryExecutedResult(sourceJobId, item.action, replacementJob.projectId, renderSnapshot(replacementJob));
+      }
+
+      return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "unsupported_action" };
+    } catch {
+      return { sourceJobId, executed: false, action: item.action, replacement: null, retryRecord: null, reason: "retry_failed" };
     }
   }
 

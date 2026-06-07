@@ -31,6 +31,22 @@ class FakeClient implements PgQueryable {
   creditTransactionCount = 0;
   activeRenderExists = false;
   workerLeaseRows: Record<string, unknown>[] = [];
+  workerRetryRows: Record<string, unknown>[] = [];
+  insertedGenerationJobRows: Record<string, unknown>[] = [];
+  insertedImageJobRows: Record<string, unknown>[] = [];
+  insertedRenderJobRows: Record<string, unknown>[] = [];
+
+  private generationJobRows() {
+    return [this.generationJobRow, ...this.insertedGenerationJobRows].filter((row): row is Record<string, unknown> => Boolean(row));
+  }
+
+  private imageJobRows() {
+    return [this.imageJobRow, ...this.insertedImageJobRows].filter((row): row is Record<string, unknown> => Boolean(row));
+  }
+
+  private renderJobRows() {
+    return [this.renderJobRow, ...this.insertedRenderJobRows].filter((row): row is Record<string, unknown> => Boolean(row));
+  }
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(sql: string, params?: unknown[]) {
     this.queries.push({ sql, params });
@@ -52,15 +68,21 @@ class FakeClient implements PgQueryable {
       return { rows: this.projectExists ? [projectRow] : [] };
     }
     if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE id")) {
-      const renderJobRow = this.renderJobRow as unknown as T;
-      return { rows: this.renderJobRow ? [renderJobRow] : [] };
+      const renderJobRow = this.renderJobRows().find((row) => row.id === params?.[0]);
+      return { rows: renderJobRow ? ([renderJobRow as unknown as T]) : [] };
     }
     if (sql.includes("SELECT spec FROM cutpilot_render_jobs")) {
       const active = this.renderJobRow && (this.renderJobRow.status === "queued" || this.renderJobRow.status === "running");
       return { rows: active ? ([{ spec: this.renderJobRow?.spec } as unknown as T]) : [] };
     }
-    if (sql.includes("SELECT * FROM cutpilot_generation_jobs WHERE id")) return { rows: this.generationJobRow ? ([this.generationJobRow as unknown as T]) : [] };
-    if (sql.includes("SELECT * FROM cutpilot_image_jobs WHERE id")) return { rows: this.imageJobRow ? ([this.imageJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_generation_jobs WHERE id")) {
+      const generationJobRow = this.generationJobRows().find((row) => row.id === params?.[0]);
+      return { rows: generationJobRow ? ([generationJobRow as unknown as T]) : [] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_image_jobs WHERE id")) {
+      const imageJobRow = this.imageJobRows().find((row) => row.id === params?.[0]);
+      return { rows: imageJobRow ? ([imageJobRow as unknown as T]) : [] };
+    }
     if (sql.includes("SELECT id FROM cutpilot_render_jobs WHERE project_id")) return { rows: this.activeRenderExists ? ([{ id: "rnd_active" } as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_render_jobs WHERE project_id")) {
       const renderJobRow = this.renderJobRow as unknown as T;
@@ -192,11 +214,73 @@ class FakeClient implements PgQueryable {
       });
       return { rows: [] as T[] };
     }
-    if (sql.includes("INSERT INTO cutpilot_image_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_image_jobs")) {
+      this.insertedImageJobRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        retry_of_job_id: params?.[2],
+        status: params?.[3],
+        progress: params?.[4],
+        eta_sec: params?.[5],
+        stage: params?.[6],
+        prompt: params?.[7],
+        purpose: params?.[8],
+        role: params?.[9],
+        aspect: params?.[10],
+        style: params?.[11],
+        count: params?.[12],
+        variants: params?.[13],
+        due_at: params?.[14],
+        error: params?.[15],
+        created_at: params?.[16],
+        updated_at: params?.[17]
+      });
+      return { rows: [] as T[] };
+    }
     if (sql.includes("INSERT INTO cutpilot_takes")) return { rows: [] as T[] };
-    if (sql.includes("INSERT INTO cutpilot_generation_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_generation_jobs")) {
+      this.insertedGenerationJobRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        shot_id: params?.[2],
+        take_id: params?.[3],
+        retry_of_job_id: params?.[4],
+        status: params?.[5],
+        progress: params?.[6],
+        eta_sec: params?.[7],
+        stage: params?.[8],
+        should_fail: params?.[9],
+        due_at: params?.[10],
+        error: params?.[11],
+        prompt_package: params?.[12],
+        routing: params?.[13],
+        created_at: params?.[14],
+        updated_at: params?.[15]
+      });
+      return { rows: [] as T[] };
+    }
     if (sql.includes("INSERT INTO cutpilot_provider_attempts")) return { rows: [] as T[] };
-    if (sql.includes("INSERT INTO cutpilot_render_jobs")) return { rows: [] as T[] };
+    if (sql.includes("INSERT INTO cutpilot_render_jobs")) {
+      this.insertedRenderJobRows.push({
+        id: params?.[0],
+        project_id: params?.[1],
+        retry_of_job_id: params?.[2],
+        spec: params?.[3],
+        stage: params?.[4],
+        progress: params?.[5],
+        status: params?.[6],
+        output_url: params?.[7],
+        share_url: params?.[8],
+        eta_sec: params?.[9],
+        due_at: params?.[10],
+        error: params?.[11],
+        rights_review: params?.[12],
+        render_plan: params?.[13],
+        created_at: params?.[14],
+        updated_at: params?.[15]
+      });
+      return { rows: [] as T[] };
+    }
     if (sql.includes("UPDATE cutpilot_generation_jobs")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_provider_attempts")) return { rows: [] as T[] };
     if (sql.includes("UPDATE cutpilot_takes")) return { rows: [] as T[] };
@@ -222,8 +306,34 @@ class FakeClient implements PgQueryable {
     if (sql.includes("SELECT * FROM cutpilot_media_artifacts WHERE source_job_id")) {
       return { rows: this.mediaArtifactRows.filter((row) => row.source_job_id === params?.[0]) as T[] };
     }
+    if (sql.includes("SELECT * FROM cutpilot_media_artifacts ORDER BY created_at")) {
+      return { rows: this.mediaArtifactRows as T[] };
+    }
     if (sql.includes("SELECT * FROM cutpilot_credit_transactions WHERE job_id")) {
       return { rows: this.creditTransactionRows.filter((row) => row.job_id === params?.[0]) as T[] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_credit_transactions ORDER BY created_at")) {
+      return { rows: this.creditTransactionRows as T[] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_worker_retry_records WHERE source_job_id")) {
+      const retryRow = this.workerRetryRows.find((row) => row.source_job_id === params?.[0]);
+      return { rows: retryRow ? ([retryRow as unknown as T]) : [] };
+    }
+    if (sql.includes("SELECT * FROM cutpilot_worker_retry_records ORDER BY created_at")) {
+      return { rows: this.workerRetryRows as T[] };
+    }
+    if (sql.includes("INSERT INTO cutpilot_worker_retry_records")) {
+      this.workerRetryRows.unshift({
+        id: params?.[0],
+        project_id: params?.[1],
+        source_job_id: params?.[2],
+        action: params?.[3],
+        replacement_job_id: params?.[4],
+        replacement_kind: params?.[5],
+        created_at: params?.[6],
+        updated_at: params?.[7]
+      });
+      return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_worker_leases SET status = $2 WHERE status = $1")) {
       this.workerLeaseRows = this.workerLeaseRows.map((lease) =>
@@ -282,9 +392,12 @@ class FakeClient implements PgQueryable {
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE project_id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
-    if (sql.includes("SELECT * FROM cutpilot_generation_jobs ORDER BY due_at")) return { rows: this.generationJobRow ? ([this.generationJobRow as unknown as T]) : [] };
-    if (sql.includes("SELECT * FROM cutpilot_image_jobs ORDER BY due_at")) return { rows: this.imageJobRow ? ([this.imageJobRow as unknown as T]) : [] };
-    if (sql.includes("SELECT * FROM cutpilot_render_jobs ORDER BY due_at")) return { rows: this.renderJobRow ? ([this.renderJobRow as unknown as T]) : [] };
+    if (sql.includes("SELECT * FROM cutpilot_generation_jobs ORDER BY updated_at")) return { rows: this.generationJobRows() as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_image_jobs ORDER BY updated_at")) return { rows: this.imageJobRows() as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_render_jobs ORDER BY updated_at")) return { rows: this.renderJobRows() as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_generation_jobs ORDER BY due_at")) return { rows: this.generationJobRows() as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_image_jobs ORDER BY due_at")) return { rows: this.imageJobRows() as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_render_jobs ORDER BY due_at")) return { rows: this.renderJobRows() as T[] };
     if (sql.includes("FROM cutpilot_asset_usages u")) return { rows: [] as T[] };
     if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
     if (sql.includes("SELECT * FROM cutpilot_asset_usages WHERE project_id")) return { rows: this.assetUsageRows as T[] };
@@ -803,6 +916,34 @@ async function main() {
   assert.ok(imageJobClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_image_jobs")), "live image job enqueue should insert image jobs");
   assert.ok(imageJobClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_credit_transactions") && query.params?.[3] === "reserve"), "live image job enqueue should persist reserve ledger entries");
   assert.equal(imageJobClient.queries.at(-1)?.sql, "COMMIT", "live image job enqueue should commit successful jobs");
+
+  const workerRetryClient = new FakeClient();
+  workerRetryClient.imageJobRow = {
+    ...fakeImageJobRow("failed"),
+    stage: "failed",
+    error: {
+      code: "IMAGE_PROVIDER_ERROR",
+      userMessage: "Retryable image failure",
+      retryable: true,
+      fallbackSuggested: true
+    }
+  };
+  const workerRetry = await new PostgresLivePersistenceWriteAdapter(workerRetryClient).executeWorkerRetry("ijob_live");
+  assert.equal(workerRetry.executed, true, "live worker retry execution should create replacement jobs for retryable failures");
+  assert.equal(workerRetry.reason, "executed", "live worker retry execution should report first execution");
+  assert.equal(workerRetry.action, "retry_image_generation", "live worker retry execution should preserve the planned action");
+  assert.equal(workerRetry.replacement?.kind, "image", "live worker retry execution should return the replacement queue job");
+  assert.equal(workerRetry.retryRecord?.sourceJobId, "ijob_live", "live worker retry execution should persist source job ids");
+  assert.equal(workerRetryClient.insertedImageJobRows.length, 1, "live worker retry execution should enqueue one replacement image job");
+  assert.equal(workerRetryClient.insertedImageJobRows[0].retry_of_job_id, "ijob_live", "live worker retry execution should link replacement jobs to sources");
+  assert.equal(workerRetryClient.workerRetryRows.length, 1, "live worker retry execution should persist one retry record");
+  assert.ok(workerRetryClient.queries.some((query) => query.sql.includes("INSERT INTO cutpilot_worker_retry_records")), "live worker retry execution should insert retry ledger records");
+
+  const repeatedWorkerRetry = await new PostgresLivePersistenceWriteAdapter(workerRetryClient).executeWorkerRetry("ijob_live");
+  assert.equal(repeatedWorkerRetry.reason, "already_executed", "live worker retry execution should be idempotent for recorded retries");
+  assert.equal(repeatedWorkerRetry.replacement?.id, workerRetry.replacement?.id, "live worker retry execution should return the original replacement");
+  assert.equal(workerRetryClient.insertedImageJobRows.length, 1, "live worker retry execution should not enqueue duplicate replacements");
+  assert.equal(workerRetryClient.workerRetryRows.length, 1, "live worker retry execution should not duplicate retry records");
 
   const insufficientCreditClient = new FakeClient();
   insufficientCreditClient.creditBalance = 4;

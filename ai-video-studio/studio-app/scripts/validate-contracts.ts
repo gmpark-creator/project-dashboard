@@ -659,6 +659,13 @@ function assertProductionStateMutationBoundary() {
       method: "post" as const,
       operationId: "completeWorkerLease",
       serviceCall: "completeWorkerLease(leaseId"
+    },
+    {
+      route: join(appApiDir, "system", "worker-retries", "[jobId]", "execute", "route.ts"),
+      path: "/system/worker-retries/{jobId}/execute",
+      method: "post" as const,
+      operationId: "executeWorkerRetry",
+      serviceCall: "executeWorkerRetry(jobId"
     }
   ];
   const testMock = packageJson.scripts?.["test:mock"] || "";
@@ -686,6 +693,7 @@ function assertProductionStateMutationBoundary() {
   const completeWorkerLeaseRouteSource = readFileSync(join(appApiDir, "system", "worker-leases", "[leaseId]", "complete", "route.ts"), "utf8");
   const releaseWorkerLeaseRouteSource = readFileSync(join(appApiDir, "system", "worker-leases", "[leaseId]", "release", "route.ts"), "utf8");
   const renewWorkerLeaseRouteSource = readFileSync(join(appApiDir, "system", "worker-leases", "[leaseId]", "renew", "route.ts"), "utf8");
+  const executeWorkerRetryRouteSource = readFileSync(join(appApiDir, "system", "worker-retries", "[jobId]", "execute", "route.ts"), "utf8");
   assert.ok(shotDirectionRouteSource.includes("liveProjectWritesEnabled()"), "shot direction route must require the live write switch for live state changes");
   assert.ok(shotDirectionRouteSource.includes("updateLiveShotDirection(shotId"), "shot direction route must call the live direction update adapter");
   assert.ok(shotDirectionRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "shot direction route must fail closed when live persistence is unavailable");
@@ -713,6 +721,9 @@ function assertProductionStateMutationBoundary() {
   assert.ok(completeWorkerLeaseRouteSource.includes("liveProjectWritesEnabled()"), "worker lease complete route must require the live write switch for live state changes");
   assert.ok(completeWorkerLeaseRouteSource.includes("completeLiveWorkerLease(leaseId"), "worker lease complete route must call the live lease completion adapter");
   assert.ok(completeWorkerLeaseRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker lease complete route must fail closed when live persistence is unavailable");
+  assert.ok(executeWorkerRetryRouteSource.includes("liveProjectWritesEnabled()"), "worker retry execute route must require the live write switch for live state changes");
+  assert.ok(executeWorkerRetryRouteSource.includes("executeLiveWorkerRetry(jobId"), "worker retry execute route must call the live retry execution adapter");
+  assert.ok(executeWorkerRetryRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "worker retry execute route must fail closed when live persistence is unavailable");
   assert.ok(liveRuntimeSource.includes("updateLiveShotDirection"), "live persistence runtime must expose live shot direction updates");
   assert.ok(liveRuntimeSource.includes("selectLiveTake"), "live persistence runtime must expose live take selection updates");
   assert.ok(liveRuntimeSource.includes("updateLiveStoryboard"), "live persistence runtime must expose live storyboard updates");
@@ -722,6 +733,7 @@ function assertProductionStateMutationBoundary() {
   assert.ok(liveRuntimeSource.includes("releaseLiveWorkerLease"), "live persistence runtime must expose live worker lease release");
   assert.ok(liveRuntimeSource.includes("renewLiveWorkerLease"), "live persistence runtime must expose live worker lease renewal");
   assert.ok(liveRuntimeSource.includes("completeLiveWorkerLease"), "live persistence runtime must expose live worker lease completion");
+  assert.ok(liveRuntimeSource.includes("executeLiveWorkerRetry"), "live persistence runtime must expose live worker retry execution");
   assert.ok(writeAdapterSource.includes("updateShotDirection"), "live write adapter must implement shot direction updates");
   assert.ok(writeAdapterSource.includes("selectTake"), "live write adapter must implement take selection updates");
   assert.ok(writeAdapterSource.includes("updateStoryboard"), "live write adapter must implement storyboard updates");
@@ -731,10 +743,12 @@ function assertProductionStateMutationBoundary() {
   assert.ok(writeAdapterSource.includes("releaseWorkerLease"), "live write adapter must implement worker lease release");
   assert.ok(writeAdapterSource.includes("renewWorkerLease"), "live write adapter must implement worker lease renewal");
   assert.ok(writeAdapterSource.includes("completeWorkerLease"), "live write adapter must implement worker lease completion");
+  assert.ok(writeAdapterSource.includes("executeWorkerRetry"), "live write adapter must implement worker retry execution");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_shots"), "live write adapter must persist shot direction updates");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_projects SET progress"), "live write adapter must refresh project progress after take selection");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_scenes SET"), "live write adapter must update storyboard scenes");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_credit_transactions"), "live write adapter must record credit refunds");
+  assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_worker_retry_records"), "live write adapter must persist worker retry records");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_asset_usages"), "live write adapter must persist reference usages");
   assert.ok(writeAdapterSource.includes("DELETE FROM cutpilot_asset_usages"), "live write adapter must remove detached reference usages");
   const editRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "edits", "route.ts"), "utf8");

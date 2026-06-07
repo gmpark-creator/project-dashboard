@@ -13,6 +13,7 @@ import { POST as selectTakeRoute } from "../app/api/shots/[shotId]/select-take/r
 import { POST as completeWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/complete/route";
 import { POST as releaseWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/release/route";
 import { POST as renewWorkerLeaseRoute } from "../app/api/system/worker-leases/[leaseId]/renew/route";
+import { POST as executeWorkerRetryRoute } from "../app/api/system/worker-retries/[jobId]/execute/route";
 import { getMockState, resetMockState } from "../src/server/mock-service";
 
 const adminToken = "production-state-admin-token";
@@ -41,6 +42,7 @@ function stateFingerprint() {
     imageJobs: state.imageJobs.length,
     renderJobs: state.renderJobs.length,
     workerLeases: state.workerLeases.length,
+    workerRetryRecords: state.workerRetryRecords.length,
     creditTransactions: state.creditTransactions.length
   });
 }
@@ -104,6 +106,7 @@ async function main() {
       "worker lease completion",
       await completeWorkerLeaseRoute(request("POST", { token: "lease-token", status: "failed" }), context({ leaseId: "wlease_production" }))
     );
+    await assertUnavailable("worker retry execution", await executeWorkerRetryRoute(request("POST"), context({ jobId: "ijob_production" })));
 
     process.env.CUTPILOT_ENABLE_LIVE_WRITES = "1";
     const liveDirectionWithoutDb = await updateShotDirectionRoute(request("PATCH", { camera: "locked" }), context({ shotId: "sht_production" }));
@@ -187,6 +190,11 @@ async function main() {
     const liveWorkerLeaseCompleteWithoutDbBody = (await liveWorkerLeaseCompleteWithoutDb.json()) as { code?: string };
     assert.equal(liveWorkerLeaseCompleteWithoutDb.status, 503, "live worker lease completion should fail closed without DATABASE_URL");
     assert.equal(liveWorkerLeaseCompleteWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker lease completion should report live persistence unavailability");
+
+    const liveWorkerRetryWithoutDb = await executeWorkerRetryRoute(request("POST"), context({ jobId: "ijob_production" }));
+    const liveWorkerRetryWithoutDbBody = (await liveWorkerRetryWithoutDb.json()) as { code?: string };
+    assert.equal(liveWorkerRetryWithoutDb.status, 503, "live worker retry execution should fail closed without DATABASE_URL");
+    assert.equal(liveWorkerRetryWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live worker retry execution should report live persistence unavailability");
 
     assert.equal(stateFingerprint(), before, "failed production state changes should not mutate mock state");
   } finally {

@@ -10,6 +10,7 @@ import {
   createLiveProject,
   deleteLiveImageAsset,
   detachLiveImageFromShot,
+  executeLiveWorkerRetry,
   getLivePersistenceReadAdapter,
   getLiveQueueSnapshot,
   getLiveWorkerDispatchSnapshot,
@@ -111,6 +112,11 @@ async function main() {
       () => completeLiveWorkerLease("wlease_disabled", { token: "token", status: "failed" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live worker lease completion should fail closed when the switch is disabled"
+    );
+    await assert.rejects(
+      () => executeLiveWorkerRetry("ijob_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live worker retry execution should fail closed when the switch is disabled"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_disabled", { camera: "locked" }),
@@ -270,6 +276,11 @@ async function main() {
       () => completeLiveWorkerLease("wlease_missing_db", { token: "token", status: "failed" }),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live worker lease completion should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => executeLiveWorkerRetry("ijob_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live worker retry execution should require DATABASE_URL"
     );
     await assert.rejects(
       () => updateLiveShotDirection("sht_missing_db", { camera: "locked" }),
