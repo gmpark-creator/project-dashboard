@@ -489,6 +489,39 @@ export type CancelJobResult = {
   reason: string;
 };
 
+export type QueueJobKind = "generation" | "image" | "render";
+
+export type QueueJobSnapshot = {
+  id: string;
+  projectId: string;
+  kind: QueueJobKind;
+  status: JobStatus;
+  stage: string;
+  progress: number;
+  etaSec: number | null;
+  queuedAt: string;
+  updatedAt: string;
+  dueAt: number;
+  cancelable: boolean;
+};
+
+export type JobQueueSnapshot = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    queued: number;
+    running: number;
+    done: number;
+    failed: number;
+    cancelled: number;
+    active: number;
+    overdue: number;
+    cancelable: number;
+    nextDueAt: number | null;
+  };
+  jobs: QueueJobSnapshot[];
+};
+
 export type RuntimeReadiness = {
   mode: "mock" | "production";
   generatedAt: string;

@@ -30,6 +30,7 @@ import {
 import { getMediaArtifactInventory } from "../src/server/artifact-inventory";
 import { getSystemMetrics } from "../src/server/metrics";
 import { buildProviderInvocation } from "../src/server/provider-invocation";
+import { getJobQueueSnapshot } from "../src/server/queue-snapshot";
 import { buildRenderWorkerInvocation } from "../src/server/render-worker-invocation";
 import { chooseProviderRoute, resetProviderHealth, setProviderHealth } from "../src/server/provider-routing";
 import { getRuntimeReadiness } from "../src/server/readiness";
@@ -453,6 +454,19 @@ assert.ok(metrics.providerAttempts.failed > 0, "system metrics should count fail
 assert.equal(metrics.credits.spent, metrics.credits.captured, "system metrics spent credits should match captured credit ledger");
 assert.ok(metrics.credits.refunded > 0, "system metrics should include refunded credits");
 assert.ok(metrics.mediaArtifacts.videos >= bundle.renderJobs.length, "system metrics should count video artifacts");
+
+const queue = getJobQueueSnapshot();
+const metricJobTotal =
+  Object.values(metrics.jobs.generation).reduce((total, count) => total + count, 0) +
+  Object.values(metrics.jobs.image).reduce((total, count) => total + count, 0) +
+  Object.values(metrics.jobs.render).reduce((total, count) => total + count, 0);
+assert.equal(queue.summary.total, metricJobTotal, "queue snapshot should cover all generation, image, and render jobs");
+assert.equal(queue.summary.running + queue.summary.queued, queue.summary.active, "queue snapshot active count should match queued plus running");
+assert.equal(queue.summary.cancelable, queue.jobs.filter((job) => job.cancelable).length, "queue snapshot cancelable count should match jobs");
+assert.equal(queue.summary.cancelled, metrics.jobs.generation.cancelled + metrics.jobs.image.cancelled + metrics.jobs.render.cancelled, "queue snapshot should count cancelled jobs");
+assert.ok(queue.jobs.some((job) => job.kind === "generation" && job.status === "cancelled"), "queue snapshot should retain cancelled generation jobs");
+assert.ok(queue.jobs.some((job) => job.kind === "render" && job.status === "done"), "queue snapshot should include completed render jobs");
+assert.equal(queue.summary.nextDueAt, null, "completed mock flow should have no active queue due date");
 
 const inventory = getMediaArtifactInventory();
 assert.equal(inventory.summary.total, metrics.mediaArtifacts.total, "artifact inventory should match system metrics artifact total");

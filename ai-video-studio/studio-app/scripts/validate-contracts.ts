@@ -57,6 +57,9 @@ for (const defName of [
   "MediaArtifactCleanup",
   "MediaArtifactInventoryItem",
   "MediaArtifactInventory",
+  "QueueJobKind",
+  "QueueJobSnapshot",
+  "JobQueueSnapshot",
   "DirectionSpec",
   "EditAudioPatch",
   "EditCommandInput",
@@ -97,7 +100,8 @@ const requiredOperations = new Set([
   "generateShot",
   "getRuntimeReadiness",
   "getSystemMetrics",
-  "getMediaArtifactInventory"
+  "getMediaArtifactInventory",
+  "getJobQueueSnapshot"
 ]);
 const operationIds = new Set<string>();
 for (const path of Object.values(openApi.paths)) {

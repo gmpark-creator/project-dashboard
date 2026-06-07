@@ -780,6 +780,23 @@
         }
       }
     },
+    "/system/queue": {
+      "get": {
+        "operationId": "getJobQueueSnapshot",
+        "responses": {
+          "200": {
+            "description": "Read-only job queue snapshot for worker and operations review",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/JobQueueSnapshot" }
+              }
+            }
+          },
+          "401": { "description": "Admin access token required in production mode" },
+          "503": { "description": "Admin access token is not configured in production mode" }
+        }
+      }
+    },
     "/jobs/{jobId}": {
       "get": {
         "operationId": "getJob",

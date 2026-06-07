@@ -262,6 +262,54 @@
         "reason": { "type": "string" }
       }
     },
+    "QueueJobKind": {
+      "type": "string",
+      "enum": ["generation", "image", "render"]
+    },
+    "QueueJobSnapshot": {
+      "type": "object",
+      "required": ["id", "projectId", "kind", "status", "stage", "progress", "etaSec", "queuedAt", "updatedAt", "dueAt", "cancelable"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string", "pattern": "^prj_" },
+        "kind": { "$ref": "#/$defs/QueueJobKind" },
+        "status": { "$ref": "#/$defs/JobStatus" },
+        "stage": { "type": "string" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "etaSec": { "type": ["integer", "null"], "minimum": 0 },
+        "queuedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "dueAt": { "type": "integer" },
+        "cancelable": { "type": "boolean" }
+      }
+    },
+    "JobQueueSnapshot": {
+      "type": "object",
+      "required": ["generatedAt", "summary", "jobs"],
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "required": ["total", "queued", "running", "done", "failed", "cancelled", "active", "overdue", "cancelable", "nextDueAt"],
+          "additionalProperties": false,
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "queued": { "type": "integer", "minimum": 0 },
+            "running": { "type": "integer", "minimum": 0 },
+            "done": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "cancelled": { "type": "integer", "minimum": 0 },
+            "active": { "type": "integer", "minimum": 0 },
+            "overdue": { "type": "integer", "minimum": 0 },
+            "cancelable": { "type": "integer", "minimum": 0 },
+            "nextDueAt": { "type": ["integer", "null"] }
+          }
+        },
+        "jobs": { "type": "array", "items": { "$ref": "#/$defs/QueueJobSnapshot" } }
+      }
+    },
     "RuntimeReadiness": {
       "type": "object",
       "required": ["mode", "generatedAt", "ready", "missingEnv", "checks"],
@@ -1097,6 +1145,7 @@
     "mediaArtifact": { "$ref": "#/$defs/MediaArtifact" },
     "mediaArtifactInventory": { "$ref": "#/$defs/MediaArtifactInventory" },
     "cancelJobResult": { "$ref": "#/$defs/CancelJobResult" },
+    "jobQueueSnapshot": { "$ref": "#/$defs/JobQueueSnapshot" },
     "runtimeReadiness": { "$ref": "#/$defs/RuntimeReadiness" },
     "systemMetrics": { "$ref": "#/$defs/SystemMetrics" },
     "scene": { "$ref": "#/$defs/Scene" },
