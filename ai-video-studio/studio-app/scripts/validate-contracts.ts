@@ -639,6 +639,7 @@ function assertProductionStateMutationBoundary() {
   const audioRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "audio", "route.ts"), "utf8");
   const defaultRenderRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "default-render", "route.ts"), "utf8");
   const assetRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "assets", "route.ts"), "utf8");
+  const assetDeleteRouteSource = readFileSync(join(appApiDir, "projects", "[projectId]", "assets", "[assetId]", "route.ts"), "utf8");
   assert.ok(editRouteSource.includes("liveProjectWritesEnabled()"), "edit route must require the live write switch for live state changes");
   assert.ok(editRouteSource.includes("applyLiveEdit(projectId"), "edit route must call the live edit adapter");
   assert.ok(editRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "edit route must fail closed when live persistence is unavailable");
@@ -651,16 +652,22 @@ function assertProductionStateMutationBoundary() {
   assert.ok(assetRouteSource.includes("liveProjectWritesEnabled()"), "asset route must require the live write switch for live state changes");
   assert.ok(assetRouteSource.includes("registerLiveExternalImage({"), "asset route must call the live external image adapter");
   assert.ok(assetRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "asset route must fail closed when live persistence is unavailable");
+  assert.ok(assetDeleteRouteSource.includes("liveProjectWritesEnabled()"), "asset delete route must require the live write switch for live state changes");
+  assert.ok(assetDeleteRouteSource.includes("deleteLiveImageAsset(projectId"), "asset delete route must call the live asset delete adapter");
+  assert.ok(assetDeleteRouteSource.includes('apiError("LIVE_PERSISTENCE_UNAVAILABLE"'), "asset delete route must fail closed when live persistence is unavailable");
   assert.ok(liveRuntimeSource.includes("applyLiveEdit"), "live persistence runtime must expose live edit updates");
   assert.ok(liveRuntimeSource.includes("setLiveAudio"), "live persistence runtime must expose live audio updates");
   assert.ok(liveRuntimeSource.includes("setLiveDefaultRender"), "live persistence runtime must expose live default render updates");
   assert.ok(liveRuntimeSource.includes("registerLiveExternalImage"), "live persistence runtime must expose live external image registration");
+  assert.ok(liveRuntimeSource.includes("deleteLiveImageAsset"), "live persistence runtime must expose live asset deletion");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_project_edit_states"), "live write adapter must upsert edit state");
   assert.ok(writeAdapterSource.includes("ON CONFLICT (project_id)"), "live write adapter must keep edit state upserts idempotent");
   assert.ok(writeAdapterSource.includes("UPDATE cutpilot_projects SET default_render_job_id"), "live write adapter must persist default render selection");
   assert.ok(writeAdapterSource.includes("registerExternalImage"), "live write adapter must implement external image registration");
+  assert.ok(writeAdapterSource.includes("deleteImageAsset"), "live write adapter must implement asset deletion");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_image_assets"), "live write adapter must insert external image assets");
   assert.ok(writeAdapterSource.includes("INSERT INTO cutpilot_reference_boards"), "live write adapter must add external images to the reference board");
+  assert.ok(writeAdapterSource.includes("DELETE FROM cutpilot_image_assets"), "live write adapter must delete image assets");
   assert.ok(testMock.includes("scripts/production-state-mutation-boundary.test.ts"), "test:mock must include production state mutation boundary coverage");
 }
 

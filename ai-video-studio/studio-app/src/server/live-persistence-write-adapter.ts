@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AssetUsage, DirectionSpec, EditState, Project, Shot } from "../domain/types";
+import type { AssetDeleteResult, AssetUsage, DirectionSpec, EditState, Project, Shot } from "../domain/types";
 import type { Aspect, ImageAsset, ImageAssetRole, Intent, ReferenceBoard } from "../domain/types";
 import {
   buildLiveDefaultEditState,
@@ -184,6 +184,21 @@ function rowReferenceBoard(row: Row | null, projectId: string): ReferenceBoard {
   };
 }
 
+function removeAssetFromReferenceBoard(board: ReferenceBoard, assetId: string): ReferenceBoard {
+  return {
+    ...board,
+    productImages: board.productImages.filter((id) => id !== assetId),
+    characterImages: board.characterImages.filter((id) => id !== assetId),
+    locationImages: board.locationImages.filter((id) => id !== assetId),
+    styleImages: board.styleImages.filter((id) => id !== assetId),
+    keyframes: board.keyframes.filter((id) => id !== assetId),
+    thumbnails: board.thumbnails.filter((id) => id !== assetId),
+    logos: board.logos.filter((id) => id !== assetId),
+    backgrounds: board.backgrounds.filter((id) => id !== assetId),
+    usages: board.usages.filter((usage) => usage.assetId !== assetId)
+  };
+}
+
 export class PostgresLivePersistenceWriteAdapter {
   constructor(private readonly client: PgQueryable) {}
 
@@ -269,6 +284,11 @@ export class PostgresLivePersistenceWriteAdapter {
   private async projectIntent(projectId: string) {
     const rows = await this.client.query<Row>("SELECT intent FROM cutpilot_projects WHERE id = $1 LIMIT 1", [projectId]);
     return (rows.rows[0]?.intent || "product_ad") as Intent;
+  }
+
+  private async countProjectImageAssets(projectId: string) {
+    const rows = await this.client.query<Row>("SELECT COUNT(*) AS count FROM cutpilot_image_assets WHERE project_id = $1", [projectId]);
+    return Number(rows.rows[0]?.count || 0);
   }
 
   async createProject(input: LiveProjectCreateInput): Promise<Project> {
@@ -650,6 +670,71 @@ export class PostgresLivePersistenceWriteAdapter {
       );
       await this.client.query("COMMIT");
       return rowShot(updated.rows[0] || { ...shotRow, reference_image_ids: referenceImageIds, requirements });
+    } catch (error) {
+      await this.client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  async deleteImageAsset(projectId: string, assetId: string, options: { force?: boolean } = {}): Promise<AssetDeleteResult> {
+    await this.client.query("BEGIN");
+    try {
+      const assets = await this.client.query<Row>("SELECT * FROM cutpilot_image_assets WHERE id = $1 AND project_id = $2 FOR UPDATE", [assetId, projectId]);
+      if (!assets.rows[0]) throw new Error("Image asset not found");
+
+      const usageRows = await this.client.query<Row>("SELECT * FROM cutpilot_asset_usages WHERE project_id = $1 AND asset_id = $2", [projectId, assetId]);
+      const usageCount = usageRows.rows.length;
+      if (usageCount && !options.force) {
+        const remainingAssets = await this.countProjectImageAssets(projectId);
+        await this.client.query("COMMIT");
+        return { deleted: false, assetId, blockedByUsage: true, usageCount, remainingAssets };
+      }
+
+      const shotRows = await this.client.query<Row>(
+        "SELECT * FROM cutpilot_shots WHERE project_id = $1 AND reference_image_ids ? $2 FOR UPDATE",
+        [projectId, assetId]
+      );
+      await this.client.query("DELETE FROM cutpilot_asset_usages WHERE project_id = $1 AND asset_id = $2", [projectId, assetId]);
+      const intent = await this.projectIntent(projectId);
+      for (const shotRow of shotRows.rows) {
+        const shot = rowShot(shotRow);
+        const referenceImageIds = shot.referenceImageIds.filter((id) => id !== assetId);
+        const requirements = nextReferenceRequirements(shot, await this.referenceUsageModes(projectId, shot.id), intent);
+        await this.client.query("UPDATE cutpilot_shots SET reference_image_ids = $2, requirements = $3 WHERE id = $1", [
+          shot.id,
+          json(referenceImageIds),
+          json(requirements)
+        ]);
+      }
+
+      const boardRows = await this.client.query<Row>("SELECT * FROM cutpilot_reference_boards WHERE project_id = $1 FOR UPDATE", [projectId]);
+      if (boardRows.rows[0]) await this.upsertReferenceBoard(removeAssetFromReferenceBoard(rowReferenceBoard(boardRows.rows[0], projectId), assetId), now());
+      await this.client.query(
+        `
+        UPDATE cutpilot_image_jobs
+        SET variants = COALESCE((
+          SELECT jsonb_agg(
+            CASE
+              WHEN variant->>'assetId' = $2 THEN jsonb_set(variant, '{assetId}', 'null'::jsonb)
+              ELSE variant
+            END
+          )
+          FROM jsonb_array_elements(variants) AS variant
+        ), '[]'::jsonb),
+        updated_at = $3
+        WHERE project_id = $1
+      `,
+        [projectId, assetId, now()]
+      );
+      await this.client.query("DELETE FROM cutpilot_media_artifacts WHERE project_id = $1 AND owner_type = $2 AND owner_id = $3", [
+        projectId,
+        "imageAsset",
+        assetId
+      ]);
+      await this.client.query("DELETE FROM cutpilot_image_assets WHERE id = $1 AND project_id = $2", [assetId, projectId]);
+      const remainingAssets = await this.countProjectImageAssets(projectId);
+      await this.client.query("COMMIT");
+      return { deleted: true, assetId, blockedByUsage: false, usageCount, remainingAssets };
     } catch (error) {
       await this.client.query("ROLLBACK");
       throw error;

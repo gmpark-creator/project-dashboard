@@ -153,6 +153,13 @@ export async function detachLiveImageFromShot(shotId: string, assetId: string) {
   return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).detachImageFromShot(shotId, assetId));
 }
 
+export async function deleteLiveImageAsset(projectId: string, assetId: string, options: { force?: boolean } = {}) {
+  if (!liveProjectWritesEnabled()) {
+    throw new LivePersistenceUnavailableError("Live project writes are disabled. Set CUTPILOT_ENABLE_LIVE_WRITES=1 after running migrations.");
+  }
+  return withLivePersistenceClient((client) => new PostgresLivePersistenceWriteAdapter(client).deleteImageAsset(projectId, assetId, options));
+}
+
 export async function closeLivePersistencePoolForTests() {
   const current = pool;
   pool = null;

@@ -4,6 +4,7 @@ import {
   applyLiveEdit,
   closeLivePersistencePoolForTests,
   createLiveProject,
+  deleteLiveImageAsset,
   detachLiveImageFromShot,
   getLivePersistenceReadAdapter,
   LivePersistenceUnavailableError,
@@ -90,6 +91,11 @@ async function main() {
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
       "live reference detach writes should fail closed when the switch is disabled"
     );
+    await assert.rejects(
+      () => deleteLiveImageAsset("prj_disabled", "img_disabled"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("disabled"),
+      "live asset delete writes should fail closed when the switch is disabled"
+    );
 
     process.env.CUTPILOT_ENABLE_LIVE_READS = "1";
     assert.equal(liveProjectReadsEnabled(), true, "live project reads should be enabled by an explicit switch");
@@ -150,6 +156,11 @@ async function main() {
       () => detachLiveImageFromShot("sht_missing_db", "img_missing_db"),
       (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
       "live reference detach writes should require DATABASE_URL"
+    );
+    await assert.rejects(
+      () => deleteLiveImageAsset("prj_missing_db", "img_missing_db"),
+      (error) => error instanceof LivePersistenceUnavailableError && error.message.includes("DATABASE_URL"),
+      "live asset delete writes should require DATABASE_URL"
     );
 
     process.env.DATABASE_URL = "postgresql://cutpilot:secret@db.internal:5432/cutpilot";

@@ -109,6 +109,14 @@ async function main() {
     assert.equal(liveAssetRegistrationWithoutDb.status, 503, "live asset registration should fail closed without DATABASE_URL");
     assert.equal(liveAssetRegistrationWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live asset registration should report live persistence unavailability");
 
+    const liveAssetDeleteWithoutDb = await deleteImageAssetRoute(
+      request("DELETE", undefined, "http://cutpilot.local/api/projects/prj_production/assets/img_production?force=true"),
+      context({ projectId: "prj_production", assetId: "img_production" })
+    );
+    const liveAssetDeleteWithoutDbBody = (await liveAssetDeleteWithoutDb.json()) as { code?: string };
+    assert.equal(liveAssetDeleteWithoutDb.status, 503, "live asset deletion should fail closed without DATABASE_URL");
+    assert.equal(liveAssetDeleteWithoutDbBody.code, "LIVE_PERSISTENCE_UNAVAILABLE", "live asset deletion should report live persistence unavailability");
+
     const liveReferenceAttachWithoutDb = await attachImageToShotRoute(request("POST", { assetId: "img_reference", mode: "first_frame" }), context({ shotId: "sht_production" }));
     const liveReferenceAttachWithoutDbBody = (await liveReferenceAttachWithoutDb.json()) as { code?: string };
     assert.equal(liveReferenceAttachWithoutDb.status, 503, "live reference attachment should fail closed without DATABASE_URL");

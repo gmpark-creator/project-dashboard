@@ -15,6 +15,7 @@ class FakeClient implements PgQueryable {
   shotRows: Record<string, unknown>[] = [];
   takeRow: Record<string, unknown> | null = null;
   imageAssetRow: Record<string, unknown> | null = null;
+  imageAssetDeleted = false;
   assetUsageRows: Record<string, unknown>[] = [];
   projectIntent = "product_ad";
 
@@ -46,6 +47,10 @@ class FakeClient implements PgQueryable {
       return { rows: this.renderJobRow ? [renderJobRow] : [] };
     }
     if (sql.includes("SELECT * FROM cutpilot_project_edit_states")) return { rows: this.editRows as T[] };
+    if (sql.includes("SELECT COUNT(*) AS count FROM cutpilot_image_assets")) {
+      const countRow = { count: this.imageAssetRow && !this.imageAssetDeleted ? 1 : 0 } as unknown as T;
+      return { rows: [countRow] };
+    }
     if (sql.includes("INSERT INTO cutpilot_project_edit_states") && sql.includes("ON CONFLICT")) {
       const updated = {
         project_id: params?.[0],
@@ -66,8 +71,18 @@ class FakeClient implements PgQueryable {
       }
       return { rows: [] as T[] };
     }
-    if (sql.includes("DELETE FROM cutpilot_asset_usages")) {
+    if (sql.includes("DELETE FROM cutpilot_asset_usages WHERE asset_id = $1")) {
       this.assetUsageRows = this.assetUsageRows.filter((row) => !(row.asset_id === params?.[0] && row.project_id === params?.[1] && row.target === params?.[2] && row.target_id === params?.[3]));
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("DELETE FROM cutpilot_asset_usages WHERE project_id = $1")) {
+      this.assetUsageRows = this.assetUsageRows.filter((row) => !(row.project_id === params?.[0] && row.asset_id === params?.[1]));
+      return { rows: [] as T[] };
+    }
+    if (sql.includes("UPDATE cutpilot_image_jobs")) return { rows: [] as T[] };
+    if (sql.includes("DELETE FROM cutpilot_media_artifacts")) return { rows: [] as T[] };
+    if (sql.includes("DELETE FROM cutpilot_image_assets")) {
+      this.imageAssetDeleted = true;
       return { rows: [] as T[] };
     }
     if (sql.includes("UPDATE cutpilot_projects SET default_render_job_id")) {
@@ -80,10 +95,15 @@ class FakeClient implements PgQueryable {
       const rows = this.shotRows.map((shot) => ({ status: shot.status, selected_take_id: shot.selected_take_id })) as unknown as T[];
       return { rows };
     }
+    if (sql.includes("SELECT * FROM cutpilot_shots WHERE project_id") && sql.includes("reference_image_ids")) {
+      const rows = this.shotRows.filter((shot) => Array.isArray(shot.reference_image_ids) && shot.reference_image_ids.includes(params?.[1] as string)) as T[];
+      return { rows };
+    }
     if (sql.includes("SELECT * FROM cutpilot_shots")) return { rows: this.shotRows as T[] };
     if (sql.includes("SELECT * FROM cutpilot_takes WHERE id")) return { rows: this.takeRow ? ([this.takeRow as unknown as T]) : [] };
     if (sql.includes("SELECT * FROM cutpilot_image_assets WHERE id")) return { rows: this.imageAssetRow ? ([this.imageAssetRow as unknown as T]) : [] };
     if (sql.includes("SELECT mode FROM cutpilot_asset_usages")) return { rows: this.assetUsageRows.map((row) => ({ mode: row.mode })) as unknown as T[] };
+    if (sql.includes("SELECT * FROM cutpilot_asset_usages WHERE project_id")) return { rows: this.assetUsageRows as T[] };
     if (
       sql.includes("SELECT * FROM cutpilot_scenes") ||
       sql.includes("SELECT * FROM cutpilot_takes") ||
@@ -438,6 +458,33 @@ async function main() {
     "live reference attachment should surface missing assets"
   );
   assert.equal(missingReferenceAssetClient.queries.at(-1)?.sql, "ROLLBACK", "live reference attachment should roll back missing assets");
+
+  const blockedDeleteClient = new FakeClient();
+  blockedDeleteClient.imageAssetRow = fakeImageAssetRow();
+  blockedDeleteClient.assetUsageRows = [{ asset_id: "img_ref", project_id: "prj_live", target: "shot", target_id: "sht_live", mode: "first_frame" }];
+  const blockedDelete = await new PostgresLivePersistenceWriteAdapter(blockedDeleteClient).deleteImageAsset("prj_live", "img_ref");
+  assert.equal(blockedDelete.deleted, false, "live asset delete should block used assets without force");
+  assert.equal(blockedDelete.blockedByUsage, true, "live asset delete should report usage blocking");
+  assert.equal(blockedDelete.usageCount, 1, "live asset delete should return usage count");
+  assert.equal(blockedDelete.remainingAssets, 1, "blocked live asset delete should keep the asset count");
+  assert.equal(blockedDeleteClient.imageAssetDeleted, false, "blocked live asset delete should not delete the asset");
+  assert.equal(blockedDeleteClient.queries.at(-1)?.sql, "COMMIT", "blocked live asset delete should close the read transaction");
+
+  const forcedDeleteClient = new FakeClient();
+  const deleteShot = fakeShotRow();
+  deleteShot.reference_image_ids = ["img_ref"];
+  deleteShot.requirements = { ...(deleteShot.requirements as Record<string, unknown>), imageToVideo: true };
+  forcedDeleteClient.shotRows = [deleteShot];
+  forcedDeleteClient.imageAssetRow = fakeImageAssetRow();
+  forcedDeleteClient.assetUsageRows = [{ asset_id: "img_ref", project_id: "prj_live", target: "shot", target_id: "sht_live", mode: "first_frame" }];
+  const forcedDelete = await new PostgresLivePersistenceWriteAdapter(forcedDeleteClient).deleteImageAsset("prj_live", "img_ref", { force: true });
+  assert.equal(forcedDelete.deleted, true, "forced live asset delete should delete used assets");
+  assert.equal(forcedDelete.usageCount, 1, "forced live asset delete should report removed usage count");
+  assert.equal(forcedDelete.remainingAssets, 0, "forced live asset delete should return remaining asset count");
+  assert.equal(forcedDeleteClient.imageAssetDeleted, true, "forced live asset delete should remove the asset row");
+  assert.deepEqual(forcedDeleteClient.shotRows[0].reference_image_ids, [], "forced live asset delete should remove shot references");
+  assert.ok(forcedDeleteClient.queries.some((query) => query.sql.includes("DELETE FROM cutpilot_image_assets")), "forced live asset delete should delete the image asset row");
+  assert.equal(forcedDeleteClient.queries.at(-1)?.sql, "COMMIT", "forced live asset delete should commit successful deletes");
 
   const defaultRenderClient = new FakeClient();
   defaultRenderClient.renderJobRow = fakeRenderJob("done");
