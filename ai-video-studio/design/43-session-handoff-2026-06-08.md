@@ -52,6 +52,36 @@
 
 운영콘솔 분리 실행(proper tool 필요) · 프로토타입/목앱 동기화(저가치) · 백엔드 변경(Codex 영역, 11월 대기) · 추가 micro-polish(이미 접근성/검증 충족, padding 회피).
 
+## 6. 완성도 스냅샷 (2026-06-08 실측, 정적 코드 근거)
+
+> ⚠️ 공식 진행도(대시보드)는 박사 발화로만 갱신. 아래는 **재개 시 위치 파악용 실측 추정치**(앱 실행 검증 아님, 핵심 판정은 코드로 확인).
+
+| 잣대 (무엇을 100으로) | % |
+|---|---|
+| 백엔드 **토대**(계약·mock 상태머신·Postgres 영속성·R2·라우팅·비용·인증) | **≈ 70~80%** |
+| **클릭형 데모**(아이디어→스토리보드→생성(mock)→비교→편집→내보내기 end-to-end가 mock으로 흐름) | **≈ 60%** |
+| **실 출시 제품**(진짜 AI가 진짜 이미지/영상/MP4 생성) | **≈ 23%** |
+| 영역 내부 완성도 | 백엔드(Codex) **≈40%** · 프론트(Claude) **≈62%** |
+| 지금까지 투입 작업량 비율 | **Codex ≈65 / Claude ≈35** |
+
+**23%인 이유 = 실 생성엔진층 0%**: provider HTTP 호출 0건(백엔드 outbound는 R2 하나뿐), 영상=하드코딩 `flower.mp4`, 이미지=`mock://`, MP4 인코딩 0, LLM 분해 0(고정 템플릿), 큐 워커 0. `readiness.ts`가 `live*Implemented=false`로 정직하게 fail-closed. → 토대는 거의 됐고, **빠진 건 외부 연동층 하나**.
+
+## 7. 재개 절차 — 어느 PC(노트북/데스크탑)·어느 에이전트든 여기서
+
+**공통:** 진실의 원천 = **GitHub master**(로컬 .claude 메모리 아님). 새 세션은 ① repo 루트에서 `git fetch && git pull`('없다' 단정 전 fetch 필수, 다른 PC 작업분 수령) ② **이 문서(design/43) 먼저** ③ `studio-app`에서 `npm install`(각 PC node_modules 없으면) → `npm run verify` GREEN 확인.
+
+- **Codex 재개(11월 토큰 복귀):** `codex/214`(Claude가 건드린 Codex 영역 검토 인계) 먼저 → 비용모델 재정렬 → 그다음 신규 백엔드(§3, **실 provider 실행 어댑터부터** = 영상 0의 원인). 끝나면 push + 새 codex 리포트(>214)로 핸드오프.
+- **Claude 재개(Codex 핸드오프 후 이어받기):** `git pull` → **codex 최신 리포트(>214) + commit log**로 Codex가 뭘 했는지 파악 → 이 문서 갱신 → 프론트를 새 백엔드에 맞춰 보강(콘텐츠 placeholder→실 결과, provider 상태/진행 표시, 컷 구성/충전 UI 등). cost-policy export 표면을 Codex가 바꿨으면 프론트 맞춤(codex/214 §5).
+
+## 8. 박사(외부) 셋업 체크리스트 — Codex 코드만으론 실동작 안 됨
+
+실 생성이 켜지려면 박사가 외부 계정으로 발급/설정(env)해야 하는 것:
+- **생성 provider API 키**(영상·이미지 엔진) + **LLM 키**(스토리 분해)
+- `DATABASE_URL`(Postgres) · `R2_*` 4종 · `CUTPILOT_QUEUE_URL` · `CUTPILOT_ADMIN_TOKEN`
+- 결제/인증/조직 경계(제품 결정)
+
+→ Codex가 fail-closed 골격은 깔아놨으니, **실 provider 실행 어댑터(Codex §3-1)** 구현 + 박사가 위 env 꽂고 `CUTPILOT_ENABLE_LIVE_READS/WRITES=1`·`CUTPILOT_RUNTIME_MODE=production` 켜면 live 경로가 열린다. 그 순간 완성도 23%→60~70% 급등.
+
 ## 참조 문서
 
 비용: `codex/212`·`213`·`214`, `design/35`. UX: `design/39`·`40`·`42`. 분리: `design/41`. 직전 야간: `design/38`.
