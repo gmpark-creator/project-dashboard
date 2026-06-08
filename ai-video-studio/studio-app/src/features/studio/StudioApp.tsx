@@ -1310,6 +1310,8 @@ function OperationsConsole({
 export function StudioApp() {
   const [view, setView] = useState<View>("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
+  // 첫 프로젝트 목록 로드가 끝났는지. 로드 전엔 "프로젝트 없음" 빈 상태 대신 로딩 표시를 보여준다(false-empty flash 방지).
+  const [loaded, setLoaded] = useState(false);
   const [bundle, setBundle] = useState<ProjectBundle | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
@@ -1417,7 +1419,7 @@ export function StudioApp() {
   }
 
   useEffect(() => {
-    refresh().catch((error) => notify(error.message));
+    refresh().catch((error) => notify(error.message)).finally(() => setLoaded(true));
     loadMetrics();
     loadInventory();
     loadQueue();
@@ -1619,6 +1621,7 @@ export function StudioApp() {
           ) : null}
           {view === "dashboard" ? (
             <Dashboard
+              loaded={loaded}
               projects={projects}
               metrics={metrics}
               queue={queue}
@@ -1794,6 +1797,7 @@ export function StudioApp() {
 }
 
 function Dashboard({
+  loaded,
   projects,
   metrics,
   queue,
@@ -1801,6 +1805,7 @@ function Dashboard({
   onImages,
   onOpen
 }: {
+  loaded: boolean;
   projects: Project[];
   metrics: SystemMetrics | null;
   queue: JobQueueSnapshot | null;
@@ -1808,6 +1813,16 @@ function Dashboard({
   onImages: () => void;
   onOpen: (projectId: string) => void;
 }) {
+  if (!loaded) {
+    return (
+      <div className="empty">
+        <div>
+          <strong>프로젝트를 불러오는 중…</strong>
+          <p className="hint">잠시만 기다려 주세요.</p>
+        </div>
+      </div>
+    );
+  }
   if (!projects.length) {
     return (
       <div className="empty">
