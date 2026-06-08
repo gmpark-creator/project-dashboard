@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { INTENT_TEMPLATES } from "../domain/templates";
+import { TYPICAL_PROJECT_CREDIT_BUDGET } from "../domain/cost-policy";
 import type { Aspect, AssetUsage, EditState, Intent, Project, ReferenceBoard, Scene, Shot, Tier } from "../domain/types";
 
 export type LiveProjectCreateInput = {
@@ -157,7 +158,7 @@ export function buildLiveProjectCreateRecords(input: LiveProjectCreateInput): Li
     characters: [],
     thumbUrl: null,
     defaultRenderJobId: null,
-    credits: { spent: 0, estimateRemaining: 180 },
+    credits: { spent: 0, estimateRemaining: TYPICAL_PROJECT_CREDIT_BUDGET },
     createdAt: timestamp,
     updatedAt: timestamp
   };

@@ -40,6 +40,8 @@ export const MAX_IMAGE_COUNT = 4;
 export const DEFAULT_RENDER_COUNT = 1;
 /** 표준 내보내기가 만드는 렌더 컷 수(6s/15s/30s). render preview/UI의 전체 내보내기 비용 표시 기준. */
 export const DEFAULT_EXPORT_RENDER_COUNT = 3;
+/** 한 프로젝트의 대략적 credit 예산 힌트(estimateRemaining 표시용). 액션 비용이 아니라 진척 표시용 가정값이다. */
+export const TYPICAL_PROJECT_CREDIT_BUDGET = 180;
 
 export type CostAction =
   | "generateShot"

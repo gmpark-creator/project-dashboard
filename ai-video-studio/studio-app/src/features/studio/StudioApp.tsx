@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
+import { creditCostForAction, DEFAULT_EXPORT_RENDER_COUNT } from "@/domain/cost-policy";
 import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, StorageCleanupAction, StorageCleanupExecutionSnapshot, StorageCleanupPlan, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
 import { studioApi, isApiError } from "./api";
 
@@ -1747,7 +1748,8 @@ export function StudioApp() {
     return selectedShot?.id || bundle?.shots[0]?.id || null;
   }
 
-  const creditBalance = bundle ? Math.max(0, bundle.credits.balance - bundle.credits.reserved) : 1240;
+  // 사용 가능 credit = balance - spent - reserved (실제 예약 체크와 동일). spent를 빼지 않으면 과대표시된다.
+  const creditBalance = bundle ? Math.max(0, bundle.credits.balance - bundle.credits.spent - bundle.credits.reserved) : 1240;
 
   return (
     <div className="shell">
@@ -2126,7 +2128,7 @@ function ImageMaker({
         <div className="notice">모델명은 노출하지 않습니다. 이 화면은 목적과 지시만 받고, 실제 이미지 엔진 선택은 백엔드 라우팅이 담당합니다.</div>
         <div className="actions">
           <button type="button" className="primary" onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
-            이미지 후보 만들기 <span className="cost">24⚡</span>
+            이미지 후보 만들기 <span className="cost">{creditCostForAction("generateImages", { imageCount: 4 })}⚡</span>
           </button>
         </div>
       </section>
@@ -2379,7 +2381,8 @@ function Storyboard({
   const generatableShots = bundle.shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
   const hasGeneratedTakes = bundle.takes.length > 0;
   const canGenerate = !activeGeneration && generatableShots.length > 0;
-  const generateCost = hasGeneratedTakes ? Math.max(12, generatableShots.length * 18) : 96;
+  // 실제 generateAll 예약과 동일: 생성 대상 컷 수 x (3 take x 6). 정책 단일 출처를 그대로 표시한다.
+  const generateCost = creditCostForAction("generateAll", { shotCount: generatableShots.length });
   const generateLabel = activeGeneration ? "생성 중" : canGenerate ? (hasGeneratedTakes ? "남은 컷 생성" : "전체 생성") : "전체 생성 완료";
   const editingShot = selectedShotId ? bundle.shots.find((shot) => shot.id === selectedShotId) ?? null : null;
   // 편집 중인 컷에 이미 생성/선택 결과가 있으면, 내용을 바꿀 때 다시 생성이 필요할 수 있음을 부드럽게 안내한다.
@@ -2664,16 +2667,16 @@ function Compare({
         <div className="actions">
           {!hasTakes ? (
             <button type="button" className="primary" disabled={isGenerating} onClick={() => onGenerate(selectedShot.id)}>
-              이 컷 생성 <span className="cost">18⚡</span>
+              이 컷 생성 <span className="cost">{creditCostForAction("generateShot", { takeCount: 3 })}⚡</span>
             </button>
           ) : (
             <button type="button" className={isFailed ? "primary" : "secondary"} disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "shot")}>
-              이 컷만 다시 <span className="cost">12⚡</span>
+              이 컷만 다시 <span className="cost">{creditCostForAction("regenerate")}⚡</span>
             </button>
           )}
           {hasTakes ? (
             <button type="button" className="secondary" disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "segment")}>
-              가능한 좁은 범위로 다시 <span className="cost">~12⚡</span>
+              가능한 좁은 범위로 다시 <span className="cost">~{creditCostForAction("regenerate")}⚡</span>
             </button>
           ) : null}
           {selectedShot.selectedTakeId ? (
@@ -2683,7 +2686,7 @@ function Compare({
               title="선택한 컷을 게시용 고품질로 다시 다듬어요. 크레딧이 사용돼요."
               onClick={() => onUpgrade(selectedShot.selectedTakeId as string)}
             >
-              게시용 품질로 다듬기 <span className="cost">22⚡</span>
+              게시용 품질로 다듬기 <span className="cost">{creditCostForAction("upgradeTake")}⚡</span>
             </button>
           ) : null}
           <button type="button" className="ghost" onClick={onEdit}>
@@ -3222,7 +3225,7 @@ function ExportView({
         <div className="actions">
           <button type="button" className="primary" disabled={activeRender} onClick={() => onRender(resolution, caption)}>
             {activeRender ? "내보내는 중" : hasRendered ? "다시 내보내기" : "렌더 시작"}{" "}
-            {!activeRender ? <span className="cost">{preview && !previewStale ? `${preview.estimate.credits}⚡` : "48⚡"}</span> : null}
+            {!activeRender ? <span className="cost">{preview && !previewStale ? `${preview.estimate.credits}⚡` : `${creditCostForAction("startRender", { renderCount: DEFAULT_EXPORT_RENDER_COUNT })}⚡`}</span> : null}
           </button>
         </div>
       </section>

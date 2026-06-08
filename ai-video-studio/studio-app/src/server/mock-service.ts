@@ -3,7 +3,7 @@ import { INTENT_TEMPLATES } from "../domain/templates";
 import { fileBackedMockStateStore } from "./mock-state-store";
 import { chooseProviderRoute } from "./provider-routing";
 import { CreditReservationError } from "./credit-errors";
-import { CREDIT_COST, DEFAULT_EXPORT_RENDER_COUNT, creditCostForAction, buildCostEstimate, type CostAction, type CostParams } from "../domain/cost-policy";
+import { CREDIT_COST, DEFAULT_EXPORT_RENDER_COUNT, TYPICAL_PROJECT_CREDIT_BUDGET, creditCostForAction, buildCostEstimate, type CostAction, type CostParams } from "../domain/cost-policy";
 import type {
   Aspect,
   AssetDeleteResult,
@@ -509,7 +509,7 @@ function refreshProject(current: StudioState, projectId: string) {
   project.status = hasRunning ? "generating" : hasReview ? "reviewing" : selectedCount ? "edited" : "storyboarded";
   project.updatedAt = now();
   project.credits.spent = current.credits.spent;
-  project.credits.estimateRemaining = Math.max(0, 180 - current.credits.spent);
+  project.credits.estimateRemaining = Math.max(0, TYPICAL_PROJECT_CREDIT_BUDGET - current.credits.spent);
 }
 
 function buildStoryboard(project: Pick<Project, "id" | "title" | "intent" | "aspect"> & { tier: Tier }, idea: string) {
@@ -599,7 +599,7 @@ export function createProject(input: { title?: string; idea: string; intent: Int
     characters: [],
     thumbUrl: null,
     defaultRenderJobId: null,
-    credits: { spent: current.credits.spent, estimateRemaining: 180 },
+    credits: { spent: current.credits.spent, estimateRemaining: TYPICAL_PROJECT_CREDIT_BUDGET },
     createdAt: now(),
     updatedAt: now()
   };
@@ -1567,7 +1567,7 @@ export function cancelJob(jobId: string): CancelJobResult {
     imageJob.error = cancelled;
     imageJob.updatedAt = now();
     imageJob.variants = imageJob.variants.map((variant) => ({ ...variant, status: "cancelled" }));
-    const credits = imageJob.count * 4;
+    const credits = imageJob.count * CREDIT_COST.imageVariant;
     refundReservedCredits(current, { projectId: imageJob.projectId, jobId, action: "generateImages", credits, note: "Image job cancelled and reserved credits refunded" });
     write(current);
     return { jobId, kind: "imageJob", projectId: imageJob.projectId, cancelled: true, status: "cancelled", refundedCredits: credits, reason: "cancelled" };
