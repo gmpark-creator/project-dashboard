@@ -3075,6 +3075,9 @@ function ExportView({
             {!activeRender ? <span className="cost">{preview && !previewStale ? `${preview.estimate.credits}⚡` : `${creditCostForAction("startRender", { renderCount: DEFAULT_EXPORT_RENDER_COUNT })}⚡`}</span> : null}
           </button>
         </div>
+        <p className="hint" style={{ marginTop: 8 }}>
+          6초·15초·30초 세 가지 길이로 한 번에 내보내요. 완료되면 아래 「렌더 버전」에서 길이별로 받아 쓸 수 있어요.
+        </p>
       </section>
       <section className="panel">
         <h2>렌더 버전</h2>
