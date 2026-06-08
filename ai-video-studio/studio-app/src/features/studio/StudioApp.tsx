@@ -1554,7 +1554,7 @@ export function StudioApp() {
         </div>
         <nav className="nav" aria-label="제작 흐름">
           {(Object.keys(titles) as View[]).map((key) => (
-            <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => goToView(key)}>
+            <button key={key} type="button" className={view === key ? "active" : ""} aria-current={view === key ? "page" : undefined} onClick={() => goToView(key)}>
               {titles[key][0]}
             </button>
           ))}
@@ -2466,7 +2466,7 @@ function Compare({
         <h2>컷 목록</h2>
         <div className="shot-list" style={{ marginTop: 12 }}>
           {bundle.shots.map((shot) => (
-            <button key={shot.id} type="button" className={shot.id === selectedShotId ? "active" : ""} onClick={() => setSelectedShotId(shot.id)}>
+            <button key={shot.id} type="button" className={shot.id === selectedShotId ? "active" : ""} aria-current={shot.id === selectedShotId ? "true" : undefined} onClick={() => setSelectedShotId(shot.id)}>
               <span>
                 {shot.order + 1}. {shot.title}
               </span>
