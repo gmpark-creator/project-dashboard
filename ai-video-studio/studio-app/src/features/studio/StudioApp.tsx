@@ -2150,12 +2150,13 @@ function NewProject({
           <textarea
             value={idea}
             aria-invalid={error ? "true" : "false"}
+            aria-describedby={error ? "new-project-idea-error" : undefined}
             onChange={(event) => {
               setIdea(event.target.value);
               if (error && event.target.value.trim()) setError("");
             }}
           />
-          {error ? <span className="field-error">{error}</span> : null}
+          {error ? <span id="new-project-idea-error" className="field-error" role="alert">{error}</span> : null}
         </label>
         <label>
           제목
