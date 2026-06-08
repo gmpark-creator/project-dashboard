@@ -1949,7 +1949,7 @@ function ImageMaker({
         </label>
         <div className="notice">모델명은 노출하지 않습니다. 이 화면은 목적과 지시만 받고, 실제 이미지 엔진 선택은 백엔드 라우팅이 담당합니다.</div>
         <div className="actions">
-          <button type="button" className="primary" disabled={busy} onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
+          <button type="button" className="primary" disabled={busy || !prompt.trim()} onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
             이미지 후보 만들기 <span className="cost">{creditCostForAction("generateImages", { imageCount: 4 })}⚡</span>
           </button>
         </div>
@@ -2030,7 +2030,7 @@ function AssetLibrary({
         </div>
         <div className="notice">사람 사진, 브랜드 로고, 외부 생성 이미지는 사용 권리와 동의를 확인한 뒤 영상 재료로 사용해야 합니다.</div>
         <div className="actions">
-          <button type="button" className="primary" onClick={() => onRegister({ label, role, url, aspect: bundle.project.aspect, rightsConfirmed })}>
+          <button type="button" className="primary" disabled={!label.trim() || !url.trim()} onClick={() => onRegister({ label, role, url, aspect: bundle.project.aspect, rightsConfirmed })}>
             Asset Library에 등록
           </button>
         </div>
