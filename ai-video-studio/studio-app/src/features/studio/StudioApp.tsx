@@ -2498,7 +2498,11 @@ function Compare({
             />
           ))}
         </div>
-        {!takes.length ? <div className="empty">아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다.</div> : null}
+        {!takes.length ? (
+          <div className="empty">
+            {isGenerating ? "후보를 만드는 중이에요. 곧 여기에 채워집니다." : "아직 후보가 없습니다. 이 컷만 생성해 후보를 볼 수 있습니다."}
+          </div>
+        ) : null}
         <DirectionPanel shot={selectedShot} referenceAssets={referenceAssets} onUpdate={onUpdateDirection} />
         {selectedShot.qualityFlags[0] ? <div className="notice">{selectedShot.qualityFlags[0].hint}</div> : null}
         <div className="actions">
@@ -2649,8 +2653,8 @@ function TakeCard({
       </div>
       <div className="body" style={{ paddingTop: 0 }}>
         {pending ? (
-          <div className="progress">
-            <i style={{ width: "48%" }} />
+          <div className="progress" role="progressbar" aria-label="후보 생성 중">
+            <i className="indeterminate" />
           </div>
         ) : null}
         <div className="meta">

@@ -570,6 +570,25 @@ button:disabled {
   background: linear-gradient(90deg, var(--cyan), var(--mint));
 }
 
+/* 실제 진행률을 알 수 없는 "생성 중" 진행바(영상 컷 후보 등). 멈춘 듯 보이지 않게 좌우로 움직여 작동 중을 알린다. */
+.progress i.indeterminate {
+  width: 35%;
+  border-radius: 999px;
+  animation: progress-indeterminate 1.3s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0%, 100% { margin-left: 0; }
+  50% { margin-left: 65%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress i.indeterminate {
+    animation: none;
+    width: 48%;
+  }
+}
+
 .primary {
   border: 0;
   background: linear-gradient(135deg, var(--cyan), var(--mint));
