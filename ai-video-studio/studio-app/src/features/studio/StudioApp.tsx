@@ -1614,6 +1614,7 @@ export function StudioApp() {
           ) : null}
           {view === "images" ? (
             <ImageMaker
+              busy={pending}
               bundle={bundle}
               cancelingJobId={cancelingJobId}
               onCancelJob={cancelJob}
@@ -1863,13 +1864,15 @@ function ImageMaker({
   cancelingJobId,
   onCancelJob,
   onGenerate,
-  onUseAsset
+  onUseAsset,
+  busy
 }: {
   bundle: ProjectBundle | null;
   cancelingJobId: string | null;
   onCancelJob: (jobId: string) => void;
   onGenerate: (input: { prompt: string; purpose: ImageMakerPurpose; role: ImageAssetRole; aspect: Project["aspect"]; style?: string; count?: number }) => void;
   onUseAsset: (assetId: string, mode: AssetUsage["mode"]) => void;
+  busy: boolean;
 }) {
   const [prompt, setPrompt] = useState("투명 컵의 딸기라떼 제품 이미지. 밝은 카페 배경, 딸기 과육과 얼음이 잘 보이게, 손은 나오지 않게.");
   const [purpose, setPurpose] = useState<ImageMakerPurpose>("product");
@@ -1946,7 +1949,7 @@ function ImageMaker({
         </label>
         <div className="notice">모델명은 노출하지 않습니다. 이 화면은 목적과 지시만 받고, 실제 이미지 엔진 선택은 백엔드 라우팅이 담당합니다.</div>
         <div className="actions">
-          <button type="button" className="primary" onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
+          <button type="button" className="primary" disabled={busy} onClick={() => onGenerate({ prompt, purpose, role, aspect: bundle.project.aspect, style, count: 4 })}>
             이미지 후보 만들기 <span className="cost">{creditCostForAction("generateImages", { imageCount: 4 })}⚡</span>
           </button>
         </div>
