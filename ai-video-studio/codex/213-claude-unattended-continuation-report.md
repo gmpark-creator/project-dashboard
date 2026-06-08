@@ -16,6 +16,7 @@
 | R32 | `44633aa` | live adapter/preview 비용 정책 통합 + render preview 과금 fail-open(available에 spent 미차감) 수정 |
 | R33 | `9ffbb98` | 비용 invariant 테스트 신설 + codex/212 |
 | R34 | `9081492` | UI 비용 정책화(이미지 24→16, generateAll 96→shot×18) + creditBalance spent 차감 + 잔여 하드코딩 정리 |
+| R35 | `b143fcc` | cost/estimate 라우트 HTTP 레벨 테스트(정상 견적·입력검증·프로덕션 fail-closed) |
 | (R30 `1f870fa`) | 이전 세션 | run() 실패 복구 한국어화(영어 raw 누출 제거) — 본 세션 직전 |
 
 ## Files Changed (핵심)
@@ -25,7 +26,7 @@
 ## Validation (매 슬라이스 `npm run verify`)
 - [x] `npm run typecheck`
 - [x] `npm run validate:contracts` (providers 4 · routing 7 · templates 6 · ops 44 · routes 40)
-- [x] `npm run test:mock` (31개 — 신규 `cost-policy-invariants.test` 포함: 정책 정준값 + estimate==policy + estimate==실제 mock reservation 차감액 + 프로덕션 fail-closed 400/503)
+- [x] `npm run test:mock` (32개 — 신규 `cost-policy-invariants.test`(정책 정준값 + estimate==policy + estimate==실제 mock reservation 차감액) + `api-cost-estimate.test`(라우트 입력검증 + 프로덕션 fail-closed 400/503))
 - [x] `npm run build` (Compiled successfully, 19/19 static)
 - [x] `npm audit --omit=dev` (0 vulnerabilities)
 
