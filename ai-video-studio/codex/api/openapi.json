@@ -1138,11 +1138,15 @@
                     "type": "string",
                     "enum": ["generateShot", "generateAll", "regenerate", "generateImages", "registerExternalImage", "upgradeTake", "startRender"]
                   },
+                  "projectId": { "type": "string", "pattern": "^prj_" },
                   "params": {
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
-                      "takeCount": { "type": "integer", "minimum": 1 }
+                      "takeCount": { "type": "integer", "minimum": 1, "maximum": 3 },
+                      "shotCount": { "type": "integer", "minimum": 1 },
+                      "imageCount": { "type": "integer", "minimum": 1, "maximum": 4 },
+                      "renderCount": { "type": "integer", "minimum": 1 }
                     }
                   }
                 }
@@ -1160,7 +1164,23 @@
             }
           },
           "400": {
-            "description": "Missing cost action",
+            "description": "Missing cost action or invalid params",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found for live cost estimate",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Live persistence required for production cost estimate",
             "content": {
               "application/json": {
                 "schema": { "$ref": "../schemas/domain.schema.json#/$defs/ErrorResponse" }

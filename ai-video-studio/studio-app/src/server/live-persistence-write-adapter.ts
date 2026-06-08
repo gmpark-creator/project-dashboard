@@ -48,7 +48,7 @@ import {
 import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
-import { CreditReservationError } from "./mock-service";
+import { CreditReservationError } from "./credit-errors";
 import { chooseProviderRoute } from "./provider-routing";
 
 type Row = Record<string, unknown>;

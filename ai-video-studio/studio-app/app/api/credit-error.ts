@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isCreditReservationError } from "@/server/mock-service";
+import { isCreditReservationError } from "@/server/credit-errors";
 
 export function creditReservationResponse(error: unknown) {
   if (!isCreditReservationError(error)) return null;

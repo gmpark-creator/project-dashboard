@@ -2,13 +2,14 @@ import { createHash } from "node:crypto";
 import { INTENT_TEMPLATES } from "../domain/templates";
 import { fileBackedMockStateStore } from "./mock-state-store";
 import { chooseProviderRoute } from "./provider-routing";
+import { CreditReservationError } from "./credit-errors";
+import { CREDIT_COST, DEFAULT_EXPORT_RENDER_COUNT, creditCostForAction, buildCostEstimate, type CostAction, type CostParams } from "../domain/cost-policy";
 import type {
   Aspect,
   AssetDeleteResult,
   AssetUsage,
   AssetUsageMode,
   CancelJobResult,
-  CostEstimate,
   CreditTransaction,
   EditState,
   ErrorResponse,
@@ -51,26 +52,6 @@ function uid(prefix: string) {
 
 const PLAYABLE_MOCK_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 const MARGIN_POLICY_VERSION = "sandbox-v1";
-
-export class CreditReservationError extends Error {
-  estimate: CostEstimate;
-
-  constructor(credits: number, availableCredits: number) {
-    super("INSUFFICIENT_CREDITS");
-    this.name = "CreditReservationError";
-    this.estimate = {
-      credits,
-      etaSec: 0,
-      availableCredits,
-      affordable: false,
-      shortfallCredits: Math.max(0, credits - availableCredits)
-    };
-  }
-}
-
-export function isCreditReservationError(error: unknown): error is CreditReservationError {
-  return error instanceof CreditReservationError;
-}
 
 function mockVideoUrl(id: string) {
   return `${PLAYABLE_MOCK_VIDEO_URL}#${encodeURIComponent(id)}`;
@@ -751,25 +732,15 @@ export function getProjectBundle(projectId?: string): ProjectBundle | null {
   };
 }
 
-export function estimateCost(action: string, params?: { takeCount?: number }) {
-  const table: Record<string, number> = {
-    generateShot: 18,
-    generateAll: 96,
-    regenerate: 12,
-    generateImages: 24,
-    registerExternalImage: 0,
-    upgradeTake: 22,
-    startRender: 48
-  };
-  const credits = Math.ceil((table[action] || 10) * (params?.takeCount || 1));
-  const available = availableCredits(state());
-  return {
-    credits,
-    etaSec: action === "startRender" ? 90 : 25,
-    availableCredits: available,
-    affordable: available >= credits,
-    shortfallCredits: Math.max(0, credits - available)
-  };
+// mock(개발) 모드의 사용 가능 credit. 전역 mock 상태 기준이며 프로덕션에서는 쓰지 않는다.
+export function availableMockCredits() {
+  return availableCredits(state());
+}
+
+// 비용 견적은 도메인 cost-policy(buildCostEstimate)가 단일 출처. 여기서는 mock 사용 가능 credit만
+// 주입한다. 같은 정책을 reservation/UI/estimate route가 공유해 estimate == reservation 불변식을 지킨다.
+export function estimateCost(action: CostAction, params?: CostParams) {
+  return buildCostEstimate(action, params ?? {}, availableMockCredits());
 }
 
 function imageSize(aspect: Aspect) {
@@ -991,7 +962,7 @@ export function createImageJob(input: {
   if (!project) throw new Error("Project not found");
   if (!prompt) throw new Error("이미지 아이디어를 입력해 주세요.");
   const count = Math.max(1, Math.min(input.count || 4, 4));
-  assertCanReserveCredits(current, count * 4);
+  assertCanReserveCredits(current, creditCostForAction("generateImages", { imageCount: count }));
   const variants: ImageVariant[] = Array.from({ length: count }, (_, index) => ({
     id: uid("ivar"),
     assetId: null,
@@ -1022,7 +993,7 @@ export function createImageJob(input: {
     error: null
   };
   current.imageJobs.unshift(job);
-  reserveCredits(current, { projectId: project.id, jobId: job.id, action: "generateImages", credits: count * 4, note: "Image Maker variants reserved" });
+  reserveCredits(current, { projectId: project.id, jobId: job.id, action: "generateImages", credits: creditCostForAction("generateImages", { imageCount: count }), note: "Image Maker variants reserved" });
   write(current);
   return { job };
 }
@@ -1223,7 +1194,7 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
   const takes: Take[] = [];
   const jobs: GenerationJob[] = [];
 
-  assertCanReserveCredits(current, takeCount * 6);
+  assertCanReserveCredits(current, creditCostForAction("generateShot", { takeCount }));
   applyReferenceRequirements(current, shot);
   shot.status = "generating";
   shot.requirements.tier = tier;
@@ -1236,7 +1207,7 @@ export function generateShot(shotId: string, options: { tier?: Tier; takeCount?:
     const job = makeGenerationJob(current, shot, take, shouldFailShot, promptPackage, routing, options.retryOfJobId || null);
     takes.push(take);
     jobs.push(job);
-    reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation reserved" });
+    reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "generateShot", credits: CREDIT_COST.videoTake, note: "Video take generation reserved" });
   }
   refreshProject(current, shot.projectId);
   write(current);
@@ -1250,7 +1221,7 @@ export function generateAll(projectId: string, options: { tier?: Tier } = {}) {
   if (!project) throw new Error("Project not found");
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   const targetShots = shots.filter((shot) => shot.status === "pending" || shot.status === "failed");
-  assertCanReserveCredits(current, targetShots.length * 18);
+  assertCanReserveCredits(current, creditCostForAction("generateAll", { shotCount: targetShots.length }));
   for (const shot of shots) {
     if (shot.status === "pending" || shot.status === "failed") {
       queued.push(...generateShot(shot.id, { tier: options.tier || "fast", takeCount: 3 }).jobs);
@@ -1275,7 +1246,7 @@ export function regenerate(shotId: string, options: { scope: "shot" | "segment";
   const current = state();
   const shot = current.shots.find((item) => item.id === shotId);
   if (!shot) throw new Error("Shot not found");
-  assertCanReserveCredits(current, 12);
+  assertCanReserveCredits(current, creditCostForAction("regenerate"));
   shot.qualityFlags = [
     {
       axis: "completeness",
@@ -1296,7 +1267,7 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   if (!source || source.status !== "done") throw new Error("Done take not found");
   const shot = current.shots.find((item) => item.id === source.shotId);
   if (!shot) throw new Error("Source shot not found");
-  assertCanReserveCredits(current, 22);
+  assertCanReserveCredits(current, creditCostForAction("upgradeTake"));
   applyReferenceRequirements(current, shot);
   shot.requirements.tier = "final";
   const promptPackage = buildGenerationPromptPackage(current, shot);
@@ -1307,7 +1278,7 @@ export function upgradeTake(takeId: string, options: { mode?: "final_regenerate"
   take.upgradeMode = options.mode || "final_regenerate";
   const job = makeGenerationJob(current, shot, take, false, promptPackage, routing);
   shot.status = "generating";
-  reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "upgradeTake", credits: 22, note: "Publishing quality upgrade reserved" });
+  reserveCredits(current, { projectId: shot.projectId, jobId: job.id, action: "upgradeTake", credits: CREDIT_COST.upgradeTake, note: "Publishing quality upgrade reserved" });
   refreshProject(current, shot.projectId);
   write(current);
   return { take, job };
@@ -1470,7 +1441,7 @@ export function previewRender(projectId: string, spec: ExportSpec): RenderPrevie
     sourceHash: renderPlan.sourceHash,
     rightsReview: buildRenderRightsReview(current, projectId),
     renderPlan,
-    estimate: estimateCost("startRender")
+    estimate: estimateCost("startRender", { renderCount: DEFAULT_EXPORT_RENDER_COUNT })
   };
 }
 
@@ -1485,7 +1456,7 @@ export function startRender(projectId: string, specs: ExportSpec[], options: { r
   );
   const nextSpecs = specs.filter((spec) => !activeSpecs.has(`${spec.resolution}:${spec.cut}:${spec.aspect}:${spec.caption}`));
   if (!nextSpecs.length) throw new Error("Render job already active");
-  assertCanReserveCredits(current, nextSpecs.length * 16);
+  assertCanReserveCredits(current, creditCostForAction("startRender", { renderCount: nextSpecs.length }));
   const shots = current.shots.filter((shot) => shot.projectId === projectId);
   for (const shot of shots) {
     if (!shot.selectedTakeId) {
@@ -1516,7 +1487,7 @@ export function startRender(projectId: string, specs: ExportSpec[], options: { r
   current.renderJobs.push(...jobs);
   project.status = "rendering";
   for (const job of jobs) {
-    reserveCredits(current, { projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render reserved` });
+    reserveCredits(current, { projectId, jobId: job.id, action: "startRender", credits: CREDIT_COST.render, note: `${job.spec.cut} render reserved` });
   }
   write(current);
   return { jobs };
@@ -1565,7 +1536,7 @@ export function cancelJob(jobId: string): CancelJobResult {
     }
     const take = current.takes.find((item) => item.id === generationJob.takeId);
     const action: CreditTransaction["action"] = take?.upgradeSourceTakeId ? "upgradeTake" : "generateShot";
-    const credits = take?.upgradeSourceTakeId ? 22 : 6;
+    const credits = take?.upgradeSourceTakeId ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
     generationJob.status = "cancelled";
     generationJob.progress = 1;
     generationJob.stage = "cancelled";
@@ -1612,7 +1583,7 @@ export function cancelJob(jobId: string): CancelJobResult {
     renderJob.etaSec = 0;
     renderJob.error = cancelled;
     renderJob.updatedAt = now();
-    const credits = 16;
+    const credits = CREDIT_COST.render;
     refundReservedCredits(current, { projectId: renderJob.projectId, jobId, action: "startRender", credits, note: "Render job cancelled and reserved credits refunded" });
     const project = current.projects.find((item) => item.id === renderJob.projectId);
     const hasActiveRender = current.renderJobs.some((job) => job.projectId === renderJob.projectId && isActiveJob(job.status));
@@ -1667,7 +1638,7 @@ function completeImageWorkerJob(current: StudioState, job: ImageJob, output?: Wo
       scoreLabel: index === 0 ? "추천" : variant.scoreLabel
     };
   });
-  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants completed by worker" });
+  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * CREDIT_COST.imageVariant, note: "Image Maker variants completed by worker" });
 }
 
 function failImageWorkerJob(current: StudioState, job: ImageJob, error: ErrorResponse) {
@@ -1678,7 +1649,7 @@ function failImageWorkerJob(current: StudioState, job: ImageJob, error: ErrorRes
   job.error = error;
   job.updatedAt = now();
   job.variants = job.variants.map((variant) => ({ ...variant, status: "failed" }));
-  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants failed by worker and were refunded" });
+  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * CREDIT_COST.imageVariant, note: "Image Maker variants failed by worker and were refunded" });
 }
 
 function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, timestamp = Date.now(), output?: WorkerLeaseCompletionInput["outputs"]) {
@@ -1709,7 +1680,7 @@ function completeGenerationWorkerJob(current: StudioState, job: GenerationJob, t
     }
     refreshProject(current, shot.projectId);
   }
-  const credits = take?.upgradeSourceTakeId ? 22 : 6;
+  const credits = take?.upgradeSourceTakeId ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
   captureReservedCredits(current, {
     projectId: job.projectId,
     jobId: job.id,
@@ -1741,7 +1712,7 @@ function failGenerationWorkerJob(current: StudioState, job: GenerationJob, error
     ];
     refreshProject(current, shot.projectId);
   }
-  const credits = take?.upgradeSourceTakeId ? 22 : 6;
+  const credits = take?.upgradeSourceTakeId ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
   refundReservedCredits(current, {
     projectId: job.projectId,
     jobId: job.id,
@@ -1761,7 +1732,7 @@ function completeRenderWorkerJob(current: StudioState, job: RenderJob, output?: 
   job.outputUrl = output?.renderOutputUrl || output?.videoUrl || mockVideoUrl(job.id);
   job.shareUrl = output?.shareUrl || mockShareUrl(job.id);
   recordRenderArtifact(current, job);
-  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed by worker` });
+  captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: CREDIT_COST.render, note: `${job.spec.cut} render completed by worker` });
   const project = current.projects.find((item) => item.id === job.projectId);
   if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;
   if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {
@@ -1777,7 +1748,7 @@ function failRenderWorkerJob(current: StudioState, job: RenderJob, error: ErrorR
   job.etaSec = 0;
   job.error = error;
   job.updatedAt = now();
-  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render failed by worker and was refunded` });
+  refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: CREDIT_COST.render, note: `${job.spec.cut} render failed by worker and was refunded` });
   const project = current.projects.find((item) => item.id === job.projectId);
   const hasActiveRender = current.renderJobs.some((item) => item.projectId === job.projectId && isActiveJob(item.status));
   if (project && project.status === "rendering" && !hasActiveRender) project.status = "edited";
@@ -1869,7 +1840,7 @@ export function tickJobs() {
           scoreLabel: index === 0 ? "추천" : variant.scoreLabel
         };
       });
-      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * 4, note: "Image Maker variants completed" });
+      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateImages", credits: job.count * CREDIT_COST.imageVariant, note: "Image Maker variants completed" });
     }
   }
 
@@ -1898,7 +1869,7 @@ export function tickJobs() {
         };
         finishProviderAttempt(job, "failed", job.error, timestamp);
         if (take) failTake(take);
-        refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateShot", credits: 6, note: "Video take generation failed and was refunded" });
+        refundReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "generateShot", credits: CREDIT_COST.videoTake, note: "Video take generation failed and was refunded" });
         if (shot) {
           shot.status = "failed";
           shot.qualityFlags = [
@@ -1931,7 +1902,7 @@ export function tickJobs() {
             ];
           }
         }
-        const credits = take?.upgradeSourceTakeId ? 22 : 6;
+        const credits = take?.upgradeSourceTakeId ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
         captureReservedCredits(current, {
           projectId: job.projectId,
           jobId: job.id,
@@ -1960,7 +1931,7 @@ export function tickJobs() {
       job.outputUrl = mockVideoUrl(job.id);
       job.shareUrl = mockShareUrl(job.id);
       recordRenderArtifact(current, job);
-      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: 16, note: `${job.spec.cut} render completed` });
+      captureReservedCredits(current, { projectId: job.projectId, jobId: job.id, action: "startRender", credits: CREDIT_COST.render, note: `${job.spec.cut} render completed` });
       const project = current.projects.find((item) => item.id === job.projectId);
       if (project && !project.defaultRenderJobId) project.defaultRenderJobId = job.id;
       if (project && current.renderJobs.filter((item) => item.projectId === project.id).every((item) => item.status === "done")) {

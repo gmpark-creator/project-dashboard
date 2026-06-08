@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { buildLiveProjectCreateRecords } from "../src/server/live-project-builder";
 import { PostgresLivePersistenceWriteAdapter } from "../src/server/live-persistence-write-adapter";
 import type { PgQueryable } from "../src/server/live-persistence-migrations";
-import { CreditReservationError } from "../src/server/mock-service";
+import { CreditReservationError } from "../src/server/credit-errors";
 
 class FakeClient implements PgQueryable {
   queries: Array<{ sql: string; params?: unknown[] }> = [];
