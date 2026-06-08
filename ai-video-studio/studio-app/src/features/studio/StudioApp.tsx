@@ -1697,6 +1697,7 @@ export function StudioApp() {
           ) : null}
           {view === "storyboard" ? (
             <Storyboard
+              busy={pending}
               bundle={bundle}
               selectedShotId={selectedShotId}
               setSelectedShotId={setSelectedShotId}
@@ -1714,6 +1715,7 @@ export function StudioApp() {
           ) : null}
           {view === "compare" ? (
             <Compare
+              busy={pending}
               bundle={bundle}
               selectedShot={selectedShot}
               selectedShotId={selectedShotId}
@@ -2205,7 +2207,8 @@ function Storyboard({
   onCancelGeneration,
   onGenerate,
   onSaveShot,
-  onCompare
+  onCompare,
+  busy
 }: {
   bundle: ProjectBundle | null;
   selectedShotId: string | null;
@@ -2215,6 +2218,7 @@ function Storyboard({
   onGenerate: () => void;
   onSaveShot: (patch: ShotEditPatch) => void;
   onCompare: () => void;
+  busy: boolean;
 }) {
   if (!bundle) return <NoProject />;
   const activeGeneration = bundle.generationJobs.some((job) => job.status === "queued" || job.status === "running");
@@ -2237,7 +2241,7 @@ function Storyboard({
           </p>
         </div>
         <div className="actions" style={{ marginTop: 0 }}>
-          <button type="button" className="primary" disabled={!canGenerate} onClick={onGenerate}>
+          <button type="button" className="primary" disabled={!canGenerate || busy} onClick={onGenerate}>
             {generateLabel} {canGenerate ? <span className="cost">{generateCost}⚡</span> : null}
           </button>
           {activeGeneration ? (
@@ -2436,7 +2440,8 @@ function Compare({
   onSelect,
   onUpgrade,
   onUpdateDirection,
-  onEdit
+  onEdit,
+  busy
 }: {
   bundle: ProjectBundle | null;
   selectedShot: Shot | null;
@@ -2450,6 +2455,7 @@ function Compare({
   onUpgrade: (takeId: string) => void;
   onUpdateDirection: (shotId: string, patch: Partial<DirectionSpec>) => void;
   onEdit: () => void;
+  busy: boolean;
 }) {
   if (!bundle || !selectedShot) return <NoProject />;
   const takes = bundle.takes.filter((take) => take.shotId === selectedShot.id);
@@ -2506,16 +2512,16 @@ function Compare({
         {selectedShot.qualityFlags[0] ? <div className="notice">{selectedShot.qualityFlags[0].hint}</div> : null}
         <div className="actions">
           {!hasTakes ? (
-            <button type="button" className="primary" disabled={isGenerating} onClick={() => onGenerate(selectedShot.id)}>
+            <button type="button" className="primary" disabled={isGenerating || busy} onClick={() => onGenerate(selectedShot.id)}>
               이 컷 생성 <span className="cost">{creditCostForAction("generateShot", { takeCount: 3 })}⚡</span>
             </button>
           ) : (
-            <button type="button" className={isFailed ? "primary" : "secondary"} disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "shot")}>
+            <button type="button" className={isFailed ? "primary" : "secondary"} disabled={isGenerating || busy} onClick={() => onRegenerate(selectedShot.id, "shot")}>
               이 컷만 다시 <span className="cost">{creditCostForAction("regenerate")}⚡</span>
             </button>
           )}
           {hasTakes ? (
-            <button type="button" className="secondary" disabled={isGenerating} onClick={() => onRegenerate(selectedShot.id, "segment")}>
+            <button type="button" className="secondary" disabled={isGenerating || busy} onClick={() => onRegenerate(selectedShot.id, "segment")}>
               가능한 좁은 범위로 다시 <span className="cost">~{creditCostForAction("regenerate")}⚡</span>
             </button>
           ) : null}
@@ -2523,6 +2529,7 @@ function Compare({
             <button
               type="button"
               className="primary"
+              disabled={busy}
               title="선택한 컷을 게시용 고품질로 다시 다듬어요. 크레딧이 사용돼요."
               onClick={() => onUpgrade(selectedShot.selectedTakeId as string)}
             >
