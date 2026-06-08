@@ -1,4 +1,5 @@
 import type { CostEstimate, ExportSpec, ProjectBundle, RenderPlan, RenderPreview, RenderRightsReview, Shot, Take } from "../domain/types";
+import { buildCostEstimate, DEFAULT_EXPORT_RENDER_COUNT } from "../domain/cost-policy";
 
 function bestDoneTake(takes: Take[], shot: Shot) {
   return takes
@@ -68,15 +69,11 @@ export function buildLiveRenderPlan(bundle: ProjectBundle, spec: ExportSpec): Re
 }
 
 function estimateLiveRenderCost(bundle: ProjectBundle): CostEstimate {
-  const credits = 48;
-  const availableCredits = Math.max(0, bundle.credits.balance - bundle.credits.reserved);
-  return {
-    credits,
-    etaSec: 90,
-    availableCredits,
-    affordable: availableCredits >= credits,
-    shortfallCredits: Math.max(0, credits - availableCredits)
-  };
+  // 비용은 단일 cost-policy로 계산(표준 내보내기 = DEFAULT_EXPORT_RENDER_COUNT개 렌더). 사용 가능 credit은
+  // 실제 예약 체크(live adapter availableCredits)와 동일하게 balance - spent - reserved 로 본다.
+  // 기존엔 spent를 빼지 않아 available을 과대표시했다(과금 fail-open). preview와 실제 예약을 일치시킨다.
+  const availableCredits = Math.max(0, bundle.credits.balance - bundle.credits.spent - bundle.credits.reserved);
+  return buildCostEstimate("startRender", { renderCount: DEFAULT_EXPORT_RENDER_COUNT }, availableCredits);
 }
 
 export function buildLiveRenderPreview(bundle: ProjectBundle, spec: ExportSpec): RenderPreview {

@@ -49,6 +49,7 @@ import type { PgQueryable } from "./live-persistence-migrations";
 import { PostgresLivePersistenceReadAdapter } from "./live-persistence-read-adapter";
 import { buildLiveRenderPreview } from "./live-render-preview";
 import { CreditReservationError } from "./credit-errors";
+import { CREDIT_COST, creditCostForAction } from "../domain/cost-policy";
 import { chooseProviderRoute } from "./provider-routing";
 
 type Row = Record<string, unknown>;
@@ -1501,7 +1502,7 @@ export class PostgresLivePersistenceWriteAdapter {
         projectId: lease.projectId,
         jobId: lease.jobId,
         action: "generateImages",
-        credits: Number(job.count) * 4,
+        credits: Number(job.count) * CREDIT_COST.imageVariant,
         note: "Image Maker variants failed by worker and were refunded"
       });
       return {
@@ -1589,7 +1590,7 @@ export class PostgresLivePersistenceWriteAdapter {
       projectId: lease.projectId,
       jobId: lease.jobId,
       action: "generateImages",
-      credits: Number(job.count) * 4,
+      credits: Number(job.count) * CREDIT_COST.imageVariant,
       note: "Image Maker variants completed by worker"
     });
     return {
@@ -1611,7 +1612,7 @@ export class PostgresLivePersistenceWriteAdapter {
     const take = takeRows.rows[0] || null;
     const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE id = $1 LIMIT 1 FOR UPDATE", [job.shot_id]);
     const shot = shotRows.rows[0] || null;
-    const credits = take?.upgrade_source_take_id ? 22 : 6;
+    const credits = take?.upgrade_source_take_id ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
     const action: CreditTransaction["action"] = take?.upgrade_source_take_id ? "upgradeTake" : "generateShot";
 
     if (input.status === "failed") {
@@ -1750,7 +1751,7 @@ export class PostgresLivePersistenceWriteAdapter {
         timestamp
       ]);
       const spec = jsonValue<ExportSpec>(job.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" });
-      await this.refundReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: 16, note: `${spec.cut} render failed by worker and was refunded` });
+      await this.refundReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: CREDIT_COST.render, note: `${spec.cut} render failed by worker and was refunded` });
       const activeRenderRows = await this.client.query<Row>("SELECT id FROM cutpilot_render_jobs WHERE project_id = $1 AND status IN ('queued', 'running') LIMIT 1", [lease.projectId]);
       if (!activeRenderRows.rows[0]) {
         await this.client.query("UPDATE cutpilot_projects SET status = $2, updated_at = $3 WHERE id = $1 AND status = $4", [lease.projectId, "edited", timestamp, "rendering"]);
@@ -1788,7 +1789,7 @@ export class PostgresLivePersistenceWriteAdapter {
       status: "stored"
     });
     const spec = jsonValue<ExportSpec>(job.spec, { resolution: "1080p", cut: "full", aspect: "9:16", caption: "burn-in" });
-    await this.captureReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: 16, note: `${spec.cut} render completed by worker` });
+    await this.captureReservedCredits({ projectId: lease.projectId, jobId: lease.jobId, action: "startRender", credits: CREDIT_COST.render, note: `${spec.cut} render completed by worker` });
     await this.client.query("UPDATE cutpilot_projects SET default_render_job_id = COALESCE(default_render_job_id, $2), updated_at = $3 WHERE id = $1", [
       lease.projectId,
       lease.jobId,
@@ -1835,7 +1836,7 @@ export class PostgresLivePersistenceWriteAdapter {
       const nextSpecs = input.specs.filter((spec) => !activeSpecs.has(renderSpecKey(spec)));
       if (!nextSpecs.length) throw new Error("Render job already active");
 
-      const requiredCredits = nextSpecs.length * 16;
+      const requiredCredits = creditCostForAction("startRender", { renderCount: nextSpecs.length });
       const available = await this.availableCredits(projectId);
       if (available < requiredCredits) throw new CreditReservationError(requiredCredits, available);
 
@@ -1869,7 +1870,7 @@ export class PostgresLivePersistenceWriteAdapter {
           projectId,
           jobId: job.id,
           action: "startRender",
-          credits: 16,
+          credits: CREDIT_COST.render,
           note: `${job.spec.cut} render reserved`
         });
         await this.client.query(
@@ -1991,7 +1992,7 @@ export class PostgresLivePersistenceWriteAdapter {
           projectId: shot.projectId,
           jobId: job.id,
           action: "generateShot",
-          credits: 6,
+          credits: CREDIT_COST.videoTake,
           note: "Video take generation reserved"
         });
         await this.client.query(
@@ -2093,7 +2094,7 @@ export class PostgresLivePersistenceWriteAdapter {
 
     const shotRows = await this.client.query<Row>("SELECT * FROM cutpilot_shots WHERE project_id = $1 ORDER BY order_index", [projectId]);
     const targetShots = shotRows.rows.map(rowShot).filter((shot) => shot.status === "pending" || shot.status === "failed");
-    const requiredCredits = targetShots.length * 18;
+    const requiredCredits = creditCostForAction("generateAll", { shotCount: targetShots.length });
     const available = await this.availableCredits(projectId);
     if (available < requiredCredits) throw new CreditReservationError(requiredCredits, available);
 
@@ -2175,7 +2176,7 @@ export class PostgresLivePersistenceWriteAdapter {
         projectId: shot.projectId,
         jobId: job.id,
         action: "upgradeTake",
-        credits: 22,
+        credits: CREDIT_COST.upgradeTake,
         note: "Publishing quality upgrade reserved"
       });
       await this.client.query("UPDATE cutpilot_shots SET status = $2, requirements = $3 WHERE id = $1", [
@@ -2317,7 +2318,7 @@ export class PostgresLivePersistenceWriteAdapter {
         projectId: input.projectId,
         jobId: job.id,
         action: "generateImages",
-        credits: count * 4,
+        credits: creditCostForAction("generateImages", { imageCount: count }),
         note: "Image Maker variants reserved"
       });
       await this.client.query(
@@ -2734,7 +2735,7 @@ export class PostgresLivePersistenceWriteAdapter {
         const timestamp = now();
         const takes = await this.client.query<Row>("SELECT * FROM cutpilot_takes WHERE id = $1 LIMIT 1 FOR UPDATE", [job.take_id]);
         const take = takes.rows[0] || null;
-        const credits = take?.upgrade_source_take_id ? 22 : 6;
+        const credits = take?.upgrade_source_take_id ? CREDIT_COST.upgradeTake : CREDIT_COST.videoTake;
         const action: CreditTransaction["action"] = take?.upgrade_source_take_id ? "upgradeTake" : "generateShot";
         await this.client.query("UPDATE cutpilot_generation_jobs SET status = $2, progress = $3, eta_sec = $4, stage = $5, error = $6, updated_at = $7 WHERE id = $1", [
           jobId,
@@ -2782,7 +2783,7 @@ export class PostgresLivePersistenceWriteAdapter {
           await this.client.query("COMMIT");
           return { jobId, kind: "imageJob", projectId: String(job.project_id), cancelled: false, status: job.status as JobStatus, refundedCredits: 0, reason: "job is not active" };
         }
-        const credits = Number(job.count) * 4;
+        const credits = Number(job.count) * CREDIT_COST.imageVariant;
         const variants = jsonValue<Array<Record<string, unknown>>>(job.variants, []).map((variant) => ({ ...variant, status: "cancelled" }));
         await this.client.query("UPDATE cutpilot_image_jobs SET status = $2, progress = $3, eta_sec = $4, error = $5, variants = $6, updated_at = $7 WHERE id = $1", [
           jobId,
@@ -2818,7 +2819,7 @@ export class PostgresLivePersistenceWriteAdapter {
           json(cancelledError()),
           timestamp
         ]);
-        await this.refundReservedCredits({ projectId: String(job.project_id), jobId, action: "startRender", credits: 16, note: "Render job cancelled and reserved credits refunded" });
+        await this.refundReservedCredits({ projectId: String(job.project_id), jobId, action: "startRender", credits: CREDIT_COST.render, note: "Render job cancelled and reserved credits refunded" });
         const activeRenderRows = await this.client.query<Row>("SELECT id FROM cutpilot_render_jobs WHERE project_id = $1 AND status IN ('queued', 'running') LIMIT 1", [job.project_id]);
         if (!activeRenderRows.rows[0]) {
           await this.client.query("UPDATE cutpilot_projects SET status = $2, updated_at = $3 WHERE id = $1 AND status = $4", [job.project_id, "edited", timestamp, "rendering"]);

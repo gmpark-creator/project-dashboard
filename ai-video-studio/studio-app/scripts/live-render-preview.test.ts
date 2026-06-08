@@ -127,6 +127,8 @@ assert.equal(preview.rightsReview.required, true, "live render preview should re
 assert.equal(preview.rightsReview.items[0].assetId, assetId, "live render preview should include reviewed asset ids");
 assert.equal(preview.estimate.credits, 48, "live render preview should use start render credit estimate");
 assert.equal(preview.estimate.affordable, false, "live render preview should account for available credits");
-assert.equal(preview.estimate.shortfallCredits, 8, "live render preview should report credit shortfall");
+// balance 40 - spent 18 - reserved 0 = 22 available, 48 cost -> shortfall 26.
+// (실제 live 예약 체크와 동일하게 spent를 차감한다. 과거엔 spent 미차감으로 shortfall 8을 과소표시했다.)
+assert.equal(preview.estimate.shortfallCredits, 26, "live render preview should report credit shortfall net of spent credits");
 
 console.log("live-render-preview.test OK");
