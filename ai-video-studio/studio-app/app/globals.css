@@ -188,6 +188,35 @@ button:disabled {
   white-space: nowrap;
 }
 
+/* 작업 진행 중 상단바 표시. mutating 요청이 떠 있는 동안만 보이며 사용자에게 "처리 중"을 알린다. */
+.pending-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text-soft, #cfd8e3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.pending-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ea8fe;
+  animation: pending-pulse 1s ease-in-out infinite;
+}
+
+@keyframes pending-pulse {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
+
 /* 런타임 점검 배지: 상단 바에 상주하는 컴팩트한 운영 상태 표시. 모바일(레일 푸터가 숨는 폭)에서도
    보이도록 topbar-actions에 둔다. 펼침 패널은 우측 정렬·max-width 제한으로 390px에서도 가로 넘침이
    없게 한다. 환경변수는 이름만 칩으로 노출하고 값은 절대 보여주지 않는다. */

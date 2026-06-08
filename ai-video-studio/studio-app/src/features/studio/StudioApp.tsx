@@ -1520,6 +1520,8 @@ export function StudioApp() {
   // 실패한 작업의 한국어 복구 안내. 토스트(2.6초 자동 사라짐)와 달리 사용자가 닫거나 다음 작업이
   // 성공할 때까지 남겨, 실패 원인과 다음 행동을 분명히 안내한다.
   const [failureNotice, setFailureNotice] = useState<{ title: string; detail: string } | null>(null);
+  // mutating 작업이 진행 중인지(전역). 상단바 "처리 중" 표시와 긴 작업(예: 초안 자동 생성) 버튼 잠금에 쓴다.
+  const [pending, setPending] = useState(false);
   // 취소 요청이 떠 있는 동안의 잡 id(또는 배치 취소 시 첫 잡 id). 값이 있으면 모든 취소 버튼을 잠가
   // 중복 취소를 막고, 해당 버튼만 "취소 중…"으로 표시한다.
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
@@ -1672,6 +1674,7 @@ export function StudioApp() {
       return;
     }
     runningRef.current = true;
+    setPending(true);
     try {
       await action();
       setFailureNotice(null);
@@ -1684,6 +1687,7 @@ export function StudioApp() {
       setFailureNotice(describeFailure(error));
     } finally {
       runningRef.current = false;
+      setPending(false);
     }
   }
 
@@ -1785,6 +1789,7 @@ export function StudioApp() {
           </div>
           <div className="topbar-actions">
             <RuntimeReadinessBadge readiness={readiness} />
+            {pending ? <span className="pending-pill" role="status" aria-live="polite">처리 중…</span> : null}
             <span className="credit-pill">{creditBalance} ⚡</span>
             <span className="hint">자동 저장됨</span>
           </div>
@@ -1853,6 +1858,7 @@ export function StudioApp() {
           ) : null}
           {view === "new" ? (
             <NewProject
+              busy={pending}
               intent={intent}
               setIntent={setIntent}
               onCreate={(input) =>
@@ -2306,12 +2312,14 @@ function NewProject({
   intent,
   setIntent,
   onCreate,
-  onExpressCreate
+  onExpressCreate,
+  busy
 }: {
   intent: Intent;
   setIntent: (intent: Intent) => void;
   onCreate: (input: { title: string; idea: string; intent: Intent }) => void;
   onExpressCreate: (input: { title: string; idea: string; intent: Intent }) => void;
+  busy: boolean;
 }) {
   const [title, setTitle] = useState("딸기라떼 쇼츠");
   const [idea, setIdea] = useState("신메뉴 딸기라떼를 소개하는 15초 세로 쇼츠. 밝고 산뜻하며 첫 2초에 시선을 잡아야 한다.");
@@ -2362,10 +2370,10 @@ function NewProject({
         ))}
       </div>
       <div className="actions">
-        <button type="button" className="primary" onClick={() => submit(onExpressCreate)}>
-          초안까지 한 번에 만들기
+        <button type="button" className="primary" disabled={busy} onClick={() => submit(onExpressCreate)}>
+          {busy ? "만드는 중…" : "초안까지 한 번에 만들기"}
         </button>
-        <button type="button" className="secondary" onClick={() => submit(onCreate)}>
+        <button type="button" className="secondary" disabled={busy} onClick={() => submit(onCreate)}>
           스토리보드부터 직접
         </button>
       </div>
