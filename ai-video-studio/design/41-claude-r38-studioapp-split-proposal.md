@@ -32,6 +32,7 @@
 - **누출 안전 불변식 유지.** 분리해도 패널은 집계/안전 라벨만 그린다(raw id/provider·model/token/url/storageKey 금지). 이동은 렌더 출력 무변경이어야 한다.
 - **cost-policy 단일 출처 유지.** 비용 표시는 `@/domain/cost-policy`만 참조(R34 반영분).
 - **순수 함수 우선 이동** → 컴포넌트는 그 다음. 순환 import 금지(format.ts는 어떤 컴포넌트도 import 안 함).
+- **⚠️ 공유 패널 주의 (2026-06-08 실측 보강 — 처음의 "경계 깨끗" 낙관 정정):** `SystemMetricsPanel`·`JobQueueSnapshotPanel`·`MediaArtifactInventoryPanel`은 운영 콘솔과 **크리에이터 뷰(Dashboard·AssetLibrary)가 공유**한다(design/30 "재사용"이 사실). 게다가 이 공유 패널이 ops 전용 패널과 한 블록(현 59~1281줄)에 **교차 배치**돼 있어 **단순 라인범위 추출이 불가**하다. → 분리는 **3-way**가 맞다: ① `panels.tsx`(공유: `Metric`·`MetricJobRow`·`ArtifactRow`·`SystemMetricsPanel`·`MediaArtifactInventoryPanel`·`JobQueueSnapshotPanel` + `formatBytes`/`formatAvgLatency`/`queueStageLabel`/`formatDueIn`) ② `OperationsConsole.tsx`(ops 전용: `Worker*`·`ProviderHealth`·`ReadinessConsole`·`StorageCleanup*` 패널 + `OpsSummaryStrip` + `OperationsConsole` + `expiresInLabel`) ③ StudioApp 셸(`RuntimeReadinessBadge`는 topbar에서 쓰므로 panels 또는 ops에서 export). 함수별 추출이라 **refactor IDE/AST 도구 권장**(무인 string-편집은 대량 교차 블록에 부적합 — `format.ts`·`CancelJobButton`까지가 안전 한계였음).
 
 ## 단계별 수용 게이트
 
