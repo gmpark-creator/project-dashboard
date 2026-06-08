@@ -5,6 +5,7 @@ import { INTENT_TEMPLATES } from "@/domain/templates";
 import { creditCostForAction, DEFAULT_EXPORT_RENDER_COUNT } from "@/domain/cost-policy";
 import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, StorageCleanupAction, StorageCleanupExecutionSnapshot, StorageCleanupPlan, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
 import { studioApi } from "./api";
+import { CancelJobButton } from "./CancelJobButton";
 import {
   aspectRatioCss,
   creditActionLabels,
@@ -43,34 +44,6 @@ const titles: Record<View, [string, string]> = {
   export: ["내보내기", "선택된 컷을 여러 길이의 렌더 잡으로 보냅니다"],
   ops: ["운영", "워커·큐·엔진·스토리지 상태를 읽기 전용으로 점검합니다"]
 };
-
-// 진행 중(대기/진행)인 잡을 취소하는 공통 버튼. 요청이 떠 있는 동안에는 전체 취소 버튼을 잠가
-// 중복 취소를 막고(busy), 누른 버튼만 "취소 중…"으로 바꾼다. 내부 잡 id·모델명은 노출하지 않는다.
-function CancelJobButton({
-  jobId,
-  canceling,
-  busy,
-  onCancel,
-  className = "ghost"
-}: {
-  jobId: string;
-  canceling: boolean;
-  busy: boolean;
-  onCancel: (jobId: string) => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      className={`${className} cancel-job`}
-      disabled={busy}
-      title="진행 중인 작업을 멈추고 예약한 크레딧을 돌려받습니다."
-      onClick={() => onCancel(jobId)}
-    >
-      {canceling ? "취소 중…" : "작업 취소"}
-    </button>
-  );
-}
 
 function nextViewForBundle(nextBundle: ProjectBundle) {
   if (nextBundle.project.status === "rendering" || nextBundle.project.status === "done" || nextBundle.renderJobs.length) return "export";
