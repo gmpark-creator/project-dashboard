@@ -230,6 +230,14 @@ button:disabled {
   outline: none;
 }
 
+/* 키보드 포커스 가시성(a11y). 마우스 클릭(:focus)엔 안 뜨고 키보드 탭/AT(:focus-visible)에만 또렷한
+   아웃라인을 줘 키보드·스크린리더 사용자가 현재 포커스를 본다. 전역 인터랙티브 요소(버튼·링크·입력·
+   select·카드·[tabindex]) 모두에 적용된다. */
+:focus-visible {
+  outline: 2px solid var(--cyan, #6ea8fe);
+  outline-offset: 2px;
+}
+
 /* 런타임 점검 배지: 상단 바에 상주하는 컴팩트한 운영 상태 표시. 모바일(레일 푸터가 숨는 폭)에서도
    보이도록 topbar-actions에 둔다. 펼침 패널은 우측 정렬·max-width 제한으로 390px에서도 가로 넘침이
    없게 한다. 환경변수는 이름만 칩으로 노출하고 값은 절대 보여주지 않는다. */
