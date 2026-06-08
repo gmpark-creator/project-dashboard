@@ -32,11 +32,16 @@ function isInsufficientCreditsResponse(payload: ApiErrorPayload): payload is Ins
   return payload.code === "INSUFFICIENT_CREDITS" && Boolean(payload.estimate);
 }
 
+// 사용자 노출 문자열은 항상 한국어로 만든다. 서버 userMessage는 영어라 그대로 surface 하지 않고, code
+// 기준으로 한국어 메시지를 생성한다. 크레딧 부족은 추상화된 크레딧 단위(shortfallCredits, ⚡)만 담고
+// raw id/url/provider명 등은 절대 포함하지 않는다.
 function apiErrorMessage(status: number, payload: ApiErrorPayload) {
-  const message = payload.userMessage || `Request failed: ${status}`;
-  if (!isInsufficientCreditsResponse(payload)) return message;
-  const { credits, availableCredits, shortfallCredits } = payload.estimate;
-  return `${message} (needed ${credits}, available ${availableCredits}, shortfall ${shortfallCredits})`;
+  if (isInsufficientCreditsResponse(payload)) {
+    const { shortfallCredits } = payload.estimate;
+    const amount = typeof shortfallCredits === "number" && shortfallCredits > 0 ? ` ${shortfallCredits}⚡ 더 필요합니다.` : "";
+    return `크레딧이 부족합니다.${amount}`;
+  }
+  return `요청을 처리하지 못했습니다 (${status}).`;
 }
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {

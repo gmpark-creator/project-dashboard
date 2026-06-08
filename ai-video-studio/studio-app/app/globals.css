@@ -1382,6 +1382,57 @@ label {
   background: var(--panel-2);
 }
 
+/* 실패한 작업의 한국어 복구 안내. 토스트(우상단 임시 알림)와 달리 본문 흐름 안에 남아 사용자가 닫을
+   때까지 유지된다. 경고(amber) .notice 와 구분되도록 실패는 붉은 톤을 쓰고, 390px에서도 닫기 버튼이
+   줄바꿈되며 가로 넘침이 없어야 한다. */
+.failure-notice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  border: 1px solid rgba(244, 120, 120, .45);
+  border-radius: 10px;
+  background: rgba(244, 120, 120, .10);
+  color: #ffd9d9;
+  padding: 13px 14px;
+}
+
+.failure-notice .failure-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.failure-notice strong {
+  font-size: 13.5px;
+  color: #ffe2e2;
+}
+
+.failure-notice p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #f4c9c9;
+}
+
+.failure-notice .failure-dismiss {
+  flex: none;
+  background: transparent;
+  border: 1px solid rgba(244, 120, 120, .5);
+  color: #ffd9d9;
+  border-radius: 7px;
+  padding: 6px 11px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.failure-notice .failure-dismiss:hover {
+  background: rgba(244, 120, 120, .16);
+}
+
 /* 크레딧 사용 내역: 내보내기 화면 하단의 전폭 운영 요약. 카드 중첩 대신 얇은 구분선으로만 항목을
    나눠 밀도를 유지하고, 좁은 폭(390px)에서는 행이 줄바꿈되며 가로 넘침이 없어야 한다. */
 .ledger {

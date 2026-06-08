@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INTENT_TEMPLATES } from "@/domain/templates";
 import type { Aspect, AssetKind, AssetUsage, CreditTransaction, DirectionSpec, EditState, ExportSpec, ImageAsset, ImageAssetRole, ImageMakerPurpose, Intent, JobQueueSnapshot, JobStatus, JobStatusCounts, MediaArtifact, MediaArtifactCleanup, MediaArtifactInventory, MediaArtifactInventoryItem, Project, ProjectBundle, ProviderHealthSnapshot, QueueJobKind, RenderJob, RenderPlan, RenderPreview, RenderRightsReview, RuntimeReadiness, Saec, Shot, StorageCleanupAction, StorageCleanupExecutionSnapshot, StorageCleanupPlan, SystemMetrics, Take, WorkerCompletionSnapshot, WorkerCompletionStatus, WorkerDispatchKind, WorkerDispatchSnapshot, WorkerLeaseSnapshot, WorkerLeaseStatus, WorkerRetryAction, WorkerRetryExecutionSnapshot, WorkerRetryPlan } from "@/domain/types";
-import { studioApi } from "./api";
+import { studioApi, isApiError } from "./api";
 
 type View = "dashboard" | "images" | "assets" | "new" | "storyboard" | "compare" | "edit" | "export" | "ops";
 
@@ -46,6 +46,38 @@ function jobBadgeTone(status: JobStatus) {
   if (status === "failed") return "warn";
   if (status === "cancelled") return "";
   return "fast";
+}
+
+// 실패한 작업을 사용자에게 보여줄 한국어 복구 안내로 바꾼다. ApiError의 code/retryable/추정치만 쓰고,
+// raw error 문자열·영어 서버 메시지·내부 식별자(jobId/url/provider명)는 절대 노출하지 않는다. 어떤
+// 실패든 "이전 작업은 보존된다"는 안심 문구를 함께 준다.
+const WORK_PRESERVED = "이전 작업은 그대로 보존됩니다.";
+
+function describeFailure(error: unknown): { title: string; detail: string } {
+  if (isApiError(error)) {
+    if (error.code === "INSUFFICIENT_CREDITS") {
+      const shortfall = error.estimate?.shortfallCredits;
+      const amount = typeof shortfall === "number" && shortfall > 0 ? ` ${shortfall}⚡ 더 필요해요.` : "";
+      return {
+        title: "크레딧이 부족해요",
+        detail: `이 작업을 시작하기엔 크레딧이 모자랍니다.${amount} 더 가벼운 「빠른 미리보기」로 만들거나 크레딧을 충전한 뒤 다시 시도해 주세요. ${WORK_PRESERVED}`
+      };
+    }
+    if (error.retryable || error.fallbackSuggested) {
+      return {
+        title: "지금은 생성이 잠시 어려워요",
+        detail: `잠시 후 다시 시도하거나 다른 방식으로 만들어 볼 수 있어요. ${WORK_PRESERVED}`
+      };
+    }
+    return {
+      title: "요청을 처리하지 못했어요",
+      detail: `잠시 후 다시 시도해 주세요. 문제가 계속되면 다른 컷부터 진행해도 됩니다. ${WORK_PRESERVED}`
+    };
+  }
+  return {
+    title: "요청을 처리하지 못했어요",
+    detail: `네트워크 상태를 확인하고 잠시 후 다시 시도해 주세요. ${WORK_PRESERVED}`
+  };
 }
 
 // 진행 중(대기/진행)인 잡을 취소하는 공통 버튼. 요청이 떠 있는 동안에는 전체 취소 버튼을 잠가
@@ -1484,6 +1516,9 @@ export function StudioApp() {
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
   const [intent, setIntent] = useState<Intent>("shorts");
   const [toast, setToast] = useState("");
+  // 실패한 작업의 한국어 복구 안내. 토스트(2.6초 자동 사라짐)와 달리 사용자가 닫거나 다음 작업이
+  // 성공할 때까지 남겨, 실패 원인과 다음 행동을 분명히 안내한다.
+  const [failureNotice, setFailureNotice] = useState<{ title: string; detail: string } | null>(null);
   // 취소 요청이 떠 있는 동안의 잡 id(또는 배치 취소 시 첫 잡 id). 값이 있으면 모든 취소 버튼을 잠가
   // 중복 취소를 막고, 해당 버튼만 "취소 중…"으로 표시한다.
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
@@ -1501,6 +1536,8 @@ export function StudioApp() {
   const [cleanupPlan, setCleanupPlan] = useState<StorageCleanupPlan | null>(null);
   const [cleanupExecutions, setCleanupExecutions] = useState<StorageCleanupExecutionSnapshot | null>(null);
   const toastTimer = useRef<number | null>(null);
+  // 작업이 처리되는 동안 같은/다른 mutating 버튼을 다시 눌러 생기는 중복 제출·이중 과금을 막는다.
+  const runningRef = useRef(false);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
 
@@ -1571,6 +1608,7 @@ export function StudioApp() {
 
   function goToView(nextView: View) {
     clearToast();
+    setFailureNotice(null);
     setView(nextView);
   }
 
@@ -1624,16 +1662,27 @@ export function StudioApp() {
     document.title = `${titles[view][0]}${projectTitle} | Cutpilot`;
   }, [bundle?.project.title, view]);
 
+  // 모든 mutating 액션의 공통 실행기. (1) 이미 처리 중이면 중복 제출을 막고, (2) 성공 시 직전 실패
+  // 안내를 지우고 성공 토스트+새로고침, (3) 실패 시 raw 에러를 노출하지 않고 code 기준 한국어 복구
+  // 안내(failureNotice)를 띄운다. 14개 호출부(이미지/스토리보드/비교/편집/내보내기)가 모두 이 경로를 탄다.
   async function run(action: () => Promise<unknown>, message: string) {
+    if (runningRef.current) {
+      notify("앞선 작업을 처리하고 있어요. 잠시만요…");
+      return;
+    }
+    runningRef.current = true;
     try {
       await action();
+      setFailureNotice(null);
       notify(message);
       await refresh();
       loadMetrics();
       loadInventory();
       loadQueue();
     } catch (error) {
-      notify(error instanceof Error ? error.message : "작업 중 오류가 발생했습니다.");
+      setFailureNotice(describeFailure(error));
+    } finally {
+      runningRef.current = false;
     }
   }
 
@@ -1739,6 +1788,17 @@ export function StudioApp() {
           </div>
         </header>
         <section className="view">
+          {failureNotice ? (
+            <div className="failure-notice" role="alert" aria-live="assertive">
+              <div className="failure-body">
+                <strong>{failureNotice.title}</strong>
+                <p>{failureNotice.detail}</p>
+              </div>
+              <button type="button" className="failure-dismiss" onClick={() => setFailureNotice(null)}>
+                닫기
+              </button>
+            </div>
+          ) : null}
           {view === "dashboard" ? (
             <Dashboard
               projects={projects}
