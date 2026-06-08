@@ -1864,6 +1864,18 @@ export function StudioApp() {
                   goToView("storyboard");
                 }, "스토리보드를 만들었습니다.")
               }
+              onExpressCreate={(input) =>
+                run(async () => {
+                  const project = await studioApi.createProject(input);
+                  setSelectedProjectId(project.id);
+                  setSelectedShotId(null);
+                  // P3(완성본 먼저): 빈 스토리보드 대신, 빠른 미리보기 품질로 모든 컷을 바로 생성하고
+                  // 비교 화면으로 보내 완성될 초안부터 보여준다.
+                  await studioApi.generateAll(project.id, "fast");
+                  setBundle(await studioApi.getBundle(project.id));
+                  goToView("compare");
+                }, "초안을 만들고 있어요 — 첫 컷부터 채워집니다.")
+              }
             />
           ) : null}
           {view === "storyboard" ? (
@@ -2293,24 +2305,27 @@ function AssetGrid({
 function NewProject({
   intent,
   setIntent,
-  onCreate
+  onCreate,
+  onExpressCreate
 }: {
   intent: Intent;
   setIntent: (intent: Intent) => void;
   onCreate: (input: { title: string; idea: string; intent: Intent }) => void;
+  onExpressCreate: (input: { title: string; idea: string; intent: Intent }) => void;
 }) {
   const [title, setTitle] = useState("딸기라떼 쇼츠");
   const [idea, setIdea] = useState("신메뉴 딸기라떼를 소개하는 15초 세로 쇼츠. 밝고 산뜻하며 첫 2초에 시선을 잡아야 한다.");
   const [error, setError] = useState("");
 
-  function submit() {
+  // 아이디어만 검증하고, 어느 진입 경로(초안까지 자동 / 스토리보드부터 직접)를 탈지는 핸들러로 받는다.
+  function submit(handler: (input: { title: string; idea: string; intent: Intent }) => void) {
     const trimmedIdea = idea.trim();
     if (!trimmedIdea) {
       setError("아이디어를 입력해 주세요.");
       return;
     }
     setError("");
-    onCreate({ title: title.trim(), idea: trimmedIdea, intent });
+    handler({ title: title.trim(), idea: trimmedIdea, intent });
   }
 
   return (
@@ -2347,10 +2362,16 @@ function NewProject({
         ))}
       </div>
       <div className="actions">
-        <button type="button" className="primary" onClick={submit}>
-          스토리보드 만들기
+        <button type="button" className="primary" onClick={() => submit(onExpressCreate)}>
+          초안까지 한 번에 만들기
+        </button>
+        <button type="button" className="secondary" onClick={() => submit(onCreate)}>
+          스토리보드부터 직접
         </button>
       </div>
+      <p className="hint" style={{ marginTop: 8 }}>
+        「초안까지」는 빠른 미리보기 품질로 모든 컷을 자동 생성해 완성될 초안부터 보여줍니다(크레딧 사용). 「직접」은 스토리보드를 먼저 검토한 뒤 생성합니다.
+      </p>
     </div>
   );
 }
