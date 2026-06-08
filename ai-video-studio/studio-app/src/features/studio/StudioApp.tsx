@@ -1339,6 +1339,9 @@ export function StudioApp() {
   const toastTimer = useRef<number | null>(null);
   // 작업이 처리되는 동안 같은/다른 mutating 버튼을 다시 눌러 생기는 중복 제출·이중 과금을 막는다.
   const runningRef = useRef(false);
+  // 뷰 전환 시 화면 제목(h1)으로 포커스를 옮겨 스크린리더/키보드 사용자가 내용 변경을 인지하게 한다.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const viewMountedRef = useRef(false);
   // 백그라운드 tick 루프에서 매번 지표를 새로 받지 않도록 틱 수를 센다(몇 틱마다 한 번만 갱신).
   const tickCount = useRef(0);
 
@@ -1463,6 +1466,16 @@ export function StudioApp() {
     document.title = `${titles[view][0]}${projectTitle} | Cutpilot`;
   }, [bundle?.project.title, view]);
 
+  // 뷰가 바뀌면(최초 마운트 제외) 화면 제목(h1)으로 포커스를 이동한다. h1은 tabIndex=-1이라 탭 순서엔
+  // 들어가지 않고 프로그램적 포커스만 받는다 — 스크린리더가 새 화면 시작점을 바로 안내한다.
+  useEffect(() => {
+    if (!viewMountedRef.current) {
+      viewMountedRef.current = true;
+      return;
+    }
+    headingRef.current?.focus();
+  }, [view]);
+
   // 모든 mutating 액션의 공통 실행기. (1) 이미 처리 중이면 중복 제출을 막고, (2) 성공 시 직전 실패
   // 안내를 지우고 성공 토스트+새로고침, (3) 실패 시 raw 에러를 노출하지 않고 code 기준 한국어 복구
   // 안내(failureNotice)를 띄운다. 14개 호출부(이미지/스토리보드/비교/편집/내보내기)가 모두 이 경로를 탄다.
@@ -1582,7 +1595,7 @@ export function StudioApp() {
       <main className="main">
         <header className="topbar">
           <div>
-            <h1>{titles[view][0]}</h1>
+            <h1 ref={headingRef} tabIndex={-1}>{titles[view][0]}</h1>
             <p>{titles[view][1]}</p>
           </div>
           <div className="topbar-actions">
@@ -3498,5 +3511,12 @@ function PreflightFlags({
 }
 
 function NoProject() {
-  return <div className="empty">선택된 프로젝트가 없습니다.</div>;
+  return (
+    <div className="empty">
+      <div>
+        <strong>선택된 프로젝트가 없습니다</strong>
+        <p className="hint">왼쪽 「프로젝트」에서 기존 작업을 열거나 「Video Maker」에서 새 아이디어로 시작해 보세요.</p>
+      </div>
+    </div>
+  );
 }
