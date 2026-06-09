@@ -500,7 +500,8 @@ const PROJECTS = [
       { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' },
       { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' },
       { date:'2026-06-09', title:'MAGE supply 214p 전량 종결 + 부식 제외 (batch-02·03·04)', desc:'남은 3배치(p51~214)를 비전 OCR 2단 적대검증으로 정리해 214p 전량 처리 종결. ‘부식’(식료품·식수)은 박사 지시로 제외(b01 식료품 95품목 소급 삭제). 신규 선박 ALMAZ·FEDOR KOVROV, 신규 카테고리(탐사장비 Sound Oceanics·Trelleborg / 배관·유압 / 항해통신 / 안전구명). cross-batch 중복 재계상 제외. mage-supply 뷰어를 4배치 탭+종합 인덱스로 갱신.' },
-      { date:'2026-06-09', title:'MAGE supply 전배치 Claude 2라운드 적대 자체검수 (88건 정정)', desc:'Codex 토큰 부재로 Claude가 검수 대행 — 독립 적대 에이전트로 R1 적발 139건 → R2 독립 재대조(오탐 0) → 확정 88건 정정. OCR 환각(Epson→Kyocera·TV→토너·글루건·DMP333·Cummins 부품번호 환각 13)·누락품목 복원·시멘트 cross-batch 이중계상 제거·b01 통계 104→129 교정. 누적 ~404행. 한계상 Codex 3자 검수 권장.' }
+      { date:'2026-06-09', title:'MAGE supply 전배치 Claude 2라운드 적대 자체검수 (88건 정정)', desc:'Codex 토큰 부재로 Claude가 검수 대행 — 독립 적대 에이전트로 R1 적발 139건 → R2 독립 재대조(오탐 0) → 확정 88건 정정. OCR 환각(Epson→Kyocera·TV→토너·글루건·DMP333·Cummins 부품번호 환각 13)·누락품목 복원·시멘트 cross-batch 이중계상 제거·b01 통계 104→129 교정. 누적 ~404행. 한계상 Codex 3자 검수 권장.' },
+      { date:'2026-06-09', title:'데이터 범위 확정 — 현재 2026.4~5월분 종결 / 25.10~26.3월분 추후', desc:'박사 안내 — 지금까지 정리한 MAGE supply DB는 2026년 4~5월 조달분(PDF 214p 전량)이다. 2025년 10월~2026년 3월 조달분은 박사가 자료 준비되는 대로 추후 제공 → 동일 워크플로(비전 OCR 2단검증 + 부식 제외)로 이어 누적 예정. 현재는 자료 미수신 대기. ‘부식’(식료품·식수)은 batch-02~04에서 애초 미정리 → 그대로 미수록 확정(원본 PDF·git 178affa 커밋에 원천 보존).' }
     ]
   },
   {
