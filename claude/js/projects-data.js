@@ -463,7 +463,7 @@ const PROJECTS = [
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
-    latest: '2026-06-06',
+    latest: '2026-06-09',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
@@ -488,7 +488,9 @@ const PROJECTS = [
       { type:'완료', title:'Part 1 통관 마스터 구현 완료 — 변증법 R1~R3 + Codex 검수 PASS', desc:'Claude 제안 ↔ Codex 반박 3라운드(R1·R2 BLOCK → R3 PASS·IMPLEMENTATION GO) 후 Claude 단독 구현(index.html 52KB): 상태머신 v2, 통관 3유형 동등 플로우(수입9/수출6/반송5), Incoterms 11 8필드 구조체+비용/위험 게이지, 수입신고필증 10필드 인스펙터+세액 read-only 카드(부가세 과표=과세가격+관세+내국세), desktop/mobile 이중렌더+lazy+접근성+fallback. Codex 사후검수 PASS(데이터계약 55 + Playwright headless + 390px overflow0 + 모달 생성/제거 + CDN fallback smoke). 라이브 프리뷰 배포.' },
       { type:'완료', title:'선사 업무 — 선박 증서 31종 도해 추가 (2026-06-05)', desc:'#9의 두 축(통관 / 선사 업무) 중 「선사 업무」 자료. 국제항해 컨테이너선 증서철 31종 PDF를 Claude 워크플로(32 에이전트 병렬)로 명칭·근거협약·용도·유효기간을 추출·교차감사해 8개 기능분류(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 인터랙티브 도해(자급식 단일 HTML)로 작성. 각 증서의 정의·「선사 업무 용도」·미보유 시 결과·근거협약을 카드+분류 필터+검색으로 제공. 공개 게시 위해 선명·IMO·소유/관리회사·보험·선원·증서번호 등 식별·상업·개인정보를 마스킹(상세본은 로컬 비공개). Part 1 통관 마스터와 별개의 독립 단일 HTML로 previews/ship-certs/에 배치.' },
       { type:'완료', title:'VIEW 카테고리 선택 허브 신설 — 통관절차/선사업무 통합 (2026-06-05)', desc:'박사 지시 — VIEW 클릭 시 두 카테고리를 따로 분리하지 않고 한 화면에서 선택. previews/tradelogix-hub/ 신설(자급식 단일 HTML): 「통관절차」(통관 마스터 앱)·「선사업무」(선박 증서 31종 도해) 두 카드 선택 화면 + 카드 선택 시 동일 화면 내 임베드 뷰어(← 카테고리 복귀, 딥링크 #customs·#carrier). #9 프리뷰를 이 허브 하나로 통합(기존 2탭 분리 → 1 진입+카테고리 전환). 통관 앱·선사업무 도해 자체는 그대로 두고 허브가 둘을 연결.' },
-      { type:'완료', title:'선사업무 서브허브화 — MAGE 프로젝트(supply DB) 통합 (2026-06-05)', desc:'박사 지시(집작업 선박증서 + Claude 정리 MAGE를 합쳐 정리) — #9 선사업무를 서브허브(previews/ship-ops-hub/)로 재편: ① MAGE 프로젝트 = 북극 탐사선단(NIKOLAY TRUBYATCHINSKY·AKADEMIK KAZANIN·SAPFIR) 선박 supply 조달 DB(raw 361→표준 199품목; A화학2·B식료품95·C기관예비품76[Cummins N14]·D전자전기15·E공구위생11)를 previews/mage-supply/에 marked.js 뷰어로 배치(batch-01, 50/215p, Codex 교차검수 대기). ② 선박증서 = 박사 작성 31종 도해(ship-certs) 그대로 연결. tradelogix-hub 선사업무 카드 → 서브허브 링크. 통관(Module1) + 선사(Module2: MAGE·증서) 통합 완성.' }
+      { type:'완료', title:'선사업무 서브허브화 — MAGE 프로젝트(supply DB) 통합 (2026-06-05)', desc:'박사 지시(집작업 선박증서 + Claude 정리 MAGE를 합쳐 정리) — #9 선사업무를 서브허브(previews/ship-ops-hub/)로 재편: ① MAGE 프로젝트 = 북극 탐사선단(NIKOLAY TRUBYATCHINSKY·AKADEMIK KAZANIN·SAPFIR) 선박 supply 조달 DB(raw 361→표준 199품목; A화학2·B식료품95·C기관예비품76[Cummins N14]·D전자전기15·E공구위생11)를 previews/mage-supply/에 marked.js 뷰어로 배치(batch-01, 50/215p, Codex 교차검수 대기). ② 선박증서 = 박사 작성 31종 도해(ship-certs) 그대로 연결. tradelogix-hub 선사업무 카드 → 서브허브 링크. 통관(Module1) + 선사(Module2: MAGE·증서) 통합 완성.' },
+      { type:'완료', title:'MAGE supply — 214p 전량 종결 + ‘부식’ 제외 + 누락배치 정리 (2026-06-09)', desc:'박사 지시 — 선박 supply 조달기록 PDF 4분할 중 남은 batch-02(p51~100)·batch-03(p101~160, 60p)·batch-04(p161~214, 54p)를 220DPI 비전 OCR + (b04는 텍스트레이어 병행) 2단 적대검증 워크플로로 정리해 214페이지 전량 종결. ‘부식’(식료품·식수)은 박사 지시로 제외 — batch-01의 식료품 95품목도 소급 삭제, 비식품(선용품·예비품·소모품·기술개념)만 수록. 신규 선박 ALMAZ·FEDOR KOVROV 식별, 신규 카테고리(배관·유압·탐사장비[Sound Oceanics·Trelleborg]·항해통신·안전구명). cross-batch 중복(주방·침구·디스차지밸브·TrioVing·시멘트 FFE) 재계상 제외. previews/mage-supply/ 뷰어를 4배치 탭+종합 인덱스로 갱신.' },
+      { type:'완료', title:'MAGE supply 전배치 — Claude 2라운드 적대 자체검수 (2026-06-09)', desc:'Codex 토큰 부재로 변증법 검수 역할을 Claude가 대행 — 자기검수 sycophancy 차단 위해 독립 적대 에이전트 fan-out. R1 적발(25 감사관, 원본 PNG↔DB 재대조) 139건 → R2 독립 재대조(11, 검증8+완전성비평3) 오탐 0으로 확정 → 88건 정정. OCR 환각 적발(Epson→Kyocera·TV→토너·BLUE→GLUE GUN·DNPF→DMP333·Cummins 부품번호 ‘1자리 차’ 환각 13건), 누락품목 복원(ALMAZ 연료필터·Sanding머신 등), 시멘트 cross-batch 이중계상 제거, b01 통계 104(미집계)→129행 교정. 정정후 누적 ~404행. 한계: Claude 단독이라 모델 공통 맹점 잔존 가능 → Codex 3자 검수 권장.' }
     ],
     milestones: [
       { date:'2026-06-04', title:'프로젝트 #9 신설 — TradeLogix Nexus (무역과 물류)', desc:'지식 대시보드 시리즈 9번으로 신설. Part 1 = 통관 마스터(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증). 독립 레포·worktree 격리 셋업, 대시보드 등록.' },
@@ -496,7 +498,9 @@ const PROJECTS = [
       { date:'2026-06-04', title:'Part 1 구현 완료 + Codex 검수 PASS (변증법 1사이클 종료)', desc:'설계 변증법 R1~R3(R1·R2 Codex BLOCK → R3 PASS·IMPLEMENTATION GO) → Claude 단독 구현(index.html) → Codex 사후검수 PASS(데이터계약 55·Playwright headless·390px·fallback). 라이브 프리뷰 대시보드 임베드. master 통합은 박사 디렉팅 대기.' },
       { date:'2026-06-05', title:'「선사 업무」 선박 증서 31종 도해 추가 + 대시보드 #9 임베드', desc:'#9의 선사 업무 축으로 선박 증서 31종(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 도해를 마스킹 공개본으로 작성해 previews/ship-certs/에 배치. 증서철 31종 PDF를 워크플로(32 에이전트)로 추출·교차감사. Edge 헤드리스 렌더 검증(데스크탑·모바일 리플로우 정상).' },
       { date:'2026-06-05', title:'VIEW 카테고리 선택 허브 — 통관절차/선사업무 통합 전환', desc:'#9 VIEW 진입을 카테고리 선택 허브(previews/tradelogix-hub/)로 전환 — 통관절차·선사업무를 한 화면에서 선택/전환(딥링크 #customs·#carrier). 기존 프리뷰 2탭 분리 → 허브 1개로 통합, 통관 앱·선사업무 도해는 그대로 연결.' },
-      { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' }
+      { date:'2026-06-05', title:'선사업무 서브허브화 — MAGE 프로젝트 supply DB 통합', desc:'박사 집작업(선박증서 허브)과 Claude 정리(MAGE)를 합침 — 선사업무를 서브허브(ship-ops-hub)로 재편: MAGE 프로젝트(북극 탐사선단 supply DB, raw361→표준199품목, mage-supply) + 선박증서(31종) 2분기. batch-01(50/215p) marked.js 뷰어 배치, Codex 교차검수 대기.' },
+      { date:'2026-06-09', title:'MAGE supply 214p 전량 종결 + 부식 제외 (batch-02·03·04)', desc:'남은 3배치(p51~214)를 비전 OCR 2단 적대검증으로 정리해 214p 전량 처리 종결. ‘부식’(식료품·식수)은 박사 지시로 제외(b01 식료품 95품목 소급 삭제). 신규 선박 ALMAZ·FEDOR KOVROV, 신규 카테고리(탐사장비 Sound Oceanics·Trelleborg / 배관·유압 / 항해통신 / 안전구명). cross-batch 중복 재계상 제외. mage-supply 뷰어를 4배치 탭+종합 인덱스로 갱신.' },
+      { date:'2026-06-09', title:'MAGE supply 전배치 Claude 2라운드 적대 자체검수 (88건 정정)', desc:'Codex 토큰 부재로 Claude가 검수 대행 — 독립 적대 에이전트로 R1 적발 139건 → R2 독립 재대조(오탐 0) → 확정 88건 정정. OCR 환각(Epson→Kyocera·TV→토너·글루건·DMP333·Cummins 부품번호 환각 13)·누락품목 복원·시멘트 cross-batch 이중계상 제거·b01 통계 104→129 교정. 누적 ~404행. 한계상 Codex 3자 검수 권장.' }
     ]
   },
   {

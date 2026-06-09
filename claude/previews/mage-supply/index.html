@@ -28,10 +28,11 @@
   .topbar .spacer{flex:1}
   .topbar .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
     background:color-mix(in srgb,var(--teal) 16%,transparent);color:#bff3fb;border:1px solid color-mix(in srgb,var(--teal) 40%,transparent)}
+  .topbar .badge.gold{background:color-mix(in srgb,var(--gold) 16%,transparent);color:#ffe9b0;border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
   /* hero */
   .wrap{max-width:1120px;margin:0 auto;padding:22px 18px 70px}
   .hero{border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;
-    background:linear-gradient(180deg,rgba(19,40,58,.9),rgba(12,28,42,.9));margin-bottom:22px}
+    background:linear-gradient(180deg,rgba(19,40,58,.9),rgba(12,28,42,.9));margin-bottom:18px}
   .hero .eyebrow{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--teal);font-weight:700}
   .hero h1{margin:8px 0 4px;font-size:clamp(22px,3.4vw,32px);font-weight:800;
     background:linear-gradient(92deg,#bff3fb,#7fe6df 60%,#bff3fb);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -43,10 +44,21 @@
   .stat .k{font-size:11.5px;color:var(--muted);margin-top:2px}
   .fleet{margin-top:14px;display:flex;flex-wrap:wrap;gap:7px}
   .fleet .chip{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:#9fc2d2;border:1px solid var(--line)}
+  .fleet .chip.new{background:rgba(251,191,36,.12);color:#ffe9b0;border-color:color-mix(in srgb,var(--gold) 36%,transparent)}
+  /* tabs */
+  .tabs{position:sticky;top:46px;z-index:9;display:flex;flex-wrap:wrap;gap:7px;padding:10px 0;margin-bottom:8px;
+    background:linear-gradient(180deg,rgba(15,23,42,.97),rgba(15,23,42,.85));backdrop-filter:blur(6px)}
+  .tab{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;
+    background:rgba(255,255,255,.03);color:#9fc2d2;border:1px solid var(--line);transition:.12s}
+  .tab:hover{background:rgba(45,212,207,.10);color:#bff3fb}
+  .tab.on{background:color-mix(in srgb,var(--teal) 22%,transparent);color:#d8fbff;border-color:color-mix(in srgb,var(--teal) 55%,transparent)}
+  .tab .n{font-size:10.5px;color:var(--muted);font-weight:600;margin-left:5px}
+  .tab.on .n{color:#bff3fb}
   /* markdown render */
-  .md h1{display:none}            /* batch md의 최상위 H1은 hero로 대체 */
-  .md h2{color:var(--teal);font-size:19px;border-bottom:1px solid var(--line);padding-bottom:7px;margin:36px 0 10px}
+  .md h1{display:none}
+  .md h2{color:var(--teal);font-size:19px;border-bottom:1px solid var(--line);padding-bottom:7px;margin:34px 0 10px}
   .md h3{color:var(--cyan);font-size:15px;margin:22px 0 6px}
+  .md h4{color:#bfe9f5;font-size:13.5px;margin:16px 0 4px}
   .md p{color:#c2d6e2;line-height:1.65;font-size:13.5px;margin:8px 0}
   .md ul,.md ol{color:#c2d6e2;font-size:13.5px;line-height:1.6}
   .md table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;display:block;overflow-x:auto;white-space:normal}
@@ -67,30 +79,44 @@
 <div class="topbar">
   <div class="tt"><span class="dot"></span>MAGE Project · SUPPLY <span class="sub">선사업무 · 선박 조달기록 DB</span></div>
   <span class="spacer"></span>
-  <span class="badge">batch-01 · 50/215p</span>
-  <a class="badge" href="batch-01.md" target="_blank" rel="noopener" style="text-decoration:none">원본 .md ↗</a>
+  <span class="badge gold">🏁 214p 전량 종결</span>
+  <span class="badge">🔍 2R 적대검수 · 88건 정정</span>
+  <a class="badge" id="rawlink" href="_index.md" target="_blank" rel="noopener" style="text-decoration:none">원본 .md ↗</a>
 </div>
 
 <div class="wrap">
   <div class="hero">
     <div class="eyebrow">Module 2 · Ocean Carrier &amp; Fleet Ops</div>
     <h1>MAGE Project — 선박 Supply 조달 DB</h1>
-    <p class="lead">MAGE(Marine Arctic Geological Expedition · 북극 해양 지질 탐사) 선단의 선박용품 조달기록을
-       <b>추출 → 중복제거 → 개념해설 → 용도매핑</b>한 한국어 마스터 DB. 50페이지 배치 누적 처리.</p>
+    <p class="lead">MAGE(Marine Arctic Geological Expedition · 북극 해양 지질 탐사) 선단의 선박용품 조달기록 PDF <b>214페이지</b>를
+       <b>추출 → 중복제거 → 개념해설 → 용도매핑</b>한 한국어 마스터 DB. 4개 배치(50p 단위)로 전량 처리 완료.
+       <b>‘부식’(식료품·식수)은 박사 지시로 제외</b> — 비식품(선용품·예비품·소모품·기술개념)만 수록.
+       전 배치를 <b>Claude 2라운드 적대 자체검수</b>(감사 25 → 검증 11)로 교차검증해 확정 88건을 정정했다.</p>
     <div class="stats">
-      <div class="stat"><div class="v">361</div><div class="k">raw 품목</div></div>
-      <div class="stat"><div class="v">199</div><div class="k">표준 통합</div></div>
-      <div class="stat"><div class="v">5</div><div class="k">카테고리</div></div>
-      <div class="stat"><div class="v">50/215</div><div class="k">처리 페이지</div></div>
+      <div class="stat"><div class="v">~404</div><div class="k">비식품 표준행(누적)</div></div>
+      <div class="stat"><div class="v">214/214</div><div class="k">처리 페이지(종결)</div></div>
+      <div class="stat"><div class="v">4</div><div class="k">배치 (b01~04)</div></div>
+      <div class="stat"><div class="v">5</div><div class="k">선박단</div></div>
+      <div class="stat"><div class="v">88</div><div class="k">검수 정정(2R)</div></div>
     </div>
     <div class="fleet">
       <span class="chip">NIKOLAY TRUBYATCHINSKY (RV)</span>
       <span class="chip">AKADEMIK KAZANIN</span>
-      <span class="chip">SAPFIR</span>
-      <span class="chip">공급 COENS GLS · 더마린코리아</span>
+      <span class="chip">SAPFIR / SAPHIR</span>
+      <span class="chip new">ALMAZ (b02 신규)</span>
+      <span class="chip new">FEDOR KOVROV (b02 신규)</span>
+      <span class="chip">공급 COENS GLS · 더마린코리아 · St Marine · Sound Oceanics</span>
       <span class="chip">부산세관</span>
     </div>
   </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-f="_index.md">종합 인덱스</button>
+    <button class="tab" data-f="batch-01.md">batch-01 <span class="n">p1~50 · 129</span></button>
+    <button class="tab" data-f="batch-02.md">batch-02 <span class="n">p51~100 · 99</span></button>
+    <button class="tab" data-f="batch-03.md">batch-03 <span class="n">p101~160 · 99</span></button>
+    <button class="tab" data-f="batch-04.md">batch-04 <span class="n">p161~214 · 77</span></button>
+  </nav>
 
   <article id="content" class="md"><div class="loading">DB를 불러오는 중…</div></article>
 </div>
@@ -99,18 +125,31 @@
 <script>
   (function(){
     var el = document.getElementById('content');
+    var tabs = document.getElementById('tabs');
+    var rawlink = document.getElementById('rawlink');
     function render(md){
-      try { el.innerHTML = marked.parse(md); }
+      try { el.innerHTML = marked.parse(md); window.scrollTo({top:0,behavior:'smooth'}); }
       catch(e){ el.innerHTML = '<div class="err">렌더 오류: ' + (e && e.message) + '</div>'; }
     }
-    fetch('batch-01.md', {cache:'no-store'})
-      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-      .then(render)
-      .catch(function(e){
-        el.innerHTML = '<div class="err">DB 파일(batch-01.md)을 불러오지 못했습니다 ('+e.message+').<br>'
-          + 'GitHub Pages(https)에서는 정상 표시됩니다. 로컬 file:// 직접 열람 시 브라우저 보안정책으로 fetch가 차단될 수 있습니다 — '
-          + '<a href="batch-01.md" target="_blank" rel="noopener">원본 .md 열기 ↗</a></div>';
-      });
+    function load(file){
+      rawlink.setAttribute('href', file);
+      el.innerHTML = '<div class="loading">' + file + ' 불러오는 중…</div>';
+      fetch(file, {cache:'no-store'})
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+        .then(render)
+        .catch(function(e){
+          el.innerHTML = '<div class="err">DB 파일(' + file + ')을 불러오지 못했습니다 ('+e.message+').<br>'
+            + 'GitHub Pages(https)에서는 정상 표시됩니다. 로컬 file:// 직접 열람 시 브라우저 보안정책으로 fetch가 차단될 수 있습니다 — '
+            + '<a href="' + file + '" target="_blank" rel="noopener">원본 .md 열기 ↗</a></div>';
+        });
+    }
+    tabs.addEventListener('click', function(ev){
+      var b = ev.target.closest('.tab'); if(!b) return;
+      Array.prototype.forEach.call(tabs.querySelectorAll('.tab'), function(t){ t.classList.remove('on'); });
+      b.classList.add('on');
+      load(b.getAttribute('data-f'));
+    });
+    load('_index.md');
   })();
 </script>
 </body>
