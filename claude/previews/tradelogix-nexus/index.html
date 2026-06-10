@@ -37,6 +37,7 @@
 <script src="bosesa-data-3-2025.js"></script>
 <script src="bosesa-data-3-2024.js"></script>
 <script src="bosesa-data-3-2023.js"></script>
+<script src="customs-practice-data.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
   :root{ color-scheme: dark; }
@@ -267,6 +268,8 @@
     <!-- 플로우차트: desktop(가로 노드맵) / mobile(세로 stepper) — 이중 렌더 -->
     <div id="flowDesktop" class="mt-2 hidden md:flex items-stretch overflow-x-auto tx-scroll pb-2" role="list" aria-label="통관 플로우차트(데스크탑)"></div>
     <div id="flowMobile" class="mt-2 md:hidden flex flex-col gap-2" role="list" aria-label="통관 플로우차트(모바일)"></div>
+    <!-- 연락 체계 배너 (누가 누구에게 — 큰 그림) -->
+    <div id="callMapBanner" class="mt-3"></div>
     <!-- 스플릿 뷰포트 -->
     <div id="viewport" class="mt-4 grid gap-3 lg:grid-cols-2"></div>
   </section>
@@ -289,6 +292,16 @@
       <p id="docHint" class="text-xs text-slate-400"></p>
     </div>
     <div id="docBody" class="mt-3"></div>
+  </section>
+
+  <!-- ====== 4. 현장 등장인물 & 용어 사전 (통관 처음이면 여기부터) ====== -->
+  <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-4 sm:p-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-users-viewfinder text-sky-400"></i> 현장 등장인물 &amp; 용어 — 통관 처음이라면 여기부터</h2>
+      <p class="text-xs text-slate-400">화주·포워더·선사·관세사 · D/O·THC·UNI-PASS·적하목록…</p>
+    </div>
+    <div id="glossaryBody" class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3"></div>
   </section>
 
 </main>
@@ -618,6 +631,11 @@ DB.altPanel = {
     risk:'사유 증빙 부실 시 반송 부인 → 수입통관/폐기 전환으로 비용 급증.' },
 };
 
+/* ---------- 실무 절차(현장) 데이터: customs-practice-data.js → DB (리서치+적대검증 합성) ---------- */
+DB.practice = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.practice) || { import:{}, export:{}, return:{} };
+DB.callMap  = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.callMap)  || {};
+DB.glossary = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.glossary) || [];
+
 /* ================= 상태머신 v2 ================= */
 const S = {
   view: 'customs',           // 'customs' | 'bosesa'
@@ -728,7 +746,7 @@ function render(){
   } else {
     document.querySelectorAll('main section').forEach(s=>s.style.display='');
     $('bosesaRoot').style.display='none';
-    renderHero(); renderFlow(); renderViewport(); renderIncoterm(); renderDoc();
+    renderHero(); renderFlow(); renderCallMap(); renderViewport(); renderIncoterm(); renderDoc(); renderGlossary();
   }
 }
 
@@ -874,7 +892,67 @@ function renderViewport(){
         ${n.docs.map(d=>`<span class="text-[11px] px-2 py-1 rounded bg-slate-700/70 text-slate-300"><i class="fa-regular fa-file-lines mr-1"></i>${esc(d)}</span>`).join('')}
       </div>
       <p class="mt-3 text-xs text-amber-300"><i class="fa-solid fa-clock mr-1"></i>지연 트리거: ${esc(n.delayTrigger)}</p>
+    </div>
+    ${practiceCardHTML(n.id)}`;
+}
+
+/* ---------- 실무 절차(현장) 카드: 누가→누구에게 / 어디에·어떻게 / 현장 서류 / 팁 ---------- */
+function practiceCardHTML(nodeId){
+  const p = (DB.practice[S.customsType] || {})[nodeId];
+  if(!p) return '';
+  const confLabel = { high:'검증 · 신뢰 높음', medium:'검증 · 보통', low:'미확정(보수적 해석)' }[p.confidence] || '';
+  const confCls = { high:'text-emerald-300 bg-emerald-500/15', medium:'text-amber-300 bg-amber-500/15', low:'text-slate-300 bg-slate-600/30' }[p.confidence] || 'text-slate-300 bg-slate-600/30';
+  const chain = (p.callChain || []).map((c,i)=>`
+    <li class="relative pl-7">
+      <span class="absolute left-0 top-0.5 w-5 h-5 rounded-full bg-sky-500/20 ring-1 ring-sky-400/50 grid place-items-center text-[11px] font-bold text-sky-300">${i+1}</span>
+      <div class="text-sm"><b class="text-sky-300">${esc(c.from)}</b><i class="fa-solid fa-arrow-right-long mx-2 text-slate-500"></i><b class="text-emerald-300">${esc(c.to)}</b></div>
+      <div class="text-[13px] text-slate-300 mt-0.5">${esc(c.action)}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5"><i class="fa-solid fa-tower-broadcast mr-1"></i>${esc(c.channel)}</div>
+    </li>`).join('');
+  const filing = p.filing ? `
+    <div class="mt-3 rounded-lg bg-sky-950/30 ring-1 ring-sky-500/30 p-3">
+      <div class="text-xs font-bold text-sky-300 mb-2"><i class="fa-solid fa-file-pen mr-1"></i>신고·처리 — 누가 / 어디에 / 어떻게</div>
+      <div class="grid sm:grid-cols-3 gap-2 text-[13px]">
+        <div class="rounded bg-slate-900/40 ring-1 ring-slate-700 p-2"><div class="text-[11px] text-slate-500">누가</div><div class="text-slate-200">${esc(p.filing.who)}</div></div>
+        <div class="rounded bg-slate-900/40 ring-1 ring-slate-700 p-2"><div class="text-[11px] text-slate-500">어디에</div><div class="text-slate-200">${esc(p.filing.where)}</div></div>
+        <div class="rounded bg-slate-900/40 ring-1 ring-slate-700 p-2"><div class="text-[11px] text-slate-500">어떻게</div><div class="text-slate-200">${esc(p.filing.how)}</div></div>
+      </div>
+    </div>` : '';
+  const docs = (p.docs || []).map(d=>`<span class="text-[11px] px-2 py-1 rounded bg-slate-700/70 text-slate-300"><i class="fa-regular fa-file-lines mr-1"></i>${esc(d)}</span>`).join('');
+  return `
+    <div class="lg:col-span-2 rounded-xl bg-gradient-to-br from-sky-950/40 to-slate-800/60 ring-1 ring-sky-500/30 p-4">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="text-xs font-bold text-sky-400"><i class="fa-solid fa-people-arrows mr-1"></i>실무 절차 — 누가·어디에·어떻게 (현장)</div>
+        ${confLabel?`<span class="text-[11px] px-2 py-0.5 rounded ${confCls}">${esc(confLabel)}</span>`:''}
+      </div>
+      <div class="mt-1 text-sm text-slate-300"><b class="text-slate-200">이 단계 주도:</b> ${esc(p.leadActor)}</div>
+      <ol class="mt-3 space-y-3">${chain}</ol>
+      ${filing}
+      ${docs?`<div class="mt-3"><div class="text-[11px] text-slate-500 mb-1">현장 서류·전표</div><div class="flex flex-wrap gap-2">${docs}</div></div>`:''}
+      ${p.fieldNote?`<div class="mt-3 rounded-lg bg-amber-950/25 ring-1 ring-amber-500/25 p-3 text-[13px] text-amber-100 leading-relaxed"><i class="fa-solid fa-lightbulb mr-1 text-amber-300"></i>${esc(p.fieldNote)}</div>`:''}
     </div>`;
+}
+
+/* ---------- 연락 체계 배너 (통관유형별 큰 그림) ---------- */
+function renderCallMap(){
+  const el = $('callMapBanner'); if(!el) return;
+  const txt = (DB.callMap || {})[S.customsType];
+  const t = TYPES.find(x=>x.key===S.customsType);
+  if(!txt || !t){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="rounded-xl bg-slate-800/50 ring-1 ring-slate-700 p-3.5">
+    <div class="text-xs font-bold ${ACCENT[t.accent].dot} mb-1"><i class="fa-solid fa-sitemap mr-1"></i>${esc(t.label)} 연락 체계 — 누가 누구에게 (큰 그림)</div>
+    <p class="text-[13px] text-slate-300 leading-relaxed">${esc(txt)}</p>
+  </div>`;
+}
+
+/* ---------- 현장 용어 사전 ---------- */
+function renderGlossary(){
+  const el = $('glossaryBody'); if(!el) return;
+  el.innerHTML = (DB.glossary || []).map(g=>`
+    <div class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3">
+      <div class="text-sm font-bold text-white">${esc(g.term)}</div>
+      <div class="mt-1 text-[13px] text-slate-300 leading-relaxed">${esc(g.meaning)}</div>
+    </div>`).join('');
 }
 
 function renderIncoterm(){
