@@ -35,6 +35,7 @@
 <script src="bosesa-data-2-2020.js"></script>
 <script src="bosesa-data-2-2019.js"></script>
 <script src="bosesa-data-3-2025.js"></script>
+<script src="bosesa-data-3-2024.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
   :root{ color-scheme: dark; }
@@ -209,6 +210,9 @@
       <div id="sb-s3-menu" style="max-height:0;overflow:hidden;transition:max-height .2s ease;">
         <button class="sb-item sb-child2" id="sb-s3-year-2025" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:3,bosesaYear:2025})">
           <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2025년
+        </button>
+        <button class="sb-item sb-child2" id="sb-s3-year-2024" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:3,bosesaYear:2024})">
+          <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2024년
         </button>
       </div>
       <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
@@ -772,6 +776,8 @@ function renderSidebar(){
   if(y2s2019) y2s2019.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===2&&S.bosesaYear===2019?' sb-on-year':'');
   const y3s2025 = $('sb-s3-year-2025');
   if(y3s2025) y3s2025.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2025?' sb-on-year':'');
+  const y3s2024 = $('sb-s3-year-2024');
+  if(y3s2024) y3s2024.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2024?' sb-on-year':'');
 }
 
 function renderHero(){
@@ -1088,6 +1094,8 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_2_2019 !== 'undefined' ? BOSESA_DATA_2_2019 : null;
   } else if(S.bosesaSubject===3 && S.bosesaYear===2025){
     data = typeof BOSESA_DATA_3_2025 !== 'undefined' ? BOSESA_DATA_3_2025 : null;
+  } else if(S.bosesaSubject===3 && S.bosesaYear===2024){
+    data = typeof BOSESA_DATA_3_2024 !== 'undefined' ? BOSESA_DATA_3_2024 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
