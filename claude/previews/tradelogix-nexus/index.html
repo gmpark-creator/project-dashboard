@@ -27,6 +27,7 @@
 <script src="bosesa-data-1-2021.js"></script>
 <script src="bosesa-data-1-2020.js"></script>
 <script src="bosesa-data-1-2019.js"></script>
+<script src="bosesa-data-2-2025.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
   :root{ color-scheme: dark; }
@@ -164,14 +165,20 @@
         <button class="sb-item sb-child2" id="sb-year-2019" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:1,bosesaYear:2019})">
           <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년
         </button>
+      </div>
+      <!-- 2과목 -->
+      <button class="sb-item sb-child" onclick="toggleSubject2()">
+        <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>2과목 보세구역관리
+        <i class="fa-solid fa-chevron-down ml-auto text-[10px] text-slate-500" id="sb-s2-chevron"></i>
+      </button>
+      <div id="sb-s2-menu" style="max-height:0;overflow:hidden;transition:max-height .2s ease;">
+        <button class="sb-item sb-child2" id="sb-s2-year-2025" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:2,bosesaYear:2025})">
+          <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2025년
+        </button>
         <button class="sb-item sb-child2" style="opacity:.4;cursor:not-allowed;" disabled>
-          <i class="fa-solid fa-circle w-2 text-center text-slate-600"></i>2019년 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
+          <i class="fa-solid fa-circle w-2 text-center text-slate-600"></i>2024년 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
         </button>
       </div>
-      <!-- 2~5과목 잠금 -->
-      <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
-        <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>2과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
-      </button>
       <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
         <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>3과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
       </button>
@@ -593,7 +600,7 @@ function setState(patch){
   render();
 }
 
-let _bosesaMenuOpen = false, _s1MenuOpen = false;
+let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false;
 function toggleBosesaMenu(){
   _bosesaMenuOpen = !_bosesaMenuOpen;
   const menu = $('sb-bosesa-quiz-menu');
@@ -608,6 +615,17 @@ function toggleSubject1(){
   menu.style.maxHeight = _s1MenuOpen ? menu.scrollHeight + 'px' : '0';
   if(chev) chev.style.transform = _s1MenuOpen ? 'rotate(180deg)' : '';
   // 부모 메뉴도 높이 재계산
+  if(_bosesaMenuOpen){
+    const parent = $('sb-bosesa-quiz-menu');
+    parent.style.maxHeight = parent.scrollHeight + 300 + 'px';
+  }
+}
+function toggleSubject2(){
+  _s2MenuOpen = !_s2MenuOpen;
+  const menu = $('sb-s2-menu');
+  const chev = $('sb-s2-chevron');
+  menu.style.maxHeight = _s2MenuOpen ? menu.scrollHeight + 'px' : '0';
+  if(chev) chev.style.transform = _s2MenuOpen ? 'rotate(180deg)' : '';
   if(_bosesaMenuOpen){
     const parent = $('sb-bosesa-quiz-menu');
     parent.style.maxHeight = parent.scrollHeight + 300 + 'px';
@@ -698,6 +716,8 @@ function renderSidebar(){
   if(y20) y20.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2020?' sb-on-year':'');
   const y19 = $('sb-year-2019');
   if(y19) y19.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2019?' sb-on-year':'');
+  const y2s2025 = $('sb-s2-year-2025');
+  if(y2s2025) y2s2025.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===2&&S.bosesaYear===2025?' sb-on-year':'');
 }
 
 function renderHero(){
@@ -998,6 +1018,8 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_1_2020 !== 'undefined' ? BOSESA_DATA_1_2020 : null;
   } else if(S.bosesaSubject===1 && S.bosesaYear===2019){
     data = typeof BOSESA_DATA_1_2019 !== 'undefined' ? BOSESA_DATA_1_2019 : null;
+  } else if(S.bosesaSubject===2 && S.bosesaYear===2025){
+    data = typeof BOSESA_DATA_2_2025 !== 'undefined' ? BOSESA_DATA_2_2025 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
