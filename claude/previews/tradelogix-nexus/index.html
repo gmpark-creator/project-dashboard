@@ -1189,38 +1189,46 @@ function renderBosesaQuiz(){
     return;
   }
 
+  const CIRC = ['','①','②','③','④','⑤','⑥','⑦','⑧'];
   const qsHTML = data.questions.map(q=>{
-    const open = !!S.quizOpen[q.no];
+    // ── 스키마 정규화: 파일마다 필드명(no/id/number · text/stemText/question)과 정답형(배열/숫자)·해설(answerBasis+choiceAnalysis / explanation)이 달라 흡수 ──
+    const qno    = q.no ?? q.id ?? q.number;
+    const qtext  = q.text ?? q.stemText ?? q.question ?? '';
+    const qans   = Array.isArray(q.answer) ? q.answer : (q.answer != null ? [q.answer] : []);
+    const qbasis = q.answerBasis ?? q.explanation ?? '';
+    const qCA    = Array.isArray(q.choiceAnalysis) ? q.choiceAnalysis : null;
+    const open = !!S.quizOpen[qno];
     const choicesHTML = q.choices.map((c,i)=>{
       const num = i+1;
-      const isCorrect = q.answer.includes(num);
+      const isCorrect = qans.includes(num);
       let cls = 'bq-choice';
       if(open) cls += isCorrect ? ' bq-correct' : ' bq-wrong';
-      return `<button class="${cls}" onclick="toggleQuizAnswer(${q.no})" style="${open?'cursor:default':''}">
-        <span class="font-bold flex-shrink-0">${['①','②','③','④','⑤'][i]}</span>
-        <span>${esc(c.replace(/^[①②③④⑤]\s*/,''))}</span>
+      return `<button class="${cls}" onclick="toggleQuizAnswer(${qno})" style="${open?'cursor:default':''}">
+        <span class="font-bold flex-shrink-0">${CIRC[i+1]||(i+1)}</span>
+        <span>${esc(String(c).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
       </button>`;
     }).join('');
 
+    const ansLabel = qans.map(n=>CIRC[n]||n).join('');
     const analysisHTML = open ? `
       <div class="bq-basis mt-3">
-        <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check-circle mr-1"></i>정답 근거</div>
-        ${esc(q.answerBasis)}
+        <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check-circle mr-1"></i>정답 근거${ansLabel?` <span class="text-slate-400 font-normal">· 정답 ${ansLabel}</span>`:''}</div>
+        ${esc(qbasis)}
       </div>
-      <div class="bq-analysis mt-2">
+      ${qCA ? `<div class="bq-analysis mt-2">
         <div class="text-[11px] font-bold text-slate-400 mb-2"><i class="fa-solid fa-list mr-1"></i>선지별 분석</div>
-        ${q.choiceAnalysis.map((a,i)=>{
-          const num=i+1; const isCorrect=q.answer.includes(num);
-          return `<div class="mb-2"><b class="${isCorrect?'text-emerald-300':'text-slate-300'}">${['①','②','③','④','⑤'][i]}</b> <span>${esc(a)}</span></div>`;
+        ${qCA.map((a,i)=>{
+          const isCorrect=qans.includes(i+1);
+          return `<div class="mb-2"><b class="${isCorrect?'text-emerald-300':'text-slate-300'}">${CIRC[i+1]||(i+1)}</b> <span>${esc(a)}</span></div>`;
         }).join('')}
-      </div>` : '';
+      </div>` : ''}` : '';
 
-    return `<div class="bq-card" id="bq-${q.no}">
+    return `<div class="bq-card" id="bq-${qno}">
       <div class="flex items-start justify-between gap-3">
         <div class="bq-q">
-          <span class="text-violet-400 font-bold mr-2">Q${q.no}.</span>${esc(q.text)}
+          <span class="text-violet-400 font-bold mr-2">Q${qno}.</span>${esc(qtext)}
         </div>
-        ${open ? '' : `<button class="bq-answer-btn flex-shrink-0" onclick="toggleQuizAnswer(${q.no})">정답 보기</button>`}
+        ${open ? '' : `<button class="bq-answer-btn flex-shrink-0" onclick="toggleQuizAnswer(${qno})">정답 보기</button>`}
       </div>
       <div class="mt-3">${choicesHTML}</div>
       ${analysisHTML}
@@ -1231,8 +1239,8 @@ function renderBosesaQuiz(){
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
       <div>
         <div class="text-xs font-bold text-violet-400 tracking-widest uppercase">보세사 기출문제</div>
-        <h2 class="text-xl font-bold text-white">${data.year}년 ${data.subjectNo}과목 — ${esc(data.subjectName)}</h2>
-        <p class="text-xs text-slate-400 mt-1">${data.answerForm} · 총 ${data.totalQuestions}문항</p>
+        <h2 class="text-xl font-bold text-white">${data.year}년 ${data.subjectNo ?? data.subject}과목 — ${esc(data.subjectName)}</h2>
+        <p class="text-xs text-slate-400 mt-1">${data.answerForm ?? '기출'} · 총 ${data.totalQuestions ?? data.questions.length}문항</p>
       </div>
       <div class="flex gap-2">
         <button class="text-xs px-3 py-2 rounded-lg bg-slate-700 text-slate-300 border border-slate-600"
