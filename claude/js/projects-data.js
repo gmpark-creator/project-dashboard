@@ -458,7 +458,7 @@ const PROJECTS = [
     id: 'tradelogix',
     no: 8,
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1과목 2025·2024·2023·2022·2021·2020·2019년 · 2과목 2025·2024·2023년 — 공식정답표 전수검증)',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1과목 2025·2024·2023·2022·2021·2020·2019년 · 2과목 2025·2024·2023·2022년 — 공식정답표 전수검증)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
@@ -520,7 +520,8 @@ const PROJECTS = [
       { date:’2026-06-10’, title:’보세사 1과목 2019년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2019년 25문항을 PDF 이미지(p04~p14) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. bosesa-data-1-2019.js 신규, 사이드바 2019년 버튼 활성화. newton push 완료(ac0232f).’ },
       { date:’2026-06-10’, title:’보세사 2과목(보세구역관리) 2025년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2025년 2과목 25문항을 PDF 이미지(bosesa_25_2) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. bosesa-data-2-2025.js 신규, 2과목 사이드바 섹션 신설. newton push 완료(aa3fe66).’ },
       { date:’2026-06-10’, title:’보세사 2과목(보세구역관리) 2024년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2024년 2과목 25문항을 PDF 이미지(bosesa_24_2) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. bosesa-data-2-2024.js 신규, 사이드바 2024년 버튼 활성화. newton push 완료(f973952).’ },
-      { date:’2026-06-10’, title:’보세사 2과목(보세구역관리) 2023년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2023년 2과목 25문항을 PDF 이미지(bosesa_23_2, 13장) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. bosesa-data-2-2023.js 신규, 사이드바 2023년 버튼 활성화. newton push 완료(1305cf5).’ }
+      { date:’2026-06-10’, title:’보세사 2과목(보세구역관리) 2023년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2023년 2과목 25문항을 PDF 이미지(bosesa_23_2, 13장) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. bosesa-data-2-2023.js 신규, 사이드바 2023년 버튼 활성화. newton push 완료(1305cf5).’ },
+      { date:’2026-06-10’, title:’보세사 2과목(보세구역관리) 2022년 — 25문항 전수 분석 + 1차 검수 PASS’, desc:’2022년 2과목 25문항을 PDF 이미지(bosesa_22_2, 13장) 직접 판독으로 추출. 공식 정답표(A형) 대조 1차 검수 25/25 PASS. Q1 복수정답(①④) 처리. bosesa-data-2-2022.js 신규, 사이드바 2022년 버튼 활성화. newton push 완료(afbe965).’ }
     ]
   },
   {
