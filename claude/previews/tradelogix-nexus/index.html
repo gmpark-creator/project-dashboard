@@ -24,6 +24,7 @@
 <script src="bosesa-data-1-2024.js"></script>
 <script src="bosesa-data-1-2023.js"></script>
 <script src="bosesa-data-1-2022.js"></script>
+<script src="bosesa-data-1-2021.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
   :root{ color-scheme: dark; }
@@ -152,8 +153,8 @@
         <button class="sb-item sb-child2" id="sb-year-2022" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:1,bosesaYear:2022})">
           <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2022년
         </button>
-        <button class="sb-item sb-child2" style="opacity:.4;cursor:not-allowed;" disabled>
-          <i class="fa-solid fa-circle w-2 text-center text-slate-600"></i>2021년 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
+        <button class="sb-item sb-child2" id="sb-year-2021" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:1,bosesaYear:2021})">
+          <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2021년
         </button>
         <button class="sb-item sb-child2" style="opacity:.4;cursor:not-allowed;" disabled>
           <i class="fa-solid fa-circle w-2 text-center text-slate-600"></i>2020년 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
@@ -686,6 +687,8 @@ function renderSidebar(){
   if(y23) y23.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2023?' sb-on-year':'');
   const y22 = $('sb-year-2022');
   if(y22) y22.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2022?' sb-on-year':'');
+  const y21 = $('sb-year-2021');
+  if(y21) y21.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2021?' sb-on-year':'');
 }
 
 function renderHero(){
@@ -980,6 +983,8 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_1_2023 !== 'undefined' ? BOSESA_DATA_1_2023 : null;
   } else if(S.bosesaSubject===1 && S.bosesaYear===2022){
     data = typeof BOSESA_DATA_1_2022 !== 'undefined' ? BOSESA_DATA_1_2022 : null;
+  } else if(S.bosesaSubject===1 && S.bosesaYear===2021){
+    data = typeof BOSESA_DATA_1_2021 !== 'undefined' ? BOSESA_DATA_1_2021 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
