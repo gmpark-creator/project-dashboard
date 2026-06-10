@@ -34,6 +34,7 @@
 <script src="bosesa-data-2-2021.js"></script>
 <script src="bosesa-data-2-2020.js"></script>
 <script src="bosesa-data-2-2019.js"></script>
+<script src="bosesa-data-3-2025.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
   :root{ color-scheme: dark; }
@@ -200,9 +201,16 @@
           <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년
         </button>
       </div>
-      <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
-        <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>3과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
+      <!-- 3과목 -->
+      <button class="sb-item sb-child" onclick="toggleSubject3()">
+        <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>3과목 화물관리
+        <i class="fa-solid fa-chevron-down ml-auto text-[10px] text-slate-500" id="sb-s3-chevron"></i>
       </button>
+      <div id="sb-s3-menu" style="max-height:0;overflow:hidden;transition:max-height .2s ease;">
+        <button class="sb-item sb-child2" id="sb-s3-year-2025" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:3,bosesaYear:2025})">
+          <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2025년
+        </button>
+      </div>
       <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
         <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>4과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
       </button>
@@ -621,7 +629,7 @@ function setState(patch){
   render();
 }
 
-let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false;
+let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false;
 function toggleBosesaMenu(){
   _bosesaMenuOpen = !_bosesaMenuOpen;
   const menu = $('sb-bosesa-quiz-menu');
@@ -647,6 +655,17 @@ function toggleSubject2(){
   const chev = $('sb-s2-chevron');
   menu.style.maxHeight = _s2MenuOpen ? menu.scrollHeight + 'px' : '0';
   if(chev) chev.style.transform = _s2MenuOpen ? 'rotate(180deg)' : '';
+  if(_bosesaMenuOpen){
+    const parent = $('sb-bosesa-quiz-menu');
+    parent.style.maxHeight = parent.scrollHeight + 300 + 'px';
+  }
+}
+function toggleSubject3(){
+  _s3MenuOpen = !_s3MenuOpen;
+  const menu = $('sb-s3-menu');
+  const chev = $('sb-s3-chevron');
+  menu.style.maxHeight = _s3MenuOpen ? menu.scrollHeight + 'px' : '0';
+  if(chev) chev.style.transform = _s3MenuOpen ? 'rotate(180deg)' : '';
   if(_bosesaMenuOpen){
     const parent = $('sb-bosesa-quiz-menu');
     parent.style.maxHeight = parent.scrollHeight + 300 + 'px';
@@ -751,6 +770,8 @@ function renderSidebar(){
   if(y2s2020) y2s2020.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===2&&S.bosesaYear===2020?' sb-on-year':'');
   const y2s2019 = $('sb-s2-year-2019');
   if(y2s2019) y2s2019.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===2&&S.bosesaYear===2019?' sb-on-year':'');
+  const y3s2025 = $('sb-s3-year-2025');
+  if(y3s2025) y3s2025.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2025?' sb-on-year':'');
 }
 
 function renderHero(){
@@ -1065,6 +1086,8 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_2_2020 !== 'undefined' ? BOSESA_DATA_2_2020 : null;
   } else if(S.bosesaSubject===2 && S.bosesaYear===2019){
     data = typeof BOSESA_DATA_2_2019 !== 'undefined' ? BOSESA_DATA_2_2019 : null;
+  } else if(S.bosesaSubject===3 && S.bosesaYear===2025){
+    data = typeof BOSESA_DATA_3_2025 !== 'undefined' ? BOSESA_DATA_3_2025 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
