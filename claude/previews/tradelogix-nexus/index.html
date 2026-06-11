@@ -48,6 +48,8 @@
 <script src="bosesa-data-4-2023.js"></script>
 <script src="bosesa-data-4-2022.js"></script>
 <script src="bosesa-data-4-2021.js"></script>
+<script src="bosesa-data-4-2020.js"></script>
+<script src="bosesa-data-4-2019.js"></script>
 
 <script src="customs-practice-data.js"></script>
 <style>
@@ -273,6 +275,12 @@
   </button>
   <button class="sb-item sb-child2" id="sb-s4-year-2021" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2021})">
   <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2021년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2020" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2020})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2020년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2019" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2019})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년 (자율·관세)
   </button>
   </div>
       <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
@@ -884,8 +892,8 @@ function renderSidebar(){
 
   const y3s2020 = $('sb-s3-year-2020');
   if(y3s2020) y3s2020.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2020?' sb-on-year':'');
-  /* BOSSA_PATCH_ACTIVE_YEARS_3COMPLETE_4_2021_2025 */
-  [[3,[2022,2021,2020,2019]],[4,[2025,2024,2023,2022,2021]]].forEach(([subject, years])=>{
+  /* BOSSA_PATCH_ACTIVE_YEARS_3COMPLETE_4_2019_2025 (구 4_2021_2025 블록 대체 — 동일 로직의 상위집합) */
+  [[3,[2022,2021,2020,2019]],[4,[2025,2024,2023,2022,2021,2020,2019]]].forEach(([subject, years])=>{
     years.forEach(year=>{
       const el = $('sb-s' + subject + '-year-' + year);
       if(el) el.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===subject&&S.bosesaYear===year?' sb-on-year':'');
@@ -1290,6 +1298,10 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_4_2022 !== 'undefined' ? BOSESA_DATA_4_2022 : null;
   } else if(S.bosesaSubject===4 && S.bosesaYear===2021){
     data = typeof BOSESA_DATA_4_2021 !== 'undefined' ? BOSESA_DATA_4_2021 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2020){
+    data = typeof BOSESA_DATA_4_2020 !== 'undefined' ? BOSESA_DATA_4_2020 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2019){
+    data = typeof BOSESA_DATA_4_2019 !== 'undefined' ? BOSESA_DATA_4_2019 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
