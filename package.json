@@ -1,0 +1,12 @@
+{
+  "name": "project-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "G.M.PARK project dashboard — live preview server for real-time spectating",
+  "scripts": {
+    "live": "node tools/live-dashboard.js"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
