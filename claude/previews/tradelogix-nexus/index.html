@@ -1207,37 +1207,32 @@ function renderBosesa(){
 
 function renderBosesaIntro(){
   $('bosesaRoot').innerHTML = `
-  <div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6">
-    <div class="flex items-center gap-3 mb-4">
-      <i class="fa-solid fa-graduation-cap text-2xl text-violet-400"></i>
-      <div>
-        <div class="text-xs font-bold text-violet-400 tracking-widest uppercase">보세사 자격시험</div>
-        <h2 class="text-xl font-bold text-white">보세사 업무 개요</h2>
-      </div>
+  <div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 overflow-hidden">
+    <div class="px-8 pt-10 pb-8 bg-gradient-to-b from-violet-950/40 to-transparent">
+      <div class="text-[11px] font-bold tracking-[0.3em] text-violet-400 uppercase mb-3">Global Trade · Bonded Operations</div>
+      <h2 class="text-3xl font-extrabold text-white leading-tight">Where Cargo Meets<br>Compliance.</h2>
+      <p class="mt-4 max-w-xl text-sm leading-relaxed text-slate-400">
+        Every shipment that crosses a border tells a story — of declarations filed,
+        duties assessed, and goods moving through bonded space under customs control.
+        This is the discipline of trade operations: precise, regulated, and global by nature.
+      </p>
     </div>
-    <div class="grid sm:grid-cols-2 gap-4">
-      <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-4">
-        <div class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-book mr-2 text-violet-400"></i>시험 구성</div>
-        <ul class="text-sm text-slate-300 space-y-1">
-          <li>· 1과목 — 수출입통관절차</li>
-          <li>· 2과목 — 보세구역관리</li>
-          <li>· 3과목 — 화물관리</li>
-          <li>· 4과목 — 수출입안전관리</li>
-          <li>· 5과목 — 자유무역지역법 등</li>
-        </ul>
+    <div class="px-8 pb-8 grid sm:grid-cols-3 gap-4">
+      <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-5">
+        <i class="fa-solid fa-file-signature text-violet-400 text-lg"></i>
+        <div class="mt-3 text-sm font-bold text-white">Customs Clearance</div>
+        <p class="mt-1 text-xs leading-relaxed text-slate-400">From import declaration to release — the gateway every cargo must pass.</p>
       </div>
-      <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-4">
-        <div class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-info-circle mr-2 text-sky-400"></i>시험 정보</div>
-        <ul class="text-sm text-slate-300 space-y-1">
-          <li>· 과목별 25문항 (5지선다)</li>
-          <li>· 총 125문항</li>
-          <li>· 과목별 40점 이상, 평균 60점 이상 합격</li>
-          <li>· A형 기준 (관세청 시행)</li>
-        </ul>
+      <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-5">
+        <i class="fa-solid fa-warehouse text-sky-400 text-lg"></i>
+        <div class="mt-3 text-sm font-bold text-white">Bonded Operations</div>
+        <p class="mt-1 text-xs leading-relaxed text-slate-400">Goods held under customs control — stored, processed, and managed in bonded zones.</p>
       </div>
-    </div>
-    <div class="mt-4 rounded-xl bg-violet-950/30 ring-1 ring-violet-500/30 p-4 text-sm text-violet-200">
-      <i class="fa-solid fa-arrow-left mr-2"></i>좌측 메뉴에서 <b>기출문제 → 1과목 → 연도</b>를 선택하면 문제 분석을 볼 수 있습니다.
+      <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 p-5">
+        <i class="fa-solid fa-earth-asia text-emerald-400 text-lg"></i>
+        <div class="mt-3 text-sm font-bold text-white">Global Logistics</div>
+        <p class="mt-1 text-xs leading-relaxed text-slate-400">Ports, carriers, and supply chains — moving trade across the world, on schedule.</p>
+      </div>
     </div>
   </div>`;
 }

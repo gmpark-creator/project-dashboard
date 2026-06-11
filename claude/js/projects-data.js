@@ -312,8 +312,9 @@ const PROJECTS = [
     progress: 30,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
     preview: { type:'embed', height:600, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, vite assets path 상대경로 변환)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일, 본장 마감/시간외 이원 시세 (Claude 트랙)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket 카테고리 허브 — ①SOXL 실시간 시세 ②Premarket Signal 진입 랜딩 (2026-06-11 통합)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일, 본장 마감/시간외 이원 시세 (Claude 트랙)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/phase1/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, 허브 통합으로 phase1/ 이동)' }
     ]},
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을\n'
            + '분석·시각화하는 연구용 대시보드.\n'
