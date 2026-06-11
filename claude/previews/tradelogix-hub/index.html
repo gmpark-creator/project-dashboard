@@ -8,7 +8,7 @@
   :root{
     --bg:#0F172A; --bg2:#111e36; --panel:#1e293b; --line:#334155;
     --ink:#e2e8f0; --muted:#94a3b8; --cyan:#38bdf8; --teal:#2dd4cf; --gold:#fbbf24;
-    --customs:#38bdf8; --carrier:#2dd4cf;
+    --customs:#38bdf8; --carrier:#2dd4cf; --panda:#a78bfa;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -34,7 +34,7 @@
   .brand .tagline{margin-top:10px;color:var(--muted);font-size:15px}
   .brand .tagline b{color:#bfe9f5}
 
-  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;width:min(880px,100%);position:relative;z-index:1}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:20px;width:min(1180px,100%);position:relative;z-index:1}
   .cat{
     position:relative;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;
     background:linear-gradient(180deg,rgba(19,40,58,.92),rgba(12,28,42,.92));
@@ -58,6 +58,7 @@
   .cat:hover .open .arr{transform:translateX(4px)}
   .cat[data-cat="customs"]{--accent:var(--customs)}
   .cat[data-cat="carrier"]{--accent:var(--carrier)}
+  .cat[data-cat="panda"]{--accent:var(--panda)}
 
   .foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;position:relative;z-index:1;line-height:1.7}
   .foot b{color:#9fc2d2}
@@ -93,7 +94,7 @@
   <div class="brand">
     <div class="eyebrow">TradeLogix Nexus · 무역과 물류</div>
     <h1>카테고리를 선택하세요</h1>
-    <p class="tagline">하나의 무역·물류 허브에서 <b>통관절차</b>와 <b>선사업무</b>를 함께 다룹니다. 보고 싶은 영역을 고르세요.</p>
+    <p class="tagline">하나의 무역·물류 허브에서 <b>통관절차</b>·<b>선사업무</b>·<b>판다 익스프레스 라인</b>을 함께 다룹니다. 보고 싶은 영역을 고르세요.</p>
   </div>
 
   <div class="cards">
@@ -130,10 +131,27 @@
       </div>
       <span class="open">열기 <span class="arr">→</span></span>
     </button>
+
+    <button class="cat" data-cat="panda" data-url="../panda-express-line/kakhidze-fininvest-intel/index.html"
+            data-title="카히제·핀인베스트 그룹 분석" data-sub="판다 익스프레스 라인 · 러시아 물류그룹 인텔리전스">
+      <span class="num">CATEGORY 03</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.4"/>
+        </svg>
+      </span>
+      <h2>판다 익스프레스 라인</h2>
+      <div class="en">Panda Express Line — 러시아 물류그룹 경쟁 인텔리전스</div>
+      <p>러시아 물류기업 <b>핀인베스트(ФинИнвест)</b> 그룹과 소유주 <b>알렉산드르 카히제</b>의 지배구조·금전 체급·자금조달·대외관계 분석 인포그래픽. 조직도·관계맵·자금플로우 인라인 SVG, 신뢰도 3등급 배지(확인/추정/미검증), 다크·라이트·A4 인쇄 대응.</p>
+      <div class="meta">
+        <span class="chip">로고페르·판다·TLC</span><span class="chip">매출 690억 ₽</span><span class="chip">투자 1,200억 ₽</span><span class="chip">CMA CGM·국가자본</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
   </div>
 
   <div class="foot">
-    <b>TradeLogix Nexus</b> — 무역과 물류 통합 허브 · 통관절차(Part 1) + 선사업무(MAGE 프로젝트 · 선박증서)<br>
+    <b>TradeLogix Nexus</b> — 무역과 물류 통합 허브 · 통관절차(Part 1) + 선사업무(MAGE 프로젝트 · 선박증서) + 판다 익스프레스 라인(카히제·핀인베스트 분석)<br>
     프로젝트 9번 · 카테고리는 한 화면에서 전환됩니다
   </div>
 </div>
@@ -157,7 +175,7 @@
   var vsub     = document.getElementById('vsub');
   var vdot     = document.getElementById('vdot');
   var newtab   = document.getElementById('newtab');
-  var ACCENT   = { customs:'#22d3ee', carrier:'#2dd4cf' };
+  var ACCENT   = { customs:'#22d3ee', carrier:'#2dd4cf', panda:'#a78bfa' };
 
   function openCat(cat, url, title, sub){
     frame.src = url;
@@ -188,7 +206,7 @@
   // 딥링크: #customs / #carrier 로 진입 시 해당 카테고리 바로 열기
   (function(){
     var h = (location.hash || '').replace('#','');
-    if (h === 'customs' || h === 'carrier') {
+    if (h === 'customs' || h === 'carrier' || h === 'panda') {
       var b = document.querySelector('.cat[data-cat="'+h+'"]');
       if (b) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
     }

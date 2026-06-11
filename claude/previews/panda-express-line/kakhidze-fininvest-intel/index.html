@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>알렉산드르 카히제 &amp; 핀인베스트 그룹 — 구조·자금·관계 분석</title>
+<meta name="description" content="러시아 물류기업 핀인베스트(ФинИнвест) 그룹과 소유주 알렉산드르 카히제(Александр Кахидзе)의 지배구조·자금조달·대외관계 분석 인포그래픽. 2026년 6월 기준 공개정보 취합.">
+<style>
+/* ============================================================
+   카히제 · 핀인베스트 그룹 분석 — 단일 자기완결형 인포그래픽
+   외부 의존성 0 · 인라인 SVG · 다크/라이트 · A4 인쇄 대응
+   색상 의미 고정:
+     카히제/지주 = 보라  · 철송(로고페르) = 파랑 · 해운(판다) = 청록
+     TLC/자산 = 회색      · 국가/은행 = 호박색  · 경고/동명이사 = 빨강
+     미검증 = 회색 점선
+   ============================================================ */
+
+:root{
+  --bg:        #0e1117;
+  --bg-soft:   #161b22;
+  --panel:     #1a212b;
+  --panel-2:   #20283340;
+  --line:      #2b3440;
+  --line-soft: #232c37;
+  --ink:       #e6edf3;
+  --ink-soft:  #aeb9c5;
+  --ink-dim:   #7d8896;
+
+  /* 엔티티 의미색 (다크) */
+  --c-kakhidze: #a78bfa;   /* 보라 — 카히제/지주 */
+  --c-logoper:  #5b9bff;   /* 파랑 — 철송(로고페르) */
+  --c-panda:    #2dd4bf;   /* 청록 — 해운(판다) */
+  --c-tlc:      #93a1b1;   /* 회색 — TLC/자산 */
+  --c-state:    #f0b429;   /* 호박 — 국가/은행 */
+  --c-warn:     #f4736b;   /* 빨강 — 경고/동명이사 */
+  --c-unver:    #8a96a4;   /* 회색 — 미검증 */
+
+  /* 신뢰도 배지 */
+  --b-conf:     #4ade80;   /* 확인 — 초록 */
+  --b-est:      #f0b429;   /* 추정 — 호박 */
+  --b-unver:    #8a96a4;   /* 미검증 — 회색 */
+
+  --radius: 14px;
+  --maxw: 1180px;
+  --nav-h: 116px;
+  --shadow: 0 14px 40px rgba(0,0,0,.34);
+  --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html[data-theme="light"]{
+  --bg:        #f5f7fa;
+  --bg-soft:   #eef2f6;
+  --panel:     #ffffff;
+  --panel-2:   #f3f6f9;
+  --line:      #d3dbe3;
+  --line-soft: #e4eaf0;
+  --ink:       #1b2530;
+  --ink-soft:  #44515f;
+  --ink-dim:   #6b7787;
+
+  --c-kakhidze: #6d28d9;
+  --c-logoper:  #1d4ed8;
+  --c-panda:    #0d9488;
+  --c-tlc:      #5b6b7c;
+  --c-state:    #b45309;
+  --c-warn:     #c52f26;
+  --c-unver:    #7a8794;
+
+  --b-conf:     #15803d;
+  --b-est:      #b45309;
+  --b-unver:    #6b7787;
+  --shadow: 0 12px 30px rgba(31,45,61,.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.62;
+  letter-spacing:-.01em;
+  word-break:keep-all;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:60px;
+}
+
+/* ============ 상단 고정 목차 ============ */
+.topnav{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topnav .nav-inner{max-width:var(--maxw);margin:0 auto;padding:10px 22px}
+.nav-top-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.nav-brand{font-weight:800;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.nav-brand .accent{color:var(--c-kakhidze)}
+.nav-spacer{flex:1}
+.nav-meta{font-size:11.5px;color:var(--ink-dim);font-family:var(--mono);white-space:nowrap}
+.theme-btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);
+  font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:9px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:.15s;
+}
+.theme-btn:hover{border-color:var(--c-kakhidze);color:var(--ink)}
+.toc{display:flex;gap:4px;flex-wrap:wrap;margin-top:9px}
+.toc a{
+  font-size:12px;font-weight:600;color:var(--ink-dim);text-decoration:none;
+  padding:4px 9px;border-radius:7px;border:1px solid transparent;white-space:nowrap;transition:.14s;
+}
+.toc a:hover{color:var(--ink);background:var(--panel)}
+.toc a.active{color:var(--c-kakhidze);background:color-mix(in srgb,var(--c-kakhidze) 14%,transparent);border-color:color-mix(in srgb,var(--c-kakhidze) 38%,transparent)}
+.toc a .n{font-family:var(--mono);font-size:10.5px;opacity:.7;margin-right:3px}
+
+/* ============ 레이아웃 ============ */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+section{padding:42px 0 8px;scroll-margin-top:calc(var(--nav-h) + 8px)}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;border-bottom:2px solid var(--line);padding-bottom:10px}
+.sec-head .sn{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--c-kakhidze);letter-spacing:.06em}
+.sec-head h2{font-size:clamp(18px,2.5vw,24px);font-weight:800;letter-spacing:-.02em}
+.sec-head .sub{font-size:12.5px;color:var(--ink-dim);margin-left:auto;font-weight:500}
+
+/* ============ 신뢰도 배지 ============ */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;
+  padding:2px 7px;border-radius:999px;line-height:1.4;white-space:nowrap;vertical-align:middle;
+  font-family:var(--sans);letter-spacing:0;
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%}
+.badge.confirmed{color:var(--b-conf);background:color-mix(in srgb,var(--b-conf) 14%,transparent);border:1px solid color-mix(in srgb,var(--b-conf) 40%,transparent)}
+.badge.confirmed::before{background:var(--b-conf)}
+.badge.estimate{color:var(--b-est);background:color-mix(in srgb,var(--b-est) 15%,transparent);border:1px solid color-mix(in srgb,var(--b-est) 42%,transparent)}
+.badge.estimate::before{background:var(--b-est)}
+.badge.unverified{color:var(--b-unver);background:color-mix(in srgb,var(--b-unver) 13%,transparent);border:1px dashed color-mix(in srgb,var(--b-unver) 55%,transparent)}
+.badge.unverified::before{background:var(--b-unver)}
+.badge.mixed{color:var(--b-conf);background:color-mix(in srgb,var(--b-conf) 12%,transparent);border:1px solid color-mix(in srgb,var(--b-est) 45%,transparent)}
+.badge.mixed::before{background:linear-gradient(90deg,var(--b-conf) 50%,var(--b-est) 50%)}
+
+/* 배지 범례 */
+.badge-legend{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 0;font-size:11.5px;color:var(--ink-soft)}
+.badge-legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* ============ 헤더 / 섹션1 ============ */
+.hero{padding-top:34px}
+.hero h1{font-size:clamp(22px,3.6vw,33px);font-weight:800;letter-spacing:-.025em;line-height:1.28}
+.hero .lead{margin-top:12px;color:var(--ink-soft);font-size:14.5px;max-width:760px}
+.hero .keyline{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--ink-dim);font-family:var(--mono)}
+.hero .keyline b{color:var(--ink);font-weight:700}
+.fx-note{margin-top:6px;font-size:11.5px;color:var(--ink-dim);font-style:italic}
+
+.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
+.metric{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 16px 16px;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:158px;
+}
+.metric::before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--mc,var(--c-kakhidze))}
+.metric .mlabel{font-size:11.5px;color:var(--ink-dim);font-weight:600}
+.metric .mval{font-size:23px;font-weight:800;margin-top:8px;color:var(--mc,var(--ink));letter-spacing:-.02em;line-height:1.15}
+.metric .mkrw{font-size:13px;color:var(--ink-soft);margin-top:3px;font-weight:600}
+.metric .mnote{font-size:11px;color:var(--ink-dim);margin-top:auto;padding-top:10px;line-height:1.5}
+.metric .badge{margin-top:9px;align-self:flex-start}
+
+/* ============ 카드 / 패널 공통 ============ */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.note{
+  font-size:12.5px;color:var(--ink-soft);background:var(--panel-2);border:1px solid var(--line-soft);
+  border-left:3px solid var(--c-tlc);border-radius:8px;padding:11px 14px;margin-top:14px;line-height:1.6;
+}
+.note b{color:var(--ink)}
+.note.est{border-left-color:var(--b-est)}
+
+/* ============ 인물 타임라인 / 섹션2 ============ */
+.profile-top{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}
+.profile-id{
+  background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c-kakhidze);
+  border-radius:12px;padding:14px 18px;flex:1;min-width:280px;
+}
+.profile-id .nm{font-size:18px;font-weight:800}
+.profile-id .nm .ru{color:var(--ink-dim);font-weight:600;font-size:14px}
+.profile-id .role{font-size:12.5px;color:var(--ink-soft);margin-top:4px}
+
+.vtl{position:relative;margin-left:8px;padding-left:26px}
+.vtl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.vtl .row{position:relative;padding:0 0 18px 0}
+.vtl .row::before{content:"";position:absolute;left:-26px;top:4px;width:12px;height:12px;border-radius:50%;
+  background:var(--bg);border:2.5px solid var(--c-kakhidze)}
+.vtl .yr{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--c-kakhidze)}
+.vtl .ev{font-size:13.5px;margin-top:2px;color:var(--ink)}
+.vtl .ev .badge{margin-left:4px}
+
+/* ============ SVG 다이어그램 컨테이너 ============ */
+.svg-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px}
+.svg-scroll svg{display:block;min-width:680px;width:100%;height:auto}
+/* SVG 텍스트(검색·복사 가능) */
+svg text{font-family:var(--sans);fill:var(--ink)}
+.dg-box{fill:var(--panel);stroke-width:1.6}
+.dg-title{font-weight:800}
+.dg-sub{fill:var(--ink-soft);font-weight:600}
+.dg-conn{fill:none;stroke:var(--line);stroke-width:1.8}
+
+/* 다이어그램 색 매핑 */
+.e-kakhidze{stroke:var(--c-kakhidze)} .t-kakhidze{fill:var(--c-kakhidze)}
+.e-logoper {stroke:var(--c-logoper)}  .t-logoper {fill:var(--c-logoper)}
+.e-panda   {stroke:var(--c-panda)}    .t-panda   {fill:var(--c-panda)}
+.e-tlc     {stroke:var(--c-tlc)}      .t-tlc     {fill:var(--c-tlc)}
+.e-state   {stroke:var(--c-state)}    .t-state   {fill:var(--c-state)}
+.e-warn    {stroke:var(--c-warn)}     .t-warn    {fill:var(--c-warn)}
+
+/* 다이어그램 범례 */
+.dg-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--ink-soft)}
+.dg-legend span{display:inline-flex;align-items:center;gap:6px}
+.dg-legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+
+/* 노드 상세 카드 (조직도 보조) */
+.node-detail{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.nd{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--ndc,var(--c-tlc));border-radius:10px;padding:12px 14px}
+.nd .h{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.nd .ru{color:var(--ink-dim);font-weight:600;font-size:11.5px}
+.nd .meta{font-size:12px;color:var(--ink-soft);margin-top:5px;line-height:1.55}
+.nd .meta .k{color:var(--ink-dim);font-family:var(--mono);font-size:11px}
+
+/* ============ 경고 박스 (동명이사) ============ */
+.warnbox{
+  margin-top:18px;border:1.6px solid var(--c-warn);border-radius:12px;
+  background:color-mix(in srgb,var(--c-warn) 9%,var(--panel));padding:16px 18px;
+}
+.warnbox .wh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--c-warn)}
+.warnbox .wh .ic{font-size:16px}
+.warnbox p{font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.62}
+.warnbox b{color:var(--ink)}
+
+/* ============ 표 ============ */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+thead th{
+  background:var(--bg-soft);color:var(--ink-soft);font-weight:700;font-size:11.5px;text-align:left;
+  padding:11px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap;letter-spacing:.02em;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--panel-2)}
+td .term{font-weight:700}
+td .ru{color:var(--ink-dim);font-size:11px;font-weight:500}
+.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+/* TLC 카드 */
+.tlc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.tlc{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c-tlc);border-radius:10px;padding:13px 14px}
+.tlc .tn{font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.tlc .tn .yr{font-family:var(--mono);font-size:11px;color:var(--ink-dim);font-weight:700}
+.tlc .loc{font-size:11.5px;color:var(--ink-dim);margin-top:2px}
+.tlc .cap{font-size:13px;font-weight:800;color:var(--c-tlc);margin-top:8px}
+.tlc .desc{font-size:11.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5}
+.tlc.building{border-top-style:dashed}
+
+/* ============ 매출 막대 (CSS) ============ */
+.bars{margin-top:6px;display:flex;flex-direction:column;gap:16px}
+.bar-row .bl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;margin-bottom:5px}
+.bar-row .bl .nm{font-weight:700}
+.bar-row .bl .nm .ru{color:var(--ink-dim);font-weight:500;font-size:11px}
+.bar-row .bl .vv{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);font-weight:600;white-space:nowrap}
+.bar-track{height:30px;background:var(--bg-soft);border-radius:7px;overflow:hidden;position:relative;border:1px solid var(--line-soft)}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:11px;font-size:11.5px;font-weight:800;color:#0b0f14;min-width:fit-content}
+.bar-fill.logoper{background:var(--c-logoper)}
+.bar-fill.panda{background:var(--c-panda)}
+.bar-fill.tlc{background:var(--c-tlc)}
+html[data-theme="light"] .bar-fill{color:#fff}
+.asset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+.asset{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.asset .ah{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.asset .ah .dot{width:9px;height:9px;border-radius:50%}
+.asset ul{list-style:none;margin-top:9px;display:flex;flex-direction:column;gap:6px}
+.asset li{font-size:12px;color:var(--ink-soft);padding-left:14px;position:relative;line-height:1.5}
+.asset li::before{content:"·";position:absolute;left:3px;color:var(--ink-dim);font-weight:800}
+
+/* ============ 자금 결론 배너 ============ */
+.concl{
+  margin-top:16px;border:1px solid var(--c-state);border-radius:12px;
+  background:color-mix(in srgb,var(--c-state) 10%,var(--panel));padding:16px 18px;
+}
+.concl .ch{font-weight:800;font-size:13px;color:var(--c-state);display:flex;align-items:center;gap:7px}
+.concl p{font-size:13.5px;color:var(--ink);margin-top:8px;line-height:1.6;font-weight:600}
+
+/* 관계 상세 리스트 */
+.rel-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
+.rel-col h4{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.rel-col h4 .mk{width:22px;height:0;border-top:2.5px solid var(--c-logoper)}
+.rel-col.unver h4 .mk{border-top:2.5px dashed var(--c-unver)}
+.rel-item{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px;font-size:12.5px;line-height:1.55}
+.rel-item .rt{font-weight:800;color:var(--ink)}
+.rel-item .ru{color:var(--ink-dim);font-weight:500;font-size:11px}
+.rel-item.unverified{background:var(--panel-2);border-style:dashed;border-color:color-mix(in srgb,var(--c-unver) 50%,var(--line));opacity:.92}
+.rel-item.unverified .rt{color:var(--ink-soft)}
+.rel-col.unver .lowconf{font-size:11px;color:var(--c-unver);font-style:italic;margin-bottom:9px}
+
+/* ============ 종합 타임라인 / 섹션8 ============ */
+.htl{display:flex;gap:0;overflow-x:auto;padding:10px 2px 18px;margin-top:4px}
+.htl .step{min-width:208px;flex:1;position:relative;padding:0 14px}
+.htl .step::before{content:"";position:absolute;top:13px;left:0;right:0;height:2px;background:var(--line)}
+.htl .step::after{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--c-kakhidze);border:2px solid var(--bg);z-index:1}
+.htl .step:first-child::before{left:50%}
+.htl .step:last-child::before{right:50%}
+.htl .step .y{font-family:var(--mono);font-weight:800;font-size:14px;color:var(--c-kakhidze);text-align:center;margin-top:30px}
+.htl .step .t{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:7px;line-height:1.48}
+
+/* ============ 푸터 ============ */
+.foot{margin-top:46px;border-top:1px solid var(--line);padding-top:22px;font-size:12px;color:var(--ink-dim);line-height:1.7}
+.foot h5{font-size:11.5px;color:var(--ink-soft);font-weight:800;letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase}
+.foot .src{margin-bottom:14px}
+.foot .disc{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:9px;padding:12px 14px;color:var(--ink-soft)}
+.foot .sig{margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+
+/* ============ 반응형 ============ */
+@media (max-width:920px){
+  .cards4{grid-template-columns:repeat(2,1fr)}
+  .node-detail,.asset-grid,.rel-cols{grid-template-columns:1fr}
+  .tlc-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:560px){
+  .cards4,.tlc-cards{grid-template-columns:1fr}
+  .nav-meta{display:none}
+}
+
+/* ============ 인쇄 (A4 세로) ============ */
+@media print{
+  :root{
+    --bg:#fff;--bg-soft:#f1f3f6;--panel:#fff;--panel-2:#f6f8fa;--line:#c8d0d9;--line-soft:#e2e7ec;
+    --ink:#15202b;--ink-soft:#3a444f;--ink-dim:#5d6772;
+    --c-kakhidze:#6d28d9;--c-logoper:#1d4ed8;--c-panda:#0d7d72;--c-tlc:#566472;
+    --c-state:#9a5a08;--c-warn:#bf2c23;--c-unver:#6b7682;
+    --b-conf:#15803d;--b-est:#9a5a08;--b-unver:#5d6772;--shadow:none;
+  }
+  html{scroll-behavior:auto}
+  body{padding:0;background:#fff;font-size:11px}
+  .topnav,.theme-btn{display:none !important}
+  .wrap{max-width:none;padding:0 8mm}
+  section{padding:14px 0 4px;break-inside:avoid}
+  .sec-head{break-after:avoid}
+  .metric,.nd,.tlc,.asset,.rel-item,.warnbox,.concl,.panel,.svg-scroll{break-inside:avoid;box-shadow:none}
+  .cards4{grid-template-columns:repeat(4,1fr)}
+  .svg-scroll{overflow:visible}
+  .svg-scroll svg{min-width:0}
+  .htl{flex-wrap:wrap;overflow:visible}
+  .htl .step{min-width:130px}
+  tbody tr:hover{background:none}
+  a{color:inherit;text-decoration:none}
+  @page{size:A4 portrait;margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 상단 고정 목차 ================= -->
+<nav class="topnav" aria-label="섹션 목차">
+  <div class="nav-inner">
+    <div class="nav-top-row">
+      <span class="nav-brand"><span class="accent">카히제</span> · 핀인베스트 그룹 분석</span>
+      <span class="nav-spacer"></span>
+      <span class="nav-meta">기준일 2026-06 · 1₽ ≈ 21₩</span>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="화면 모드 전환">
+        <span id="themeIcon">◐</span><span id="themeLabel">라이트</span>
+      </button>
+    </div>
+    <div class="toc" id="toc">
+      <a href="#s1"><span class="n">01</span>핵심 요약</a>
+      <a href="#s2"><span class="n">02</span>인물 프로필</a>
+      <a href="#s3"><span class="n">03</span>지배구조</a>
+      <a href="#s4"><span class="n">04</span>TLC 네트워크</a>
+      <a href="#s5"><span class="n">05</span>매출 구성</a>
+      <a href="#s6"><span class="n">06</span>자금조달</a>
+      <a href="#s7"><span class="n">07</span>대외 관계</a>
+      <a href="#s8"><span class="n">08</span>연혁</a>
+      <a href="#s9"><span class="n">09</span>출처·면책</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= 섹션 1 · 헤더 + 핵심 요약 ================= -->
+<header class="hero" id="s1">
+  <h1>알렉산드르 카히제 &amp; 핀인베스트 그룹<br>— 구조·자금·관계 분석</h1>
+  <p class="lead">러시아 물류기업 핀인베스트(ФинИнвест) 그룹과 소유주 알렉산드르 카히제(Александр Кахидзе)의
+     지배구조·금전 체급·자금조달·대외관계를 공개정보 기반으로 정리한 인포그래픽이다.</p>
+  <div class="keyline">
+    <span>기준일 <b>2026년 6월</b></span>
+    <span>환율 기준 <b>1 RUB ≈ 21 KRW</b></span>
+    <span>통화 표기 <b>루블(₽) · 원(₩) 병기</b></span>
+  </div>
+  <p class="fx-note">※ 환율 변동성 주석: 최근 1년 1₽ 환산 범위 약 16.4~21.5원. 본 문서는 일괄 1₽=21원 적용 — 원화 환산액은 시점에 따라 변동.</p>
+
+  <div class="badge-legend">
+    <span><span class="badge confirmed">확인</span> 공식 등기·기업공시·주요 언론(인터팍스·RBC·코메르산트·베도모스티·TASS 등) 교차 확인</span>
+    <span><span class="badge estimate">추정</span> 공개 수치에서 산술 도출한 값</span>
+    <span><span class="badge unverified">미검증 의혹</span> 콤프로마트성 매체발 주장 · 신뢰도 낮음</span>
+  </div>
+
+  <div class="cards4">
+    <div class="metric" style="--mc:var(--c-kakhidze)">
+      <div class="mlabel">그룹 합산 매출 (2024)</div>
+      <div class="mval">690억 ₽</div>
+      <div class="mkrw">≈ 1조 4,500억 원</div>
+      <span class="badge mixed">확인·추정 혼합</span>
+      <div class="mnote">비상장 그룹 합산 총액 — 내부거래 미상계.</div>
+    </div>
+    <div class="metric" style="--mc:var(--c-logoper)">
+      <div class="mlabel">핵심 매출원 — 로고페르</div>
+      <div class="mval">571억 ₽</div>
+      <div class="mkrw">그룹의 약 83%</div>
+      <span class="badge confirmed">확인</span>
+      <div class="mnote">철송 영업을 일괄 수행하는 그룹 매출 엔진.</div>
+    </div>
+    <div class="metric" style="--mc:var(--c-state)">
+      <div class="mlabel">투자 프로그램 (~2027)</div>
+      <div class="mval">1,200억 ₽</div>
+      <div class="mkrw">≈ 2.5조 원 · 터미널 11곳</div>
+      <span class="badge confirmed">확인</span>
+      <div class="mnote">2027년까지 TLC 11개소 구축 목표.</div>
+    </div>
+    <div class="metric" style="--mc:var(--c-tlc)">
+      <div class="mlabel">터미널 네트워크 목표</div>
+      <div class="mval">565만 TEU</div>
+      <div class="mkrw">연간 처리능력 (목표)</div>
+      <span class="badge confirmed">확인</span>
+      <div class="mnote">11개 TLC 합산 연 처리능력 구상치.</div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 섹션 2 · 인물 프로필 ================= -->
+<section id="s2">
+  <div class="sec-head"><span class="sn">02</span><h2>인물 프로필</h2><span class="sub">알렉산드르 콘스탄티노비치 카히제</span></div>
+
+  <div class="profile-top">
+    <div class="profile-id">
+      <div class="nm">알렉산드르 콘스탄티노비치 카히제 <span class="ru">Александр Константинович Кахидзе</span></div>
+      <div class="role">핀인베스트 그룹 소유주·수장 · 로고페르 대표이사 · RZD 출신 물류·통관 전문가</div>
+    </div>
+  </div>
+
+  <div class="vtl">
+    <div class="row"><div class="yr">1998</div><div class="ev">모스크바 국립교통대학(МИИТ) '운송상업' 전공 졸업 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">2004</div><div class="ev">RZD(러시아철도 · РЖД) 입사 → 약 2년 만에 상업·물류 담당 부사장 보좌역 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">~ RZD 재직</div><div class="ev">RZD 관세·통관중개 업무 담당 국장 역임 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">2015</div><div class="ev">ANO「모스크바 교통허브 디렉치야」(Дирекция Московского транспортного узла) 수장 — 모스크바시 정부 연계 기관 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">2017.11</div><div class="ev">OOO 로고페르(ООО «Логопер») 설립 — 설립 직후 지분 구조 개편 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">2019</div><div class="ev">핀인베스트 그룹(ФинИнвест) 소유주·수장 취임 <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">2023.10</div><div class="ev">로고페르 대표이사 직접 취임 (핀인베스트 대표 겸임) <span class="badge confirmed">확인</span></div></div>
+    <div class="row"><div class="yr">현재</div><div class="ev">23개 안팎 법인의 대표/설립자로 등재 · 사업 지역: 연해주·노보시비르스크·케메로보·스베르들롭스크·모스크바·하바롭스크 등 <span class="badge confirmed">확인</span></div></div>
+  </div>
+</section>
+
+<!-- ================= 섹션 3 · 지배구조 조직도 ================= -->
+<section id="s3">
+  <div class="sec-head"><span class="sn">03</span><h2>지배구조 조직도</h2><span class="sub">개인 → 지주 → 사업 법인군</span></div>
+
+  <div class="svg-scroll">
+    <svg viewBox="0 0 1260 470" role="img" aria-label="카히제 그룹 지배구조 조직도">
+      <!-- 연결선 -->
+      <path class="dg-conn" d="M630,86 L630,118"/>
+      <path class="dg-conn" d="M138,118 L1122,118"/>
+      <path class="dg-conn" d="M138,118 L138,146"/>
+      <path class="dg-conn" d="M335,118 L335,146"/>
+      <path class="dg-conn" d="M532,118 L532,146"/>
+      <path class="dg-conn" d="M728,118 L728,146"/>
+      <path class="dg-conn" d="M925,118 L925,146"/>
+      <path class="dg-conn" d="M1122,118 L1122,146"/>
+      <!-- col2: KLK → 로고페르 → ASIA -->
+      <path class="dg-conn" d="M335,190 L335,210"/>
+      <path class="dg-conn" d="M335,270 L335,290"/>
+
+      <!-- 루트: 카히제 -->
+      <rect class="dg-box e-kakhidze" x="500" y="32" width="260" height="54" rx="11"/>
+      <text class="dg-title t-kakhidze" x="630" y="55" text-anchor="middle" font-size="15">알렉산드르 카히제</text>
+      <text class="dg-sub" x="630" y="74" text-anchor="middle" font-size="11.5">개인 · Александр Кахидзе</text>
+
+      <!-- col1: 핀인베스트 (지주) -->
+      <rect class="dg-box e-kakhidze" x="50" y="146" width="176" height="60" rx="10"/>
+      <text class="dg-title t-kakhidze" x="138" y="170" text-anchor="middle" font-size="13.5">OOO 핀인베스트</text>
+      <text class="dg-sub" x="138" y="187" text-anchor="middle" font-size="10.5">ООО «ФинИнвест»</text>
+      <text class="dg-sub" x="138" y="200" text-anchor="middle" font-size="10.5">그룹 지주 · 시행사</text>
+
+      <!-- col2: KLK 홀딩 -->
+      <rect class="dg-box e-tlc" x="247" y="146" width="176" height="44" rx="9"/>
+      <text class="dg-title t-tlc" x="335" y="167" text-anchor="middle" font-size="12.5">OOO KLK 홀딩</text>
+      <text class="dg-sub" x="335" y="182" text-anchor="middle" font-size="10">100% 지분 보유</text>
+      <!-- 로고페르 -->
+      <rect class="dg-box e-logoper" x="247" y="210" width="176" height="60" rx="10"/>
+      <text class="dg-title t-logoper" x="335" y="234" text-anchor="middle" font-size="13.5">OOO 로고페르</text>
+      <text class="dg-sub" x="335" y="251" text-anchor="middle" font-size="10.5">ООО «Логопер»</text>
+      <text class="dg-sub" x="335" y="264" text-anchor="middle" font-size="10.5">철송 · 매출 엔진</text>
+      <!-- LOGOPER ASIA -->
+      <rect class="dg-box e-logoper" x="247" y="290" width="176" height="50" rx="9" stroke-dasharray="4 3"/>
+      <text class="dg-title t-logoper" x="335" y="311" text-anchor="middle" font-size="12">LOGOPER ASIA</text>
+      <text class="dg-sub" x="335" y="326" text-anchor="middle" font-size="9.8">해외 영업 · 재무 비공시</text>
+
+      <!-- col3: 판다 익스프레스 라인 -->
+      <rect class="dg-box e-panda" x="444" y="146" width="176" height="60" rx="10"/>
+      <text class="dg-title t-panda" x="532" y="168" text-anchor="middle" font-size="12.5">OOO 판다</text>
+      <text class="dg-title t-panda" x="532" y="184" text-anchor="middle" font-size="12.5">익스프레스 라인</text>
+      <text class="dg-sub" x="532" y="199" text-anchor="middle" font-size="10">해운 · 카히제 개인 100%</text>
+
+      <!-- col4: RB 수도블라델레츠 -->
+      <rect class="dg-box e-panda" x="640" y="146" width="176" height="60" rx="10"/>
+      <text class="dg-title t-panda" x="728" y="168" text-anchor="middle" font-size="12.5">OOO RB</text>
+      <text class="dg-title t-panda" x="728" y="184" text-anchor="middle" font-size="12.5">수도블라델레츠</text>
+      <text class="dg-sub" x="728" y="199" text-anchor="middle" font-size="10">선박 구매·등록·관리</text>
+
+      <!-- col5: 예카테린부르크 운송 터미널 -->
+      <rect class="dg-box e-tlc" x="837" y="146" width="176" height="60" rx="10"/>
+      <text class="dg-title t-tlc" x="925" y="168" text-anchor="middle" font-size="12.5">예카테린부르크</text>
+      <text class="dg-title t-tlc" x="925" y="184" text-anchor="middle" font-size="12.5">운송 터미널</text>
+      <text class="dg-sub" x="925" y="199" text-anchor="middle" font-size="10">카히제 50% · TLC 우랄스키</text>
+
+      <!-- col6: TLC 운영법인 -->
+      <rect class="dg-box e-tlc" x="1034" y="146" width="176" height="60" rx="10"/>
+      <text class="dg-title t-tlc" x="1122" y="168" text-anchor="middle" font-size="12.5">각 TLC 운영법인</text>
+      <text class="dg-sub" x="1122" y="185" text-anchor="middle" font-size="10">호브리노·엘렉트로우글리</text>
+      <text class="dg-sub" x="1122" y="199" text-anchor="middle" font-size="10">시비르스키 등</text>
+    </svg>
+  </div>
+
+  <div class="dg-legend">
+    <span><i style="background:var(--c-kakhidze)"></i> 카히제 / 지주</span>
+    <span><i style="background:var(--c-logoper)"></i> 철송 (로고페르)</span>
+    <span><i style="background:var(--c-panda)"></i> 해운 (판다 · 선박)</span>
+    <span><i style="background:var(--c-tlc)"></i> TLC / 자산 / 중간지주</span>
+  </div>
+
+  <!-- 노드 상세 -->
+  <div class="node-detail">
+    <div class="nd" style="--ndc:var(--c-kakhidze)">
+      <div class="h">OOO 핀인베스트 <span class="ru">ООО «ФинИнвест»</span> <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">ИНН</span> 7702431191 · <span class="k">설립</span> 2018.04.28 · <span class="k">자본금</span> 10만 ₽<br>
+        <span class="k">소재지</span> 연해주 아르툠 · 그룹 지주·프로젝트 시행사<br>
+        <span class="k">2024 단독 실적</span> 순손실 1.29억 ₽ (≈ 27억 원)</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-logoper)">
+      <div class="h">OOO 로고페르 <span class="ru">ООО «Логопер»</span> <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">ИНН</span> 7702426787 · <span class="k">자본금</span> 100만 ₽ · <span class="k">지배</span> OOO KLK 홀딩이 100% 보유<br>
+        <span class="k">LOGOPER ASIA</span> 해외 영업조직 — 중국 상하이·닝보·톈진·르자오/칭다오. 별도 재무 비공시.
+        선전(深圳)은 행사 개최지였을 뿐 거점 아님.</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-panda)">
+      <div class="h">OOO 판다 익스프레스 라인 <span class="ru">ООО «Панда Экспресс Лайн»</span> <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">ИНН</span> 9702052944 · <span class="k">설립</span> 2023.02 · <span class="k">자본금</span> 100만 ₽<br>
+        <span class="k">소유</span> 카히제 개인 100% · 해운(컨테이너 정기선) 사업</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-panda)">
+      <div class="h">OOO RB 수도블라델레츠 <span class="ru">ООО «РБ Судовладелец»</span> <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">설립</span> 2023.10.19 (블라디보스토크) · <span class="k">자본금</span> 100만 ₽<br>
+        <span class="k">역할</span> 선박 구매·등록·관리 전담 (선주 법인)</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-tlc)">
+      <div class="h">OOO 예카테린부르크 운송 터미널 <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">카히제 지분</span> 50% · <span class="k">운영</span> TLC 우랄스키(Уральский)</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-tlc)">
+      <div class="h">각 TLC별 운영법인 <span class="badge confirmed">확인</span></div>
+      <div class="meta"><span class="k">예</span> 호브리노 · 엘렉트로우글리 · 시비르스키 등 — 터미널별 별도 운영법인 구조</div>
+    </div>
+  </div>
+
+  <!-- 동명이사 경고 -->
+  <div class="warnbox">
+    <div class="wh"><span class="ic">⚠</span> 동명이사(同名) 주의 — 완전히 별개의 법인</div>
+    <p>달네고르스크 GOK 사건에 등장하는 <b>"OOO 핀인베스트"(ИНН 9701066461)</b>는 키프로스 Rakspol Trading Limited가 지배하고
+       보리스 민츠(Борис Минц) 일가가 연루된 법인으로, 2023년 국유화 후 2024년 로스힘(Росхим)이 <b>22억 3,350만 ₽</b>(≈ 469억 원)에 인수했다.
+       이는 카히제 그룹의 핀인베스트(ИНН 7702431191)와 <b>완전히 별개의 법인이며 카히제 그룹과 무관</b>하다.
+       <span class="badge confirmed">확인</span></p>
+  </div>
+</section>
+
+<!-- ================= 섹션 4 · TLC 네트워크 ================= -->
+<section id="s4">
+  <div class="sec-head"><span class="sn">04</span><h2>TLC 네트워크 현황</h2><span class="sub">Transport &amp; Logistics Center</span></div>
+
+  <div class="tlc-cards">
+    <div class="tlc">
+      <div class="tn">TLC 호브리노 <span class="yr">2014</span></div>
+      <div class="loc">모스크바 · Ховрино</div>
+      <div class="cap">25만 TEU</div>
+      <div class="desc">그룹 1호 터미널, 면적 40ha</div>
+    </div>
+    <div class="tlc">
+      <div class="tn">TLC 엘렉트로우글리 <span class="yr">2018</span></div>
+      <div class="loc">모스크바주 · Электроугли</div>
+      <div class="cap">100만 TEU</div>
+      <div class="desc">모스크바권 최대, 120ha</div>
+    </div>
+    <div class="tlc">
+      <div class="tn">TLC 우랄스키 <span class="yr">2022</span></div>
+      <div class="loc">예카테린부르크 · Уральский</div>
+      <div class="cap">60만 TEU</div>
+      <div class="desc">'화물 빌리지', 130ha</div>
+    </div>
+    <div class="tlc">
+      <div class="tn">TLC 시비르스키 <span class="yr">2023/24</span></div>
+      <div class="loc">노보시비르스크 · Сибирский</div>
+      <div class="cap">60만 → 100만 TEU</div>
+      <div class="desc">1차 2023 / 2차 2024 · 무개화차 환적 거점</div>
+    </div>
+    <div class="tlc">
+      <div class="tn">TLC 아르툠 <span class="yr">2025~</span></div>
+      <div class="loc">연해주 · Артём</div>
+      <div class="cap">100만 TEU <span style="font-size:10px;color:var(--ink-dim)">(2027)</span></div>
+      <div class="desc">1차 2025 가동 · 러시아 최대 사호항, 455ha, 선로 100km</div>
+    </div>
+    <div class="tlc building">
+      <div class="tn">TLC 쿠즈바스 <span class="yr">건설 중</span></div>
+      <div class="loc">케메로보주 · Кузбасс</div>
+      <div class="cap">30만 TEU</div>
+      <div class="desc">탈지노역 계획 포함</div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>터미널</th><th>위치</th><th>가동</th><th>처리능력 (목표)</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td><span class="term">TLC 호브리노</span> <span class="ru">Ховрино</span></td><td>모스크바</td><td class="num">2014</td><td class="num">25만 TEU</td><td>그룹 1호, 면적 40ha</td></tr>
+        <tr><td><span class="term">TLC 엘렉트로우글리</span> <span class="ru">Электроугли</span></td><td>모스크바주</td><td class="num">2018</td><td class="num">100만 TEU</td><td>모스크바권 최대, 120ha</td></tr>
+        <tr><td><span class="term">TLC 우랄스키</span> <span class="ru">Уральский</span></td><td>예카테린부르크</td><td class="num">2022</td><td class="num">60만 TEU</td><td>'화물 빌리지', 130ha</td></tr>
+        <tr><td><span class="term">TLC 시비르스키</span> <span class="ru">Сибирский</span></td><td>노보시비르스크</td><td class="num">2023(1차)/2024(2차)</td><td class="num">60만→100만 TEU</td><td>무개화차 환적 거점</td></tr>
+        <tr><td><span class="term">TLC 아르툠</span> <span class="ru">Артём</span></td><td>연해주</td><td class="num">2025(1차)</td><td class="num">100만 TEU (2027)</td><td>러시아 최대 사호항, 455ha, 선로 100km</td></tr>
+        <tr><td><span class="term">TLC 쿠즈바스</span> <span class="ru">Кузбасс</span></td><td>케메로보주</td><td class="num">건설 중</td><td class="num">30만 TEU</td><td>탈지노역 계획 포함</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>총 11개 TLC · 연 565만 TEU 구상</b> — 위 6개소 외 카스피스키(Каспийский) 30만, 옴스키(Омский) 30만 등 추가 예정. <span class="badge confirmed">확인</span></div>
+</section>
+
+<!-- ================= 섹션 5 · 매출 구성 ================= -->
+<section id="s5">
+  <div class="sec-head"><span class="sn">05</span><h2>금전적 체급 — 2024년 매출 구성</h2><span class="sub">그룹 합산 690억 ₽</span></div>
+
+  <div class="panel">
+    <div class="bars">
+      <div class="bar-row">
+        <div class="bl"><span class="nm">로고페르 <span class="ru">철송</span></span><span class="vv">571.1억 ₽ ≈ 1조 2,000억 원 · 약 83%</span></div>
+        <div class="bar-track"><div class="bar-fill logoper" style="width:82.8%">571.1억 ₽</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span class="nm">판다 익스프레스 라인 <span class="ru">해운</span></span><span class="vv">72억 ₽ ≈ 1,510억 원 · 약 10%</span></div>
+        <div class="bar-track"><div class="bar-fill panda" style="width:10.4%">72억 ₽</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span class="nm">TLC 운영사 · 기타 잔여</span><span class="vv">약 47억 ₽ ≈ 990억 원 · 약 7%</span></div>
+        <div class="bar-track"><div class="bar-fill tlc" style="width:6.8%">~47억 ₽</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <thead><tr><th>법인 / 구분</th><th>2024 매출</th><th>원화 환산</th><th>순이익</th><th>비중</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td><span class="term">로고페르</span></td><td class="num">571.1억 ₽</td><td class="num">≈ 1조 2,000억 원</td><td class="num">26.2억 ₽ (≈ 550억 원)</td><td class="num">약 83%</td><td>그룹 매출 엔진 <span class="badge confirmed">확인</span></td></tr>
+        <tr><td><span class="term">판다 익스프레스 라인</span></td><td class="num">72억 ₽</td><td class="num">≈ 1,510억 원</td><td class="num">0.64억 ₽</td><td class="num">약 10%</td><td>2023년 46억 ₽·적자 → 흑자 전환. 재무안정성·지급능력 '낮음' 평가 <span class="badge confirmed">확인</span></td></tr>
+        <tr><td><span class="term">TLC 운영사·기타 잔여</span></td><td class="num">약 47억 ₽</td><td class="num">≈ 990억 원</td><td class="num">—</td><td class="num">약 7%</td><td>그룹 합산에서 역산 <span class="badge estimate">추정</span></td></tr>
+        <tr style="font-weight:800"><td>그룹 합산</td><td class="num">690억 ₽</td><td class="num">≈ 1조 4,500억 원</td><td class="num">—</td><td class="num">100%</td><td>2021년 75억 ₽ → 3년 새 약 9배 <span class="badge confirmed">확인</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note est"><b>해설 — "매출은 로고페르에, 자산은 TLC에"</b> : 터미널 상업 영업을 로고페르가 일괄 수행하는 구조라, 자산을 보유한 TLC 법인의 매출이 작게 보이는 착시가 있다. <span class="badge estimate">추정</span></div>
+
+  <div class="asset-grid">
+    <div class="asset">
+      <div class="ah"><span class="dot" style="background:var(--c-logoper)"></span> 로고페르 운영 자산 <span class="badge confirmed">확인</span></div>
+      <ul>
+        <li>핏팅 플랫폼(fitting platform) 6,000량</li>
+        <li>컨테이너 파크 7만 → 10만 TEU</li>
+        <li>트랙터 120대</li>
+        <li>월 300편 컨테이너 열차 운행</li>
+        <li>2024년 물동량 40만 TEU · 열차 4,000편</li>
+      </ul>
+    </div>
+    <div class="asset">
+      <div class="ah"><span class="dot" style="background:var(--c-panda)"></span> 판다 / 선대 자산 <span class="badge confirmed">확인</span></div>
+      <ul>
+        <li>선대 10척 — 자체 3척(Panda Vega · Panda Altair 1,060 TEU 등) + 타임차터</li>
+        <li>컨테이너 2.8만 개 보유</li>
+        <li>2025.2~ 블라디보스토크(VMP 페르보마이스키) – 난사·선전·샤먼 – 부산 정기항로</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 섹션 6 · 자금조달 구조 ================= -->
+<section id="s6">
+  <div class="sec-head"><span class="sn">06</span><h2>자금조달 구조 — "누구의 돈인가"</h2><span class="sub">민간은행 → 외국자본 → 국가자본</span></div>
+
+  <div class="svg-scroll">
+    <svg viewBox="0 0 1120 470" role="img" aria-label="자금조달 3단 플로우 — 민간은행·외국자본·국가자본이 투자집행으로 수렴">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="6.5" refY="3.2" orient="auto">
+          <path d="M0,0 L7,3.2 L0,6.4 Z" fill="var(--ink-dim)"/>
+        </marker>
+      </defs>
+
+      <!-- 화살표 (소스 → 싱크) -->
+      <path class="dg-conn" d="M190,162 C190,250 360,250 460,322" marker-end="url(#ar)"/>
+      <path class="dg-conn" d="M560,162 L560,320" marker-end="url(#ar)"/>
+      <path class="dg-conn" d="M930,162 C930,250 760,250 660,322" marker-end="url(#ar)"/>
+
+      <!-- 1기 민간은행 -->
+      <rect class="dg-box e-state" x="40" y="40" width="300" height="122" rx="12"/>
+      <text class="dg-title t-state" x="56" y="66" font-size="13.5">1기 (2014–2018) · 민간은행 자본</text>
+      <text class="dg-sub" x="56" y="88" font-size="11.5">첸트로크레디트 은행(타라소프 공동소유)</text>
+      <text class="dg-sub" x="56" y="106" font-size="11.5">호브리노·엘렉트로우글리·우랄스키 대출</text>
+      <text class="dg-sub" x="56" y="124" font-size="11.5">+ 공동투자자 알선</text>
+      <text class="dg-sub" x="56" y="146" font-size="10.5" font-style="italic">카히제 출자 = RZD 접속권·인허가·통관 역량</text>
+
+      <!-- 2기 외국자본 -->
+      <rect class="dg-box e-logoper" x="410" y="40" width="300" height="122" rx="12"/>
+      <text class="dg-title t-logoper" x="426" y="66" font-size="13.5">2기 (2018–2023) · 외국자본</text>
+      <text class="dg-sub" x="426" y="90" font-size="11.5">CMA CGM (프랑스 선사)</text>
+      <text class="dg-sub" x="426" y="110" font-size="11.5">로고페르 지분 50% 인수</text>
+      <text class="dg-sub" x="426" y="134" font-size="10.5" font-style="italic">2023.4 €1에 카히제 매각 + 바이백 옵션</text>
+
+      <!-- 3기 국가자본 -->
+      <rect class="dg-box e-state" x="780" y="40" width="300" height="122" rx="12"/>
+      <text class="dg-title t-state" x="796" y="66" font-size="13.5">3기 (2019– ) · 국가자본</text>
+      <text class="dg-sub" x="796" y="88" font-size="11.5">아르툠 TLC 403억 ₽ 중 315억 ₽ 차입</text>
+      <text class="dg-sub" x="796" y="106" font-size="11.5">스베르 240.6억 + VEB.RF 74억</text>
+      <text class="dg-sub" x="796" y="124" font-size="11.5">15년 신디케이트론 · 부지 300ha 국가제공</text>
+      <text class="dg-sub" x="796" y="146" font-size="10.5" font-style="italic">"프로젝트 파이낸싱 팩토리" · 자기자본 ≥20%</text>
+
+      <!-- 싱크: 투자 집행 -->
+      <rect class="dg-box e-kakhidze" x="310" y="322" width="500" height="100" rx="12" stroke-width="2"/>
+      <text class="dg-title t-kakhidze" x="560" y="354" text-anchor="middle" font-size="15">투자 집행 — TLC 11곳 + 선대</text>
+      <text class="dg-sub" x="560" y="378" text-anchor="middle" font-size="12">투자 프로그램 총 1,200억 ₽ (≈ 2.5조 원)</text>
+      <text class="dg-sub" x="560" y="400" text-anchor="middle" font-size="11.5" font-style="italic">자기자본 약 20~25% : 차입 75~80%</text>
+    </svg>
+  </div>
+
+  <div class="dg-legend">
+    <span><i style="background:var(--c-state)"></i> 국가 / 은행 자본</span>
+    <span><i style="background:var(--c-logoper)"></i> 외국자본 (CMA CGM)</span>
+    <span><i style="background:var(--c-kakhidze)"></i> 카히제 그룹 투자집행</span>
+  </div>
+
+  <div class="node-detail">
+    <div class="nd" style="--ndc:var(--c-state)">
+      <div class="h">1기 · 민간은행 자본 (2014–2018) <span class="badge confirmed">확인</span></div>
+      <div class="meta">첸트로크레디트 은행(Центрокредит · 공동소유주 안드레이 타라소프)이 호브리노·엘렉트로우글리·우랄스키 대출과 공동투자자 알선.
+        카히제의 출자분은 자본이 아닌 <b>'RZD 접속권·인허가·통관 역량'</b>이었다.</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-logoper)">
+      <div class="h">2기 · 외국자본 (2018–2023) <span class="badge confirmed">확인</span></div>
+      <div class="meta">CMA CGM이 로고페르 지분 <b>50%</b>를 인수. 2023.4 €1에 카히제에게 매각하며 바이백 옵션 확보(섹션 7 참조).</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-state)">
+      <div class="h">3기 · 국가자본 (2019– ) <span class="badge confirmed">확인</span></div>
+      <div class="meta">아르툠 TLC 총사업비 <b>403억 ₽</b> 중 <b>315억 ₽</b>를 스베르(Сбер 240.6억) + VEB.RF(74억, 그중 27억은 극동개발부 라인 우대금융) 15년 신디케이트론으로 조달.
+        "프로젝트 파이낸싱 팩토리"(자기자본 최소 20%, 금리상승분 국가보조 헤지). 연방재산청이 부지 300ha 제공. 우랄스키도 자기자본 25% : 차입 75% 구조.</div>
+    </div>
+    <div class="nd" style="--ndc:var(--c-kakhidze)">
+      <div class="h">자기자본 비중 <span class="badge estimate">추정</span></div>
+      <div class="meta">개별 프로젝트의 공개 구조(아르툠 약 78% 차입, 우랄스키 75% 차입)에서 본 그룹 전반의 차입 의존도는 <b>약 75~80%</b> 수준으로 도출된다.</div>
+    </div>
+  </div>
+
+  <div class="concl">
+    <div class="ch">▶ 결론</div>
+    <p>사업비의 약 80%는 국책·상업은행 레버리지, 토지는 국가가 제공한다. 1,200억 ₽ 투자 프로그램은 '개인 재산'이 아니라 <b>'국가가 승인한 차입'</b>에 가깝다.</p>
+  </div>
+</section>
+
+<!-- ================= 섹션 7 · 대외 관계 맵 ================= -->
+<section id="s7">
+  <div class="sec-head"><span class="sn">07</span><h2>대외 관계 맵</h2><span class="sub">카히제 중심 방사형 — 실선(확인) · 점선(미검증)</span></div>
+
+  <div class="svg-scroll">
+    <svg viewBox="0 0 960 760" role="img" aria-label="카히제 중심 대외 관계 네트워크. 실선은 확인된 관계, 회색 점선은 미검증 의혹.">
+      <!-- 확인 관계 실선 -->
+      <line class="e-logoper" x1="480" y1="380" x2="340" y2="100" stroke-width="2"/>
+      <line class="e-state"   x1="480" y1="380" x2="620" y2="100" stroke-width="2"/>
+      <line class="e-logoper" x1="480" y1="380" x2="150" y2="210" stroke-width="2"/>
+      <line class="e-state"   x1="480" y1="380" x2="810" y2="210" stroke-width="2"/>
+      <line class="e-tlc"     x1="480" y1="380" x2="120" y2="378" stroke-width="2"/>
+      <line class="e-state"   x1="480" y1="380" x2="840" y2="378" stroke-width="2"/>
+
+      <!-- 미검증 점선 (회색) -->
+      <g stroke="var(--c-unver)" stroke-width="1.6" stroke-dasharray="5 4">
+        <line x1="480" y1="380" x2="160" y2="556"/>
+        <line x1="480" y1="380" x2="345" y2="660"/>
+        <line x1="480" y1="380" x2="615" y2="660"/>
+        <line x1="480" y1="380" x2="800" y2="556"/>
+        <line x1="480" y1="380" x2="480" y2="700"/>
+      </g>
+
+      <!-- 중심 노드 -->
+      <rect class="dg-box e-kakhidze" x="396" y="352" width="168" height="56" rx="12" stroke-width="2.4"/>
+      <text class="dg-title t-kakhidze" x="480" y="377" text-anchor="middle" font-size="14">카히제</text>
+      <text class="dg-sub" x="480" y="395" text-anchor="middle" font-size="10.5">핀인베스트 그룹</text>
+
+      <!-- 확인 노드 -->
+      <g>
+        <rect class="dg-box e-logoper" x="256" y="76" width="168" height="48" rx="9"/>
+        <text class="dg-title t-logoper" x="340" y="97" text-anchor="middle" font-size="12.5">RZD (РЖД)</text>
+        <text class="dg-sub" x="340" y="113" text-anchor="middle" font-size="9.8">출신 모기관 · 사업 기반</text>
+      </g>
+      <g>
+        <rect class="dg-box e-state" x="536" y="76" width="168" height="48" rx="9"/>
+        <text class="dg-title t-state" x="620" y="97" text-anchor="middle" font-size="12.5">국가기관 · 교통부</text>
+        <text class="dg-sub" x="620" y="113" text-anchor="middle" font-size="9.8">극동개발부·연방재산청·연해주</text>
+      </g>
+      <g>
+        <rect class="dg-box e-logoper" x="66" y="186" width="168" height="48" rx="9"/>
+        <text class="dg-title t-logoper" x="150" y="207" text-anchor="middle" font-size="12.5">CMA CGM (프랑스)</text>
+        <text class="dg-sub" x="150" y="223" text-anchor="middle" font-size="9.8">로고페르 50% → €1 매각</text>
+      </g>
+      <g>
+        <rect class="dg-box e-state" x="726" y="186" width="168" height="48" rx="9"/>
+        <text class="dg-title t-state" x="810" y="207" text-anchor="middle" font-size="12.5">푸틴 · 동방경제포럼</text>
+        <text class="dg-sub" x="810" y="223" text-anchor="middle" font-size="9.8">아르툠 직접 보고 (ВЭФ/VEB)</text>
+      </g>
+      <g>
+        <rect class="dg-box e-tlc" x="36" y="354" width="168" height="48" rx="9"/>
+        <text class="dg-title t-tlc" x="120" y="375" text-anchor="middle" font-size="12">트랜스컨테이너(델로)</text>
+        <text class="dg-sub" x="120" y="391" text-anchor="middle" font-size="9.8">지분無 · 최대 경쟁사</text>
+      </g>
+      <g>
+        <rect class="dg-box e-state" x="756" y="354" width="168" height="48" rx="9"/>
+        <text class="dg-title t-state" x="840" y="375" text-anchor="middle" font-size="11.5">타라소프 · 첸트로크레디트</text>
+        <text class="dg-sub" x="840" y="391" text-anchor="middle" font-size="9.8">초기~현재 핵심 금융 파트너</text>
+      </g>
+
+      <!-- 미검증 노드 (회색 점선 박스) -->
+      <g fill="none" stroke="var(--c-unver)" stroke-width="1.4" stroke-dasharray="5 4">
+        <rect x="76" y="532" width="168" height="46" rx="9" fill="var(--panel-2)"/>
+        <rect x="261" y="636" width="168" height="46" rx="9" fill="var(--panel-2)"/>
+        <rect x="531" y="636" width="168" height="46" rx="9" fill="var(--panel-2)"/>
+        <rect x="716" y="532" width="168" height="46" rx="9" fill="var(--panel-2)"/>
+        <rect x="396" y="676" width="168" height="46" rx="9" fill="var(--panel-2)"/>
+      </g>
+      <g fill="var(--c-unver)">
+        <text x="160" y="552" text-anchor="middle" font-size="11.5" font-weight="700">바바코프 보좌역설</text>
+        <text x="160" y="568" text-anchor="middle" font-size="9.5">국가두마 부의장 А.</text>
+        <text x="345" y="656" text-anchor="middle" font-size="11.5" font-weight="700">카노코프 연계설</text>
+        <text x="345" y="672" text-anchor="middle" font-size="9.5">상원의원 А.</text>
+        <text x="615" y="656" text-anchor="middle" font-size="11.5" font-weight="700">후스눌린 연계설</text>
+        <text x="615" y="672" text-anchor="middle" font-size="9.5">М. 부총리</text>
+        <text x="800" y="552" text-anchor="middle" font-size="11.5" font-weight="700">'바지사장(ширма)' 의혹</text>
+        <text x="800" y="568" text-anchor="middle" font-size="9.5">명목상 소유주 주장</text>
+        <text x="480" y="696" text-anchor="middle" font-size="11" font-weight="700">에스토니아계 초기 소수주주</text>
+        <text x="480" y="712" text-anchor="middle" font-size="9.5">아레 카르마 (Are Karma)</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="dg-legend">
+    <span><i style="background:var(--c-logoper)"></i> 철송·외국자본 라인</span>
+    <span><i style="background:var(--c-state)"></i> 국가·은행·정치 무대</span>
+    <span><i style="background:var(--c-tlc)"></i> 경쟁사</span>
+    <span><i style="width:18px;border-top:2px dashed var(--c-unver);height:0"></i> 미검증 의혹 (신뢰도 낮음)</span>
+  </div>
+
+  <div class="rel-cols">
+    <div class="rel-col">
+      <h4><span class="mk"></span> 실선 — 확인된 관계</h4>
+      <div class="rel-item">
+        <span class="rt">CMA CGM <span class="ru">(프랑스)</span></span> <span class="badge confirmed">확인</span><br>
+        2017.12 사데(Saadé) 회장이 푸틴에게 서한 — 로고페르와 컨소시엄으로 트랜스컨테이너 50%+2주 인수 의향 → 무산.
+        2018 로고페르 50% 인수. 2022 러시아 철수 선언. 2023.4.12 지분 50%를 <b>€1</b>에 카히제에 매각하되 바이백(재매입) 옵션 확보 —
+        옵션 대상은 <b>로고페르 지분 50%에 한정</b>되며, 행사 시 '카히제 50 : CMA CGM 50' 합작 체제로 복귀할 뿐 그룹 전체와 무관.
+        세부 조건(기한·가격)은 비공개. 2025년 말 CMA CGM 러시아 부분 영업 재개 확인.
+      </div>
+      <div class="rel-item">
+        <span class="rt">RZD <span class="ru">(러시아철도 · РЖД)</span></span> <span class="badge confirmed">확인</span><br>
+        출신 모기관이자 사업 기반 — 선로·견인 독점, TLC 거점망이 국가계획과 정렬.
+      </div>
+      <div class="rel-item">
+        <span class="rt">국가기관</span> <span class="badge confirmed">확인</span><br>
+        교통부(우랄스키 개장식에 대통령 보좌관 레비틴(Левитин)·사벨리예프(Савельев) 장관 참석), 극동개발부, VEB.RF, 스베르방크, 연방재산청, 연해주 정부.
+      </div>
+      <div class="rel-item">
+        <span class="rt">안드레이 타라소프 · 첸트로크레디트 은행</span> <span class="badge confirmed">확인</span><br>
+        초기~현재 핵심 금융 파트너.
+      </div>
+      <div class="rel-item">
+        <span class="rt">트랜스컨테이너 <span class="ru">(델로 그룹 · Дело)</span></span> <span class="badge confirmed">확인</span><br>
+        지분 관계 없음, 최대 경쟁사. 과거엔 공동 인수 시도 대상이었다.
+      </div>
+      <div class="rel-item">
+        <span class="rt">동방경제포럼 / VEB 무대</span> <span class="badge confirmed">확인</span><br>
+        푸틴 대통령에게 아르툠 프로젝트 직접 보고. <span style="color:var(--ink-dim)">단, 대형 인프라 투자자의 통상적 접촉 수준이라는 해설을 병기한다.</span>
+      </div>
+    </div>
+
+    <div class="rel-col unver">
+      <h4><span class="mk"></span> 점선 — 미검증 의혹 (콤프로마트성 매체발)</h4>
+      <p class="lowconf">아래 항목은 신뢰도 낮음 — 공식 확인되지 않은 매체발 주장으로, 회색 처리한다.</p>
+      <div class="rel-item unverified"><span class="rt">국가두마 부의장 А. 바바코프(Бабаков) 보좌역설</span> <span class="badge unverified">미검증 의혹</span></div>
+      <div class="rel-item unverified"><span class="rt">상원의원 А. 카노코프(Каноков) 연계설</span> <span class="badge unverified">미검증 의혹</span></div>
+      <div class="rel-item unverified"><span class="rt">М. 후스눌린(Хуснуллин) 부총리 연계설</span> <span class="badge unverified">미검증 의혹</span></div>
+      <div class="rel-item unverified"><span class="rt">'바지사장(ширма)' 의혹</span> <span class="badge unverified">미검증 의혹</span></div>
+      <div class="rel-item unverified"><span class="rt">초기 소수주주 중 에스토니아계 인물(아레 카르마 · Are Karma) 존재</span> <span class="badge unverified">미검증 의혹</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 섹션 8 · 연혁 종합 타임라인 ================= -->
+<section id="s8">
+  <div class="sec-head"><span class="sn">08</span><h2>연혁 종합 타임라인</h2><span class="sub">2014 → 2026</span></div>
+  <div class="htl">
+    <div class="step"><div class="y">2014</div><div class="t">TLC 호브리노 가동 (그룹 1호)</div></div>
+    <div class="step"><div class="y">2015</div><div class="t">모스크바 교통허브 디렉치야 수장</div></div>
+    <div class="step"><div class="y">2017</div><div class="t">로고페르 설립 · 트랜스컨테이너 인수 추진</div></div>
+    <div class="step"><div class="y">2018</div><div class="t">CMA CGM 로고페르 50% 참여 · 엘렉트로우글리</div></div>
+    <div class="step"><div class="y">2019</div><div class="t">그룹 소유주 취임 · 1,200억 ₽ 프로그램 개시</div></div>
+    <div class="step"><div class="y">2022</div><div class="t">우랄스키 개장 · 서방 선사 러시아 철수</div></div>
+    <div class="step"><div class="y">2023</div><div class="t">시비르스키 가동 · 판다 설립 · CMA CGM €1 인수 · RB 수도블라델레츠 설립</div></div>
+    <div class="step"><div class="y">2024</div><div class="t">시비르스키 2차 · 판다 선대 10척 · 그룹 매출 690억 ₽</div></div>
+    <div class="step"><div class="y">2025</div><div class="t">아르툠 1차 가동 · 부산 항로 개설 · 스베르+VEB 315억 ₽ 신디케이트</div></div>
+    <div class="step"><div class="y">2026</div><div class="t">현재 (기준일)</div></div>
+  </div>
+</section>
+
+<!-- ================= 섹션 9 · 푸터 ================= -->
+<footer class="foot" id="s9">
+  <div class="src">
+    <h5>출처</h5>
+    인터팍스(Интерфакс) · RBC(РБК) · 코메르산트(Коммерсантъ) · 베도모스티(Ведомости) · TASS(ТАСС) · PortNews · InfraNews ·
+    러시아 법인등기부(ЕГРЮЛ) 기반 기업정보 서비스(Rusprofile / Checko / Kontur) · tlc.ru · logoper.ru
+  </div>
+  <div class="disc">
+    <h5 style="color:var(--c-warn)">면책</h5>
+    "2026년 6월 기준 공개정보 취합. 비상장 그룹 특성상 연결재무 비공시, 합산치는 내부거래 미상계.
+    루블-원 환산은 1₽ = 21원 적용(변동 유의)." 「미검증 의혹」으로 표기된 항목은 공식 확인되지 않은 매체발 주장이며 신뢰도가 낮다.
+  </div>
+  <div class="sig">카히제 · 핀인베스트 그룹 분석 · 판다 익스프레스 라인 · G.M.PARK Project Dashboard</div>
+</footer>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  "use strict";
+  /* ===== 화면 모드 (다크/라이트) — 로컬 영속 ===== */
+  var KEY='kfi-theme';
+  var html=document.documentElement;
+  var btn=document.getElementById('themeBtn');
+  var icon=document.getElementById('themeIcon');
+  var label=document.getElementById('themeLabel');
+  function apply(t){
+    html.setAttribute('data-theme', t);
+    if(icon)  icon.textContent  = (t==='light' ? '☾' : '◐');
+    if(label) label.textContent = (t==='light' ? '다크' : '라이트');
+  }
+  var saved=null;
+  try{ saved=localStorage.getItem(KEY); }catch(e){}
+  apply(saved==='light' ? 'light' : 'dark');
+  if(btn){
+    btn.addEventListener('click', function(){
+      var next = (html.getAttribute('data-theme')==='light') ? 'dark' : 'light';
+      apply(next);
+      try{ localStorage.setItem(KEY, next); }catch(e){}
+    });
+  }
+
+  /* ===== 목차 스크롤 스파이 ===== */
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var map = {};
+  links.forEach(function(a){
+    var id = a.getAttribute('href').slice(1);
+    var sec = document.getElementById(id);
+    if(sec) map[id] = a;
+  });
+  var ids = Object.keys(map);
+  if('IntersectionObserver' in window && ids.length){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          var a = map[en.target.id];
+          if(a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+    ids.forEach(function(id){ io.observe(document.getElementById(id)); });
+  }
+})();
+</script>
+</body>
+</html>
