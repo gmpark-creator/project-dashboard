@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOXL 핵심 구성종목 실시간 시세</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js v4 (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  /* 다크 증권사 스타일 보조 CSS */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #11151d; }
+  ::-webkit-scrollbar-thumb { background: #2a3242; border-radius: 3px; }
+
+  @keyframes flashUp   { 0% { background-color: rgba(240, 68, 82, 0.22); } 100% { background-color: transparent; } }
+  @keyframes flashDown { 0% { background-color: rgba(49, 130, 246, 0.22); } 100% { background-color: transparent; } }
+  .flash-up   { animation: flashUp 0.6s ease-out; }
+  .flash-down { animation: flashDown 0.6s ease-out; }
+
+  .row-selected { background-color: rgba(255, 255, 255, 0.06) !important; box-shadow: inset 3px 0 0 #f59e0b; }
+
+  @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .live-dot { animation: pulseDot 1.2s ease-in-out infinite; }
+</style>
+</head>
+
+<body class="bg-[#0b0e14] text-gray-200 min-h-screen font-sans antialiased">
+
+<!-- ===================== 헤더 ===================== -->
+<header class="border-b border-[#1c2230] bg-[#0e121b] px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+  <h1 class="text-lg font-bold tracking-tight text-white">
+    SOXL <span class="text-amber-400">핵심 구성종목</span> 실시간 시세
+  </h1>
+  <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 rounded-full px-2.5 py-0.5">
+    <span class="live-dot inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+    실시간 스트리밍 (시뮬레이션)
+  </span>
+  <div class="ml-auto flex items-center gap-4 text-xs text-gray-400">
+    <span>상승 <b id="upCount" class="text-[#f04452]">0</b> · 하락 <b id="downCount" class="text-[#3182f6]">0</b></span>
+    <span id="clock" class="tabular-nums font-mono text-gray-300">--:--:--</span>
+  </div>
+</header>
+
+<!-- ===================== 본문 ===================== -->
+<main class="p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-5 gap-4 max-w-[1500px] mx-auto">
+
+  <!-- ───── 메인 차트 카드 ───── -->
+  <section class="lg:col-span-3 bg-[#11151d] border border-[#1c2230] rounded-xl p-5 flex flex-col">
+    <div class="flex flex-wrap items-end gap-x-4 gap-y-1 mb-1">
+      <div>
+        <div class="flex items-baseline gap-2">
+          <h2 id="chartName" class="text-xl font-bold text-white">엔비디아</h2>
+          <span id="chartTicker" class="text-sm font-mono text-gray-400">NVDA</span>
+        </div>
+      </div>
+      <div class="ml-auto text-right">
+        <div id="chartPrice" class="text-3xl font-bold tabular-nums font-mono text-white">$0.00</div>
+        <div id="chartChange" class="text-sm font-semibold tabular-nums font-mono text-gray-400">+0.00 (+0.00%)</div>
+      </div>
+    </div>
+    <p class="text-[11px] text-gray-500 mb-3">최근 50틱 · 0.7초 간격 갱신 · 점선 = 기준가(전일 종가)</p>
+    <div class="relative flex-1 min-h-[340px]">
+      <canvas id="mainChart"></canvas>
+    </div>
+  </section>
+
+  <!-- ───── 종목 리스트 테이블 ───── -->
+  <section class="lg:col-span-2 bg-[#11151d] border border-[#1c2230] rounded-xl overflow-hidden flex flex-col">
+    <div class="px-4 py-3 border-b border-[#1c2230] flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white">관심종목 <span class="text-gray-500 font-normal">(SOXL 기초자산 20)</span></h3>
+      <span class="text-[11px] text-gray-500">종목을 클릭하면 차트가 전환됩니다</span>
+    </div>
+    <div class="overflow-y-auto" style="max-height: calc(100vh - 180px); min-height: 400px;">
+      <table class="w-full text-sm">
+        <thead class="sticky top-0 bg-[#161b26] z-10 text-[11px] text-gray-400">
+          <tr>
+            <th class="text-left  px-4 py-2 font-medium">종목명</th>
+            <th class="text-right px-3 py-2 font-medium">현재가</th>
+            <th class="text-right px-3 py-2 font-medium">전일대비</th>
+            <th class="text-right px-4 py-2 font-medium">등락률</th>
+          </tr>
+        </thead>
+        <tbody id="stockTbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="px-5 pb-5 text-[11px] text-gray-600 max-w-[1500px] mx-auto">
+  ※ 본 화면의 시세는 실제 호가가 아닌 변동성 기반 랜덤워크 시뮬레이션이며, 투자 판단의 근거로 사용할 수 없습니다.
+</footer>
+
+<script>
+'use strict';
+
+/* ============================================================
+ * 1. 종목 마스터 데이터 — SOXL 핵심 기초자산 20종목 (하드코딩)
+ *    base : 기준가(전일 종가 가정, USD)
+ *    vol  : 틱당 표준편차 비율 (실제 일중 변동성 수준을 반영해 차등 부여)
+ * ============================================================ */
+const STOCKS = [
+  { ticker: 'NVDA', name: '엔비디아',               base: 182.40, vol: 0.00075 },
+  { ticker: 'AVGO', name: '브로드컴',               base: 246.10, vol: 0.00070 },
+  { ticker: 'AMD',  name: '어드밴스드 마이크로 디바이스', base: 161.35, vol: 0.00085 },
+  { ticker: 'TSM',  name: 'TSMC',                  base: 211.20, vol: 0.00060 },
+  { ticker: 'ASML', name: 'ASML 홀딩',              base: 778.50, vol: 0.00065 },
+  { ticker: 'MU',   name: '마이크론 테크놀로지',      base: 112.85, vol: 0.00090 },
+  { ticker: 'QCOM', name: '퀄컴',                   base: 158.70, vol: 0.00055 },
+  { ticker: 'TXN',  name: '텍사스 인스트루먼트',      base: 189.45, vol: 0.00045 },
+  { ticker: 'AMAT', name: '어플라이드 머티어리얼즈',   base: 172.30, vol: 0.00065 },
+  { ticker: 'LRCX', name: '램리서치',               base: 94.60,  vol: 0.00070 },
+  { ticker: 'KLAC', name: 'KLA 코포레이션',          base: 812.40, vol: 0.00060 },
+  { ticker: 'ADI',  name: '아날로그 디바이스',        base: 228.90, vol: 0.00045 },
+  { ticker: 'NXPI', name: 'NXP 세미콘덕터',          base: 219.55, vol: 0.00055 },
+  { ticker: 'MRVL', name: '마벨 테크놀로지',          base: 72.15,  vol: 0.00095 },
+  { ticker: 'MPWR', name: '모놀리식 파워 시스템즈',    base: 614.80, vol: 0.00070 },
+  { ticker: 'INTC', name: '인텔',                   base: 22.45,  vol: 0.00100 },
+  { ticker: 'TER',  name: '테라다인',               base: 108.25, vol: 0.00075 },
+  { ticker: 'MCHP', name: '마이크로칩 테크놀로지',     base: 58.90,  vol: 0.00080 },
+  { ticker: 'ON',   name: '온세미콘덕터',            base: 49.75,  vol: 0.00085 },
+  { ticker: 'ALAB', name: '아스테라랩스',            base: 92.30,  vol: 0.00130 },
+];
+
+const TICK_MS    = 700;  // 0.5 ~ 1.0초 사이 갱신 주기
+const MAX_TICKS  = 50;   // 차트에 유지할 최근 틱 수
+const WARMUP     = 40;   // 초기 로딩 시 미리 생성할 과거 틱 수
+
+// 한국 증시 색 관례: 상승 = 빨강 / 하락 = 파랑
+const COLOR_UP   = '#f04452';
+const COLOR_DOWN = '#3182f6';
+const COLOR_FLAT = '#9ca3af';
+
+/* ============================================================
+ * 2. 시뮬레이션 라이브 스트리밍 엔진
+ *
+ * ★★★ 프로덕션 연동 지점 ★★★
+ * 실서비스에서는 아래 setInterval 기반 랜덤워크 엔진 전체를 제거하고
+ * 실시간 시세 WebSocket으로 교체합니다. 예:
+ *
+ *   const ws = new WebSocket('wss://ws.polygon.io/stocks'); // 또는 Finnhub 등
+ *   ws.onopen    = () => ws.send(JSON.stringify({ action:'subscribe', params:'T.NVDA,T.AVGO,...' }));
+ *   ws.onmessage = (e) => {
+ *     const { ticker, price, time } = parseVendorMessage(e.data);
+ *     applyTick(stateByTicker[ticker], price, time);  // 아래 applyTick을 그대로 재사용
+ *     renderAll();
+ *   };
+ *
+ * applyTick() 이후의 렌더링 파이프라인(테이블/차트)은 수정 없이 동작합니다.
+ * ============================================================ */
+
+// 종목별 런타임 상태
+const stateByTicker = {};
+STOCKS.forEach(s => {
+  stateByTicker[s.ticker] = {
+    ...s,
+    price: s.base,
+    prevPrice: s.base,
+    history: [],            // { label: 'HH:MM:SS', price }
+  };
+});
+
+// 표준정규난수 (Box–Muller)
+function gaussian() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function timeLabel(date) {
+  return date.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+// 랜덤워크 1틱 가격 생성 (기준가로의 약한 평균회귀를 더해 과도한 이탈 방지)
+function nextPrice(st) {
+  const meanReversion = (st.base - st.price) / st.base * 0.0015;
+  const shock = gaussian() * st.vol;
+  return Math.max(0.01, st.price * (1 + meanReversion + shock));
+}
+
+// 새 체결가 1건을 상태에 반영 (실시간 API 연동 시에도 이 함수를 그대로 호출)
+function applyTick(st, price, date) {
+  st.prevPrice = st.price;
+  st.price = price;
+  st.history.push({ label: timeLabel(date), price });
+  if (st.history.length > MAX_TICKS) st.history.shift();
+}
+
+// 초기 워밍업: 차트가 비어 보이지 않도록 과거 틱을 미리 생성
+(function warmup() {
+  const now = Date.now();
+  for (let i = WARMUP; i > 0; i--) {
+    const date = new Date(now - i * TICK_MS);
+    STOCKS.forEach(s => {
+      const st = stateByTicker[s.ticker];
+      applyTick(st, nextPrice(st), date);
+    });
+  }
+})();
+
+/* ============================================================
+ * 3. 종목 리스트 테이블
+ * ============================================================ */
+const tbody = document.getElementById('stockTbody');
+const cellRefs = {}; // ticker -> { row, price, change, pct }
+
+function fmtPrice(p)  { return '$' + p.toFixed(2); }
+function fmtChange(c) { return (c >= 0 ? '+' : '-') + Math.abs(c).toFixed(2); }
+function fmtPct(p)    { return (p >= 0 ? '+' : '-') + Math.abs(p).toFixed(2) + '%'; }
+function dirColor(d)  { return d > 0 ? COLOR_UP : d < 0 ? COLOR_DOWN : COLOR_FLAT; }
+
+function buildTable() {
+  STOCKS.forEach(s => {
+    const row = document.createElement('tr');
+    row.className = 'cursor-pointer border-b border-[#171c28] hover:bg-white/[0.04] transition-colors';
+    row.innerHTML = `
+      <td class="px-4 py-2.5">
+        <div class="font-semibold text-gray-100 leading-tight">${s.name}</div>
+        <div class="text-[11px] font-mono text-gray-500">${s.ticker}</div>
+      </td>
+      <td class="px-3 py-2.5 text-right font-mono tabular-nums font-semibold"></td>
+      <td class="px-3 py-2.5 text-right font-mono tabular-nums text-[13px]"></td>
+      <td class="px-4 py-2.5 text-right font-mono tabular-nums text-[13px] font-semibold"></td>
+    `;
+    row.addEventListener('click', () => selectStock(s.ticker));
+    tbody.appendChild(row);
+    cellRefs[s.ticker] = {
+      row,
+      price:  row.children[1],
+      change: row.children[2],
+      pct:    row.children[3],
+    };
+  });
+}
+
+function renderTable() {
+  let up = 0, down = 0;
+  STOCKS.forEach(s => {
+    const st = stateByTicker[s.ticker];
+    const ref = cellRefs[s.ticker];
+    const change = st.price - st.base;
+    const pct = (change / st.base) * 100;
+    const color = dirColor(change);
+    if (change > 0) up++; else if (change < 0) down++;
+
+    ref.price.textContent  = fmtPrice(st.price);
+    ref.change.textContent = fmtChange(change);
+    ref.pct.textContent    = fmtPct(pct);
+    ref.price.style.color = ref.change.style.color = ref.pct.style.color = color;
+
+    // 직전 틱 대비 방향으로 셀 플래시
+    if (st.price !== st.prevPrice) {
+      const cls = st.price > st.prevPrice ? 'flash-up' : 'flash-down';
+      ref.price.classList.remove('flash-up', 'flash-down');
+      void ref.price.offsetWidth; // reflow로 애니메이션 재시작
+      ref.price.classList.add(cls);
+    }
+  });
+  document.getElementById('upCount').textContent = up;
+  document.getElementById('downCount').textContent = down;
+}
+
+/* ============================================================
+ * 4. 메인 라이브 차트 (Chart.js)
+ * ============================================================ */
+let selectedTicker = 'NVDA';
+let chart;
+
+const ctx = document.getElementById('mainChart').getContext('2d');
+const gradUp = ctx.createLinearGradient(0, 0, 0, 380);
+gradUp.addColorStop(0, 'rgba(240, 68, 82, 0.25)');
+gradUp.addColorStop(1, 'rgba(240, 68, 82, 0)');
+const gradDown = ctx.createLinearGradient(0, 0, 0, 380);
+gradDown.addColorStop(0, 'rgba(49, 130, 246, 0.25)');
+gradDown.addColorStop(1, 'rgba(49, 130, 246, 0)');
+
+function buildChart() {
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: '현재가',
+          data: [],
+          borderColor: COLOR_UP,
+          backgroundColor: gradUp,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHitRadius: 8,
+        },
+        {
+          label: '기준가(전일 종가)',
+          data: [],
+          borderColor: 'rgba(156, 163, 175, 0.55)',
+          borderWidth: 1,
+          borderDash: [5, 5],
+          fill: false,
+          pointRadius: 0,
+          pointHitRadius: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false, // 고빈도 틱 갱신 시 잔상 없는 부드러운 스크롤
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#161b26',
+          borderColor: '#2a3242',
+          borderWidth: 1,
+          titleColor: '#e5e7eb',
+          bodyColor: '#e5e7eb',
+          callbacks: {
+            label: (item) => `${item.dataset.label}: $${Number(item.parsed.y).toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(42, 50, 66, 0.35)' },
+          ticks: { color: '#6b7280', maxTicksLimit: 8, maxRotation: 0, font: { size: 10, family: 'monospace' } },
+        },
+        y: {
+          position: 'right',
+          grid: { color: 'rgba(42, 50, 66, 0.35)' },
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 11, family: 'monospace' },
+            callback: (v) => '$' + Number(v).toFixed(2),
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderChart() {
+  const st = stateByTicker[selectedTicker];
+  const change = st.price - st.base;
+  const color = dirColor(change);
+
+  chart.data.labels = st.history.map(h => h.label);
+  chart.data.datasets[0].data = st.history.map(h => h.price);
+  chart.data.datasets[0].borderColor = change < 0 ? COLOR_DOWN : COLOR_UP;
+  chart.data.datasets[0].backgroundColor = change < 0 ? gradDown : gradUp;
+  chart.data.datasets[1].data = st.history.map(() => st.base);
+  chart.update('none');
+
+  // 차트 헤더 갱신
+  document.getElementById('chartName').textContent = st.name;
+  document.getElementById('chartTicker').textContent = st.ticker;
+  const priceEl = document.getElementById('chartPrice');
+  const changeEl = document.getElementById('chartChange');
+  priceEl.textContent = fmtPrice(st.price);
+  changeEl.textContent = `${fmtChange(change)} (${fmtPct((change / st.base) * 100)})`;
+  priceEl.style.color = changeEl.style.color = color;
+}
+
+function selectStock(ticker) {
+  selectedTicker = ticker;
+  STOCKS.forEach(s => cellRefs[s.ticker].row.classList.toggle('row-selected', s.ticker === ticker));
+  renderChart();
+}
+
+/* ============================================================
+ * 5. 메인 루프 가동
+ * ============================================================ */
+function renderAll() {
+  renderTable();
+  renderChart();
+}
+
+buildTable();
+buildChart();
+selectStock(selectedTicker);
+renderAll();
+
+// ★ 프로덕션 전환 시: 이 setInterval을 제거하고 WebSocket onmessage → applyTick → renderAll 로 대체
+setInterval(() => {
+  const now = new Date();
+  STOCKS.forEach(s => {
+    const st = stateByTicker[s.ticker];
+    applyTick(st, nextPrice(st), now);
+  });
+  renderAll();
+}, TICK_MS);
+
+// 헤더 시계
+setInterval(() => {
+  document.getElementById('clock').textContent = timeLabel(new Date());
+}, 1000);
+</script>
+</body>
+</html>
