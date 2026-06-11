@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOXL 핵심 구성종목 실시간 시세</title>
+<title>SOXL 구성종목 30 실시간 시세</title>
 
 <!-- Tailwind CSS (CDN) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +33,7 @@
 <!-- ===================== 헤더 ===================== -->
 <header class="border-b border-[#1c2230] bg-[#0e121b] px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
   <h1 class="text-lg font-bold tracking-tight text-white">
-    SOXL <span class="text-amber-400">핵심 구성종목</span> 실시간 시세
+    SOXL <span class="text-amber-400">구성종목 30</span> 실시간 시세
   </h1>
   <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 rounded-full px-2.5 py-0.5">
     <span class="live-dot inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -71,7 +71,7 @@
   <!-- ───── 종목 리스트 테이블 ───── -->
   <section class="lg:col-span-2 bg-[#11151d] border border-[#1c2230] rounded-xl overflow-hidden flex flex-col">
     <div class="px-4 py-3 border-b border-[#1c2230] flex items-center justify-between">
-      <h3 class="text-sm font-bold text-white">관심종목 <span class="text-gray-500 font-normal">(SOXL 기초자산 20)</span></h3>
+      <h3 class="text-sm font-bold text-white">관심종목 <span class="text-gray-500 font-normal">(SOXL 기초자산 30)</span></h3>
       <span class="text-[11px] text-gray-500">종목을 클릭하면 차트가 전환됩니다</span>
     </div>
     <div class="overflow-y-auto" style="max-height: calc(100vh - 180px); min-height: 400px;">
@@ -98,7 +98,7 @@
 'use strict';
 
 /* ============================================================
- * 1. 종목 마스터 데이터 — SOXL 핵심 기초자산 20종목 (하드코딩)
+ * 1. 종목 마스터 데이터 — SOXL 기초자산 전체 30종목 (하드코딩)
  *    base : 기준가(전일 종가 가정, USD)
  *    vol  : 틱당 표준편차 비율 (실제 일중 변동성 수준을 반영해 차등 부여)
  * ============================================================ */
@@ -123,6 +123,16 @@ const STOCKS = [
   { ticker: 'MCHP', name: '마이크로칩 테크놀로지',     base: 58.90,  vol: 0.00080 },
   { ticker: 'ON',   name: '온세미콘덕터',            base: 49.75,  vol: 0.00085 },
   { ticker: 'ALAB', name: '아스테라랩스',            base: 92.30,  vol: 0.00130 },
+  { ticker: 'SWKS', name: '스카이웍스 솔루션즈',      base: 71.60,  vol: 0.00070 },
+  { ticker: 'QRVO', name: '코보',                   base: 86.40,  vol: 0.00075 },
+  { ticker: 'LSCC', name: '래티스 세미콘덕터',        base: 57.85,  vol: 0.00095 },
+  { ticker: 'STM',  name: 'ST마이크로일렉트로닉스',   base: 28.35,  vol: 0.00070 },
+  { ticker: 'UMC',  name: '유나이티드 마이크로일렉트로닉스', base: 7.42, vol: 0.00065 },
+  { ticker: 'ENTG', name: '엔테그리스',              base: 96.20,  vol: 0.00080 },
+  { ticker: 'RMBS', name: '램버스',                 base: 64.75,  vol: 0.00090 },
+  { ticker: 'WOLF', name: '울프스피드',              base: 4.85,   vol: 0.00160 },
+  { ticker: 'COHR', name: '코히런트',               base: 94.10,  vol: 0.00100 },
+  { ticker: 'ALGM', name: '알레그로 마이크로시스템즈', base: 22.60,  vol: 0.00090 },
 ];
 
 const TICK_MS    = 700;  // 0.5 ~ 1.0초 사이 갱신 주기

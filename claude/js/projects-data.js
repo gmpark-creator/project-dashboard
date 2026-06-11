@@ -313,7 +313,7 @@ const PROJECTS = [
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
     preview: { type:'embed', height:600, items:[
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, vite assets path 상대경로 변환)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'SOXL 핵심 구성종목 20 실시간 시세 (Claude 트랙, 시뮬레이션 스트리밍 — 단일 HTML)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'SOXL 구성종목 30 전체 실시간 시세 (Claude 트랙, 시뮬레이션 스트리밍 — 단일 HTML)' }
     ]},
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을\n'
            + '분석·시각화하는 연구용 대시보드.\n'
@@ -342,7 +342,8 @@ const PROJECTS = [
       { type:'완료', title:'GitHub repo 생성 + push 완료 (Codex, 2026-05-28)', desc:'gmpark-creator/us-to-kr-premarket-impact-dashboard remote 등록 + master push. 박사 standing(다른 프로젝트와 동일 패턴) 충족.' },
       { type:'핵심', title:'Official 매크로 데이터 refresh 파이프라인 (Codex, commit f218f32)', desc:'scripts/refresh-data.mjs (+388줄) 신설. FRED + Bank of Korea ECOS 등 traceable 공식 소스 우선. data.generated.ts(+162줄) 자동 생성. docs/DATA_SOURCES.md 영속화 — USD/KRW · S&P500 · Nasdaq · Dow · VIX · US 10Y 매핑. 박사 standing "fake/guessed 데이터 금지" 준수 — 소스 미확보 시 missing/delayed로 표시.' },
       { type:'이슈', title:'박사 dashboard 등록 + 30% 픽스 (2026-05-28)', desc:'Claude가 폴더 발견 → 박사 "대시보드 7번으로 추가, 구현율은 30%로 고정" 발화로 정식 등록 + progress 1% → 30% 갱신. 향후 progress 변경은 박사 직접 발화 대기(standing).' },
-      { type:'완료', title:'SOXL 핵심 구성종목 20 실시간 시세 대시보드 추가 (Claude, 2026-06-11)', desc:'박사 지시로 SOXL ETF 기초자산 20종목(NVDA·AVGO·AMD·TSM·ASML·MU 등) 전용 실시간 시세 화면을 단일 HTML로 신설, 본 프로젝트 하위 프리뷰(soxl-live/)로 편입. Chart.js + Tailwind CDN 다크 증권사 테마. 한국 증시 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. 0.7초 틱 가우시안 랜덤워크 시뮬레이션 엔진(종목별 변동성 차등 + 기준가 평균회귀) — 프로덕션 WebSocket 교체 지점 주석 명시, applyTick() 이후 렌더 파이프라인은 실데이터 전환 시 그대로 재사용. 행 클릭 차트 전환 + 최근 50틱 스크롤 윈도우 + 전일종가 점선 기준선. 트랙 분리 준수: Codex dist(index.html/assets) 무수정, 하위 폴더로만 추가.' }
+      { type:'완료', title:'SOXL 핵심 구성종목 20 실시간 시세 대시보드 추가 (Claude, 2026-06-11)', desc:'박사 지시로 SOXL ETF 기초자산 20종목(NVDA·AVGO·AMD·TSM·ASML·MU 등) 전용 실시간 시세 화면을 단일 HTML로 신설, 본 프로젝트 하위 프리뷰(soxl-live/)로 편입. Chart.js + Tailwind CDN 다크 증권사 테마. 한국 증시 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. 0.7초 틱 가우시안 랜덤워크 시뮬레이션 엔진(종목별 변동성 차등 + 기준가 평균회귀) — 프로덕션 WebSocket 교체 지점 주석 명시, applyTick() 이후 렌더 파이프라인은 실데이터 전환 시 그대로 재사용. 행 클릭 차트 전환 + 최근 50틱 스크롤 윈도우 + 전일종가 점선 기준선. 트랙 분리 준수: Codex dist(index.html/assets) 무수정, 하위 폴더로만 추가.' },
+      { type:'완료', title:'SOXL 시세 화면 20→30종목 전체 확장 (Claude, 2026-06-11)', desc:'1차 지시 프롬프트(Gemini 작성)에서 누락됐던 소수 종목 10개 보완 — SWKS 스카이웍스·QRVO 코보·LSCC 래티스·STM ST마이크로·UMC·ENTG 엔테그리스·RMBS 램버스·WOLF 울프스피드·COHR 코히런트·ALGM 알레그로. 박사가 SOXL 전체 구성종목 리스트를 새로 받아 재지시. 종목별 기준가·변동성 차등 부여, 헤더·테이블 라벨 30으로 갱신. 이로써 SOXL 기초자산 30종목 전량 수록.' }
     ],
     milestones: [
       { date:'2026-05-28', title:'Initial design — US-KR Premarket 컨셉 (Codex)', desc:'commit c613660. docs/DESIGN.md 영속. safety: 연구 전용 · 자동주문·브로커리지·라이브데이터 금지 명시.' },
@@ -352,7 +353,7 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-28', title:'GitHub repo 생성 + push (Codex)', desc:'gmpark-creator/us-to-kr-premarket-impact-dashboard remote 등록 + master push. 박사 다른 프로젝트와 동일 패턴.' },
       { isCore:true, date:'2026-05-28', title:'Official 매크로 데이터 refresh (Codex, commit f218f32)', desc:'FRED + BoK ECOS 공식 소스 우선 + scripts/refresh-data.mjs + data.generated.ts + docs/DATA_SOURCES.md. 박사 "fake 데이터 금지" standing 준수 — missing/delayed 명시.' },
       { isCore:true, date:'2026-05-28', title:'박사 progress 30% 픽스', desc:'박사 발화 "구현율은 30퍼센트로 고정". 향후 갱신은 박사 직접 발화 대기.' },
-      { isCore:true, date:'2026-06-11', title:'SOXL 구성종목 20 실시간 시세 화면 편입 (Claude)', desc:'박사 지시로 SOXL 기초자산 20종목 실시간 시세(시뮬레이션 스트리밍) 단일 HTML을 soxl-live/ 하위 프리뷰로 추가. 다크 증권사 테마 + 한국 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. Codex Phase 1 dist는 무수정(트랙 분리).' }
+      { isCore:true, date:'2026-06-11', title:'SOXL 구성종목 실시간 시세 화면 편입 + 30종목 전량 확장 (Claude)', desc:'박사 지시로 SOXL 기초자산 실시간 시세(시뮬레이션 스트리밍) 단일 HTML을 soxl-live/ 하위 프리뷰로 추가(1차 20종목). 같은 날 1차 프롬프트에서 누락됐던 10종목(SWKS·QRVO·LSCC·STM·UMC·ENTG·RMBS·WOLF·COHR·ALGM) 보완으로 30종목 전량 수록. 다크 증권사 테마 + 한국 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. Codex Phase 1 dist는 무수정(트랙 분리).' }
     ]
   },
   {
