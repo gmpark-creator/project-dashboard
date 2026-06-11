@@ -42,6 +42,12 @@
 <script src="bosesa-data-3-2021.js"></script>
 
 <script src="bosesa-data-3-2020.js"></script>
+<script src="bosesa-data-3-2019.js"></script>
+<script src="bosesa-data-4-2025.js"></script>
+<script src="bosesa-data-4-2024.js"></script>
+<script src="bosesa-data-4-2023.js"></script>
+<script src="bosesa-data-4-2022.js"></script>
+<script src="bosesa-data-4-2021.js"></script>
 
 <script src="customs-practice-data.js"></script>
 <style>
@@ -243,10 +249,32 @@
   <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2020년
 
   </button>
+  <button class="sb-item sb-child2" id="sb-s3-year-2019" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:3,bosesaYear:2019})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년
+  </button>
       </div>
-      <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
-        <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>4과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
-      </button>
+  <!-- 4과목 -->
+  <button class="sb-item sb-child" onclick="toggleSubject4()">
+  <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>4과목 수출입안전관리
+  <i class="fa-solid fa-chevron-down ml-auto text-[10px] text-slate-500" id="sb-s4-chevron"></i>
+  </button>
+  <div id="sb-s4-menu" style="max-height:0;overflow:hidden;transition:max-height .2s ease;">
+  <button class="sb-item sb-child2" id="sb-s4-year-2025" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2025})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2025년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2024" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2024})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2024년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2023" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2023})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2023년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2022" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2022})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2022년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s4-year-2021" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:4,bosesaYear:2021})">
+  <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2021년
+  </button>
+  </div>
       <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
         <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>5과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
       </button>
@@ -679,7 +707,7 @@ function setState(patch){
   render();
 }
 
-let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false;
+let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false, _s4MenuOpen = false;
 function toggleBosesaMenu(){
   _bosesaMenuOpen = !_bosesaMenuOpen;
   const menu = $('sb-bosesa-quiz-menu');
@@ -721,6 +749,27 @@ function toggleSubject3(){
     parent.style.maxHeight = parent.scrollHeight + 300 + 'px';
   }
 }
+function toggleSubject4(){
+
+  _s4MenuOpen = !_s4MenuOpen;
+
+  const menu = $('sb-s4-menu');
+  const chev = $('sb-s4-chevron');
+  if(!menu) return;
+
+  menu.style.maxHeight = _s4MenuOpen ? menu.scrollHeight + 'px' : '0';
+
+  if(chev) chev.style.transform = _s4MenuOpen ? 'rotate(180deg)' : '';
+
+  if(_bosesaMenuOpen){
+
+  const parent = $('sb-bosesa-quiz-menu');
+  if(parent) parent.style.maxHeight = parent.scrollHeight + 400 + 'px';
+
+  }
+
+}
+
 function toggleQuizAnswer(no){
   S.quizOpen[no] = !S.quizOpen[no];
   renderBosesaQuiz();
@@ -793,19 +842,19 @@ function renderSidebar(){
   if(biEl) biEl.className = 'sb-item' + (S.view==='bosesa'&&S.bosesaView==='intro'?' sb-on-bosesa':'');
   // 연도 active
   const y25 = $('sb-year-2025');
-  if(y25) y25.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2025?' sb-on-year':'');
+  if(y25) y25.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2025?' sb-on-year':'');
   const y24 = $('sb-year-2024');
-  if(y24) y24.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2024?' sb-on-year':'');
+  if(y24) y24.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2024?' sb-on-year':'');
   const y23 = $('sb-year-2023');
-  if(y23) y23.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2023?' sb-on-year':'');
+  if(y23) y23.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2023?' sb-on-year':'');
   const y22 = $('sb-year-2022');
-  if(y22) y22.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2022?' sb-on-year':'');
+  if(y22) y22.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2022?' sb-on-year':'');
   const y21 = $('sb-year-2021');
-  if(y21) y21.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2021?' sb-on-year':'');
+  if(y21) y21.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2021?' sb-on-year':'');
   const y20 = $('sb-year-2020');
-  if(y20) y20.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2020?' sb-on-year':'');
+  if(y20) y20.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2020?' sb-on-year':'');
   const y19 = $('sb-year-2019');
-  if(y19) y19.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaYear===2019?' sb-on-year':'');
+  if(y19) y19.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2019?' sb-on-year':'');
   const y2s2025 = $('sb-s2-year-2025');
   if(y2s2025) y2s2025.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===2&&S.bosesaYear===2025?' sb-on-year':'');
   const y2s2024 = $('sb-s2-year-2024');
@@ -835,6 +884,14 @@ function renderSidebar(){
 
   const y3s2020 = $('sb-s3-year-2020');
   if(y3s2020) y3s2020.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2020?' sb-on-year':'');
+  /* BOSSA_PATCH_ACTIVE_YEARS_3COMPLETE_4_2021_2025 */
+  [[3,[2022,2021,2020,2019]],[4,[2025,2024,2023,2022,2021]]].forEach(([subject, years])=>{
+    years.forEach(year=>{
+      const el = $('sb-s' + subject + '-year-' + year);
+      if(el) el.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===subject&&S.bosesaYear===year?' sb-on-year':'');
+    });
+  });
+
 }
 
 function renderHero(){
@@ -1221,6 +1278,18 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_3_2021 !== 'undefined' ? BOSESA_DATA_3_2021 : null;
   } else if(S.bosesaSubject===3 && S.bosesaYear===2020){
     data = typeof BOSESA_DATA_3_2020 !== 'undefined' ? BOSESA_DATA_3_2020 : null;
+  } else if(S.bosesaSubject===3 && S.bosesaYear===2019){
+    data = typeof BOSESA_DATA_3_2019 !== 'undefined' ? BOSESA_DATA_3_2019 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2025){
+    data = typeof BOSESA_DATA_4_2025 !== 'undefined' ? BOSESA_DATA_4_2025 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2024){
+    data = typeof BOSESA_DATA_4_2024 !== 'undefined' ? BOSESA_DATA_4_2024 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2023){
+    data = typeof BOSESA_DATA_4_2023 !== 'undefined' ? BOSESA_DATA_4_2023 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2022){
+    data = typeof BOSESA_DATA_4_2022 !== 'undefined' ? BOSESA_DATA_4_2022 : null;
+  } else if(S.bosesaSubject===4 && S.bosesaYear===2021){
+    data = typeof BOSESA_DATA_4_2021 !== 'undefined' ? BOSESA_DATA_4_2021 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
