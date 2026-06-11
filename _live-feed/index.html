@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude 라이브 작업 피드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:#0A0E1A; color:#CBD5E1; font-family:'Segoe UI',system-ui,sans-serif; }
+  header { position:sticky; top:0; z-index:10; background:rgba(10,14,26,.92); backdrop-filter:blur(8px);
+           border-bottom:1px solid #1E293B; padding:14px 22px; display:flex; align-items:center; gap:12px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#34D399; animation:pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+  h1 { font-size:15px; color:#F1F5F9; font-weight:700; letter-spacing:.4px; }
+  .sub { font-size:11px; color:#64748B; margin-left:auto; }
+  #feed { max-width:860px; margin:0 auto; padding:18px 22px 60px; }
+  .card { border:1px solid #1E293B; border-radius:12px; padding:12px 16px; margin-bottom:10px;
+          background:#0F172A; animation:slideIn .25s ease; }
+  @keyframes slideIn { from { transform:translateY(-8px); opacity:0; } to { transform:none; opacity:1; } }
+  .row { display:flex; align-items:center; gap:10px; font-size:12px; }
+  .time { color:#475569; font-variant-numeric:tabular-nums; }
+  .badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; letter-spacing:.5px; }
+  .b-edit  { background:rgba(52,211,153,.12); color:#34D399; }
+  .b-write { background:rgba(56,189,248,.12); color:#38BDF8; }
+  .b-cmd   { background:rgba(250,204,21,.12); color:#FACC15; }
+  .b-read  { background:rgba(148,163,184,.12); color:#94A3B8; }
+  .proj { font-size:10px; color:#7C8CA6; background:#16203A; padding:2px 8px; border-radius:99px; }
+  .file { color:#93C5FD; font-size:12px; word-break:break-all; }
+  .desc { color:#94A3B8; font-size:12px; }
+  .diff { margin-top:8px; font-family:Consolas,monospace; font-size:11px; line-height:1.5;
+          border-radius:8px; overflow:hidden; }
+  .old, .new { padding:6px 10px; white-space:pre-wrap; word-break:break-all; }
+  .old { background:rgba(244,63,94,.08); color:#FDA4AF; border-left:3px solid #F43F5E; }
+  .new { background:rgba(52,211,153,.08); color:#6EE7B7; border-left:3px solid #34D399; }
+  .cmd { margin-top:8px; padding:6px 10px; background:#0B1120; border-left:3px solid #FACC15;
+         font-family:Consolas,monospace; font-size:11px; color:#FDE68A; white-space:pre-wrap; word-break:break-all; border-radius:8px; }
+  .empty { text-align:center; color:#475569; padding:80px 0; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot"></span>
+  <h1>CLAUDE 라이브 작업 피드</h1>
+  <span class="sub" id="status">대기 중…</span>
+</header>
+<div id="feed"><div class="empty">Claude가 일을 시작하면 여기에 초단위로 흐릅니다.</div></div>
+
+<script>
+const feedEl = document.getElementById('feed');
+const statusEl = document.getElementById('status');
+let lastCount = -1;
+
+function badge(tool) {
+  if (tool === 'Edit') return '<span class="badge b-edit">EDIT 수정</span>';
+  if (tool === 'Write') return '<span class="badge b-write">WRITE 생성</span>';
+  if (tool === 'Bash' || tool === 'PowerShell') return '<span class="badge b-cmd">CMD 명령</span>';
+  return '<span class="badge b-read">' + tool.toUpperCase() + '</span>';
+}
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function render(entries) {
+  const recent = entries.slice(-150).reverse();
+  feedEl.innerHTML = recent.map(e => {
+    let body = '';
+    if (e.old || e.new) {
+      body = '<div class="diff">' +
+        (e.old ? '<div class="old">− ' + esc(e.old) + '</div>' : '') +
+        (e.new ? '<div class="new">+ ' + esc(e.new) + '</div>' : '') + '</div>';
+    } else if (e.cmd) {
+      body = '<div class="cmd">$ ' + esc(e.cmd) + '</div>' + (e.desc ? '<div class="desc" style="margin-top:4px">' + esc(e.desc) + '</div>' : '');
+    }
+    return '<div class="card"><div class="row"><span class="time">' + e.t + '</span>' + badge(e.tool) +
+      '<span class="proj">' + esc(e.proj) + '</span>' +
+      (e.file ? '<span class="file">' + esc(e.file) + '</span>' : (e.desc && !e.cmd ? '<span class="desc">' + esc(e.desc) + '</span>' : '')) +
+      '</div>' + body + '</div>';
+  }).join('') || '<div class="empty">Claude가 일을 시작하면 여기에 초단위로 흐릅니다.</div>';
+}
+
+async function poll() {
+  try {
+    const res = await fetch('./feed.jsonl', { cache: 'no-store' });
+    if (!res.ok) throw 0;
+    const text = await res.text();
+    const lines = text.split('\n').filter(Boolean);
+    if (lines.length !== lastCount) {
+      lastCount = lines.length;
+      render(lines.map(l => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean));
+    }
+    statusEl.textContent = '실시간 연결됨 · ' + lines.length + '건 기록';
+  } catch (e) { statusEl.textContent = '피드 대기 중…'; }
+}
+poll();
+setInterval(poll, 1000);
+</script>
+</body>
+</html>
