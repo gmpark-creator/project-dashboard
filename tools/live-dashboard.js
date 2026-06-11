@@ -9,7 +9,8 @@ var noBrowser = process.argv.indexOf("--no-browser") !== -1;
 liveServer.start({
   port: 5500,
   root: path.join(__dirname, ".."),
-  open: !noBrowser,
+  // 박사 기준 "대시보드" = 클로드 버전. 루트 index.html(폐기된 코덱스 링크 페이지)이 아니라 /claude/를 연다.
+  open: noBrowser ? false : "/claude/",
   noCssInject: true,
   ignore: [/[\\\/](node_modules|ai-video-studio|inst-app|internal|tools|\.git)([\\\/]|$)/]
 });
