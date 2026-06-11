@@ -706,12 +706,26 @@ const S = {
   quizOpen:{},               // { questionNo: true } — 정답 공개된 문제
 };
 
+/* ── 상태 보존: 라이브 리로드(파일 저장 시 자동 새로고침) 후에도 보던 화면·펼친 문항 유지.
+     URL 쿼리(?view=bosesa&subject=4&year=2019)가 있으면 그 화면으로 직행 후 쿼리 제거. ── */
+function saveState(){ try { localStorage.setItem('tlx-state', JSON.stringify(S)); } catch(e){} }
+try {
+  const saved = JSON.parse(localStorage.getItem('tlx-state') || 'null');
+  if (saved && typeof saved === 'object') Object.assign(S, saved);
+  const q = new URLSearchParams(location.search);
+  if (q.get('view')) S.view = q.get('view');
+  if (q.get('subject')) { S.bosesaSubject = +q.get('subject'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
+  if (q.get('year')) { S.bosesaYear = +q.get('year'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
+  if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
+} catch(e){}
+
 function setState(patch){
   const prevType = S.customsType, prevPort = S.port, prevView = S.view;
   Object.assign(S, patch);
   if (patch.customsType && patch.customsType !== prevType){ S.activeNode = null; S.modalField = null; }
   if (patch.port && patch.port !== prevPort){ S.activeNode = null; }
   if (patch.bosesaYear !== undefined || patch.bosesaSubject !== undefined){ S.quizOpen = {}; }
+  saveState();
   render();
 }
 
@@ -780,6 +794,7 @@ function toggleSubject4(){
 
 function toggleQuizAnswer(no){
   S.quizOpen[no] = !S.quizOpen[no];
+  saveState();
   renderBosesaQuiz();
 }
 
