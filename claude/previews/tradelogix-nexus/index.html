@@ -51,6 +51,13 @@
 <script src="bosesa-data-4-2020.js"></script>
 <script src="bosesa-data-4-2019.js"></script>
 
+<script src="bosesa-data-5-2025.js"></script>
+<script src="bosesa-data-5-2024.js"></script>
+<script src="bosesa-data-5-2023.js"></script>
+<script src="bosesa-data-5-2022.js"></script>
+<script src="bosesa-data-5-2021.js"></script>
+<script src="bosesa-data-5-2020.js"></script>
+<script src="bosesa-data-5-2019.js"></script>
 <script src="customs-practice-data.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
@@ -283,9 +290,33 @@
   <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년 (자율·관세)
   </button>
   </div>
-      <button class="sb-item sb-child" style="opacity:.35;cursor:not-allowed;" disabled>
-        <i class="fa-solid fa-lock w-4 text-center text-slate-600"></i>5과목 <span class="ml-auto text-[10px] text-slate-600">준비중</span>
-      </button>
+<button class="sb-item sb-child" onclick="toggleSubject5()">
+  <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>5과목 자율관리 및 관세벌칙
+  <i class="fa-solid fa-chevron-down ml-auto text-[10px] text-slate-500" id="sb-s5-chevron"></i>
+</button>
+<div id="sb-s5-menu" style="max-height:0;overflow:hidden;transition:max-height .2s ease;">
+  <button class="sb-item sb-child2" id="sb-s5-year-2025" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2025})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2025년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2024" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2024})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2024년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2023" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2023})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2023년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2022" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2022})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2022년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2021" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2021})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2021년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2020" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2020})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2020년
+  </button>
+  <button class="sb-item sb-child2" id="sb-s5-year-2019" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:5,bosesaYear:2019})">
+    <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년 (수출입안전)
+  </button>
+</div>
     </div>
   </div>
 </aside>
@@ -729,7 +760,7 @@ function setState(patch){
   render();
 }
 
-let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false, _s4MenuOpen = false;
+let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false, _s4MenuOpen = false, _s5MenuOpen = false;
 function toggleBosesaMenu(){
   _bosesaMenuOpen = !_bosesaMenuOpen;
   const menu = $('sb-bosesa-quiz-menu');
@@ -792,8 +823,37 @@ function toggleSubject4(){
 
 }
 
+function toggleSubject5(){
+  _s5MenuOpen = !_s5MenuOpen;
+  const menu = $('sb-s5-menu');
+  const chev = $('sb-s5-chevron');
+  if(!menu) return;
+
+  menu.style.maxHeight = _s5MenuOpen ? menu.scrollHeight + 'px' : '0';
+  if(chev) chev.style.transform = _s5MenuOpen ? 'rotate(180deg)' : '';
+
+  if(_bosesaMenuOpen){
+    const parent = $('sb-bosesa-quiz-menu');
+    if(parent) parent.style.maxHeight = parent.scrollHeight + 400 + 'px';
+  }
+}
+
 function toggleQuizAnswer(no){
   S.quizOpen[no] = !S.quizOpen[no];
+  saveState();
+  renderBosesaQuiz();
+}
+
+function closeAllQuizAnswers(){
+  Object.keys(S.quizOpen).forEach(k=>delete S.quizOpen[k]);
+  saveState();
+  renderBosesaQuiz();
+}
+
+function openAllQuizAnswers(){
+  const openState = {};
+  for(let i=1;i<=25;i++) openState[i] = true;
+  S.quizOpen = openState;
   saveState();
   renderBosesaQuiz();
 }
@@ -908,7 +968,7 @@ function renderSidebar(){
   const y3s2020 = $('sb-s3-year-2020');
   if(y3s2020) y3s2020.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===3&&S.bosesaYear===2020?' sb-on-year':'');
   /* BOSSA_PATCH_ACTIVE_YEARS_3COMPLETE_4_2019_2025 (구 4_2021_2025 블록 대체 — 동일 로직의 상위집합) */
-  [[3,[2022,2021,2020,2019]],[4,[2025,2024,2023,2022,2021,2020,2019]]].forEach(([subject, years])=>{
+  [[3,[2022,2021,2020,2019]],[4,[2025,2024,2023,2022,2021,2020,2019]],[5,[2025,2024,2023,2022,2021,2020,2019]]].forEach(([subject, years])=>{
     years.forEach(year=>{
       const el = $('sb-s' + subject + '-year-' + year);
       if(el) el.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===subject&&S.bosesaYear===year?' sb-on-year':'');
@@ -1312,6 +1372,20 @@ function renderBosesaQuiz(){
     data = typeof BOSESA_DATA_4_2020 !== 'undefined' ? BOSESA_DATA_4_2020 : null;
   } else if(S.bosesaSubject===4 && S.bosesaYear===2019){
     data = typeof BOSESA_DATA_4_2019 !== 'undefined' ? BOSESA_DATA_4_2019 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2025){
+    data = typeof BOSESA_DATA_5_2025 !== 'undefined' ? BOSESA_DATA_5_2025 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2024){
+    data = typeof BOSESA_DATA_5_2024 !== 'undefined' ? BOSESA_DATA_5_2024 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2023){
+    data = typeof BOSESA_DATA_5_2023 !== 'undefined' ? BOSESA_DATA_5_2023 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2022){
+    data = typeof BOSESA_DATA_5_2022 !== 'undefined' ? BOSESA_DATA_5_2022 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2021){
+    data = typeof BOSESA_DATA_5_2021 !== 'undefined' ? BOSESA_DATA_5_2021 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2020){
+    data = typeof BOSESA_DATA_5_2020 !== 'undefined' ? BOSESA_DATA_5_2020 : null;
+  } else if(S.bosesaSubject===5 && S.bosesaYear===2019){
+    data = typeof BOSESA_DATA_5_2019 !== 'undefined' ? BOSESA_DATA_5_2019 : null;
   }
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
@@ -1331,11 +1405,12 @@ function renderBosesaQuiz(){
     const choicesHTML = q.choices.map((c,i)=>{
       const num = i+1;
       const isCorrect = qans.includes(num);
+      const choiceText = c && typeof c === 'object' ? (c.text ?? c.label ?? '') : c;
       let cls = 'bq-choice';
       if(open) cls += isCorrect ? ' bq-correct' : ' bq-wrong';
       return `<button class="${cls}" onclick="toggleQuizAnswer(${qno})" style="${open?'cursor:default':''}">
         <span class="font-bold flex-shrink-0">${CIRC[i+1]||(i+1)}</span>
-        <span>${esc(String(c).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
+        <span>${esc(String(choiceText).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
       </button>`;
     }).join('');
 
@@ -1349,7 +1424,8 @@ function renderBosesaQuiz(){
         <div class="text-[11px] font-bold text-slate-400 mb-2"><i class="fa-solid fa-list mr-1"></i>선지별 분석</div>
         ${qCA.map((a,i)=>{
           const isCorrect=qans.includes(i+1);
-          return `<div class="mb-2"><b class="${isCorrect?'text-emerald-300':'text-slate-300'}">${CIRC[i+1]||(i+1)}</b> <span>${esc(a)}</span></div>`;
+          const analysisText = a && typeof a === 'object' ? (a.reason ?? a.text ?? '') : a;
+          return `<div class="mb-2"><b class="${isCorrect?'text-emerald-300':'text-slate-300'}">${CIRC[i+1]||(i+1)}</b> <span>${esc(analysisText)}</span></div>`;
         }).join('')}
       </div>` : ''}` : '';
 
@@ -1374,11 +1450,11 @@ function renderBosesaQuiz(){
       </div>
       <div class="flex gap-2">
         <button class="text-xs px-3 py-2 rounded-lg bg-slate-700 text-slate-300 border border-slate-600"
-          onclick="Object.keys(S.quizOpen).forEach(k=>delete S.quizOpen[k]);renderBosesaQuiz()">
+          onclick="closeAllQuizAnswers()">
           <i class="fa-solid fa-eye-slash mr-1"></i>전체 닫기
         </button>
         <button class="text-xs px-3 py-2 rounded-lg bg-violet-900/60 text-violet-200 border border-violet-700/60"
-          onclick="(function(){const o={};for(let i=1;i<=25;i++)o[i]=true;Object.assign(S.quizOpen,o);renderBosesaQuiz();})()">
+          onclick="openAllQuizAnswers()">
           <i class="fa-solid fa-eye mr-1"></i>전체 정답 보기
         </button>
       </div>
