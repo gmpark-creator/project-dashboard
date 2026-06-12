@@ -18,6 +18,12 @@
   ],
   "preserveAnswerCases": [
     {
+      "year": 2025,
+      "questionNo": 11,
+      "expectedAnswer": [2, 5],
+      "note": "복수정답 유지"
+    },
+    {
       "year": 2023,
       "questionNo": 3,
       "expectedAnswer": [4, 5],
@@ -31,12 +37,237 @@
     },
     {
       "year": 2021,
-      "questionNo": 19,
+      "questionNo": 20,
       "expectedAnswer": [1, 2, 3, 4, 5],
       "note": "모두정답 유지"
     }
   ],
-  "answerTargets": [],
+  "answerTargets": [
+    {
+      "year": 2025,
+      "questionNo": 4,
+      "previousAnswer": [4, 5],
+      "correctedAnswer": [1],
+      "source": "2025 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2025,
+      "questionNo": 11,
+      "previousAnswer": [1, 2],
+      "correctedAnswer": [2, 5],
+      "source": "2025 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 4,
+      "previousAnswer": [4],
+      "correctedAnswer": [1],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 11,
+      "previousAnswer": [4],
+      "correctedAnswer": [5],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 12,
+      "previousAnswer": [4],
+      "correctedAnswer": [2],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 17,
+      "previousAnswer": [4],
+      "correctedAnswer": [5],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 23,
+      "previousAnswer": [2],
+      "correctedAnswer": [5],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2024,
+      "questionNo": 24,
+      "previousAnswer": [4],
+      "correctedAnswer": [2],
+      "source": "2024 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 9,
+      "previousAnswer": [3],
+      "correctedAnswer": [5],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 13,
+      "previousAnswer": [3],
+      "correctedAnswer": [1],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 14,
+      "previousAnswer": [1],
+      "correctedAnswer": [4],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 15,
+      "previousAnswer": [3],
+      "correctedAnswer": [4],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 19,
+      "previousAnswer": [4],
+      "correctedAnswer": [3],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 20,
+      "previousAnswer": [3],
+      "correctedAnswer": [4],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2023,
+      "questionNo": 24,
+      "previousAnswer": [3],
+      "correctedAnswer": [2],
+      "source": "2023 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 5,
+      "previousAnswer": [2],
+      "correctedAnswer": [3],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 7,
+      "previousAnswer": [4],
+      "correctedAnswer": [5],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 11,
+      "previousAnswer": [2, 4, 5],
+      "correctedAnswer": [4, 5],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 16,
+      "previousAnswer": [2],
+      "correctedAnswer": [5],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 18,
+      "previousAnswer": [1],
+      "correctedAnswer": [4],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2022,
+      "questionNo": 19,
+      "previousAnswer": [4],
+      "correctedAnswer": [3],
+      "source": "2022 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 1,
+      "previousAnswer": [1],
+      "correctedAnswer": [5],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 10,
+      "previousAnswer": [4],
+      "correctedAnswer": [3],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 14,
+      "previousAnswer": [2],
+      "correctedAnswer": [3],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 19,
+      "previousAnswer": [1, 2, 3, 4, 5],
+      "correctedAnswer": [4],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 20,
+      "previousAnswer": [4],
+      "correctedAnswer": [1, 2, 3, 4, 5],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 24,
+      "previousAnswer": [2],
+      "correctedAnswer": [5],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    },
+    {
+      "year": 2021,
+      "questionNo": 25,
+      "previousAnswer": [5],
+      "correctedAnswer": [2],
+      "source": "2021 PDF official answer table",
+      "note": "answerBasis/choiceAnalysis follow-up required"
+    }
+  ],
   "years": {
     "2025": {
       "dataFile": "claude/previews/tradelogix-nexus/bosesa-data-1-2025.js",
