@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 기록 — 판다 익스프레스 라인</title>
+<style>
+  :root{
+    --bg:#0F172A; --panel:#1e293b; --line:#334155;
+    --ink:#e2e8f0; --muted:#94a3b8;
+    --panda:#a78bfa; --warn:#f59e0b; --danger:#f87171; --ok:#34d399;
+    --sb:224px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;letter-spacing:-.01em;
+  }
+
+  /* ===== TOP BAR ===== */
+  .topbar{
+    display:flex;align-items:center;gap:10px;padding:9px 18px;
+    background:rgba(10,17,32,.97);border-bottom:1px solid var(--line);flex-shrink:0;
+  }
+  .topbar .brand{font-size:13px;font-weight:800;color:#c4b5fd}
+  .topbar .sep{color:var(--line);font-size:12px}
+  .topbar .crumb{font-size:11.5px;color:var(--muted)}
+
+  /* ===== LAYOUT ===== */
+  .layout{display:flex;flex:1;overflow:hidden}
+
+  /* ===== SIDEBAR ===== */
+  aside{
+    width:var(--sb);min-width:var(--sb);background:#0a1120;
+    border-right:1px solid var(--line);overflow-y:auto;flex-shrink:0;
+  }
+  .sb-head{
+    padding:14px 14px 6px;font-size:10px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(51,65,85,.5);margin-bottom:4px
+  }
+  .sb-item{
+    display:flex;flex-direction:column;gap:3px;padding:10px 14px;
+    cursor:pointer;border-left:3px solid transparent;transition:.14s;
+    border-bottom:1px solid rgba(51,65,85,.35);
+  }
+  .sb-item:hover{background:rgba(167,139,250,.07);border-left-color:rgba(167,139,250,.5)}
+  .sb-item.active{background:rgba(167,139,250,.11);border-left-color:var(--panda)}
+  .sb-date{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--panda);font-weight:700}
+  .sb-vessel{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3}
+  .sb-voyage{font-size:11px;color:var(--muted);margin-top:1px}
+
+  /* ===== MAIN ===== */
+  main{flex:1;overflow-y:auto;padding:28px 36px 56px}
+
+  .entry{display:none}
+  .entry.active{display:block}
+
+  /* Entry header */
+  .entry-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+  .entry-date{
+    font-family:ui-monospace,monospace;font-size:11px;color:var(--panda);
+    font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px
+  }
+  .entry-header h1{
+    font-size:clamp(16px,2vw,21px);font-weight:800;line-height:1.35;color:#e9d5ff;word-break:keep-all
+  }
+  .meta-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .badge{
+    display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;
+    padding:3px 9px;border-radius:999px;border:1px solid
+  }
+  .badge.purple{color:#c4b5fd;border-color:#4c3a8a;background:rgba(167,139,250,.1)}
+  .badge.blue{color:#7dd3fc;border-color:#1e4d6e;background:rgba(56,189,248,.1)}
+  .badge.green{color:#6ee7b7;border-color:#1a4d3a;background:rgba(52,211,153,.1)}
+  .badge.amber{color:#fcd34d;border-color:#6b5000;background:rgba(245,158,11,.1)}
+  .badge.red{color:#fca5a5;border-color:#6b2020;background:rgba(248,113,113,.1)}
+
+  /* Section */
+  section{margin-bottom:26px}
+  .sec-title{
+    display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;
+    color:#c4b5fd;margin-bottom:12px;padding-bottom:8px;
+    border-bottom:1px solid rgba(167,139,250,.18)
+  }
+  .sec-title .ico{
+    width:22px;height:22px;border-radius:7px;background:rgba(167,139,250,.14);
+    display:grid;place-items:center;flex-shrink:0;font-size:13px
+  }
+
+  /* Panel */
+  .panel{background:rgba(30,41,59,.35);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+
+  /* Info table */
+  .info-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .info-tbl tr{border-bottom:1px solid rgba(51,65,85,.55)}
+  .info-tbl tr:last-child{border-bottom:none}
+  .info-tbl th{
+    width:200px;min-width:150px;padding:9px 14px;text-align:left;font-size:12px;
+    color:var(--muted);font-weight:600;background:rgba(15,23,42,.35);vertical-align:top
+  }
+  .info-tbl td{padding:9px 14px;color:var(--ink);vertical-align:top;line-height:1.55}
+  .info-tbl td .note{font-size:11.5px;color:#64748b;margin-top:4px;line-height:1.5}
+  .info-tbl td .note.warn{color:#ca8a04}
+  .info-tbl td .note.danger{color:#ef4444}
+  code{
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;
+    background:rgba(51,65,85,.7);padding:1px 6px;border-radius:4px;color:#7dd3fc
+  }
+  .chg{
+    display:inline-flex;align-items:center;font-size:11px;font-weight:700;
+    padding:1px 7px;border-radius:999px;border:1px solid rgba(167,139,250,.35);
+    background:rgba(167,139,250,.1);color:#c4b5fd;margin-left:6px;white-space:nowrap
+  }
+  .arrow{color:var(--muted);font-size:11px;margin:0 5px}
+
+  /* MCIQ table */
+  .mciq-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  .mciq-tbl thead th{
+    padding:8px 10px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);background:#080e1d;border-bottom:1px solid var(--line)
+  }
+  .mciq-tbl tbody tr{border-bottom:1px solid rgba(51,65,85,.4)}
+  .mciq-tbl tbody tr:hover{background:rgba(167,139,250,.04)}
+  .mciq-tbl td{padding:8px 10px;vertical-align:top;line-height:1.5}
+  .mciq-tbl .f-num{
+    font-family:ui-monospace,monospace;font-size:11px;color:var(--panda);
+    font-weight:700;white-space:nowrap;width:56px
+  }
+  .mciq-tbl .f-name{color:var(--muted);font-size:12px;width:180px}
+  .mciq-tbl .f-val{font-weight:600;color:var(--ink)}
+  .mciq-tbl .f-val.hi{color:#e9d5ff}
+  .mciq-tbl .f-note{font-size:11.5px;color:#64748b}
+  .chg-sm{
+    font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;
+    background:rgba(167,139,250,.13);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);
+    margin-left:4px;white-space:nowrap
+  }
+
+  /* Alert boxes */
+  .warn-box{
+    background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.28);
+    border-radius:12px;padding:14px 16px;margin-bottom:12px
+  }
+  .warn-box .t{font-weight:800;font-size:13px;color:#fcd34d;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .warn-box p,.warn-box li{font-size:13px;color:#e2cb94;line-height:1.6}
+  .warn-box ul{padding-left:16px;margin-top:4px}
+  .warn-box .sub{font-size:12px;color:#b39a5a;margin-top:6px;line-height:1.5}
+
+  .danger-box{
+    background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.28);
+    border-radius:12px;padding:14px 16px;margin-bottom:12px
+  }
+  .danger-box .t{font-weight:800;font-size:13px;color:#fca5a5;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .danger-box p,.danger-box li{font-size:13px;color:#f4b8b8;line-height:1.6}
+  .danger-box ul{padding-left:16px;margin-top:4px}
+  .danger-box .sub{font-size:12px;color:#c87a7a;margin-top:6px;line-height:1.5}
+
+  .info-box{
+    background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.22);
+    border-radius:12px;padding:14px 16px;margin-bottom:12px
+  }
+  .info-box .t{font-weight:800;font-size:13px;color:#6ee7b7;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .info-box p{font-size:13px;color:#9ee7c8;line-height:1.6}
+
+  .note-box{
+    background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.22);
+    border-radius:12px;padding:14px 16px;margin-bottom:12px
+  }
+  .note-box p{font-size:13px;color:#c7c8f8;line-height:1.6}
+
+  /* Conclusion */
+  .conclusion{
+    background:linear-gradient(135deg,rgba(167,139,250,.09),rgba(99,102,241,.07));
+    border:1px solid rgba(167,139,250,.28);border-radius:14px;padding:20px 22px
+  }
+  .conclusion .con-title{font-weight:800;font-size:15px;color:#e9d5ff;margin-bottom:10px}
+  .conclusion .con-body{font-size:13.5px;line-height:1.7;color:#d4c4f9;margin-bottom:14px}
+  .action-list{list-style:none}
+  .action-list li{
+    display:flex;align-items:flex-start;gap:8px;padding:7px 0;
+    font-size:13px;color:#d4c4f9;border-bottom:1px solid rgba(167,139,250,.1)
+  }
+  .action-list li:last-child{border-bottom:none}
+  .action-list .bullet{
+    width:20px;height:20px;border-radius:6px;background:rgba(167,139,250,.18);
+    color:#c4b5fd;font-size:10px;font-weight:800;display:grid;place-items:center;
+    flex-shrink:0;margin-top:1px
+  }
+  .action-list li strong{color:#e9d5ff}
+
+  @media(max-width:760px){
+    .layout{flex-direction:column}
+    aside{width:100%;min-width:0;height:auto;max-height:150px;border-right:none;border-bottom:1px solid var(--line)}
+    main{padding:18px 16px 48px}
+    .info-tbl th{min-width:100px;width:120px}
+    .mciq-tbl .f-name{width:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">TradeLogix Nexus</span>
+  <span class="sep">›</span>
+  <span class="crumb">선사업무 › 판다 익스프레스 라인 › 업무 기록</span>
+</div>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside>
+    <div class="sb-head">업무 날짜</div>
+
+    <div class="sb-item active" onclick="showEntry('2026-06-12')">
+      <span class="sb-date">2026-06-12</span>
+      <span class="sb-vessel">HAI RUN SHENG DA</span>
+      <span class="sb-voyage">2026-009항차 · MCIQ 신고 검토</span>
+    </div>
+
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main>
+
+    <!-- ==================== 2026-06-12 ==================== -->
+    <div class="entry active" id="entry-2026-06-12">
+
+      <div class="entry-header">
+        <div class="entry-date">2026-06-12</div>
+        <h1>HAI RUN SHENG DA — 국적 변경(파나마→기니비사우) 후 부산항 입항(2026-009항차) MCIQ 신고 검토</h1>
+        <div class="meta-row">
+          <span class="badge purple">IMO 1040978</span>
+          <span class="badge blue">GT 15,039</span>
+          <span class="badge green">풀컨테이너선</span>
+          <span class="badge red">국적 PA → GW 변경</span>
+          <span class="badge amber">2026-009항차</span>
+        </div>
+      </div>
+
+      <!-- ① 선박 개요 -->
+      <section>
+        <div class="sec-title"><span class="ico">🚢</span>선박 개요</div>
+        <div class="panel">
+          <table class="info-tbl">
+            <tr>
+              <th>선명 / IMO</th>
+              <td><strong>HAI RUN SHENG DA</strong> / IMO 1040978</td>
+            </tr>
+            <tr>
+              <th>선종 / 총톤수</th>
+              <td>풀컨테이너선 / GT 15,039</td>
+            </tr>
+            <tr>
+              <th>국적 변경</th>
+              <td>
+                <code>PA</code><span class="arrow">→</span><code>GW</code>
+                <span class="chg">파나마 → 기니비사우</span>
+              </td>
+            </tr>
+            <tr>
+              <th>호출부호 변경</th>
+              <td>
+                <code>3E6870</code><span class="arrow">→</span><code>J5BG3</code>
+                <span class="chg">변경</span>
+              </td>
+            </tr>
+            <tr>
+              <th>MMSI 변경</th>
+              <td>
+                <code>352004587</code><span class="arrow">→</span><code>630001287</code>
+                <span class="chg">변경</span>
+                <div class="note">630 = 기니비사우 MID. AIS 실송출값 일치 여부 확인 권장</div>
+              </td>
+            </tr>
+            <tr>
+              <th>이번 항차</th>
+              <td>
+                2026-009 · 전출항지 <code>RUVVO</code>(블라디보스톡) → 도착지 <code>KRPUS</code>(부산) → 차항지 <code>CNSHA</code>(상하이)
+              </td>
+            </tr>
+            <tr>
+              <th>선박소유자</th>
+              <td>
+                ANHUI QINGYANG SHIPPING CO., LTD
+                <div class="note">변경 없음</div>
+              </td>
+            </tr>
+            <tr>
+              <th>ISM 회사</th>
+              <td>
+                HONGKONG YANXI SHIPPING CO., LIMITED / 회사번호 <code>6389892</code>
+                <span class="chg">이번 항차 신규 기재</span>
+                <div class="note">이전 항차에는 공란이었으나 이번부터 기재 가능. ISSC 및 1항사 보고서와 일치</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ② 보안증서(ISSC) -->
+      <section>
+        <div class="sec-title"><span class="ico">🔒</span>보안증서(ISSC) 정보 — 선박보안정보 신고용</div>
+        <div class="panel">
+          <table class="info-tbl">
+            <tr>
+              <th>증서 종류</th>
+              <td><strong>Interim ISSC</strong> (임시증서, 6개월)</td>
+            </tr>
+            <tr>
+              <th>증서번호</th>
+              <td><code>ICS-26-8-3058</code></td>
+            </tr>
+            <tr>
+              <th>발급기관 (13번 란)</th>
+              <td>
+                <strong>Intermaritime Certification Services (ICS)</strong>
+                <div class="note">기니비사우 정부 권한 위임 RSO</div>
+              </td>
+            </tr>
+            <tr>
+              <th>발급국가 (14번 란)</th>
+              <td><code>GW</code> · 기니비사우</td>
+            </tr>
+            <tr>
+              <th>유효기간 (15번 란)</th>
+              <td>발급 <strong>2026-06-03</strong> ~ 만료 <strong>2026-12-02</strong></td>
+            </tr>
+          </table>
+        </div>
+        <div class="warn-box" style="margin-top:12px">
+          <div class="t">⚠️ 기국 ≠ 발급기관 혼동 주의</div>
+          <p>기국(기니비사우)과 발급기관(ICS)을 혼동하지 말 것. 증서를 발급한 것은 ICS(RSO)이며, 기국 정부가 ICS에 권한을 위임한 구조.</p>
+        </div>
+      </section>
+
+      <!-- ③ 평형수 증서(BWMC) -->
+      <section>
+        <div class="sec-title"><span class="ico">🌊</span>평형수 증서(BWMC) 성격 주의</div>
+        <div class="warn-box">
+          <div class="t">⚠️ 정식 IBWMC 아님 — Statement of Compliance (BWMC-SOC)</div>
+          <p>신규 써티는 정식 IBWMC가 아닌 <strong>Statement of Compliance (BWMC-SOC)</strong>. 기니비사우가 BWM협약 비당사국이라 ICS가 SOC 형태로 발급.</p>
+          <p style="margin-top:6px">Interim이라 유효기간 6개월 (2026-11-02까지).</p>
+        </div>
+        <div class="note-box">
+          <p>
+            <strong style="color:#a5b4fc">MCIQ 44번 「국제선박평형수관리증서 보유 여부」:</strong>
+            실무상 <strong style="color:#c7c8f8">「예」</strong>로 체크하고 SOC 정보 기재.
+            단, 해수청 문의 가능성 있으니 SOC라는 점 인지해 둘 것.
+          </p>
+        </div>
+      </section>
+
+      <!-- ④ MCIQ 기재값 -->
+      <section>
+        <div class="sec-title"><span class="ico">📋</span>선박평형수신고 MCIQ 기재값 (2026-009항차)</div>
+        <div class="panel">
+          <table class="mciq-tbl">
+            <thead>
+              <tr>
+                <th>란 번호</th>
+                <th>항목명</th>
+                <th>기재값</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="f-num">02</td>
+                <td class="f-name">호출부호</td>
+                <td class="f-val hi">J5BG3 <span class="chg-sm">변경</span></td>
+                <td class="f-note">이전: 3E6870</td>
+              </tr>
+              <tr>
+                <td class="f-num">03</td>
+                <td class="f-name">입항년도-횟수</td>
+                <td class="f-val">2026 - 009</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">05</td>
+                <td class="f-name">선박국적</td>
+                <td class="f-val hi">GW (GUINEA-BISSAU) <span class="chg-sm">변경</span></td>
+                <td class="f-note">이전: PA (PANAMA)</td>
+              </tr>
+              <tr>
+                <td class="f-num">11 / 13</td>
+                <td class="f-name">ISM 회사번호 / 회사명</td>
+                <td class="f-val hi">6389892 / HONGKONG YANXI SHIPPING CO., LIMITED <span class="chg-sm">신규</span></td>
+                <td class="f-note">이전 항차 공란</td>
+              </tr>
+              <tr>
+                <td class="f-num">12</td>
+                <td class="f-name">MMSI</td>
+                <td class="f-val hi">630001287 <span class="chg-sm">변경</span></td>
+                <td class="f-note">이전: 352004587</td>
+              </tr>
+              <tr>
+                <td class="f-num">15 / 16 / 18</td>
+                <td class="f-name">전출항지 / 도착지 / 차항지</td>
+                <td class="f-val"><code>RUVVO</code> / <code>KRPUS</code> / <code>CNSHA</code></td>
+                <td class="f-note">블라디보스톡 / 부산 / 상하이</td>
+              </tr>
+              <tr>
+                <td class="f-num">21</td>
+                <td class="f-name">총 보유량</td>
+                <td class="f-val">29탱크 / 0화물창 / 4,955.0㎥</td>
+                <td class="f-note">이번 1항사 보고서 기준. 항차마다 변동값</td>
+              </tr>
+              <tr>
+                <td class="f-num">22</td>
+                <td class="f-name">탱크수 / 화물창수 / 용량</td>
+                <td class="f-val hi">34 / 3 / <strong>7,721.20㎥</strong> <span class="chg-sm">변경</span></td>
+                <td class="f-note">이전 항차 7,736.83㎥ → 신규 BWMC상 7,721.20㎥. 1항사 보고서 7721.2 일치</td>
+              </tr>
+              <tr>
+                <td class="f-num">23</td>
+                <td class="f-name">관리방법</td>
+                <td class="f-val">제D-2규칙</td>
+                <td class="f-note">써티상 D-1 취소선, D-2 Filtration+UV 명시</td>
+              </tr>
+              <tr>
+                <td class="f-num">25~31</td>
+                <td class="f-name">배출 탱크/화물창 수</td>
+                <td class="f-val">전부 0</td>
+                <td class="f-note">1항사 보고서 "Total to be discharged: NIL"</td>
+              </tr>
+              <tr>
+                <td class="f-num">33</td>
+                <td class="f-name">BWMS 제조사</td>
+                <td class="f-val">SHANGHAI CYECO ENVIRONMENTAL TECHNOLOGY CO., LTD.</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">34</td>
+                <td class="f-name">BWMS 모델</td>
+                <td class="f-val hi">CYECO-B400 (FILTRATION+UV, 400m³/h) <span class="chg-sm">구체화</span></td>
+                <td class="f-note">이전엔 "FILTRATION+UV"만 기재. 써티에 모델·용량 특정되어 있으므로 구체화</td>
+              </tr>
+              <tr>
+                <td class="f-num">35</td>
+                <td class="f-name">BWMS 운전 여부</td>
+                <td class="f-val">예</td>
+                <td class="f-note">Fully operational: Yes</td>
+              </tr>
+              <tr>
+                <td class="f-num">36</td>
+                <td class="f-name">마지막 우회운전일자</td>
+                <td class="f-val hi">2025-04-09 <span class="chg-sm">신규</span></td>
+                <td class="f-note">이전 항차 공란. 1항사 "Last bypass date 9th Apr. 2025" 기재. 누락 금지 (운전 정상 + 과거 우회이력 1건, 논리 모순 없음)</td>
+              </tr>
+              <tr>
+                <td class="f-num">37</td>
+                <td class="f-name">승인된 관리계획서 비치</td>
+                <td class="f-val">예</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">38</td>
+                <td class="f-name">계획서 이행</td>
+                <td class="f-val">예</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">39</td>
+                <td class="f-name">비상조치방안</td>
+                <td class="f-val">D-1 체크</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">41</td>
+                <td class="f-name">비상조치방안 배치</td>
+                <td class="f-val">예</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">42</td>
+                <td class="f-name">수용시설 인터페이스</td>
+                <td class="f-val">예</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">43</td>
+                <td class="f-name">기록부 비치</td>
+                <td class="f-val">예</td>
+                <td class="f-note"></td>
+              </tr>
+              <tr>
+                <td class="f-num">44</td>
+                <td class="f-name">국제증서 보유</td>
+                <td class="f-val">예 (SOC)</td>
+                <td class="f-note">정식 IBWMC 아닌 SOC. 실무상 예 체크 + SOC 정보 기재</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ⑤ 증서 정보(45~50번) -->
+      <section>
+        <div class="sec-title"><span class="ico">📄</span>증서 정보(45~50번) — 전면 갱신</div>
+        <div class="danger-box">
+          <div class="t">🚫 이전 항차 파나마 증서값 전부 무효</div>
+          <p>이전 항차 기재값(발급 2025-02-20 / 만료 2028-11-28 / PAPTY / PANAMA MARITIME AUTHORITY / OMCS)은 국적 변경으로 전부 무효. 아래 신규값으로 전면 교체.</p>
+        </div>
+        <div class="panel">
+          <table class="info-tbl">
+            <tr>
+              <th>45. 증서 발급일자</th>
+              <td>
+                <strong>2026-06-03</strong>
+                <div class="note">써티 "Issued 03 JUNE 2026", 1항사 "3RD JUN" 일치</div>
+              </td>
+            </tr>
+            <tr>
+              <th>46. 증서 만료일자</th>
+              <td>
+                <strong>2026-11-02</strong>
+                <div class="note">써티 "Valid until 02 NOVEMBER 2026", 1항사 "2ND Nov" 일치</div>
+              </td>
+            </tr>
+            <tr>
+              <th>47. 발급장소(항구코드)</th>
+              <td><code>CNSHA</code> · Shanghai, China</td>
+            </tr>
+            <tr>
+              <th>48. 발급장소(기관명)</th>
+              <td><strong>INTERMARITIME CERTIFICATION SERVICES (ICS)</strong></td>
+            </tr>
+            <tr>
+              <th>49. 마지막 검사/이서 일자</th>
+              <td>
+                <strong>2024-09-25</strong>
+                <span class="chg">써티 근거 기재 권장</span>
+                <div class="note">1항사는 공란이나, 써티 하단 "Completion date of the survey on which this certificate is based: 25 SEPTEMBER 2024" 근거로 기재 권장.</div>
+                <div class="note danger">⚠️ 이전 항차의 2025-10-21(OMCS 이서)은 취소된 파나마 증서 기록이므로 사용 금지.</div>
+              </td>
+            </tr>
+            <tr>
+              <th>50. 검사당국</th>
+              <td>
+                <strong>ICS</strong>
+                <div class="note">OMCS 아님</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ⑥ 발견된 불일치 -->
+      <section>
+        <div class="sec-title"><span class="ico">⚠️</span>발견된 불일치 — 1항사 확인 필요 (미해결 액션 아이템)</div>
+
+        <div class="danger-box">
+          <div class="t">❶ 건조일자 불일치 — 3개 문서 전부 상이</div>
+          <ul>
+            <li>신규 BWMC : <strong>17 JUNE 2022</strong></li>
+            <li>1항사 보고서 : <strong>17th Feb. 2022</strong></li>
+            <li>이전 항차 MCIQ 10번 란 : <strong>2023-11-29</strong></li>
+          </ul>
+          <p class="sub">1항사가 써티의 JUNE을 Feb로 오기했을 가능성 높음. 단, 이전 신고값 2023-11-29와도 다르므로 Ship's Particulars 원본 받아 확정 후 MCIQ 10번 란과 입항 보고서 통일 필요. (keel laying / delivery 기준 차이 가능성도 있음)</p>
+        </div>
+
+        <div class="warn-box">
+          <div class="t">❷ 입항예정일 불일치</div>
+          <ul>
+            <li>1항사 평형수 보고서 : 도착일 <strong>15 JUN 2026</strong></li>
+            <li>보안신고 화면 입항예정일시 : <strong>2026-06-16 09:00</strong></li>
+          </ul>
+          <p class="sub">실제 ETA 기준으로 통일 필요. MCIQ 11번 입항예정일시 입력 시 확인.</p>
+        </div>
+
+        <div class="info-box">
+          <div class="t">ℹ️ BWMS 설치일 참고사항 (MCIQ 직접 입력값 아님)</div>
+          <p>써티상 Date installed: 11 SEPTEMBER 2024. 건조 2022년 선박이므로 레트로핏이 아닌, 써티 재발급 시점의 계약 인도일 기준 기재일 수 있음 (써티 각주 (2) 참조). MCIQ 직접 입력값은 아니나 해수청 질의 대응용으로 보관.</p>
+        </div>
+      </section>
+
+      <!-- ⑦ 최종 결론 -->
+      <section>
+        <div class="sec-title"><span class="ico">✅</span>최종 결론</div>
+        <div class="conclusion">
+          <div class="con-title">갱신 기재 사항 요약</div>
+          <p class="con-body">호출부호·국적·MMSI·증서 5종 정보(45~50)·평형수 용량(7,721.20)·우회운전일(2025-04-09)을 갱신 기재하고, 건조일자는 1항사 회신 받아 확정 후 전송할 것.</p>
+          <ul class="action-list">
+            <li><span class="bullet">1</span> 호출부호 → <strong>J5BG3</strong></li>
+            <li><span class="bullet">2</span> 선박국적 → <strong>GW (GUINEA-BISSAU)</strong></li>
+            <li><span class="bullet">3</span> MMSI → <strong>630001287</strong></li>
+            <li><span class="bullet">4</span> 증서 45~50번 전면 갱신 → 신규 기니비사우 SOC 정보 (ICS, 2026-06-03 발급)</li>
+            <li><span class="bullet">5</span> 22번 평형수 용량 → <strong>7,721.20㎥</strong></li>
+            <li><span class="bullet">6</span> 34번 BWMS 모델 → <strong>CYECO-B400 (FILTRATION+UV, 400m³/h)</strong></li>
+            <li><span class="bullet">7</span> 36번 우회운전일 → <strong>2025-04-09</strong></li>
+            <li><span class="bullet">★</span> 건조일자(10번) → 1항사 Ship's Particulars 원본 회신 후 확정 전송</li>
+          </ul>
+        </div>
+      </section>
+
+    </div><!-- /entry-2026-06-12 -->
+
+  </main>
+</div>
+
+<script>
+  function showEntry(dateStr) {
+    document.querySelectorAll('.entry').forEach(function(e){ e.classList.remove('active'); });
+    document.querySelectorAll('.sb-item').forEach(function(i){ i.classList.remove('active'); });
+    var entry = document.getElementById('entry-' + dateStr);
+    if (entry) entry.classList.add('active');
+    document.querySelectorAll('.sb-item').forEach(function(item){
+      var d = item.querySelector('.sb-date');
+      if (d && d.textContent === dateStr) item.classList.add('active');
+    });
+    var m = document.querySelector('main');
+    if (m) m.scrollTop = 0;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>판다 익스프레스 라인 — TradeLogix Nexus · 선사업무</title>
+<style>
+  :root{
+    --bg:#0F172A; --panel:#1e293b; --line:#334155;
+    --ink:#e2e8f0; --muted:#94a3b8;
+    --panda:#a78bfa; --intel:#2dd4cf; --ops:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 480px at 18% -8%, rgba(167,139,250,.12), transparent 60%),
+      radial-gradient(900px 520px at 86% 108%, rgba(245,158,11,.08), transparent 60%),
+      linear-gradient(160deg,#0F172A 0%,#111e36 60%,#0F172A 100%);
+    color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased;
+    min-height:100%; letter-spacing:-.01em;
+  }
+  #selector{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 22px;position:relative;overflow:hidden}
+  #selector::before{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(167,139,250,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,.04) 1px,transparent 1px);
+    background-size:48px 48px;mask:radial-gradient(700px 500px at 50% 40%,#000,transparent 75%);pointer-events:none}
+  .brand{text-align:center;margin-bottom:34px;position:relative;z-index:1}
+  .brand .eyebrow{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--panda);font-weight:700;margin-bottom:8px}
+  .brand .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .brand .breadcrumb b{color:#c4b5fd}
+  .brand h1{font-size:clamp(24px,4vw,40px);font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(92deg,#e9d5ff,#c4b5fd 60%,#e9d5ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .tagline{margin-top:10px;color:var(--muted);font-size:15px}
+  .brand .tagline b{color:#c4b5fd}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:20px;width:min(880px,100%);position:relative;z-index:1}
+  .cat{
+    position:relative;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;
+    background:linear-gradient(180deg,rgba(19,40,58,.92),rgba(12,28,42,.92));
+    padding:30px 28px 26px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;
+    display:flex;flex-direction:column;min-height:260px;color:inherit;font:inherit;
+  }
+  .cat::after{content:"";position:absolute;left:0;top:0;height:100%;width:4px;background:var(--accent)}
+  .cat:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 0 1px var(--accent) inset}
+  .cat:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .cat .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.08em}
+  .cat .ico{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;margin:10px 0 14px;
+    background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid color-mix(in srgb,var(--accent) 36%,transparent)}
+  .cat .ico svg{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .cat h2{font-size:21px;font-weight:800}
+  .cat .en{font-size:12px;color:var(--muted);font-style:italic;margin-top:3px;font-weight:500}
+  .cat p{margin-top:12px;color:#c2d6e2;font-size:13px;line-height:1.6;flex:1}
+  .cat .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .cat .chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:#9fc2d2;border:1px solid var(--line)}
+  .cat .open{margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--accent)}
+  .cat .open .arr{transition:transform .18s}
+  .cat:hover .open .arr{transform:translateX(4px)}
+  .cat[data-cat="intel"]{--accent:var(--intel)}
+  .cat[data-cat="ops"]{--accent:var(--ops)}
+
+  .foot{margin-top:28px;color:var(--muted);font-size:12px;text-align:center;position:relative;z-index:1;line-height:1.7}
+  .foot b{color:#c4b5fd}
+
+  #viewer{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
+  #viewer.on{display:flex}
+  .vbar{display:flex;align-items:center;gap:14px;padding:10px 16px;background:rgba(12,28,42,.96);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px);flex-shrink:0}
+  .back{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+    color:var(--ink);font:inherit;font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+  .back:hover{border-color:var(--panda);background:rgba(167,139,250,.1)}
+  .vtitle{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+  .vtitle .dot{width:9px;height:9px;border-radius:50%}
+  .vtitle .vsub{color:var(--muted);font-weight:500;font-size:12.5px}
+  .vbar .spacer{flex:1}
+  .newtab{color:var(--muted);font-size:12.5px;text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:9px;transition:.15s;white-space:nowrap}
+  .newtab:hover{color:var(--panda);border-color:var(--panda)}
+  #frame{flex:1;width:100%;border:0;background:#0F172A}
+
+  @media(max-width:680px){.cards{grid-template-columns:1fr}.cat{min-height:auto}.vtitle .vsub{display:none}}
+</style>
+</head>
+<body>
+
+<div id="selector">
+  <div class="brand">
+    <div class="eyebrow">TradeLogix Nexus · 선사업무</div>
+    <div class="breadcrumb">TradeLogix Nexus → 선사업무 → <b>판다 익스프레스 라인</b></div>
+    <h1>판다 익스프레스 라인</h1>
+    <p class="tagline"><b>인텔리전스</b>(경쟁사 분석)와 <b>업무 기록</b>(입항·MCIQ 신고 검토)을 한 화면에서 다룹니다.</p>
+  </div>
+
+  <div class="cards">
+    <button class="cat" data-cat="intel" data-url="./kakhidze-fininvest-intel/index.html"
+            data-title="카히제·핀인베스트 그룹 분석" data-sub="경쟁 인텔리전스 · 러시아 물류그룹">
+      <span class="num">CATEGORY 01</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.4"/>
+        </svg>
+      </span>
+      <h2>인텔리전스</h2>
+      <div class="en">Competitive Intelligence — 카히제·핀인베스트 그룹 분석</div>
+      <p>러시아 물류기업 핀인베스트(ФинИнвест) 그룹과 소유주 알렉산드르 카히제의 지배구조·금전 체급·자금조달·대외관계 분석 인포그래픽. 조직도·관계맵·자금플로우 인라인 SVG.</p>
+      <div class="meta">
+        <span class="chip">핀인베스트·TLC</span><span class="chip">매출 690억 ₽</span><span class="chip">CMA CGM</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
+
+    <button class="cat" data-cat="ops" data-url="./ops/index.html"
+            data-title="업무 기록" data-sub="입항·MCIQ 신고 검토 · 날짜별 기록">
+      <span class="num">CATEGORY 02</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M8 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H8z"/>
+          <path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/>
+        </svg>
+      </span>
+      <h2>업무 기록</h2>
+      <div class="en">Operations Log — 입항·MCIQ 신고 검토 날짜별 기록</div>
+      <p>판다 익스프레스 라인 입항 선박의 MCIQ 신고 검토, 증서 확인, 불일치 사항 등 실무 업무 기록. 날짜별로 구분 관리.</p>
+      <div class="meta">
+        <span class="chip">MCIQ 신고</span><span class="chip">입항 검토</span><span class="chip">날짜별 기록</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
+  </div>
+
+  <div class="foot">
+    <b>판다 익스프레스 라인</b> — 인텔리전스(카히제·핀인베스트) + 업무 기록(입항·MCIQ) · TradeLogix Nexus / 선사업무<br>
+    항목은 한 화면에서 전환됩니다
+  </div>
+</div>
+
+<div id="viewer" aria-hidden="true">
+  <div class="vbar">
+    <button class="back" id="back" type="button">← 판다 익스프레스 라인</button>
+    <div class="vtitle"><span class="dot" id="vdot"></span><span id="vtitle">—</span> <span class="vsub" id="vsub"></span></div>
+    <span class="spacer"></span>
+    <a class="newtab" id="newtab" href="#" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+  </div>
+  <iframe id="frame" title="선택한 항목" loading="lazy"></iframe>
+</div>
+
+<script>
+  var selector = document.getElementById('selector');
+  var viewer   = document.getElementById('viewer');
+  var frame    = document.getElementById('frame');
+  var vtitle   = document.getElementById('vtitle');
+  var vsub     = document.getElementById('vsub');
+  var vdot     = document.getElementById('vdot');
+  var newtab   = document.getElementById('newtab');
+  var ACCENT   = { intel:'#2dd4cf', ops:'#f59e0b' };
+
+  function openCat(cat, url, title, sub){
+    frame.src = url;
+    vtitle.textContent = title;
+    vsub.textContent = sub || '';
+    vdot.style.background = ACCENT[cat] || '#a78bfa';
+    newtab.href = url;
+    viewer.classList.add('on');
+    viewer.setAttribute('aria-hidden','false');
+    selector.style.display = 'none';
+    try { history.replaceState(null, '', '#' + cat); } catch(e){}
+  }
+  function closeCat(){
+    viewer.classList.remove('on');
+    viewer.setAttribute('aria-hidden','true');
+    frame.src = 'about:blank';
+    selector.style.display = '';
+    try { history.replaceState(null, '', '#'); } catch(e){}
+  }
+
+  document.querySelectorAll('.cat').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      openCat(btn.dataset.cat, btn.dataset.url, btn.dataset.title, btn.dataset.sub);
+    });
+  });
+  document.getElementById('back').addEventListener('click', closeCat);
+
+  (function(){
+    var h = (location.hash || '').replace('#','');
+    if (h === 'intel' || h === 'ops') {
+      var b = document.querySelector('.cat[data-cat="'+h+'"]');
+      if (b) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
+    }
+  })();
+</script>
+</body>
+</html>
