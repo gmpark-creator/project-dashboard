@@ -112,9 +112,9 @@
       <div class="overflow-x-auto"><table>
         <thead><tr>
           <th class="text-left">날짜</th>
-          <th class="text-right" colspan="2" style="border-bottom:1px solid #243352">본장(정규장) 시가 · 종가</th>
+          <th class="text-right" colspan="2" style="border-bottom:1px solid #243352">본장(정규장) 시가 · 종가<br><span class="text-sub font-normal" style="font-size:9px;text-transform:none;letter-spacing:0">ET 09:30·16:00 / KST 22:30·05:00(익일)</span></th>
           <th class="text-right">본장 전일比</th>
-          <th class="text-right" colspan="2">시간외(야간) 시가 · 종가</th>
+          <th class="text-right" colspan="2">시간외(야간) 시가 · 종가<br><span class="text-sub font-normal" style="font-size:9px;text-transform:none;letter-spacing:0">ET 04:00·20:00 / KST 17:00·09:00(익일)</span></th>
           <th class="text-right">시간외 전일比</th>
         </tr></thead>
         <tbody>${body}</tbody>
@@ -198,19 +198,30 @@
       <div class="flex flex-wrap gap-1">${pills}</div>
       ${rt.note ? `<div class="text-[10px] text-sub mt-1 leading-snug">${esc(rt.note)}</div>` : ''}</div>`;
   }
+  function idxCells(indices) {
+    return IDX_ORDER.map(k => {
+      const v = (indices || {})[k] || '—';
+      const d = rangeDir(v);
+      const col = d === 'up' ? '#f6465d' : d === 'down' ? '#3b82f6' : '#93a4c4';
+      return `<td style="color:${col};font-weight:700">${esc(v)}</td>`;
+    }).join('');
+  }
   function branchesTable(branches) {
     if (!branches || !branches.length) return '';
-    const head = `<tr><th>시나리오</th>${IDX_ORDER.map(k => `<th>${esc(IDX_SHORT[k])}</th>`).join('')}</tr>`;
+    const head = `<tr><th>시나리오 · 모델</th>${IDX_ORDER.map(k => `<th>${esc(IDX_SHORT[k])}</th>`).join('')}</tr>`;
     const rows = branches.map(b => {
       const occ = b.occurred ? ' scn-row-occ' : '';
-      const nm = esc(b.name) + (b.prob != null ? ` <span class="text-sub">(${b.prob}%)</span>` : '') + (b.occurred ? ' <span class="text-up font-bold">★실제</span>' : '');
-      const tds = IDX_ORDER.map(k => {
-        const v = (b.indices || {})[k] || '—';
-        const d = rangeDir(v);
-        const col = d === 'up' ? '#f6465d' : d === 'down' ? '#3b82f6' : '#93a4c4';
-        return `<td style="color:${col};font-weight:700">${esc(v)}</td>`;
-      }).join('');
-      return `<tr class="${occ}"><td class="text-ink">${nm}</td>${tds}</tr>`;
+      const star = b.occurred ? ' <span class="text-up font-bold">★실제</span>' : '';
+      const op = b.opus, gp = b.gpt;
+      let html = '';
+      if (op) html += `<tr class="${occ}" style="border-top:1px solid #2c3c5e">
+        <td><div class="text-ink font-bold leading-tight">${esc(b.name)}${star}</div>
+            <div class="mt-0.5"><span class="m-opus">오푸스 4.8 · ${op.prob != null ? op.prob + '%' : '—'}</span></div></td>
+        ${idxCells(op.indices)}</tr>`;
+      if (gp) html += `<tr class="${occ}">
+        <td style="padding-top:1px"><span class="m-gpt">지피티 5.5 · ${gp.prob != null ? gp.prob + '%' : '—'}</span></td>
+        ${idxCells(gp.indices)}</tr>`;
+      return html;
     }).join('');
     return `<div style="overflow-x:auto"><table class="scn-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -229,7 +240,7 @@
         // 표 없음 — basis로 충분
       } else {
         body += branchesTable(sc.branches);
-        body += `<div class="text-[9.5px] text-sub mt-1.5">※ 시나리오 영향 %는 <b class="text-muted">모델 추정·범위(예측)</b> — 실측 아님. 6월 실측 베타로 보정. 투자자문 아님.</div>`;
+        body += `<div class="text-[9.5px] text-sub mt-1.5">※ 각 분기의 <b class="text-muted">확률·지수 영향 %</b>는 <span class="m-opus">오푸스 4.8</span>·<span class="m-gpt">지피티 5.5</span> 두 모델의 <b class="text-muted">독립 예측(추정·범위, 실측 아님)</b>. 금리 동결/인하/인상 확률만 시장 내재확률(실측). 투자자문 아님.</div>`;
       }
       const tag = sc.centerpiece ? '<span class="text-[9px] font-bold text-up ml-1">핵심</span>' : '';
       inner += `<details class="scn"><summary><i class="fa-solid fa-chevron-right chev text-[9px]"></i>📊 미 지수 영향 예측 · ${esc(sc.kind || '시나리오')}${tag}</summary>${body}</details>`;

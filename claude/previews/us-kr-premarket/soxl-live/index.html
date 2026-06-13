@@ -66,9 +66,15 @@
   <!-- ───── 좌: 전체 종목 리스트 (토스 실시간 차트 스타일) ───── -->
   <section class="flex-1 w-full bg-white rounded-2xl border border-[#e5e8eb] overflow-hidden">
     <div class="px-5 pt-4 pb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-      <h2 class="text-[17px] font-bold">전체 종목 <span class="text-[#8b95a1] font-medium text-sm">SOXL + 구성종목 30</span></h2>
+      <h2 class="text-[17px] font-bold">전체 종목 <span class="text-[#8b95a1] font-medium text-sm">SOXL + 반도체 30종목</span></h2>
       <span id="listAsOf" class="text-xs text-[#8b95a1] font-medium">오늘 --:-- 기준</span>
       <span class="ml-auto text-xs text-[#8b95a1]">상승 <b id="upCount" class="text-[#f04452]">0</b> · 하락 <b id="downCount" class="text-[#3182f6]">0</b></span>
+      <p class="w-full text-[11px] text-[#8b95a1] mt-1 leading-relaxed">
+        <span class="font-bold text-[#1971c2]">비중 X%</span> = SOXL 기초지수(ICE/NYSE 반도체지수, SOXL이 3배 추종) <b>편입 종목의 지수 내 비중</b>.
+        이 목록 30종목 중 <b class="text-[#1971c2]">25종목 편입</b>(비중 표기) · <b class="text-[#8b95a1]">5종목 지수 외</b>(코보·래티스·울프스피드·코히런트·알레그로 = 현 지수 미편입).
+        출처 stockanalysis·marketbeat 등 교차검증(편입 25종 비중 2026-06-11~13, 소형 5종 04-30).
+        <span class="text-[#adb5bd]">※ 지수 실제 구성 30종 중 CRDO·MTSI·ASX·NVMI 등은 이 목록에 미포함.</span>
+      </p>
     </div>
 
     <table class="w-full text-sm">
@@ -181,6 +187,24 @@ const STOCKS = [
   { ticker: 'ALGM', name: '알레그로 마이크로시스템즈',     prevClose: 46.63,  close: 44.54,  ext: 44.00,  vol: 0.00065, color: '#2f9e44', abbr: 'AG' },
 ];
 
+/* ─── SOXL 기초지수(ICE/NYSE Semiconductor Index) 구성 비중 ───
+ * SOXL은 이 지수를 3배(3x) 레버리지로 추종. 종목별 비중 = 지수 편입 비중(SOXX 동일 지수).
+ * 출처: stockanalysis.com·bestetf·marketbeat (상위 25, 기준 2026-06-11~13) + alphalerts(tail, 2026-04-30) 교차검증.
+ * SOXX는 8%/4% cap 적용 modified market-cap 방식이라 분기 리밸런싱마다 비중 변동.
+ * QRVO·LSCC·WOLF·COHR·ALGM = 현 지수 '미편입'(다중 소스 부재 확인). */
+const SOXX_WEIGHT = {
+  MU: 11.55, AMD: 8.70, MRVL: 8.22, INTC: 6.13, AVGO: 5.77, NVDA: 5.53, AMAT: 5.30,
+  KLAC: 3.78, LRCX: 3.71, QCOM: 3.41, TXN: 3.35, MPWR: 3.33, NXPI: 3.19, ASML: 2.87,
+  TER: 2.85, ADI: 2.77, ALAB: 2.47, TSM: 2.47, MCHP: 2.44, ON: 2.25, ENTG: 1.08,
+  RMBS: 0.80, STM: 0.71, UMC: 0.63, SWKS: 0.60
+};
+function weightBadge(s) {
+  if (s.ticker === 'SOXL') return '<span class="text-[9px] font-bold text-[#e8590c] bg-[#fff0e6] rounded px-1 py-px shrink-0">지수 3x 추종</span>';
+  const w = SOXX_WEIGHT[s.ticker];
+  if (w != null) return '<span class="text-[9px] font-bold text-[#1971c2] bg-[#e7f1ff] rounded px-1 py-px shrink-0 tabular-nums">비중 ' + w.toFixed(2) + '%</span>';
+  return '<span class="text-[9px] font-bold text-[#8b95a1] bg-[#f1f3f5] rounded px-1 py-px shrink-0">지수 외</span>';
+}
+
 const TICK_MS   = 700;  // 시간외 시세 갱신 주기 (0.5~1.0초)
 const MAX_TICKS = 50;   // 상세 차트 유지 틱 수
 const WARMUP    = 40;   // 초기 워밍업 틱 수
@@ -284,9 +308,10 @@ function buildTable() {
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style="background:${s.color}">${s.abbr}</div>
           <div class="min-w-0">
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 flex-wrap">
               <span class="font-semibold text-[13px] truncate max-w-[150px] xl:max-w-[200px]">${s.name}</span>
               ${s.lev ? '<span class="text-[9px] font-bold text-white bg-[#ff9500] rounded px-1 py-px shrink-0">' + s.lev + '</span>' : ''}
+              ${weightBadge(s)}
             </div>
             <div class="text-[11px] text-[#8b95a1] font-medium">${s.ticker}</div>
           </div>

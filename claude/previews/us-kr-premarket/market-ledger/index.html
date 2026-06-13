@@ -60,6 +60,8 @@
   .scn-tbl td:first-child,.scn-tbl th:first-child{ text-align:left; }
   .scn-row-occ{ background:rgba(246,70,93,.08); }
   .prob-pill{ font-size:10.5px; font-weight:800; border-radius:6px; padding:2px 7px; }
+  .m-opus{ font-size:9.5px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,.16); border-radius:5px; padding:1px 5px; white-space:nowrap; }
+  .m-gpt{ font-size:9.5px; font-weight:800; color:#34d399; background:rgba(52,211,153,.16); border-radius:5px; padding:1px 5px; white-space:nowrap; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -115,6 +117,37 @@
       </div>
       <div class="h-[260px]"><canvas id="usChart"></canvas></div>
     </div>
+    <!-- 거래 시간 (현지 ET / 한국 KST) -->
+    <div class="card p-4 mt-4">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-regular fa-clock text-sky mr-1.5"></i>미국 거래 시간 — 현지(ET) · 한국(KST) 병기</h3>
+        <span class="text-[11px] text-sub">6월 = 미 동부 서머타임(EDT, UTC−4) · KST = ET +13시간</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[12.5px]">
+          <thead><tr>
+            <th class="text-left">구분</th>
+            <th class="text-left">세션</th>
+            <th class="text-right">현지 시각 (ET·동부)</th>
+            <th class="text-right">한국 시각 (KST)</th>
+          </tr></thead>
+          <tbody>
+            <tr><td rowspan="2" class="font-bold text-white align-top">본장<br><span class="text-[10px] text-sub font-normal">정규장</span></td>
+                <td class="text-up font-semibold">시작 (시가)</td><td class="text-right tabular-nums">09:30</td><td class="text-right tabular-nums">22:30</td></tr>
+            <tr><td class="text-down font-semibold">종료 (종가)</td><td class="text-right tabular-nums">16:00</td><td class="text-right tabular-nums">05:00 <span class="text-sub text-[10px]">(익일)</span></td></tr>
+            <tr><td rowspan="2" class="font-bold text-white align-top">시간외<br><span class="text-[10px] text-sub font-normal">야간·확장</span></td>
+                <td class="text-up font-semibold">시작 (시간외 시가 = 프리마켓 첫 체결)</td><td class="text-right tabular-nums">04:00</td><td class="text-right tabular-nums">17:00</td></tr>
+            <tr><td class="text-down font-semibold">종료 (시간외 종가 = 애프터마켓 마지막 체결)</td><td class="text-right tabular-nums">20:00</td><td class="text-right tabular-nums">09:00 <span class="text-sub text-[10px]">(익일)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-[11px] text-sub mt-2 leading-relaxed">
+        ※ 표의 <b class="text-muted">본장 시가/종가</b>는 위 본장 시작·종료(09:30·16:00 ET = 22:30·05:00 KST), <b class="text-muted">시간외 시가/종가</b>는 시간외 시작·종료(04:00·20:00 ET = 17:00·09:00 KST)에 해당합니다.
+        한국 기준 <b class="text-ink">밤</b>에 미 본장, <b class="text-ink">낮~저녁</b>에 시간외(프리마켓)가 열립니다.
+        겨울(미 표준시 EST, 11~3월)에는 한국시각이 1시간씩 늦춰집니다(본장 23:30~06:00 KST).
+      </div>
+    </div>
+
     <div class="mt-4 space-y-4" id="us-tables"></div>
     <div class="card p-4 mt-4 text-[12.5px] text-muted leading-relaxed">
       <b class="text-white"><i class="fa-solid fa-circle-info text-gold mr-1"></i>"미국 야간선물시장" 정의</b> —
@@ -132,7 +165,7 @@
       <span class="text-muted"><span class="badge imp-high bg-transparent px-2">높음</span></span>
       <span class="text-muted"><span class="badge imp-norm bg-transparent px-2">보통</span></span>
       <span class="text-sub ml-auto">발생(6/1~12) · <span class="text-muted">예정(6/13~30)</span> · 출처 표기</span>
-      <span class="w-full text-[11px] text-sub mt-1 pt-2 border-t border-line"><i class="fa-solid fa-flask text-violet mr-1"></i><b class="text-muted">당일 실측</b>(발생일 5대 지수 실제 등락) = 사실 · <b class="text-violet">시나리오 영향 %</b> = <b class="text-up">모델 추정(예측)</b>, 실측 아님 · 금리 동결/인하/인상 확률만 시장 내재확률(실측). 연구용 — 투자자문 아님.</span>
+      <span class="w-full text-[11px] text-sub mt-1 pt-2 border-t border-line"><i class="fa-solid fa-flask text-violet mr-1"></i><b class="text-muted">당일 실측</b>(발생일 5대 지수 실제 등락) = 사실 · 시나리오 분기확률·지수영향 % = <span class="m-opus">오푸스 4.8</span>·<span class="m-gpt">지피티 5.5</span> <b class="text-up">두 모델 독립 예측(추정)</b>, 실측 아님 · 금리 동결/인하/인상 확률만 시장 내재확률(실측). 연구용 — 투자자문 아님.</span>
     </div>
 
     <!-- 금리 경로 + 방법론 패널 -->
