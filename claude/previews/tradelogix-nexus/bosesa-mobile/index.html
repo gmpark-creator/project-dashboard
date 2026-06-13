@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b8a3e">
+<title>보세사 기출문제 — 모바일</title>
+<meta name="description" content="보세사 자격시험 기출문제 모바일 뷰어 — 1~5과목 · 2019~2025년. 문제·선지·정답·해설을 큰 글씨로.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{ --green:#0b8a3e; --green-bg:#e7f6ec; --blue:#1f6feb; --ink:#15181d; --sub:#6b7280; --line:#e6e8eb; --bg:#f4f6f8; --card:#ffffff; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:var(--bg); color:var(--ink); word-break:keep-all; -webkit-text-size-adjust:100%;
+    line-height:1.65; font-size:16px; padding-bottom:env(safe-area-inset-bottom); }
+  /* ===== 상단 고정 선택바 (작게) ===== */
+  header{ position:sticky; top:0; z-index:20; background:var(--card); border-bottom:1px solid var(--line);
+    padding:8px 12px calc(8px) 12px; box-shadow:0 1px 6px rgba(0,0,0,.04); }
+  .title{ font-size:16px; font-weight:800; letter-spacing:-.02em; display:flex; align-items:center; gap:6px; }
+  .title .dot{ width:8px; height:8px; border-radius:3px; background:var(--green); }
+  .title small{ font-size:11px; font-weight:600; color:var(--sub); }
+  .rowlabel{ font-size:10px; font-weight:700; color:var(--sub); margin:6px 2px 3px; }
+  .chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+  .chips::-webkit-scrollbar{ display:none; }
+  .chip{ flex:0 0 auto; border:1px solid var(--line); background:#fff; color:var(--ink);
+    border-radius:999px; padding:6px 11px; font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer; transition:.12s; }
+  .chip.sub{ font-size:12px; padding:6px 10px; }
+  .chip .sname{ font-weight:500; color:var(--sub); font-size:11px; margin-left:3px; }
+  .chip.on{ background:var(--green); border-color:var(--green); color:#fff; }
+  .chip.on .sname{ color:rgba(255,255,255,.85); }
+  .topbar2{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .meta{ font-size:11.5px; color:var(--sub); font-weight:600; flex:1; min-width:0; }
+  .ansBtn{ flex:0 0 auto; border:1px solid var(--green); color:var(--green); background:var(--green-bg);
+    border-radius:8px; padding:6px 10px; font-size:12px; font-weight:800; cursor:pointer; }
+  .ansBtn.off{ border-color:var(--line); color:var(--sub); background:#fff; }
+  /* ===== 본문 (크게) ===== */
+  main{ max-width:760px; margin:0 auto; padding:12px 12px 80px; }
+  .qcard{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 15px; margin-bottom:14px; }
+  .qhead{ display:flex; gap:9px; align-items:flex-start; }
+  .qno{ flex:0 0 auto; min-width:30px; height:30px; padding:0 8px; border-radius:8px; background:var(--ink); color:#fff;
+    font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .qtext{ font-size:17.5px; font-weight:700; line-height:1.6; letter-spacing:-.01em; }
+  ol.choices{ list-style:none; margin:14px 0 0; padding:0; }
+  ol.choices li{ position:relative; padding:11px 12px 11px 40px; border:1px solid var(--line); border-radius:10px;
+    margin-bottom:8px; font-size:16px; line-height:1.55; background:#fff; }
+  ol.choices li .cn{ position:absolute; left:12px; top:11px; font-weight:800; color:var(--sub); font-size:15px; }
+  li.correct{ background:var(--green-bg); border-color:var(--green); padding-right:56px; }
+  li.correct .cn{ color:var(--green); }
+  li.correct::after{ content:'정답'; position:absolute; right:10px; top:9px; font-size:10px; font-weight:800;
+    color:#fff; background:var(--green); border-radius:5px; padding:2px 6px; }
+  .ansbox{ margin-top:13px; border-top:1px dashed var(--line); padding-top:12px; }
+  .ans-line{ font-size:15px; font-weight:800; color:var(--green); margin-bottom:8px; }
+  .ans-line .k{ color:var(--sub); font-weight:700; margin-right:5px; }
+  .basis{ font-size:15.5px; line-height:1.72; background:#fbfbfc; border:1px solid var(--line); border-radius:10px; padding:12px 13px; }
+  .basis .k{ display:block; font-size:11px; font-weight:800; color:var(--green); margin-bottom:5px; letter-spacing:.02em; }
+  details.ca{ margin-top:10px; }
+  details.ca>summary{ cursor:pointer; list-style:none; font-size:12.5px; font-weight:800; color:var(--blue); padding:7px 0; }
+  details.ca>summary::-webkit-details-marker{ display:none; }
+  details.ca>summary::before{ content:'▸ '; }
+  details.ca[open]>summary::before{ content:'▾ '; }
+  .caitem{ font-size:14px; line-height:1.62; padding:8px 10px; border-radius:8px; background:#fafafa; margin-bottom:6px; }
+  .caitem .cn{ font-weight:800; color:var(--sub); margin-right:5px; }
+  .caitem.correct{ background:var(--green-bg); }
+  .hidden{ display:none; }
+  #loading,#empty{ text-align:center; color:var(--sub); padding:40px 16px; font-size:14px; }
+  .totop{ position:fixed; right:14px; bottom:calc(16px + env(safe-area-inset-bottom)); z-index:30;
+    width:46px; height:46px; border-radius:50%; background:var(--ink); color:#fff; border:none; font-size:18px;
+    box-shadow:0 4px 14px rgba(0,0,0,.25); cursor:pointer; display:none; }
+  footer{ text-align:center; font-size:10.5px; color:var(--sub); padding:14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title"><span class="dot"></span>보세사 기출문제 <small>모바일 뷰어 · 1~5과목 · 2019~2025</small></div>
+  <div class="rowlabel">과목</div>
+  <div class="chips" id="subjectChips"></div>
+  <div class="rowlabel">연도</div>
+  <div class="chips" id="yearChips"></div>
+  <div class="topbar2">
+    <span class="meta" id="meta">과목·연도를 선택하세요</span>
+    <button class="ansBtn" id="ansToggle">정답·해설 표시</button>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="hidden">문제를 불러오는 중…</div>
+  <div id="empty" class="hidden">데이터를 찾을 수 없습니다.</div>
+  <div id="qlist"></div>
+</main>
+
+<button class="totop" id="totop" aria-label="맨 위로">↑</button>
+<footer>보세사 자격시험 기출문제 · 학습용 뷰어 (정답·해설은 기출 정답표 기준) · G.M.PARK</footer>
+
+<script>
+(function(){
+  "use strict";
+  var SUBJECTS = [
+    { no:1, name:'수출입통관절차' },
+    { no:2, name:'보세구역관리' },
+    { no:3, name:'화물관리' },
+    { no:4, name:'수출입안전관리' },
+    { no:5, name:'자율관리 및 관세벌칙' }
+  ];
+  var YEARS = [2025,2024,2023,2022,2021,2020,2019];
+  var CN = ['①','②','③','④','⑤','⑥','⑦','⑧'];
+  var state = { subject:1, year:2025, answersShown:true };
+  var loaded = {};
+
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+  function nn(){ for(var i=0;i<arguments.length;i++){ if(arguments[i]!=null) return arguments[i]; } return ''; }
+  // 선지/선지분석은 문자열 또는 {label,text}/{reason,text} 객체 두 형태가 섞여 있어 정규화(기존 뷰어와 동일)
+  function choiceText(c){ var t = (c && typeof c==='object') ? nn(c.text, c.label) : c; return String(t==null?'':t).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''); }
+  function analysisText(a){ var t = (a && typeof a==='object') ? nn(a.reason, a.text) : a; return String(t==null?'':t); }
+
+  // const(전역 lexical)로 선언된 BOSESA_DATA_* 를 이름으로 가져오기 (window 속성 아님 → direct eval)
+  function getData(s,y){
+    var n='BOSESA_DATA_'+s+'_'+y;
+    try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; }
+  }
+
+  function renderChips(){
+    $('subjectChips').innerHTML = SUBJECTS.map(function(s){
+      return '<button class="chip'+(s.no===state.subject?' on':'')+'" data-s="'+s.no+'">'+s.no+'과목<span class="sname">'+esc(s.name)+'</span></button>';
+    }).join('');
+    $('yearChips').innerHTML = YEARS.map(function(y){
+      return '<button class="chip sub'+(y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
+    }).join('');
+  }
+
+  function load(){
+    var s=state.subject, y=state.year, key=s+'_'+y;
+    $('empty').classList.add('hidden');
+    $('qlist').innerHTML='';
+    if (loaded[key]) { render(); return; }
+    $('loading').classList.remove('hidden');
+    var sc=document.createElement('script');
+    sc.src='../bosesa-data-'+s+'-'+y+'.js';
+    sc.onload=function(){ loaded[key]=true; $('loading').classList.add('hidden'); render(); };
+    sc.onerror=function(){ $('loading').classList.add('hidden'); $('empty').classList.remove('hidden'); };
+    document.head.appendChild(sc);
+  }
+
+  function render(){
+    var data = getData(state.subject, state.year);
+    var sname = (SUBJECTS.filter(function(x){return x.no===state.subject;})[0]||{}).name||'';
+    if (!data || !data.questions) { $('empty').classList.remove('hidden'); $('meta').textContent=state.year+'년 '+state.subject+'과목'; return; }
+    $('meta').textContent = state.year+'년 · '+state.subject+'과목 '+sname+' · 총 '+(data.totalQuestions||data.questions.length)+'문항'+(data.answerForm?(' · '+data.answerForm):'');
+    var show = state.answersShown;
+    var html = data.questions.map(function(q){
+      var qno = nn(q.no, q.id, q.number);
+      var qtext = nn(q.text, q.stemText, q.question);
+      var ans = Array.isArray(q.answer)? q.answer : (q.answer!=null?[q.answer]:[]);
+      var basis = nn(q.answerBasis, q.explanation);
+      var CA = Array.isArray(q.choiceAnalysis)? q.choiceAnalysis : null;
+      var choices = (q.choices||[]).map(function(c,i){
+        var isC = show && ans.indexOf(i+1)>=0;
+        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(choiceText(c))+'</li>';
+      }).join('');
+      var ansNums = ans.map(function(a){ return CN[a-1]||a; }).join(', ');
+      var caHTML = CA ? ('<details class="ca"><summary>선지별 분석 보기</summary>'+CA.map(function(t,i){
+        var isC = ans.indexOf(i+1)>=0;
+        return '<div class="caitem '+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(analysisText(t))+'</div>';
+      }).join('')+'</details>') : '';
+      var ansbox = '<div class="ansbox'+(show?'':' hidden')+'">'
+        + (ansNums?'<div class="ans-line"><span class="k">정답</span>'+ansNums+'</div>':'')
+        + (basis?'<div class="basis"><span class="k">해설</span>'+esc(basis)+'</div>':'')
+        + caHTML + '</div>';
+      return '<div class="qcard"><div class="qhead"><span class="qno">'+esc(qno)+'</span><div class="qtext">'+esc(qtext)+'</div></div>'
+        + '<ol class="choices">'+choices+'</ol>' + ansbox + '</div>';
+    }).join('');
+    $('qlist').innerHTML = html;
+    window.scrollTo(0,0);
+  }
+
+  // events
+  $('subjectChips').addEventListener('click', function(e){
+    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; renderChips(); load();
+  });
+  $('yearChips').addEventListener('click', function(e){
+    var b=e.target.closest('.chip'); if(!b)return; state.year=+b.dataset.y; renderChips(); load();
+  });
+  $('ansToggle').addEventListener('click', function(){
+    state.answersShown=!state.answersShown;
+    this.textContent = state.answersShown?'정답·해설 표시':'정답·해설 숨김(시험모드)';
+    this.classList.toggle('off', !state.answersShown);
+    render();
+  });
+  var totop=$('totop');
+  window.addEventListener('scroll', function(){ totop.style.display = window.scrollY>500?'block':'none'; });
+  totop.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+
+  renderChips();
+  load();
+})();
+</script>
+</body>
+</html>

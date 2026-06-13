@@ -1447,6 +1447,11 @@ function renderBosesaQuiz(){
         <div class="text-xs font-bold text-violet-400 tracking-widest uppercase">보세사 기출문제</div>
         <h2 class="text-xl font-bold text-white">${data.year}년 ${data.subjectNo ?? data.subject}과목 — ${esc(data.subjectName)}</h2>
         <p class="text-xs text-slate-400 mt-1">${data.answerForm ?? '기출'} · 총 ${data.totalQuestions ?? data.questions.length}문항</p>
+        <a href="bosesa-mobile/" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-300 bg-emerald-900/30 border border-emerald-700/50 rounded-lg px-3 py-1.5 hover:bg-emerald-900/50">
+          <i class="fa-solid fa-mobile-screen-button"></i> 📱 모바일 전용 보세사 뷰어 열기
+        </a>
+        <p class="text-[10px] text-slate-500 mt-1 break-all select-all">모바일 주소: gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-nexus/bosesa-mobile/</p>
       </div>
       <div class="flex gap-2">
         <button class="text-xs px-3 py-2 rounded-lg bg-slate-700 text-slate-300 border border-slate-600"
