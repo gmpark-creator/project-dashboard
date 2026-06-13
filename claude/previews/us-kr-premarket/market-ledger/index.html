@@ -60,8 +60,9 @@
   .scn-tbl td:first-child,.scn-tbl th:first-child{ text-align:left; }
   .scn-row-occ{ background:rgba(246,70,93,.08); }
   .prob-pill{ font-size:10.5px; font-weight:800; border-radius:6px; padding:2px 7px; }
-  .m-opus{ font-size:9.5px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,.16); border-radius:5px; padding:1px 5px; white-space:nowrap; }
-  .m-gpt{ font-size:9.5px; font-weight:800; color:#34d399; background:rgba(52,211,153,.16); border-radius:5px; padding:1px 5px; white-space:nowrap; }
+  /* 모델 구분색 — Opus=앰버(주황), GPT=시안. 실측(초록)·예측헤더(보라)·등락(빨강/파랑)과 충돌 회피 */
+  .m-opus{ font-size:9.5px; font-weight:800; color:#f59e0b; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.35); border-radius:5px; padding:1px 5px; white-space:nowrap; }
+  .m-gpt{ font-size:9.5px; font-weight:800; color:#22d3ee; background:rgba(34,211,238,.16); border:1px solid rgba(34,211,238,.35); border-radius:5px; padding:1px 5px; white-space:nowrap; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -152,6 +153,19 @@
       SOXL·SOXS는 ETF로 자체 선물 계약이 없습니다. 미국 종목의 본장 외 거래는 ① 프리마켓 ② 애프터마켓 ③ 주간거래(Blue Ocean ATS, 한국 낮 09~17시) 3개 시간외 세션으로 나뉩니다(위 표 참조).
       본 ③ 시세표의 <b class="text-ink">시간외 시가</b>=프리마켓 첫 체결(04:00 ET=17:00 KST), <b class="text-ink">시간외 종가</b>=애프터마켓 마지막 체결(20:00 ET=09:00 KST 익일)을 씁니다. <b class="text-sky">한국 낮(주간거래)</b> 구간은 Blue Ocean ATS 체결로, 무료 공개 데이터가 없어 본 수치엔 미반영입니다.
       <span class="text-sub">시간외 전일比% = 당일 시간외 종가가 전일(직전 거래일) 시간외 종가 대비 움직인 폭(첫날은 직전 데이터 없어 '—').</span>
+    </div>
+
+    <!-- 장중 양전·음전 전환 -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-arrows-up-down text-gold mr-1.5"></i>장중 양전·음전 전환 횟수 <span class="text-sub text-xs font-medium">(전일 종가 = 0% 기준)</span></h3>
+        <span class="text-[11px] text-sub"><span class="up font-bold">양전</span> 음→양(전일종가 상향 돌파) · <span class="down font-bold">음전</span> 양→음</span>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-2" id="us-flips"></div>
+      <div class="card p-3 mt-3 text-[11px] text-sub leading-relaxed">
+        <b class="text-muted"><i class="fa-solid fa-book mr-1"></i>근거·방법론</b> — 출처: <b class="text-ink">Yahoo Finance 5분봉</b>(시간외 포함, includePrePost). 5분봉 종가가 <b class="text-ink">전일 정규장 종가(0%선)</b> 위/아래로 교차할 때마다 1회로 집계. 세션(본장/시간외)별 태깅, 각 전환의 시각(ET·KST)·가격·등락%를 근거로 기록(행 펼치기).
+        <b class="text-gold">한계</b>: 5분 해상도(그보다 빠른 전환 미포착) · <b class="text-sky">Blue Ocean 주간거래(09~17 KST)</b>는 무료 공개 데이터 부재로 미포함(본장+프리/애프터마켓만). 재현: fetch 5m + flips.py.
+      </div>
     </div>
   </section>
 

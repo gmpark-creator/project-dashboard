@@ -9,6 +9,7 @@ window.LEDGER = {
   "sources": {
     "kospi": "Naver Finance siseJson.naver + Yahoo Finance chart API (이중 교차검증 — OHLC 완전 일치, 거래량 Naver 채택)",
     "us": "Yahoo Finance chart API — 정규장 일봉(본장) + 30분봉 시간외(pre/post) 세션 분류",
+    "flips": "장중 양전/음전 전환 — Yahoo Finance 5분봉(시간외 포함, includePrePost) 종가가 전일 정규장 종가(0%선) 위/아래로 교차한 횟수. 양전=음→양(전일종가 상향 돌파), 음전=양→음. 세션(본장/시간외)별 태깅. 해상도 5분(그보다 빠른 전환 미포착) · Blue Ocean 주간거래(09~17 KST)는 무료 데이터 부재로 미포함.",
     "calendar": "멀티에이전트 웹리서치 6트랙 + 적대적 검증(독립 재확인) 후 중복 병합. 총 69건 (confirmed 62·date-corrected 3·downgraded 4). dropped(환각) 제외, 각 항목 1차 출처 링크 표기.",
     "impact": "지수 영향 레이어 — ① 발생(6/1~12) 이벤트엔 그날 5대 지수 '실측' 등락 부착(사실). ② 금리 동결/인하/인상 확률은 CME FedWatch/선물 등 시장 내재확률 실측. ③ 시나리오별 분기확률·지수 영향 %는 Claude Opus 4.8 과 Codex GPT 5.5 두 모델이 '각각 독립 예측'한 값을 병기(모델 추정·범위 — 실측 아님, 투자자문 아님). 두 모델이 무조건적 확률·범위로 제시(‘모름’ 없음). 책임은 이용자에게 있음."
   },
@@ -642,7 +643,89 @@ window.LEDGER = {
         "extClose": 225.76,
         "extVsRegPct": -0.56,
         "extChgPct": null,
-        "vol": 37499600
+        "vol": 37499600,
+        "flips": {
+          "date": "2026-06-01",
+          "prevClose": 224.34,
+          "regClose": 227.03,
+          "endState": "양수",
+          "reg": {
+            "up": 2,
+            "down": 1
+          },
+          "ext": {
+            "up": 2,
+            "down": 3
+          },
+          "totalUp": 4,
+          "totalDown": 4,
+          "crossings": [
+            {
+              "etTime": "05:45",
+              "kstTime": "22:45",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 223.44,
+              "pct": -0.4
+            },
+            {
+              "etTime": "06:10",
+              "kstTime": "23:10",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.76,
+              "pct": 0.19
+            },
+            {
+              "etTime": "06:20",
+              "kstTime": "23:20",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 224.07,
+              "pct": -0.12
+            },
+            {
+              "etTime": "06:25",
+              "kstTime": "23:25",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.73,
+              "pct": 0.17
+            },
+            {
+              "etTime": "07:00",
+              "kstTime": "00:00(익일)",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 222.98,
+              "pct": -0.61
+            },
+            {
+              "etTime": "09:35",
+              "kstTime": "02:35(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 224.7,
+              "pct": 0.16
+            },
+            {
+              "etTime": "09:40",
+              "kstTime": "02:40(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 221.33,
+              "pct": -1.34
+            },
+            {
+              "etTime": "11:05",
+              "kstTime": "04:05(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 224.38,
+              "pct": 0.02
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-02",
@@ -653,7 +736,24 @@ window.LEDGER = {
         "extClose": 270.69,
         "extVsRegPct": 1.64,
         "extChgPct": 19.9,
-        "vol": 42799700
+        "vol": 42799700,
+        "flips": {
+          "date": "2026-06-02",
+          "prevClose": 227.03,
+          "regClose": 266.32,
+          "endState": "양수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-03",
@@ -664,7 +764,81 @@ window.LEDGER = {
         "extClose": 261.55,
         "extVsRegPct": -6.77,
         "extChgPct": -3.38,
-        "vol": 49817200
+        "vol": 49817200,
+        "flips": {
+          "date": "2026-06-03",
+          "prevClose": 266.32,
+          "regClose": 280.54,
+          "endState": "양수",
+          "reg": {
+            "up": 1,
+            "down": 1
+          },
+          "ext": {
+            "up": 2,
+            "down": 3
+          },
+          "totalUp": 3,
+          "totalDown": 4,
+          "crossings": [
+            {
+              "etTime": "09:45",
+              "kstTime": "02:45(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 259.11,
+              "pct": -2.71
+            },
+            {
+              "etTime": "10:00",
+              "kstTime": "03:00(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 269.61,
+              "pct": 1.24
+            },
+            {
+              "etTime": "17:10",
+              "kstTime": "10:10(익일)",
+              "session": "애프터마켓",
+              "dir": "음전",
+              "price": 265.0,
+              "pct": -0.5
+            },
+            {
+              "etTime": "17:15",
+              "kstTime": "10:15(익일)",
+              "session": "애프터마켓",
+              "dir": "양전",
+              "price": 266.7,
+              "pct": 0.14
+            },
+            {
+              "etTime": "17:20",
+              "kstTime": "10:20(익일)",
+              "session": "애프터마켓",
+              "dir": "음전",
+              "price": 265.7,
+              "pct": -0.23
+            },
+            {
+              "etTime": "18:00",
+              "kstTime": "11:00(익일)",
+              "session": "애프터마켓",
+              "dir": "양전",
+              "price": 266.37,
+              "pct": 0.02
+            },
+            {
+              "etTime": "18:10",
+              "kstTime": "11:10(익일)",
+              "session": "애프터마켓",
+              "dir": "음전",
+              "price": 264.99,
+              "pct": -0.5
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-04",
@@ -675,7 +849,24 @@ window.LEDGER = {
         "extClose": 248.099,
         "extVsRegPct": -5.56,
         "extChgPct": -5.14,
-        "vol": 59036000
+        "vol": 59036000,
+        "flips": {
+          "date": "2026-06-04",
+          "prevClose": 280.54,
+          "regClose": 262.7,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-05",
@@ -686,7 +877,24 @@ window.LEDGER = {
         "extClose": 176.98,
         "extVsRegPct": -3.05,
         "extChgPct": -28.67,
-        "vol": 108280300
+        "vol": 108280300,
+        "flips": {
+          "date": "2026-06-05",
+          "prevClose": 262.7,
+          "regClose": 182.54,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-08",
@@ -697,7 +905,24 @@ window.LEDGER = {
         "extClose": 211.3,
         "extVsRegPct": -0.07,
         "extChgPct": 19.39,
-        "vol": 68180500
+        "vol": 68180500,
+        "flips": {
+          "date": "2026-06-08",
+          "prevClose": 182.54,
+          "regClose": 211.44,
+          "endState": "양수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-09",
@@ -708,7 +933,33 @@ window.LEDGER = {
         "extClose": 198.81,
         "extVsRegPct": -1.42,
         "extChgPct": -5.91,
-        "vol": 124754300
+        "vol": 124754300,
+        "flips": {
+          "date": "2026-06-09",
+          "prevClose": 211.44,
+          "regClose": 201.68,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 1
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 1,
+          "crossings": [
+            {
+              "etTime": "10:40",
+              "kstTime": "03:40(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 204.13,
+              "pct": -3.46
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-10",
@@ -719,7 +970,57 @@ window.LEDGER = {
         "extClose": 172.916,
         "extVsRegPct": -4.28,
         "extChgPct": -13.02,
-        "vol": 94924200
+        "vol": 94924200,
+        "flips": {
+          "date": "2026-06-10",
+          "prevClose": 201.68,
+          "regClose": 180.65,
+          "endState": "음수",
+          "reg": {
+            "up": 2,
+            "down": 2
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 2,
+          "totalDown": 2,
+          "crossings": [
+            {
+              "etTime": "09:45",
+              "kstTime": "02:45(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 208.55,
+              "pct": 3.41
+            },
+            {
+              "etTime": "09:50",
+              "kstTime": "02:50(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 200.4,
+              "pct": -0.63
+            },
+            {
+              "etTime": "10:05",
+              "kstTime": "03:05(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 206.26,
+              "pct": 2.27
+            },
+            {
+              "etTime": "10:45",
+              "kstTime": "03:45(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 199.38,
+              "pct": -1.14
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-11",
@@ -730,7 +1031,24 @@ window.LEDGER = {
         "extClose": 228.8,
         "extVsRegPct": 2.15,
         "extChgPct": 32.32,
-        "vol": 72493400
+        "vol": 72493400,
+        "flips": {
+          "date": "2026-06-11",
+          "prevClose": 180.65,
+          "regClose": 223.99,
+          "endState": "양수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-12",
@@ -741,7 +1059,113 @@ window.LEDGER = {
         "extClose": 239.29,
         "extVsRegPct": 1.96,
         "extChgPct": 4.58,
-        "vol": 50036700
+        "vol": 50036700,
+        "flips": {
+          "date": "2026-06-12",
+          "prevClose": 223.99,
+          "regClose": 234.68,
+          "endState": "양수",
+          "reg": {
+            "up": 2,
+            "down": 1
+          },
+          "ext": {
+            "up": 4,
+            "down": 4
+          },
+          "totalUp": 6,
+          "totalDown": 5,
+          "crossings": [
+            {
+              "etTime": "04:15",
+              "kstTime": "21:15",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.68,
+              "pct": 0.31
+            },
+            {
+              "etTime": "04:25",
+              "kstTime": "21:25",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 223.04,
+              "pct": -0.42
+            },
+            {
+              "etTime": "05:10",
+              "kstTime": "22:10",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.73,
+              "pct": 0.33
+            },
+            {
+              "etTime": "06:25",
+              "kstTime": "23:25",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 223.0,
+              "pct": -0.44
+            },
+            {
+              "etTime": "06:30",
+              "kstTime": "23:30",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.22,
+              "pct": 0.1
+            },
+            {
+              "etTime": "06:50",
+              "kstTime": "23:50",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 223.77,
+              "pct": -0.1
+            },
+            {
+              "etTime": "06:55",
+              "kstTime": "23:55",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 224.16,
+              "pct": 0.08
+            },
+            {
+              "etTime": "08:20",
+              "kstTime": "01:20(익일)",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 222.38,
+              "pct": -0.72
+            },
+            {
+              "etTime": "09:35",
+              "kstTime": "02:35(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 224.87,
+              "pct": 0.39
+            },
+            {
+              "etTime": "09:40",
+              "kstTime": "02:40(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 219.68,
+              "pct": -1.92
+            },
+            {
+              "etTime": "09:55",
+              "kstTime": "02:55(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 224.7,
+              "pct": 0.32
+            }
+          ]
+        }
       }
     ],
     "soxs": [
@@ -754,7 +1178,89 @@ window.LEDGER = {
         "extClose": 6.28,
         "extVsRegPct": 0.32,
         "extChgPct": null,
-        "vol": 330691100
+        "vol": 330691100,
+        "flips": {
+          "date": "2026-06-01",
+          "prevClose": 6.33,
+          "regClose": 6.26,
+          "endState": "음수",
+          "reg": {
+            "up": 1,
+            "down": 2
+          },
+          "ext": {
+            "up": 3,
+            "down": 2
+          },
+          "totalUp": 4,
+          "totalDown": 4,
+          "crossings": [
+            {
+              "etTime": "05:45",
+              "kstTime": "22:45",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 6.37,
+              "pct": 0.63
+            },
+            {
+              "etTime": "06:10",
+              "kstTime": "23:10",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 6.32,
+              "pct": -0.16
+            },
+            {
+              "etTime": "06:20",
+              "kstTime": "23:20",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 6.34,
+              "pct": 0.16
+            },
+            {
+              "etTime": "06:25",
+              "kstTime": "23:25",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 6.32,
+              "pct": -0.16
+            },
+            {
+              "etTime": "07:00",
+              "kstTime": "00:00(익일)",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 6.37,
+              "pct": 0.63
+            },
+            {
+              "etTime": "09:35",
+              "kstTime": "02:35(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 6.32,
+              "pct": -0.16
+            },
+            {
+              "etTime": "09:40",
+              "kstTime": "02:40(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 6.41,
+              "pct": 1.26
+            },
+            {
+              "etTime": "11:05",
+              "kstTime": "04:05(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 6.32,
+              "pct": -0.16
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-02",
@@ -765,7 +1271,24 @@ window.LEDGER = {
         "extClose": 5.099,
         "extVsRegPct": -1.37,
         "extChgPct": -18.81,
-        "vol": 480500000
+        "vol": 480500000,
+        "flips": {
+          "date": "2026-06-02",
+          "prevClose": 6.26,
+          "regClose": 5.17,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-03",
@@ -776,7 +1299,81 @@ window.LEDGER = {
         "extClose": 5.239,
         "extVsRegPct": 6.7,
         "extChgPct": 2.75,
-        "vol": 634419400
+        "vol": 634419400,
+        "flips": {
+          "date": "2026-06-03",
+          "prevClose": 5.17,
+          "regClose": 4.91,
+          "endState": "음수",
+          "reg": {
+            "up": 1,
+            "down": 1
+          },
+          "ext": {
+            "up": 3,
+            "down": 2
+          },
+          "totalUp": 4,
+          "totalDown": 3,
+          "crossings": [
+            {
+              "etTime": "09:45",
+              "kstTime": "02:45(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 5.3,
+              "pct": 2.51
+            },
+            {
+              "etTime": "10:00",
+              "kstTime": "03:00(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 5.11,
+              "pct": -1.16
+            },
+            {
+              "etTime": "17:10",
+              "kstTime": "10:10(익일)",
+              "session": "애프터마켓",
+              "dir": "양전",
+              "price": 5.18,
+              "pct": 0.19
+            },
+            {
+              "etTime": "17:15",
+              "kstTime": "10:15(익일)",
+              "session": "애프터마켓",
+              "dir": "음전",
+              "price": 5.15,
+              "pct": -0.39
+            },
+            {
+              "etTime": "17:25",
+              "kstTime": "10:25(익일)",
+              "session": "애프터마켓",
+              "dir": "양전",
+              "price": 5.19,
+              "pct": 0.39
+            },
+            {
+              "etTime": "17:55",
+              "kstTime": "10:55(익일)",
+              "session": "애프터마켓",
+              "dir": "음전",
+              "price": 5.15,
+              "pct": -0.39
+            },
+            {
+              "etTime": "18:15",
+              "kstTime": "11:15(익일)",
+              "session": "애프터마켓",
+              "dir": "양전",
+              "price": 5.19,
+              "pct": 0.39
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-04",
@@ -787,7 +1384,24 @@ window.LEDGER = {
         "extClose": 5.52,
         "extVsRegPct": 6.15,
         "extChgPct": 5.36,
-        "vol": 665759500
+        "vol": 665759500,
+        "flips": {
+          "date": "2026-06-04",
+          "prevClose": 4.91,
+          "regClose": 5.2,
+          "endState": "양수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-05",
@@ -798,7 +1412,24 @@ window.LEDGER = {
         "extClose": 6.955,
         "extVsRegPct": 1.68,
         "extChgPct": 26.0,
-        "vol": 972691500
+        "vol": 972691500,
+        "flips": {
+          "date": "2026-06-05",
+          "prevClose": 5.2,
+          "regClose": 6.84,
+          "endState": "양수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-08",
@@ -809,7 +1440,24 @@ window.LEDGER = {
         "extClose": 5.67,
         "extVsRegPct": -0.35,
         "extChgPct": -18.48,
-        "vol": 805658000
+        "vol": 805658000,
+        "flips": {
+          "date": "2026-06-08",
+          "prevClose": 6.84,
+          "regClose": 5.69,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-09",
@@ -820,7 +1468,33 @@ window.LEDGER = {
         "extClose": 6.03,
         "extVsRegPct": 1.69,
         "extChgPct": 6.35,
-        "vol": 1388857300
+        "vol": 1388857300,
+        "flips": {
+          "date": "2026-06-09",
+          "prevClose": 5.69,
+          "regClose": 5.93,
+          "endState": "양수",
+          "reg": {
+            "up": 1,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 1,
+          "totalDown": 0,
+          "crossings": [
+            {
+              "etTime": "10:40",
+              "kstTime": "03:40(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 5.86,
+              "pct": 2.99
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-10",
@@ -831,7 +1505,57 @@ window.LEDGER = {
         "extClose": 6.83,
         "extVsRegPct": 3.96,
         "extChgPct": 13.27,
-        "vol": 1208896300
+        "vol": 1208896300,
+        "flips": {
+          "date": "2026-06-10",
+          "prevClose": 5.93,
+          "regClose": 6.57,
+          "endState": "양수",
+          "reg": {
+            "up": 2,
+            "down": 2
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 2,
+          "totalDown": 2,
+          "crossings": [
+            {
+              "etTime": "09:45",
+              "kstTime": "02:45(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 5.73,
+              "pct": -3.37
+            },
+            {
+              "etTime": "09:50",
+              "kstTime": "02:50(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 5.97,
+              "pct": 0.67
+            },
+            {
+              "etTime": "10:05",
+              "kstTime": "03:05(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 5.79,
+              "pct": -2.36
+            },
+            {
+              "etTime": "10:45",
+              "kstTime": "03:45(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 6.0,
+              "pct": 1.18
+            }
+          ]
+        }
       },
       {
         "date": "2026-06-11",
@@ -842,7 +1566,24 @@ window.LEDGER = {
         "extClose": 4.835,
         "extVsRegPct": -2.72,
         "extChgPct": -29.21,
-        "vol": 910108000
+        "vol": 910108000,
+        "flips": {
+          "date": "2026-06-11",
+          "prevClose": 6.57,
+          "regClose": 4.97,
+          "endState": "음수",
+          "reg": {
+            "up": 0,
+            "down": 0
+          },
+          "ext": {
+            "up": 0,
+            "down": 0
+          },
+          "totalUp": 0,
+          "totalDown": 0,
+          "crossings": []
+        }
       },
       {
         "date": "2026-06-12",
@@ -853,7 +1594,81 @@ window.LEDGER = {
         "extClose": 4.612,
         "extVsRegPct": -2.29,
         "extChgPct": -4.61,
-        "vol": 631116200
+        "vol": 631116200,
+        "flips": {
+          "date": "2026-06-12",
+          "prevClose": 4.97,
+          "regClose": 4.72,
+          "endState": "음수",
+          "reg": {
+            "up": 1,
+            "down": 2
+          },
+          "ext": {
+            "up": 2,
+            "down": 2
+          },
+          "totalUp": 3,
+          "totalDown": 4,
+          "crossings": [
+            {
+              "etTime": "04:15",
+              "kstTime": "21:15",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 4.93,
+              "pct": -0.8
+            },
+            {
+              "etTime": "04:30",
+              "kstTime": "21:30",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 5.0,
+              "pct": 0.6
+            },
+            {
+              "etTime": "05:00",
+              "kstTime": "22:00",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 4.96,
+              "pct": -0.2
+            },
+            {
+              "etTime": "08:20",
+              "kstTime": "01:20(익일)",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 4.99,
+              "pct": 0.4
+            },
+            {
+              "etTime": "09:35",
+              "kstTime": "02:35(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 4.93,
+              "pct": -0.8
+            },
+            {
+              "etTime": "09:40",
+              "kstTime": "02:40(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 5.04,
+              "pct": 1.41
+            },
+            {
+              "etTime": "09:45",
+              "kstTime": "02:45(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 4.95,
+              "pct": -0.4
+            }
+          ]
+        }
       }
     ]
   },
