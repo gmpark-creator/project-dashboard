@@ -117,42 +117,40 @@
       </div>
       <div class="h-[260px]"><canvas id="usChart"></canvas></div>
     </div>
-    <!-- 거래 시간 (현지 ET / 한국 KST) -->
+    <!-- 거래 시간 (현지 ET / 한국 KST) — 24시간 4세션 -->
     <div class="card p-4 mt-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-bold text-white text-[15px]"><i class="fa-regular fa-clock text-sky mr-1.5"></i>미국 거래 시간 — 현지(ET) · 한국(KST) 병기</h3>
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-regular fa-clock text-sky mr-1.5"></i>미국 주식 거래 세션 — 한국 투자자 기준 사실상 24시간</h3>
         <span class="text-[11px] text-sub">6월 = 미 동부 서머타임(EDT, UTC−4) · KST = ET +13시간</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-[12.5px]">
           <thead><tr>
-            <th class="text-left">구분</th>
             <th class="text-left">세션</th>
             <th class="text-right">현지 시각 (ET·동부)</th>
             <th class="text-right">한국 시각 (KST)</th>
+            <th class="text-left">설명</th>
           </tr></thead>
           <tbody>
-            <tr><td rowspan="2" class="font-bold text-white align-top">본장<br><span class="text-[10px] text-sub font-normal">정규장</span></td>
-                <td class="text-up font-semibold">시작 (시가)</td><td class="text-right tabular-nums">09:30</td><td class="text-right tabular-nums">22:30</td></tr>
-            <tr><td class="text-down font-semibold">종료 (종가)</td><td class="text-right tabular-nums">16:00</td><td class="text-right tabular-nums">05:00 <span class="text-sub text-[10px]">(익일)</span></td></tr>
-            <tr><td rowspan="2" class="font-bold text-white align-top">시간외<br><span class="text-[10px] text-sub font-normal">야간·확장</span></td>
-                <td class="text-up font-semibold">시작 (시간외 시가 = 프리마켓 첫 체결)</td><td class="text-right tabular-nums">04:00</td><td class="text-right tabular-nums">17:00</td></tr>
-            <tr><td class="text-down font-semibold">종료 (시간외 종가 = 애프터마켓 마지막 체결)</td><td class="text-right tabular-nums">20:00</td><td class="text-right tabular-nums">09:00 <span class="text-sub text-[10px]">(익일)</span></td></tr>
+            <tr><td class="font-bold text-white">본장 (정규장)</td><td class="text-right tabular-nums">09:30 ~ 16:00</td><td class="text-right tabular-nums">22:30 ~ 05:00 <span class="text-sub text-[10px]">(익일)</span></td><td class="text-muted text-[11px]">메인 거래 (시가/종가 기준)</td></tr>
+            <tr><td class="font-bold text-white">애프터마켓</td><td class="text-right tabular-nums">16:00 ~ 20:00</td><td class="text-right tabular-nums">05:00 ~ 09:00 <span class="text-sub text-[10px]">(익일)</span></td><td class="text-muted text-[11px]">장 마감 후 시간외</td></tr>
+            <tr style="background:rgba(56,189,248,.08)"><td class="font-bold text-sky">주간거래 (Blue Ocean ATS)<br><span class="text-[10px] text-sub font-normal">미국 오버나이트 = 한국 낮</span></td><td class="text-right tabular-nums">20:00 ~ 04:00</td><td class="text-right tabular-nums font-bold text-sky">09:00 ~ 17:00</td><td class="text-[11px] text-sky">★ 한국 낮 — SOXL·SOXS가 실시간 변동하는 그 구간(토스·미래에셋 '주간거래/데이마켓')</td></tr>
+            <tr><td class="font-bold text-white">프리마켓</td><td class="text-right tabular-nums">04:00 ~ 09:30</td><td class="text-right tabular-nums">17:00 ~ 22:30</td><td class="text-muted text-[11px]">장 전 시간외</td></tr>
           </tbody>
         </table>
       </div>
       <div class="text-[11px] text-sub mt-2 leading-relaxed">
-        ※ 표의 <b class="text-muted">본장 시가/종가</b>는 위 본장 시작·종료(09:30·16:00 ET = 22:30·05:00 KST), <b class="text-muted">시간외 시가/종가</b>는 시간외 시작·종료(04:00·20:00 ET = 17:00·09:00 KST)에 해당합니다.
-        한국 기준 <b class="text-ink">밤</b>에 미 본장, <b class="text-ink">낮~저녁</b>에 시간외(프리마켓)가 열립니다.
-        겨울(미 표준시 EST, 11~3월)에는 한국시각이 1시간씩 늦춰집니다(본장 23:30~06:00 KST).
+        ※ 한국 낮 14시처럼 보이는 SOXL·SOXS 변동 = <b class="text-sky">주간거래(Blue Ocean ATS)</b> 구간(09~17 KST = 미 오버나이트 20~04 ET). 미국 본장 전·후(프리/애프터)와 더해 <b>거래일(주중) 기준 사실상 24시간</b> 거래됩니다. <span class="text-sub">(Blue Ocean은 미 동부 일~목 저녁 운영 — 한국 월~금 낮)</span> <span class="text-sub">(SOXL/SOXS는 ETF라 '선물' 자체는 없음 — 이 야간 변동은 실제 종목의 ATS 체결입니다. 나스닥·S&P '지수선물'은 별도로 CME에서 24h 거래.)</span><br>
+        ※ <b class="text-gold">데이터 주의</b>: 위 ③ 시세표의 <b class="text-ink">시간외 시가/종가</b>는 <b class="text-ink">프리마켓 시가(04:00 ET=17:00 KST) + 애프터마켓 종가(20:00 ET=09:00 KST)</b> 기준입니다(Yahoo Finance). <b class="text-sky">주간거래(Blue Ocean) 체결가</b>는 무료 공개 API가 없어 표의 수치엔 미반영 — 세션 시간만 위에 안내합니다.
+        겨울(미 표준시 EST, 11~3월)에는 한국시각이 1시간씩 늦춰집니다(본장 23:30~06:00 KST · 주간거래 10:00~18:00 KST).
       </div>
     </div>
 
     <div class="mt-4 space-y-4" id="us-tables"></div>
     <div class="card p-4 mt-4 text-[12.5px] text-muted leading-relaxed">
-      <b class="text-white"><i class="fa-solid fa-circle-info text-gold mr-1"></i>"미국 야간선물시장" 정의</b> —
-      SOXL·SOXS는 ETF로 자체 선물 계약이 없습니다. 본 표의 <b class="text-ink">시간외(야간)</b>는 미 정규장 전후의 <b class="text-ink">확장 거래시간(pre-market 04:00 ET + after-hours ~20:00 ET)</b> 세션을 뜻하며,
-      한국 시간 기준 낮~저녁에 해당하는 미국 종목의 야간/시간외 반응 구간입니다. <b class="text-ink">시간외 시작가</b>=프리마켓 첫 체결, <b class="text-ink">시간외 종가</b>=애프터마켓 마지막 체결.
+      <b class="text-white"><i class="fa-solid fa-circle-info text-gold mr-1"></i>"미국 야간/시간외" 정의</b> —
+      SOXL·SOXS는 ETF로 자체 선물 계약이 없습니다. 미국 종목의 본장 외 거래는 ① 프리마켓 ② 애프터마켓 ③ 주간거래(Blue Ocean ATS, 한국 낮 09~17시) 3개 시간외 세션으로 나뉩니다(위 표 참조).
+      본 ③ 시세표의 <b class="text-ink">시간외 시가</b>=프리마켓 첫 체결(04:00 ET=17:00 KST), <b class="text-ink">시간외 종가</b>=애프터마켓 마지막 체결(20:00 ET=09:00 KST 익일)을 씁니다. <b class="text-sky">한국 낮(주간거래)</b> 구간은 Blue Ocean ATS 체결로, 무료 공개 데이터가 없어 본 수치엔 미반영입니다.
       <span class="text-sub">시간외 전일比% = 당일 시간외 종가가 전일(직전 거래일) 시간외 종가 대비 움직인 폭(첫날은 직전 데이터 없어 '—').</span>
     </div>
   </section>
