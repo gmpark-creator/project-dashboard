@@ -9,7 +9,459 @@ window.LEDGER = {
   "sources": {
     "kospi": "Naver Finance siseJson.naver + Yahoo Finance chart API (이중 교차검증 — OHLC 완전 일치, 거래량 Naver 채택)",
     "us": "Yahoo Finance chart API — 정규장 일봉(본장) + 30분봉 시간외(pre/post) 세션 분류",
-    "calendar": "멀티에이전트 웹리서치 6트랙 + 적대적 검증(독립 재확인) 후 중복 병합. 총 71건 (confirmed 64·date-corrected 3·downgraded 4). dropped(환각) 제외, 각 항목 1차 출처 링크 표기."
+    "calendar": "멀티에이전트 웹리서치 6트랙 + 적대적 검증(독립 재확인) 후 중복 병합. 총 69건 (confirmed 62·date-corrected 3·downgraded 4). dropped(환각) 제외, 각 항목 1차 출처 링크 표기.",
+    "impact": "지수 영향 레이어 — ① 발생(6/1~12) 이벤트엔 그날 5대 지수 '실측' 등락 부착(사실). ② 금리 확률은 CME FedWatch/선물 등 시장 내재확률 실측. ③ 시나리오별 지수 영향 %는 '모델 추정·범위'(6월 실측 베타로 보정한 예측 — 실측 아님, 투자자문 아님)."
+  },
+  "indices": {
+    "names": {
+      "IXIC": "나스닥종합",
+      "GSPC": "S&P500",
+      "DJI": "다우",
+      "SOX": "필라델피아반도체",
+      "RUT": "러셀2000"
+    },
+    "rows": {
+      "IXIC": [
+        {
+          "date": "2026-06-01",
+          "open": 26952.58,
+          "close": 27086.81,
+          "chgPct": 0.42
+        },
+        {
+          "date": "2026-06-02",
+          "open": 27030.07,
+          "close": 27093.9,
+          "chgPct": 0.03
+        },
+        {
+          "date": "2026-06-03",
+          "open": 27092.85,
+          "close": 26853.98,
+          "chgPct": -0.89
+        },
+        {
+          "date": "2026-06-04",
+          "open": 26579.3,
+          "close": 26830.96,
+          "chgPct": -0.09
+        },
+        {
+          "date": "2026-06-05",
+          "open": 26536.59,
+          "close": 25709.43,
+          "chgPct": -4.18
+        },
+        {
+          "date": "2026-06-08",
+          "open": 26065.07,
+          "close": 25929.66,
+          "chgPct": 0.86
+        },
+        {
+          "date": "2026-06-09",
+          "open": 26110.31,
+          "close": 25678.82,
+          "chgPct": -0.97
+        },
+        {
+          "date": "2026-06-10",
+          "open": 25512.07,
+          "close": 25169.5,
+          "chgPct": -1.98
+        },
+        {
+          "date": "2026-06-11",
+          "open": 25309.78,
+          "close": 25809.66,
+          "chgPct": 2.54
+        },
+        {
+          "date": "2026-06-12",
+          "open": 25783.36,
+          "close": 25888.84,
+          "chgPct": 0.31
+        }
+      ],
+      "GSPC": [
+        {
+          "date": "2026-06-01",
+          "open": 7582.29,
+          "close": 7599.96,
+          "chgPct": 0.26
+        },
+        {
+          "date": "2026-06-02",
+          "open": 7595.4,
+          "close": 7609.78,
+          "chgPct": 0.13
+        },
+        {
+          "date": "2026-06-03",
+          "open": 7605.31,
+          "close": 7553.68,
+          "chgPct": -0.74
+        },
+        {
+          "date": "2026-06-04",
+          "open": 7516.54,
+          "close": 7584.31,
+          "chgPct": 0.41
+        },
+        {
+          "date": "2026-06-05",
+          "open": 7537.36,
+          "close": 7383.74,
+          "chgPct": -2.64
+        },
+        {
+          "date": "2026-06-08",
+          "open": 7440.57,
+          "close": 7405.73,
+          "chgPct": 0.3
+        },
+        {
+          "date": "2026-06-09",
+          "open": 7438.66,
+          "close": 7386.65,
+          "chgPct": -0.26
+        },
+        {
+          "date": "2026-06-10",
+          "open": 7350.54,
+          "close": 7266.99,
+          "chgPct": -1.62
+        },
+        {
+          "date": "2026-06-11",
+          "open": 7287.67,
+          "close": 7394.3,
+          "chgPct": 1.75
+        },
+        {
+          "date": "2026-06-12",
+          "open": 7410.85,
+          "close": 7431.46,
+          "chgPct": 0.5
+        }
+      ],
+      "DJI": [
+        {
+          "date": "2026-06-01",
+          "open": 51161.1,
+          "close": 51078.88,
+          "chgPct": 0.09
+        },
+        {
+          "date": "2026-06-02",
+          "open": 50912.84,
+          "close": 51307.79,
+          "chgPct": 0.45
+        },
+        {
+          "date": "2026-06-03",
+          "open": 51220.92,
+          "close": 50687.07,
+          "chgPct": -1.21
+        },
+        {
+          "date": "2026-06-04",
+          "open": 50986.1,
+          "close": 51561.93,
+          "chgPct": 1.73
+        },
+        {
+          "date": "2026-06-05",
+          "open": 51610.02,
+          "close": 50866.78,
+          "chgPct": -1.35
+        },
+        {
+          "date": "2026-06-08",
+          "open": 50997.23,
+          "close": 50786.01,
+          "chgPct": -0.16
+        },
+        {
+          "date": "2026-06-09",
+          "open": 50814.42,
+          "close": 50872.11,
+          "chgPct": 0.17
+        },
+        {
+          "date": "2026-06-10",
+          "open": 50760.12,
+          "close": 49918.78,
+          "chgPct": -1.87
+        },
+        {
+          "date": "2026-06-11",
+          "open": 49972.07,
+          "close": 50848.75,
+          "chgPct": 1.86
+        },
+        {
+          "date": "2026-06-12",
+          "open": 51148.73,
+          "close": 51202.26,
+          "chgPct": 0.7
+        }
+      ],
+      "SOX": [
+        {
+          "date": "2026-06-01",
+          "open": 12706.62,
+          "close": 12965.65,
+          "chgPct": 1.06
+        },
+        {
+          "date": "2026-06-02",
+          "open": 13242.7,
+          "close": 13726.27,
+          "chgPct": 5.87
+        },
+        {
+          "date": "2026-06-03",
+          "open": 13971.15,
+          "close": 13916.96,
+          "chgPct": 1.39
+        },
+        {
+          "date": "2026-06-04",
+          "open": 13243.66,
+          "close": 13617.5,
+          "chgPct": -2.15
+        },
+        {
+          "date": "2026-06-05",
+          "open": 13062.55,
+          "close": 12220.76,
+          "chgPct": -10.26
+        },
+        {
+          "date": "2026-06-08",
+          "open": 12838.88,
+          "close": 12906.69,
+          "chgPct": 5.61
+        },
+        {
+          "date": "2026-06-09",
+          "open": 13142.99,
+          "close": 12657.81,
+          "chgPct": -1.93
+        },
+        {
+          "date": "2026-06-10",
+          "open": 12501.84,
+          "close": 12206.46,
+          "chgPct": -3.57
+        },
+        {
+          "date": "2026-06-11",
+          "open": 12506.65,
+          "close": 13171.44,
+          "chgPct": 7.91
+        },
+        {
+          "date": "2026-06-12",
+          "open": 13053.93,
+          "close": 13371.47,
+          "chgPct": 1.52
+        }
+      ],
+      "RUT": [
+        {
+          "date": "2026-06-01",
+          "open": 2899.09,
+          "close": 2905.76,
+          "chgPct": -0.47
+        },
+        {
+          "date": "2026-06-02",
+          "open": 2900.95,
+          "close": 2931.96,
+          "chgPct": 0.9
+        },
+        {
+          "date": "2026-06-03",
+          "open": 2921.24,
+          "close": 2893.51,
+          "chgPct": -1.31
+        },
+        {
+          "date": "2026-06-04",
+          "open": 2895.0,
+          "close": 2935.33,
+          "chgPct": 1.45
+        },
+        {
+          "date": "2026-06-05",
+          "open": 2914.03,
+          "close": 2833.5,
+          "chgPct": -3.47
+        },
+        {
+          "date": "2026-06-08",
+          "open": 2862.76,
+          "close": 2855.42,
+          "chgPct": 0.77
+        },
+        {
+          "date": "2026-06-09",
+          "open": 2879.48,
+          "close": 2867.02,
+          "chgPct": 0.41
+        },
+        {
+          "date": "2026-06-10",
+          "open": 2861.93,
+          "close": 2835.46,
+          "chgPct": -1.1
+        },
+        {
+          "date": "2026-06-11",
+          "open": 2854.23,
+          "close": 2921.03,
+          "chgPct": 3.02
+        },
+        {
+          "date": "2026-06-12",
+          "open": 2930.82,
+          "close": 2943.99,
+          "chgPct": 0.79
+        }
+      ]
+    }
+  },
+  "ratePath": {
+    "june": {
+      "hold": 97.1,
+      "cut": 2.9,
+      "hike": 0
+    },
+    "july": {
+      "hold": 88.8,
+      "cut": 2.6,
+      "hike": 8.6
+    },
+    "sept": {
+      "hold": 71.6,
+      "cut": 2.1,
+      "hike": 26.3
+    },
+    "asOf": "2026-06-13",
+    "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도.",
+    "cuts2026": "2026년 인하 0회 76.8%·1회 16%·2회 3.7% (Polymarket, 2026-06-13). 25bp 1회조차 base case 아님.",
+    "currentRange": "3.50~3.75%",
+    "fedPath": [
+      {
+        "meeting": "2026-06-17",
+        "hold": 97.1,
+        "cut": 2.9,
+        "hike": 0
+      },
+      {
+        "meeting": "2026-07-29",
+        "hold": 88.8,
+        "cut": 2.6,
+        "hike": 8.6
+      },
+      {
+        "meeting": "2026-09-16",
+        "hold": 71.6,
+        "cut": 2.1,
+        "hike": 26.3
+      }
+    ],
+    "fedStance": "신임 의장 Kevin Warsh(5/13 상원 인준 54-45, 5/22 취임)는 구조적으로는 비둘기적 성향 — AI를 '구조적 디스인플레이션 요인(structurally disinflationary)', '우리 생애 최대 생산성 향상 물결'로 보고 금리를 낮게 유지할 여지가 있다고 보며, 현재 물가급등은 이란 전쟁 종식과 함께 사라질 '일시적(temporary)'이라는 트럼프 행정부 입장에 동조. 그러나 5월 CPI +4.2%·PPI +6.5% 충격과 국채금리 급등으로 인하를 밀어붙이기 어려운 환경에 직면 — 6월 16-17일 FOMC가 그의 첫 회의이며 시장은 동결(약 86~96%) 및 점도표 상향(완화→중립/긴축 편향) 가능성을 본다(주: 이 FOMC는 6/13 현재 아직 개최 전). 지역 연준 인사들은 뚜렷한 매파: 댈러스 연준 Lorie Logan(2026 투표권)은 6/3 엘파소 연설에서 '올해 후반 더 높은 금리가 필요할 수 있다는 우려가 커진다', 인플레이션이 2% 복귀에 '너무 오래 걸린다', '현 통화정책이 경제를 제약하지 못하고 있다'며 인상 가능성을 공개 시사. 종합하면 비둘기 성향 신임 의장 vs 매파적 FOMC라는 '집안싸움(family fight)' 구도로, 시장 컨센서스는 2026년 인하 소멸·연말 인상 리스크 부각.",
+    "shifts": [
+      {
+        "trigger": "5월 고용보고서(NFP +17.2만) — 컨센서스 약 8.5만의 두 배, 실업률 4.3% 유지, 3·4월 상향 수정(3월 +21.4만, 4월 +17.9만). 노동시장이 예상보다 견조해 '인하를 서두를 이유 없음' 인식 강화.",
+        "effect": "연초 2026년에 최소 1회 인하를 가격에 반영하던 시장이 인하 기대를 후퇴시키기 시작. 강한 고용+물가 재가열 조합으로 '인하→동결, 일부는 인상' 논의로 전환의 첫 신호.",
+        "date": "2026-06-05"
+      },
+      {
+        "trigger": "5월 CPI +4.2% YoY(+0.5% MoM) — 2023년 4월 이후 최고치, 4월 +3.8%에서 가속. 에너지 +3.9% MoM(전체 상승의 60%+), 휘발유 +40.5% YoY. 단 코어 CPI는 +2.9% YoY / +0.2% MoM로 예상(0.3%)보다 소폭 둔화. 이란 전쟁발 에너지 충격이 주범.",
+        "effect": "CME FedWatch 기준 2026년 전체 인하 베팅이 사실상 소멸('no rate cuts at all in 2026'). 헤드라인 충격으로 '인하 기대 증발', 오히려 인상이 가을 들어 더 유력하다는 평가 등장. 다만 코어가 예상보다 차가워 일부 9월 인하 기대는 잔존(혼조).",
+        "date": "2026-06-10"
+      },
+      {
+        "trigger": "5월 PPI +1.1% MoM(+6.5% YoY) — 예상 +0.7%를 크게 상회, 2022년 이후 최대 도매물가 급등. 최종재 상품 +2.8%(2009년 집계 이래 최대), 상품 상승의 80%가 에너지(+10.7%, 도매 휘발유 +23.4%). 단 코어 PPI +0.4%는 컨센서스 +0.5%보다 소폭 낮음.",
+        "effect": "PPI 헤드라인 쇼크로 2026년 인하 베팅은 완전히 소멸, 인상 베팅 상승. 연말까지 최소 1회 인상 확률 50% 상회, 12월 0.25%p 인상 확률 약 43%로 부상. 코어 PPI가 소폭 낮게 나와 일부 위험자산 반등은 있었으나 인하 경로는 사실상 가격에서 제거.",
+        "date": "2026-06-11"
+      },
+      {
+        "trigger": "4월 PCE(연준 선호지표) — 헤드라인 +3.8% YoY(3월 3.5%에서 가속, 2023년 5월 이후 최고), 코어 +3.3% YoY(3월 3.2%에서 상승, 2023년 말 이후 최고). 월간은 코어 +0.2%로 예상(0.3%)보다 소폭 연화. 6월 지표 시즌 직전의 배경 데이터.",
+        "effect": "연준 선호 물가지표가 2%에서 점점 멀어지며 '인하 명분 약화'의 토대 제공. 5월 CPI·PPI 쇼크와 결합돼 6월 16-17일 FOMC(워시 첫 회의) 동결(약 86~96% 반영) 및 '완화 편향 → 중립/긴축 편향' 전환 가능성을 시장이 선반영.",
+        "date": "2026-05-30"
+      }
+    ],
+    "consensus": [
+      {
+        "release": "May Retail Sales (advance, MoM headline)",
+        "date": "2026-06-17",
+        "expected": "+0.6% MoM (ex-autos prior +0.7% MoM)",
+        "prior": "+0.5% MoM (April 2026)"
+      },
+      {
+        "release": "May Housing Starts (SAAR)",
+        "date": "2026-06-16",
+        "expected": "~1.44 million units (SAAR)",
+        "prior": "1.465 million units (April 2026; building permits 1.423M)"
+      },
+      {
+        "release": "Initial Jobless Claims (week ending June 13)",
+        "date": "2026-06-18",
+        "expected": "226,000",
+        "prior": "229,000 (prior week, 3-month high; continuing claims 1.795M)"
+      },
+      {
+        "release": "Q1 2026 GDP (third/final estimate, annualized QoQ)",
+        "date": "2026-06-25",
+        "expected": "+1.6% (unrevised)",
+        "prior": "+1.6% (second estimate, revised down from 2.0% advance)"
+      },
+      {
+        "release": "May Core PCE Price Index",
+        "date": "2026-06-25",
+        "expected": "+0.2% MoM (YoY ~3.3%)",
+        "prior": "+0.2% MoM / +3.3% YoY (April 2026)"
+      },
+      {
+        "release": "May Headline PCE Price Index / Personal Income & Outlays",
+        "date": "2026-06-25",
+        "expected": "MoM consensus not yet firmly published (April was +3.8% YoY)",
+        "prior": "+3.8% YoY (April 2026, released May 28)"
+      },
+      {
+        "release": "Initial Jobless Claims (week ending June 20)",
+        "date": "2026-06-25",
+        "expected": "consensus not yet published as of June 13 (prior-week run-rate ~226-229k)",
+        "prior": "to be set by June 18 print (prior 229,000)"
+      },
+      {
+        "release": "June Michigan Consumer Sentiment (final)",
+        "date": "2026-06-26",
+        "expected": "~48.9 (in line with preliminary; final-vs-prelim consensus not separately published)",
+        "prior": "48.9 (June preliminary; May final 44.8 record low)"
+      }
+    ],
+    "semisOutlook": "2026년 6월 미국 반도체(SOX) 방향성 촉매는 \"AI capex 서사의 임계점 시험\"으로 요약된다. 6월 초 브로드컴(AVGO)이 6/3 실적에서 AI 반도체 매출 호조(Q2 약 108억달러)에도 불구하고 차기 분기 AI 칩 가이던스 160억달러가 시장 기대치(약 172억달러)를 밑돌고 연간 전망을 상향하지 않자, \"퍼펙트한 성장 영속\"을 가격에 반영해온 시장이 이를 천장(ceiling)으로 해석하며 6/5 SOX가 장중 최대 6.3% 급락(종가 약 -2%) 후 반등했고 브로드컴은 약 13% 폭락했다(2025년 초 이후 최대). 뒤이은 6/10 오라클 실적(예상 EPS 1.96달러, 매출 약 191억달러)은 데이터센터 capex·AI 인프라 수요의 지속 여부를 가늠하는 시험대로 투자심리를 좌우했다. 다음 핵심 촉매는 6/24 장 마감 후 마이크론(MU) 실적으로, 옵션 시장은 IV 랭크 100%·실적 후 약 9.6~16%의 큰 변동을 내재 반영해 메모리(HBM) 업황과 SOX 전반의 방향성을 결정할 분기점으로 평가된다. 상방 리스크는 엔비디아·하이퍼스케일러의 2026년 capex 약 6,850억~7,500억달러 약속과 AI 메모리 공급 부족에 따른 가격 급등이고, 하방 리스크는 SOX가 3월말 이후 거의 2배(12개월 +50% 이상) 오른 과매수 상태에서 \"가이던스 미상향=성장 정체 시그널\"로 읽히는 심리적 취약성과 메모리 수요의 AI 의존도 집중이다.\n\n출처 URL:\n- https://www.cnbc.com/2026/06/03/broadcom-avgo-earnings-report-q2-2026.html\n- https://finance.yahoo.com/markets/stocks/articles/chip-selloff-hits-sox-broadcoms-100511793.html\n- https://www.heygotrade.com/en/news/weekly-economic-outlook-2026-06-08/\n- https://investors.broadcom.com/news-releases/news-release-details/broadcom-inc-announces-second-quarter-fiscal-year-2026-financial\n- https://www.barchart.com/stocks/quotes/MU/expected-move\n- https://unusualwhales.com/stock/MU/volatility\n- https://intellectia.ai/blog/semiconductor-stocks-selloff-june-2026\n- https://www.cnbc.com/ (Broadcom 6/3 1차 출처는 HTTP 403로 본문 직접확인 불가, 동일 내용은 Yahoo·heygotrade·Broadcom IR로 교차검증)\n\n검증 메모: 브로드컴 수치(Q2 AI 매출 ~108억달러, 차기 가이던스 160억달러 vs 추정 172억달러, 연간 미상향)와 SOX/AVGO 낙폭(-6.3%/장중, AVGO -13%)은 Yahoo·heygotrade 본문으로 직접 확인. 마이크론 6/24 AMC 실적·IV 100%·내재 변동폭은 Barchart/UnusualWhales로 확인. CNBC 6/3 1차 기사는 403으로 본문 미확인이라 보조출처로만 표기.",
+    "sources": [
+      "https://www.investing.com/central-banks/fed-rate-monitor",
+      "https://growbeansprout.com/tools/fedwatch",
+      "https://centralbank.watch/federal-reserve/",
+      "https://polymarket.com/event/how-many-fed-rate-cuts-in-2026",
+      "https://polymarket.com/event/fed-decision-in-june-825",
+      "https://polymarket.com/event/fed-rate-hike-in-2026"
+    ]
+  },
+  "betas": {
+    "나스닥종합": 1.5,
+    "S&P500": 1.0,
+    "다우": 0.75,
+    "필라델피아반도체": 2.8,
+    "러셀2000": 1.1
   },
   "kospi": {
     "samsung": [
@@ -420,7 +872,56 @@ window.LEDGER = {
         "https://www.newsonair.gov.in/maritime-traffic-through-strait-of-hormuz-remains-restricted-despite-two-week-ceasefire-between-tehran-washington",
         "https://www.britannica.com/event/2026-Iran-war"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "지정학/유가",
+          "basis": "지정학·유가 리스크 방향에 따른 위험선호 변화(모델 추정).",
+          "branches": [
+            {
+              "name": "리스크-온 — 긴장완화·유가↓",
+              "indices": {
+                "나스닥종합": "+0.6~+2.1%",
+                "S&P500": "+0.4~+1.4%",
+                "다우": "+0.3~+1.0%",
+                "필라델피아반도체": "+1.1~+3.9%",
+                "러셀2000": "+0.6~+2.0%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "중립",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "리스크-오프 — 긴장고조·유가↑",
+              "indices": {
+                "나스닥종합": "-2.2~-0.8%",
+                "S&P500": "-1.5~-0.5%",
+                "다우": "-1.1~-0.4%",
+                "필라델피아반도체": "-4.2~-1.4%",
+                "러셀2000": "-1.5~-0.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-01",
@@ -435,7 +936,44 @@ window.LEDGER = {
         "https://blogs.nvidia.com/blog/nvidia-gtc-taipei-computex-2026-news/",
         "https://siliconangle.com/2026/06/01/five-thoughts-nvidia-ceo-jensen-huangs-gtc-taipei-2026-keynote/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-01",
@@ -450,7 +988,22 @@ window.LEDGER = {
         "https://www.mt.co.kr/economy/2026/06/01/2026060108534570515",
         "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156764737"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-01",
@@ -466,7 +1019,22 @@ window.LEDGER = {
         "https://www.seoul.co.kr/news/economy/securities/2026/06/01/20260601500289",
         "https://imnews.imbc.com/replay/2026/nw1400/article/6826759_36974.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-01",
@@ -481,7 +1049,56 @@ window.LEDGER = {
         "https://www.prnewswire.com/news-releases/manufacturing-pmi-at-54-may-2026-ism-manufacturing-pmi-report-302786165.html",
         "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-01",
@@ -496,7 +1113,44 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/05/31/stock-market-today-live-updates.html",
         "https://www.gurufocus.com/news/8896294/nvidia-nvda-enters-pc-market-with-new-chip-stock-surges-over-6"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.42,
+          "S&P500": 0.26,
+          "다우": 0.09,
+          "필라델피아반도체": 1.06,
+          "러셀2000": -0.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-02",
@@ -511,7 +1165,22 @@ window.LEDGER = {
         "https://ko.tradingeconomics.com/south-korea/inflation-cpi",
         "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156764864"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.03,
+          "S&P500": 0.13,
+          "다우": 0.45,
+          "필라델피아반도체": 5.87,
+          "러셀2000": 0.9
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-02",
@@ -526,7 +1195,22 @@ window.LEDGER = {
         "https://www.computextaipei.com.tw/en/menu/A546BFC6C2E2ED34D0636733C6861689/info.html",
         "https://www.nvidia.com/en-tw/gtc/taipei/computex/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.03,
+          "S&P500": 0.13,
+          "다우": 0.45,
+          "필라델피아반도체": 5.87,
+          "러셀2000": 0.9
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "글로벌 이벤트",
+          "noDirectional": true,
+          "basis": "글로벌 정상회의·정책 이벤트 — 통상·지정학 헤드라인에 따라 위험선호가 단발성으로 움직일 수 있으나 방향은 사전 예측 곤란."
+        }
+      }
     },
     {
       "date": "2026-06-02",
@@ -541,7 +1225,74 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/02/job-openings-april-2026.html",
         "https://www.bls.gov/news.release/jolts.nr0.htm"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.03,
+          "S&P500": 0.13,
+          "다우": 0.45,
+          "필라델피아반도체": 5.87,
+          "러셀2000": 0.9
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "고용→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "강한 고용 — 인하지연(매파적)",
+              "indices": {
+                "나스닥종합": "-2.7~-1.5%",
+                "S&P500": "-1.8~-1.0%",
+                "다우": "-1.4~-0.8%",
+                "필라델피아반도체": "-5.0~-2.8%",
+                "러셀2000": "-1.8~-1.0%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "약한 고용 — 인하기대(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.4~+2.0%",
+                "S&P500": "+0.3~+1.3%",
+                "다우": "+0.2~+1.0%",
+                "필라델피아반도체": "+0.8~+3.6%",
+                "러셀2000": "+0.5~+2.0%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-02",
@@ -556,7 +1307,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/01/stock-market-today-live-updates.html",
         "https://thetechmarketer.com/sp-500-record-high-2026-rally/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.03,
+          "S&P500": 0.13,
+          "다우": 0.45,
+          "필라델피아반도체": 5.87,
+          "러셀2000": 0.9
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-03",
@@ -575,7 +1337,44 @@ window.LEDGER = {
         "https://finance.yahoo.com/markets/stocks/articles/broadcom-stock-dropped-15-despite-130558431.html",
         "https://www.fool.com/investing/2026/06/04/why-broadcom-stock-crashed-today/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.89,
+          "S&P500": -0.74,
+          "다우": -1.21,
+          "필라델피아반도체": 1.39,
+          "러셀2000": -1.31
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-03",
@@ -594,7 +1393,22 @@ window.LEDGER = {
         "https://ko.wikipedia.org/wiki/%EC%A0%9C9%ED%9A%8C_%EC%A0%84%EA%B5%AD%EB%8F%99%EC%8B%9C%EC%A7%80%EB%B0%A9%EC%84%A0%EA%B1%B0",
         "https://www.sisain.co.kr/news/articleView.html?idxno=58013"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.89,
+          "S&P500": -0.74,
+          "다우": -1.21,
+          "필라델피아반도체": 1.39,
+          "러셀2000": -1.31
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-03",
@@ -609,7 +1423,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/02/stock-market-today-live-updates.html",
         "https://www.washingtonpost.com/business/2026/06/03/wall-street-stocks-dow-nasdaq/9ab87e98-5f89-11f1-9c46-d6211372eede_story.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.89,
+          "S&P500": -0.74,
+          "다우": -1.21,
+          "필라델피아반도체": 1.39,
+          "러셀2000": -1.31
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-03",
@@ -624,7 +1449,56 @@ window.LEDGER = {
         "https://www.prnewswire.com/news-releases/services-pmi-at-54-5-may-2026-ism-services-pmi-report-302789082.html",
         "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.89,
+          "S&P500": -0.74,
+          "다우": -1.21,
+          "필라델피아반도체": 1.39,
+          "러셀2000": -1.31
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-04",
@@ -639,7 +1513,22 @@ window.LEDGER = {
         "https://www.newspim.com/news/view/20260604001116",
         "https://biz.heraldcorp.com/article/10763822"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.09,
+          "S&P500": 0.41,
+          "다우": 1.73,
+          "필라델피아반도체": -2.15,
+          "러셀2000": 1.45
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-04",
@@ -654,14 +1543,29 @@ window.LEDGER = {
         "https://biz.heraldcorp.com/article/10762743",
         "https://www.asiatoday.co.kr/kn/view.php?key=20260604010001234"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.09,
+          "S&P500": 0.41,
+          "다우": 1.73,
+          "필라델피아반도체": -2.15,
+          "러셀2000": 1.45
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-05",
       "region": "US",
       "category": "고용",
       "title": "5월 비농업고용(NFP)·실업률",
-      "detail": "5월 NFP +17.2만(예상 +8.8만 대폭 상회). 실업률 4.3% 유지. 시간당임금 MoM +0.3%·YoY +3.4%. 3·4월 합계 9.3만 상향(3월 +2.9만, 4월 +6.4만). 레저·접객, 지방정부, 헬스케어 증가. 그날 증시 핵심 변수.",
+      "detail": "5월 NFP +17.2만(예상 +8.8만 대폭 상회). 실업률 4.3% 유지. 시간당임금 MoM +0.3%·YoY +3.4%. 3·4월 합계 9.3만 상향(3월 +2.9만, 4월 +6.4만). 레저·접객, 지방정부, 헬스케어 증가. 그날 증시 핵심 변수. · [병합] 5월 비농업 신규고용 +172,000으로 컨센서스(약 80천) 대폭 상회, 4월은 +179천으로 상향 수정. 실업률 4.3% 유지, 시간당임금 +0.3%(MoM)·+3.4%(YoY). 강한 고용에 금리인하 기대 후퇴·인상 베팅까지 나오며 금리 민감주 투매 증폭. [검증/일부정정] +17.2만·실업률 4.3% 확인. 단 원문의 '3·4월 합계 +93천 상향 수정'은 미확인 — 출처는 4월 +179천(상향)만 명시.",
       "importance": "최우선",
       "status": "발생",
       "confidence": "high",
@@ -670,7 +1574,74 @@ window.LEDGER = {
         "https://www.bloomberg.com/news/articles/2026-06-05/us-adds-172-000-jobs-in-may-beating-all-economists-estimates",
         "https://www.cnbc.com/2026/06/05/jobs-report-may-2026.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "고용→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "강한 고용 — 인하지연(매파적)",
+              "indices": {
+                "나스닥종합": "-2.7~-1.5%",
+                "S&P500": "-1.8~-1.0%",
+                "다우": "-1.4~-0.8%",
+                "필라델피아반도체": "-5.0~-2.8%",
+                "러셀2000": "-1.8~-1.0%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "약한 고용 — 인하기대(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.4~+2.0%",
+                "S&P500": "+0.3~+1.3%",
+                "다우": "+0.2~+1.0%",
+                "필라델피아반도체": "+0.8~+3.6%",
+                "러셀2000": "+0.5~+2.0%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-05",
@@ -685,7 +1656,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/04/stock-market-today-live-updates.html",
         "https://www.thestreet.com/stock-market-today/stock-market-today-dow-jones-sp-500-nasdaq-updates-june-05-2026"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-05",
@@ -701,7 +1683,22 @@ window.LEDGER = {
         "https://www.youtube.com/watch?v=69u7OGbqRXs",
         "https://silverlab.co.kr/blog/2026-06-08-kospi-samsung-hynix-drop"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-05",
@@ -717,22 +1714,74 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/05/jobs-report-may-2026.html",
         "https://www.bloomberg.com/news/articles/2026-06-05/us-adds-172-000-jobs-in-may-beating-all-economists-estimates"
       ],
-      "verdict": "confirmed"
-    },
-    {
-      "date": "2026-06-05",
-      "region": "US",
-      "category": "고용",
-      "title": "5월 비농업고용 +17.2만(컨센 ~8만 대폭 상회)·실업률 4.3%",
-      "detail": "5월 비농업 신규고용 +172,000으로 컨센서스(약 80천) 대폭 상회, 4월은 +179천으로 상향 수정. 실업률 4.3% 유지, 시간당임금 +0.3%(MoM)·+3.4%(YoY). 강한 고용에 금리인하 기대 후퇴·인상 베팅까지 나오며 금리 민감주 투매 증폭. [검증/일부정정] +17.2만·실업률 4.3% 확인. 단 원문의 '3·4월 합계 +93천 상향 수정'은 미확인 — 출처는 4월 +179천(상향)만 명시.",
-      "importance": "높음",
-      "status": "발생",
-      "confidence": "high",
-      "sources": [
-        "https://www.cnbc.com/2026/06/05/jobs-report-may-2026.html",
-        "https://www.bls.gov/news.release/empsit.nr0.htm"
-      ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "고용→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "강한 고용 — 인하지연(매파적)",
+              "indices": {
+                "나스닥종합": "-2.7~-1.5%",
+                "S&P500": "-1.8~-1.0%",
+                "다우": "-1.4~-0.8%",
+                "필라델피아반도체": "-5.0~-2.8%",
+                "러셀2000": "-1.8~-1.0%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "약한 고용 — 인하기대(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.4~+2.0%",
+                "S&P500": "+0.3~+1.3%",
+                "다우": "+0.2~+1.0%",
+                "필라델피아반도체": "+0.8~+3.6%",
+                "러셀2000": "+0.5~+2.0%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-05",
@@ -747,7 +1796,22 @@ window.LEDGER = {
         "https://www.newspim.com/news/view/20260605000031",
         "https://biz.heraldcorp.com/article/10764027"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-05",
@@ -763,7 +1827,44 @@ window.LEDGER = {
         "https://segye.com/newsView/20260609507616",
         "https://www.insightkorea.co.kr/news/articleView.html?idxno=247772"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-05",
@@ -779,7 +1880,22 @@ window.LEDGER = {
         "https://www.koreaherald.com/article/10764946",
         "https://tradingeconomics.com/south-korea/currency/news/537236"
       ],
-      "verdict": "date-corrected"
+      "verdict": "date-corrected",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -4.18,
+          "S&P500": -2.64,
+          "다우": -1.35,
+          "필라델피아반도체": -10.26,
+          "러셀2000": -3.47
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-07",
@@ -795,7 +1911,50 @@ window.LEDGER = {
         "https://www.gulf-insider.com/7-opec-nations-announce-second-straight-188000-bpd-output-increase-for-july/",
         "https://www.cnbc.com/2026/05/03/opec-announces-188000-barrels-per-day-output-increase-.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": "미 증시 비거래일(주말·휴장 등) — 당일 지수 데이터 없음",
+        "scenario": {
+          "kind": "지정학/유가",
+          "basis": "지정학·유가 리스크 방향에 따른 위험선호 변화(모델 추정).",
+          "branches": [
+            {
+              "name": "리스크-온 — 긴장완화·유가↓",
+              "indices": {
+                "나스닥종합": "+0.6~+2.1%",
+                "S&P500": "+0.4~+1.4%",
+                "다우": "+0.3~+1.0%",
+                "필라델피아반도체": "+1.1~+3.9%",
+                "러셀2000": "+0.6~+2.0%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "중립",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "리스크-오프 — 긴장고조·유가↑",
+              "indices": {
+                "나스닥종합": "-2.2~-0.8%",
+                "S&P500": "-1.5~-0.5%",
+                "다우": "-1.1~-0.4%",
+                "필라델피아반도체": "-4.2~-1.4%",
+                "러셀2000": "-1.5~-0.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-08",
@@ -811,7 +1970,22 @@ window.LEDGER = {
         "https://imnews.imbc.com/replay/2026/nw930/article/6828439_36996.html",
         "https://m.dailian.co.kr/amp/news/view/1653381/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.86,
+          "S&P500": 0.3,
+          "다우": -0.16,
+          "필라델피아반도체": 5.61,
+          "러셀2000": 0.77
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-08",
@@ -826,7 +2000,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/08/apple-wwdc-2026-live-updates.html",
         "https://www.engadget.com/2189698/everything-announced-at-apples-wwdc-2026-keynote/"
       ],
-      "verdict": "downgraded"
+      "verdict": "downgraded",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.86,
+          "S&P500": 0.3,
+          "다우": -0.16,
+          "필라델피아반도체": 5.61,
+          "러셀2000": 0.77
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-08",
@@ -841,7 +2026,18 @@ window.LEDGER = {
         "https://www.foreignpolicyjournal.com/2026/06/12/apple-nasdaq-aapl-stock-price-slides-8-after-wwdc-2026-despite-ai-progress-and-raised-price-target/",
         "https://www.techtimes.com/articles/318097/20260609/apple-stock-slips-after-wwdc-2026-wall-street-splits-between-400-bull-case-215-floor.htm"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.86,
+          "S&P500": 0.3,
+          "다우": -0.16,
+          "필라델피아반도체": 5.61,
+          "러셀2000": 0.77
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-08",
@@ -856,7 +2052,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/07/stock-market-today-live-updates.html",
         "https://finance.yahoo.com/markets/live/stock-market-today-monday-june-8-dow-sp-500-nasdaq-jump-085310403.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.86,
+          "S&P500": 0.3,
+          "다우": -0.16,
+          "필라델피아반도체": 5.61,
+          "러셀2000": 0.77
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-09",
@@ -871,7 +2078,22 @@ window.LEDGER = {
         "https://imnews.imbc.com/replay/2026/nwdesk/article/6828934_37004.html",
         "https://en.sedaily.com/finance/2026/06/09/kospi-kosdaq-trigger-buy-side-sidecars-as-markets-rebound"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.97,
+          "S&P500": -0.26,
+          "다우": 0.17,
+          "필라델피아반도체": -1.93,
+          "러셀2000": 0.41
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-09",
@@ -886,7 +2108,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/08/stock-market-today-live-updates.html",
         "https://www.thestreet.com/stock-market-today/stock-market-today-dow-jones-sp-500-nasdaq-updates-june-09-2026"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.97,
+          "S&P500": -0.26,
+          "다우": 0.17,
+          "필라델피아반도체": -1.93,
+          "러셀2000": 0.41
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-09",
@@ -901,7 +2134,22 @@ window.LEDGER = {
         "https://www.sedaily.com/article/20052837",
         "https://v.daum.net/v/20260609074735646"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -0.97,
+          "S&P500": -0.26,
+          "다우": 0.17,
+          "필라델피아반도체": -1.93,
+          "러셀2000": 0.41
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-10",
@@ -915,9 +2163,77 @@ window.LEDGER = {
       "sources": [
         "https://www.cnbc.com/2026/06/10/cpi-inflation-report-may-2026.html",
         "https://www.foxbusiness.com/economy/cpi-inflation-may-2026",
-        "https://www.bls.gov/news.release/cpi.nr0.htm"
+        "https://www.bls.gov/news.release/cpi.nr0.htm",
+        "https://www.bls.gov/news.release/archives/cpi_06102026.htm"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -1.98,
+          "S&P500": -1.62,
+          "다우": -1.87,
+          "필라델피아반도체": -3.57,
+          "러셀2000": -1.1
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "물가→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "예상 상회 — 인플레 재가속(매파적)",
+              "indices": {
+                "나스닥종합": "-3.0~-1.8%",
+                "S&P500": "-2.0~-1.2%",
+                "다우": "-1.5~-0.9%",
+                "필라델피아반도체": "-5.6~-3.4%",
+                "러셀2000": "-2.2~-1.3%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 하회 — 디스인플레(비둘기)",
+              "indices": {
+                "나스닥종합": "+1.5~+2.7%",
+                "S&P500": "+1.0~+1.8%",
+                "다우": "+0.8~+1.4%",
+                "필라델피아반도체": "+2.8~+5.0%",
+                "러셀2000": "+1.4~+2.6%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-10",
@@ -932,7 +2248,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/09/stock-market-today-live-updates.html",
         "https://www.thestreet.com/stock-market-today/stock-market-today-dow-jones-sp-500-nasdaq-updates-june-10-2026"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -1.98,
+          "S&P500": -1.62,
+          "다우": -1.87,
+          "필라델피아반도체": -3.57,
+          "러셀2000": -1.1
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-10",
@@ -947,22 +2274,44 @@ window.LEDGER = {
         "https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Record-Q4-and-FY-2026-Results-Driven-by-Cloud-Infrastructure--Cloud-Applications/default.aspx",
         "https://www.cnbc.com/2026/06/10/oracle-orcl-q4-earnings-report-2026.html"
       ],
-      "verdict": "confirmed"
-    },
-    {
-      "date": "2026-06-10",
-      "region": "US",
-      "category": "물가",
-      "title": "5월 CPI 전년比 +4.2%(3년 만에 최고)·근원 +2.9%",
-      "detail": "5월 CPI 전년比 +4.2%로 약 3년 만 최고(컨센 부합), 전월比 +0.5%. 에너지 급등(미·이란發 유가)이 견인. 근원 CPI +0.2%(MoM)·+2.9%(YoY). [검증] BLS·CNBC로 +4.2%·근원 +2.9% 확인. 발표일 6/10 정확.",
-      "importance": "높음",
-      "status": "발생",
-      "confidence": "high",
-      "sources": [
-        "https://www.cnbc.com/2026/06/10/cpi-inflation-report-may-2026.html",
-        "https://www.bls.gov/news.release/archives/cpi_06102026.htm"
-      ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -1.98,
+          "S&P500": -1.62,
+          "다우": -1.87,
+          "필라델피아반도체": -3.57,
+          "러셀2000": -1.1
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-10",
@@ -978,7 +2327,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/09/stock-market-today-live-updates.html",
         "https://www.cnbc.com/2026/06/10/cpi-inflation-report-may-2026.html"
       ],
-      "verdict": "downgraded"
+      "verdict": "downgraded",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": -1.98,
+          "S&P500": -1.62,
+          "다우": -1.87,
+          "필라델피아반도체": -3.57,
+          "러셀2000": -1.1
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-11",
@@ -993,7 +2353,44 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/11/oracle-shares-tumble-11percent-on-increased-capital-raise-cash-concerns.html",
         "https://finance.yahoo.com/markets/stocks/articles/oracle-shares-slide-hefty-ai-152535544.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1008,7 +2405,74 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/11/producer-price-index-may-2026-.html",
         "https://www.bls.gov/news.release/ppi.nr0.htm"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "물가→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "예상 상회(매파적)",
+              "indices": {
+                "나스닥종합": "-1.8~-0.9%",
+                "S&P500": "-1.2~-0.6%",
+                "다우": "-0.9~-0.4%",
+                "필라델피아반도체": "-3.4~-1.7%",
+                "러셀2000": "-1.3~-0.7%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.3~+0.4%",
+                "S&P500": "-0.2~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.6~+0.8%",
+                "러셀2000": "-0.2~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 하회(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.8~+1.7%",
+                "S&P500": "+0.5~+1.1%",
+                "다우": "+0.4~+0.8%",
+                "필라델피아반도체": "+1.4~+3.1%",
+                "러셀2000": "+0.7~+1.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1023,7 +2487,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/10/stock-market-today-live-updates.html",
         "https://www.thestreet.com/stock-market-today/stock-market-today-dow-jones-sp-500-nasdaq-updates-june-11-2026"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-11",
@@ -1038,7 +2513,44 @@ window.LEDGER = {
         "https://www.sec.gov/Archives/edgar/data/0000796343/000079634326000109/adbeex991q226.htm",
         "https://www.stocktitan.net/sec-filings/ADBE/8-k-adobe-inc-reports-material-event-5a6954dc3846.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "빅테크/반도체 실적",
+          "sectorDirect": true,
+          "basis": "AI·반도체 대표주 실적/가이던스의 SOX·나스닥 파급(모델 추정). ※섹터 직접 충격 — 일반 베타 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "서프라이즈 호재",
+              "indices": {
+                "나스닥종합": "+0.6~+1.8%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.1~+0.5%",
+                "필라델피아반도체": "+2.0~+5.0%",
+                "러셀2000": "+0.2~+0.8%"
+              }
+            },
+            {
+              "name": "기대 하회·가이던스 실망",
+              "indices": {
+                "나스닥종합": "-1.8~-0.6%",
+                "S&P500": "-1.0~-0.3%",
+                "다우": "-0.5~-0.1%",
+                "필라델피아반도체": "-5.0~-2.0%",
+                "러셀2000": "-0.8~-0.2%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1053,7 +2565,22 @@ window.LEDGER = {
         "https://www.junggi.co.kr/news/articleView.html?idxno=36642",
         "https://kr.investing.com/futures-expiration-calendar/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "수급(만기)",
+          "noDirectional": true,
+          "basis": "선물·옵션 동시만기 — 방향성보다 거래량·장중 변동성 확대. 지수 종가 영향은 중립적이나 변동성 ↑."
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1068,7 +2595,22 @@ window.LEDGER = {
         "https://biz.heraldcorp.com/article/10769053",
         "https://www.newspim.com/news/view/20260611000050"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1083,7 +2625,74 @@ window.LEDGER = {
         "https://www.indexbox.io/blog/weekly-jobless-claims-rise-to-229000-highest-since-february/",
         "https://tradingeconomics.com/united-states/jobless-claims"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "고용→금리",
+          "basis": "이 지표는 다음 FOMC(6/17) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "강한 고용 — 인하지연(매파적)",
+              "indices": {
+                "나스닥종합": "-2.7~-1.5%",
+                "S&P500": "-1.8~-1.0%",
+                "다우": "-1.4~-0.8%",
+                "필라델피아반도체": "-5.0~-2.8%",
+                "러셀2000": "-1.8~-1.0%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "약한 고용 — 인하기대(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.4~+2.0%",
+                "S&P500": "+0.3~+1.3%",
+                "다우": "+0.2~+1.0%",
+                "필라델피아반도체": "+0.8~+3.6%",
+                "러셀2000": "+0.5~+2.0%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-11",
@@ -1098,7 +2707,22 @@ window.LEDGER = {
         "https://www.newspim.com/news/view/20260611000364",
         "https://biz.heraldcorp.com/article/10769286"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 2.54,
+          "S&P500": 1.75,
+          "다우": 1.86,
+          "필라델피아반도체": 7.91,
+          "러셀2000": 3.02
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-12",
@@ -1114,7 +2738,56 @@ window.LEDGER = {
         "https://www.cnn.com/2026/06/12/world/live-news/iran-war-trump-israel",
         "https://time.com/article/2026/06/12/trump-us-iran-peace-deal-details-timeline-conflicting-reports/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "지정학/유가",
+          "basis": "지정학·유가 리스크 방향에 따른 위험선호 변화(모델 추정).",
+          "branches": [
+            {
+              "name": "리스크-온 — 긴장완화·유가↓",
+              "indices": {
+                "나스닥종합": "+0.6~+2.1%",
+                "S&P500": "+0.4~+1.4%",
+                "다우": "+0.3~+1.0%",
+                "필라델피아반도체": "+1.1~+3.9%",
+                "러셀2000": "+0.6~+2.0%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "중립",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "리스크-오프 — 긴장고조·유가↑",
+              "indices": {
+                "나스닥종합": "-2.2~-0.8%",
+                "S&P500": "-1.5~-0.5%",
+                "다우": "-1.1~-0.4%",
+                "필라델피아반도체": "-4.2~-1.4%",
+                "러셀2000": "-1.5~-0.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-12",
@@ -1130,7 +2803,56 @@ window.LEDGER = {
         "https://www.investing.com/news/commodities-news/oil-extends-losses-as-trump-calls-off-planned-strikes-on-iran-4738771",
         "https://finance.yahoo.com/markets/article/oil-prices-fall-after-iran-state-media-says-deal-with-us-would-include-restored-hormuz-shipping-144319788.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "지정학/유가",
+          "basis": "지정학·유가 리스크 방향에 따른 위험선호 변화(모델 추정).",
+          "branches": [
+            {
+              "name": "리스크-온 — 긴장완화·유가↓",
+              "indices": {
+                "나스닥종합": "+0.6~+2.1%",
+                "S&P500": "+0.4~+1.4%",
+                "다우": "+0.3~+1.0%",
+                "필라델피아반도체": "+1.1~+3.9%",
+                "러셀2000": "+0.6~+2.0%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "중립",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "리스크-오프 — 긴장고조·유가↑",
+              "indices": {
+                "나스닥종합": "-2.2~-0.8%",
+                "S&P500": "-1.5~-0.5%",
+                "다우": "-1.1~-0.4%",
+                "필라델피아반도체": "-4.2~-1.4%",
+                "러셀2000": "-1.5~-0.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-12",
@@ -1145,7 +2867,18 @@ window.LEDGER = {
         "https://www.cnbc.com/2026/06/12/spacex-ipo-spcx-live-updates.html",
         "https://www.npr.org/2026/06/12/nx-s1-5855004/stock-ai-spacex-ipo-elon-musk"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": null
+      }
     },
     {
       "date": "2026-06-12",
@@ -1161,7 +2894,22 @@ window.LEDGER = {
         "https://www.kedglobal.com/foreign-exchange/newsView/ked202512150010",
         "https://www.asiae.co.kr/en/article/2026061213395614911"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-12",
@@ -1176,12 +2924,61 @@ window.LEDGER = {
         "https://tradingeconomics.com/united-states/government-bond-yield",
         "https://www.federalreserve.gov/releases/h15/"
       ],
-      "verdict": "downgraded"
+      "verdict": "downgraded",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "지정학/유가",
+          "basis": "지정학·유가 리스크 방향에 따른 위험선호 변화(모델 추정).",
+          "branches": [
+            {
+              "name": "리스크-온 — 긴장완화·유가↓",
+              "indices": {
+                "나스닥종합": "+0.6~+2.1%",
+                "S&P500": "+0.4~+1.4%",
+                "다우": "+0.3~+1.0%",
+                "필라델피아반도체": "+1.1~+3.9%",
+                "러셀2000": "+0.6~+2.0%"
+              },
+              "occurred": true
+            },
+            {
+              "name": "중립",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "리스크-오프 — 긴장고조·유가↑",
+              "indices": {
+                "나스닥종합": "-2.2~-0.8%",
+                "S&P500": "-1.5~-0.5%",
+                "다우": "-1.1~-0.4%",
+                "필라델피아반도체": "-4.2~-1.4%",
+                "러셀2000": "-1.5~-0.5%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-12",
       "region": "US",
-      "category": "물가",
+      "category": "심리",
       "title": "6월 미시간대 소비자심리지수(잠정)",
       "detail": "6월 잠정 48.9(전월 44.8)로 약 +9%(4개월 만 첫 반등, 예상 46.0 상회). 휘발유 가격 하락이 견인. 1년 기대인플레 4.6%(전월 4.8%), 장기 3.4%(3.9%). 여전히 역사적 저점권(1970년대 이후 둘째로 낮음).",
       "importance": "보통",
@@ -1191,7 +2988,56 @@ window.LEDGER = {
         "https://seekingalpha.com/news/4602987-consumer-sentiment-jumps-past-consensus-in-june",
         "https://www.bloomberg.com/news/articles/2026-06-12/us-consumer-sentiment-picks-up-on-easing-gasoline-prices"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-12",
@@ -1206,7 +3052,22 @@ window.LEDGER = {
         "https://www.topstarnews.net/news/articleView.html?idxno=16092050",
         "https://ir.gsifn.io/sample/stock.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": {
+          "나스닥종합": 0.31,
+          "S&P500": 0.5,
+          "다우": 0.7,
+          "필라델피아반도체": 1.52,
+          "러셀2000": 0.79
+        },
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-15",
@@ -1222,7 +3083,16 @@ window.LEDGER = {
         "https://www.consilium.europa.eu/en/meetings/international-summit/2026/06/15-17/",
         "https://www.eda.admin.ch/en/g7-summit-in-evian"
       ],
-      "verdict": "date-corrected"
+      "verdict": "date-corrected",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "글로벌 이벤트",
+          "noDirectional": true,
+          "basis": "글로벌 정상회의·정책 이벤트 — 통상·지정학 헤드라인에 따라 위험선호가 단발성으로 움직일 수 있으나 방향은 사전 예측 곤란."
+        }
+      }
     },
     {
       "date": "2026-06-16",
@@ -1237,7 +3107,72 @@ window.LEDGER = {
         "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
         "https://www.cnbc.com/2026/04/29/fed-interest-rate-decision-april-2026.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "통화정책",
+          "centerpiece": true,
+          "basis": "연방기금금리 결정 — 시장은 동결을 압도적으로 반영. 변수는 점도표(SEP)·기자회견 톤(신임 의장 Warsh).",
+          "rateTree": {
+            "title": "6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "동결(컨센서스 유지)",
+              "prob": 97.1,
+              "indices": {
+                "나스닥종합": "-0.6~+0.9%",
+                "S&P500": "-0.4~+0.6%",
+                "다우": "-0.3~+0.4%",
+                "필라델피아반도체": "-1.1~+1.7%",
+                "러셀2000": "-0.5~+0.7%"
+              },
+              "note": "점도표·기자회견 톤이 변수. 동결 자체는 선반영, 변동은 가이던스에 좌우."
+            },
+            {
+              "name": "깜짝 인하(비둘기 서프라이즈)",
+              "prob": 2.9,
+              "indices": {
+                "나스닥종합": "+2.2~+3.9%",
+                "S&P500": "+1.5~+2.6%",
+                "다우": "+1.1~+2.0%",
+                "필라델피아반도체": "+4.2~+7.3%",
+                "러셀2000": "+2.6~+4.6%"
+              },
+              "note": "유동성 기대로 랠리. 금리민감 소형주(러셀)·성장주(나스닥) 강세."
+            },
+            {
+              "name": "깜짝 인상(매파 서프라이즈)",
+              "prob": 0,
+              "indices": {
+                "나스닥종합": "-4.5~-2.7%",
+                "S&P500": "-3.0~-1.8%",
+                "다우": "-2.2~-1.4%",
+                "필라델피아반도체": "-8.4~-5.0%",
+                "러셀2000": "-4.0~-2.4%"
+              },
+              "note": "긴축 충격. 고밸류 기술·반도체(SOX) 급락."
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-16",
@@ -1252,7 +3187,50 @@ window.LEDGER = {
         "https://www.whitehouse.gov/wp-content/uploads/2025/09/pfei_schedule_release_dates_cy2026.pdf",
         "https://www.census.gov/construction/nrc/current/index.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-17",
@@ -1268,7 +3246,72 @@ window.LEDGER = {
         "https://polymarket.com/event/fed-decision-in-june-825",
         "https://www.cnbc.com/2026/05/13/kevin-warsh-wins-senate-confirmation-as-the-next-federal-reserve-chair.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "통화정책",
+          "centerpiece": true,
+          "basis": "연방기금금리 결정 — 시장은 동결을 압도적으로 반영. 변수는 점도표(SEP)·기자회견 톤(신임 의장 Warsh).",
+          "rateTree": {
+            "title": "6/17 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 97.1
+              },
+              {
+                "label": "인하",
+                "pct": 2.9
+              },
+              {
+                "label": "인상",
+                "pct": 0
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "동결(컨센서스 유지)",
+              "prob": 97.1,
+              "indices": {
+                "나스닥종합": "-0.6~+0.9%",
+                "S&P500": "-0.4~+0.6%",
+                "다우": "-0.3~+0.4%",
+                "필라델피아반도체": "-1.1~+1.7%",
+                "러셀2000": "-0.5~+0.7%"
+              },
+              "note": "점도표·기자회견 톤이 변수. 동결 자체는 선반영, 변동은 가이던스에 좌우."
+            },
+            {
+              "name": "깜짝 인하(비둘기 서프라이즈)",
+              "prob": 2.9,
+              "indices": {
+                "나스닥종합": "+2.2~+3.9%",
+                "S&P500": "+1.5~+2.6%",
+                "다우": "+1.1~+2.0%",
+                "필라델피아반도체": "+4.2~+7.3%",
+                "러셀2000": "+2.6~+4.6%"
+              },
+              "note": "유동성 기대로 랠리. 금리민감 소형주(러셀)·성장주(나스닥) 강세."
+            },
+            {
+              "name": "깜짝 인상(매파 서프라이즈)",
+              "prob": 0,
+              "indices": {
+                "나스닥종합": "-4.5~-2.7%",
+                "S&P500": "-3.0~-1.8%",
+                "다우": "-2.2~-1.4%",
+                "필라델피아반도체": "-8.4~-5.0%",
+                "러셀2000": "-4.0~-2.4%"
+              },
+              "note": "긴축 충격. 고밸류 기술·반도체(SOX) 급락."
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-17",
@@ -1283,7 +3326,50 @@ window.LEDGER = {
         "https://www.census.gov/economic-indicators/calendar-listview.html",
         "https://www.whitehouse.gov/wp-content/uploads/2025/09/pfei_schedule_release_dates_cy2026.pdf"
       ],
-      "verdict": "date-corrected"
+      "verdict": "date-corrected",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-18",
@@ -1298,7 +3384,16 @@ window.LEDGER = {
         "https://optionalpha.com/learn/triple-witching",
         "https://regimeanalysis.com/expiration-calendar/month-of/june-2026"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "수급(만기)",
+          "noDirectional": true,
+          "basis": "선물·옵션 동시만기 — 방향성보다 거래량·장중 변동성 확대. 지수 종가 영향은 중립적이나 변동성 ↑."
+        }
+      }
     },
     {
       "date": "2026-06-18",
@@ -1313,7 +3408,68 @@ window.LEDGER = {
         "https://www.dol.gov/ui/data.pdf",
         "https://tradingeconomics.com/united-states/jobless-claims"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "고용→금리",
+          "basis": "이 지표는 다음 FOMC(7/29) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 7/29 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 88.8
+              },
+              {
+                "label": "인하",
+                "pct": 2.6
+              },
+              {
+                "label": "인상",
+                "pct": 8.6
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "강한 고용 — 인하지연(매파적)",
+              "indices": {
+                "나스닥종합": "-2.7~-1.5%",
+                "S&P500": "-1.8~-1.0%",
+                "다우": "-1.4~-0.8%",
+                "필라델피아반도체": "-5.0~-2.8%",
+                "러셀2000": "-1.8~-1.0%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "약한 고용 — 인하기대(비둘기)",
+              "indices": {
+                "나스닥종합": "+0.4~+2.0%",
+                "S&P500": "+0.3~+1.3%",
+                "다우": "+0.2~+1.0%",
+                "필라델피아반도체": "+0.8~+3.6%",
+                "러셀2000": "+0.5~+2.0%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-18",
@@ -1328,7 +3484,16 @@ window.LEDGER = {
         "https://newsroom.accenture.com/news/2026/accenture-to-announce-third-quarter-fiscal-2026-results",
         "https://www.tradingview.com/news/tradingview:3cd8669a2f0ec:0-acn-q3-26-earnings-revenue-estimate-is-18-78b-usd/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "개별 종목 실적",
+          "noDirectional": true,
+          "basis": "개별 종목 실적(페덱스=글로벌 물동량, 액센추어=IT컨설팅 수요, 나이키=소비) — 지수 직접 영향은 제한적이나 해당 업황 신호로 섹터 심리에 파급."
+        }
+      }
     },
     {
       "date": "2026-06-19",
@@ -1344,7 +3509,16 @@ window.LEDGER = {
         "https://www.calendarlabs.com/nyse-market-holidays-2026/",
         "https://www.kiplinger.com/investing/stock-market-holidays"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "휴장",
+          "noDirectional": true,
+          "basis": "미 증시 전면 휴장 — 당일 거래 없음. 전후 세션 유동성 감소."
+        }
+      }
     },
     {
       "date": "2026-06-23",
@@ -1359,7 +3533,16 @@ window.LEDGER = {
         "https://finance.yahoo.com/markets/stocks/articles/fedexs-q4-2026-earnings-expect-115605097.html",
         "https://www.barchart.com/story/news/1533352/fedex-s-q4-2026-earnings-what-to-expect"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "개별 종목 실적",
+          "noDirectional": true,
+          "basis": "개별 종목 실적(페덱스=글로벌 물동량, 액센추어=IT컨설팅 수요, 나이키=소비) — 지수 직접 영향은 제한적이나 해당 업황 신호로 섹터 심리에 파급."
+        }
+      }
     },
     {
       "date": "2026-06-24",
@@ -1377,7 +3560,49 @@ window.LEDGER = {
         "https://www.marketbeat.com/earnings/reports/2026-6-24-micron-technology-inc-stock/",
         "https://www.stocktitan.net/news/MU/micron-technology-to-report-fiscal-third-quarter-results-on-june-24-22gcrbths4gp.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "반도체(SOX 직결)",
+          "centerpiece": true,
+          "sectorDirect": true,
+          "basis": "마이크론 실적·가이던스는 필라델피아 반도체지수(SOX)의 직접 촉매(옵션 내재 변동 ~10~16%). ※반도체 직접 충격 — 일반 베타(SOX×2.8) 대신 SOX 중심 직접 추정.",
+          "branches": [
+            {
+              "name": "호실적·가이던스 상향",
+              "indices": {
+                "나스닥종합": "+1.2~+2.8%",
+                "S&P500": "+0.6~+1.5%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+4.0~+8.0%",
+                "러셀2000": "+0.3~+1.2%"
+              }
+            },
+            {
+              "name": "대체로 부합",
+              "indices": {
+                "나스닥종합": "-0.6~+0.6%",
+                "S&P500": "-0.4~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-1.5~+1.5%",
+                "러셀2000": "-0.3~+0.3%"
+              }
+            },
+            {
+              "name": "실적·가이던스 하회",
+              "indices": {
+                "나스닥종합": "-2.8~-1.2%",
+                "S&P500": "-1.5~-0.6%",
+                "다우": "-0.8~-0.2%",
+                "필라델피아반도체": "-8.0~-4.0%",
+                "러셀2000": "-1.2~-0.3%"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-25",
@@ -1392,7 +3617,68 @@ window.LEDGER = {
         "https://www.bea.gov/news/2026/personal-income-and-outlays-april-2026",
         "https://www.bea.gov/news/schedule"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "물가→금리",
+          "basis": "이 지표는 다음 FOMC(7/29) 금리경로 기대를 바꿔 증시에 파급.",
+          "rateTree": {
+            "title": "다음 7/29 FOMC 결정 확률 (CME FedWatch)",
+            "probs": [
+              {
+                "label": "동결",
+                "pct": 88.8
+              },
+              {
+                "label": "인하",
+                "pct": 2.6
+              },
+              {
+                "label": "인상",
+                "pct": 8.6
+              }
+            ],
+            "note": "5월 CPI +4.2%·PPI +6.5% 인플레 충격으로 2026년 인하 베팅 사실상 소멸(인하 0회 76.8%), 9월 인상 내재확률 26%까지 상승. 신임 의장 Warsh(비둘기) vs 매파 FOMC '집안싸움' 구도."
+          },
+          "branches": [
+            {
+              "name": "예상 상회 — 인플레 재가속(매파적)",
+              "indices": {
+                "나스닥종합": "-3.0~-1.8%",
+                "S&P500": "-2.0~-1.2%",
+                "다우": "-1.5~-0.9%",
+                "필라델피아반도체": "-5.6~-3.4%",
+                "러셀2000": "-2.2~-1.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.6%",
+                "S&P500": "-0.3~+0.4%",
+                "다우": "-0.2~+0.3%",
+                "필라델피아반도체": "-0.8~+1.1%",
+                "러셀2000": "-0.3~+0.4%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 하회 — 디스인플레(비둘기)",
+              "indices": {
+                "나스닥종합": "+1.5~+2.7%",
+                "S&P500": "+1.0~+1.8%",
+                "다우": "+0.8~+1.4%",
+                "필라델피아반도체": "+2.8~+5.0%",
+                "러셀2000": "+1.4~+2.6%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-25",
@@ -1407,7 +3693,50 @@ window.LEDGER = {
         "https://www.bea.gov/news/2026/gdp-second-estimate-and-corporate-profits-1st-quarter-2026",
         "https://www.bea.gov/data/gdp/gross-domestic-product"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-25",
@@ -1422,7 +3751,16 @@ window.LEDGER = {
         "https://www.newsis.com/view/NISX20251030_0003383692",
         "https://www.bok.or.kr/portal/bbs/B0000502/view.do?menuNo=201265&nttId=10094300"
       ],
-      "verdict": "downgraded"
+      "verdict": "downgraded",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     },
     {
       "date": "2026-06-26",
@@ -1437,12 +3775,21 @@ window.LEDGER = {
         "https://www.lseg.com/en/media-centre/press-releases/ftse-russell/2026/ftse-russell-begins-june-2026-semi-annual-russell-us-indexes-reconstitution",
         "https://www.lseg.com/en/ftse-russell/russell-reconstitution"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "수급(패시브)",
+          "noDirectional": true,
+          "basis": "러셀 지수 리밸런싱 — 대규모 패시브 리밸런싱 거래가 종가에 집중. 방향성보다 거래량·변동성 확대(특히 소형주 러셀2000)."
+        }
+      }
     },
     {
       "date": "2026-06-26",
       "region": "US",
-      "category": "물가",
+      "category": "심리",
       "title": "6월 미시간대 소비자심리지수(확정)",
       "detail": "6월 미시간대 소비자심리지수 확정치 발표 예정(6/26). 잠정치는 48.9. 실제 확정 수치 미발표.",
       "importance": "보통",
@@ -1452,12 +3799,55 @@ window.LEDGER = {
         "https://www.sca.isr.umich.edu/",
         "https://seekingalpha.com/news/4602987-consumer-sentiment-jumps-past-consensus-in-june"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-30",
       "region": "US",
-      "category": "물가",
+      "category": "심리",
       "title": "6월 컨퍼런스보드 소비자신뢰지수",
       "detail": "컨퍼런스보드 6월 소비자신뢰지수 발표 예정(6/30 화, 10:00 ET). 5월치는 93.1(4월 상향 93.8에서 -0.7p, 중동전 인플레 영향). 6월 수치 미발표.",
       "importance": "보통",
@@ -1467,7 +3857,50 @@ window.LEDGER = {
         "https://www.prnewswire.com/news-releases/us-consumer-confidence-edged-downward-in-may-302781849.html",
         "https://www.conference-board.org/topics/consumer-confidence/"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "성장/소비",
+          "basis": "성장·소비 지표 서프라이즈 방향에 따른 지수 영향(모델 추정).",
+          "branches": [
+            {
+              "name": "호조(견조한 성장)",
+              "indices": {
+                "나스닥종합": "+0.4~+1.5%",
+                "S&P500": "+0.3~+1.0%",
+                "다우": "+0.2~+0.8%",
+                "필라델피아반도체": "+0.8~+2.8%",
+                "러셀2000": "+0.4~+1.2%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "예상 부합",
+              "indices": {
+                "나스닥종합": "-0.4~+0.4%",
+                "S&P500": "-0.3~+0.3%",
+                "다우": "-0.2~+0.2%",
+                "필라델피아반도체": "-0.8~+0.8%",
+                "러셀2000": "-0.3~+0.3%"
+              },
+              "occurred": false
+            },
+            {
+              "name": "부진 — 경기둔화 우려",
+              "indices": {
+                "나스닥종합": "-2.0~-0.6%",
+                "S&P500": "-1.3~-0.4%",
+                "다우": "-1.0~-0.3%",
+                "필라델피아반도체": "-3.6~-1.1%",
+                "러셀2000": "-1.3~-0.4%"
+              },
+              "occurred": false
+            }
+          ]
+        }
+      }
     },
     {
       "date": "2026-06-30",
@@ -1482,7 +3915,16 @@ window.LEDGER = {
         "https://www.businesswire.com/news/home/20260528240663/en/NIKE-Inc.-Announces-Fourth-Quarter-Fiscal-2026-Earnings-and-Conference-Call",
         "https://www.stocktitan.net/news/NKE/nike-inc-announces-fourth-quarter-fiscal-2026-earnings-and-iwzljao8o4by.html"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "개별 종목 실적",
+          "noDirectional": true,
+          "basis": "개별 종목 실적(페덱스=글로벌 물동량, 액센추어=IT컨설팅 수요, 나이키=소비) — 지수 직접 영향은 제한적이나 해당 업황 신호로 섹터 심리에 파급."
+        }
+      }
     },
     {
       "date": "2026-06-30",
@@ -1497,7 +3939,16 @@ window.LEDGER = {
         "https://mods.go.kr/menu.es?mid=a10301050100",
         "https://www.bok.or.kr/portal/stats/statsPublictSchdul/listCldr.do?menuNo=200775"
       ],
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "usImpact": {
+        "realized": null,
+        "realizedNA": null,
+        "scenario": {
+          "kind": "한국 이벤트",
+          "krSide": true,
+          "basis": "한국발 이벤트 — 미국 지수에 대한 직접 영향은 제한적(인과는 주로 미→한 방향). 한국 반도체(삼성·하이닉스) 통해 SOX 심리에 간접 파급 가능."
+        }
+      }
     }
   ]
 };

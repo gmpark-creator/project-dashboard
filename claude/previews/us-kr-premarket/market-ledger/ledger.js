@@ -166,6 +166,76 @@
   /* ===================== 캘린더 ===================== */
   const IMP = { '최우선': 'imp-top', '높음': 'imp-high', '보통': 'imp-norm', '낮음': 'imp-norm' };
   const REGION_LABEL = { US: '🇺🇸 미국', KR: '🇰🇷 한국', GLOBAL: '🌐 글로벌' };
+
+  /* ---------- 미국 지수 영향 레이어 ---------- */
+  const IDX_ORDER = ['나스닥종합', 'S&P500', '다우', '필라델피아반도체', '러셀2000'];
+  const IDX_SHORT = { '나스닥종합': '나스닥', 'S&P500': 'S&P', '다우': '다우', '필라델피아반도체': '필반', '러셀2000': '러셀' };
+  function rangeDir(s) {
+    const nums = (String(s).match(/[-+]?\d+\.?\d*/g) || []).map(Number);
+    if (!nums.length) return 'flat';
+    const lo = Math.min(...nums), hi = Math.max(...nums);
+    if (hi <= 0 && lo < 0) return 'down';
+    if (lo >= 0 && hi > 0) return 'up';
+    return 'flat';
+  }
+  const dirBadge = { up: 'badge-up', down: 'badge-down', flat: 'badge-flat' };
+  function realizedRow(realized) {
+    if (!realized) return '';
+    const cells = IDX_ORDER.filter(k => realized[k] != null).map(k => {
+      const v = realized[k];
+      const cls = v > 0 ? 'badge-up' : v < 0 ? 'badge-down' : 'badge-flat';
+      const sign = v > 0 ? '+' : '';
+      return `<span class="ibadge ${cls}">${esc(IDX_SHORT[k])} ${sign}${v}%</span>`;
+    }).join(' ');
+    return `<div class="mt-1.5 flex flex-wrap gap-1 items-center">
+      <span class="text-[9.5px] font-bold text-emerald uppercase tracking-wide mr-0.5">당일 실측</span>${cells}</div>`;
+  }
+  function probPills(rt) {
+    if (!rt) return '';
+    const cmap = { '동결': 'background:rgba(147,164,196,.16);color:#cbd5e1', '인하': 'background:rgba(52,211,153,.15);color:#34d399', '인상': 'background:rgba(246,70,93,.15);color:#f6465d' };
+    const pills = (rt.probs || []).map(p => `<span class="prob-pill" style="${cmap[p.label] || ''}">${esc(p.label)} ${p.pct}%</span>`).join(' ');
+    return `<div class="mt-1.5"><div class="text-[10px] font-bold text-gold mb-1">${esc(rt.title || '금리 결정 확률')}</div>
+      <div class="flex flex-wrap gap-1">${pills}</div>
+      ${rt.note ? `<div class="text-[10px] text-sub mt-1 leading-snug">${esc(rt.note)}</div>` : ''}</div>`;
+  }
+  function branchesTable(branches) {
+    if (!branches || !branches.length) return '';
+    const head = `<tr><th>시나리오</th>${IDX_ORDER.map(k => `<th>${esc(IDX_SHORT[k])}</th>`).join('')}</tr>`;
+    const rows = branches.map(b => {
+      const occ = b.occurred ? ' scn-row-occ' : '';
+      const nm = esc(b.name) + (b.prob != null ? ` <span class="text-sub">(${b.prob}%)</span>` : '') + (b.occurred ? ' <span class="text-up font-bold">★실제</span>' : '');
+      const tds = IDX_ORDER.map(k => {
+        const v = (b.indices || {})[k] || '—';
+        const d = rangeDir(v);
+        const col = d === 'up' ? '#f6465d' : d === 'down' ? '#3b82f6' : '#93a4c4';
+        return `<td style="color:${col};font-weight:700">${esc(v)}</td>`;
+      }).join('');
+      return `<tr class="${occ}"><td class="text-ink">${nm}</td>${tds}</tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto"><table class="scn-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function impactHtml(u) {
+    if (!u) return '';
+    const sc = u.scenario;
+    let inner = realizedRow(u.realized);
+    if (!u.realized && u.realizedNA) {
+      inner += `<div class="mt-1.5 text-[10px] text-sub"><i class="fa-regular fa-circle-pause mr-1"></i>${esc(u.realizedNA)}</div>`;
+    }
+    if (sc) {
+      let body = '';
+      if (sc.basis) body += `<div class="text-[10.5px] text-muted leading-snug mt-1">${esc(sc.basis)}</div>`;
+      body += probPills(sc.rateTree);
+      if (sc.noDirectional || sc.krSide) {
+        // 표 없음 — basis로 충분
+      } else {
+        body += branchesTable(sc.branches);
+        body += `<div class="text-[9.5px] text-sub mt-1.5">※ 시나리오 영향 %는 <b class="text-muted">모델 추정·범위(예측)</b> — 실측 아님. 6월 실측 베타로 보정. 투자자문 아님.</div>`;
+      }
+      const tag = sc.centerpiece ? '<span class="text-[9px] font-bold text-up ml-1">핵심</span>' : '';
+      inner += `<details class="scn"><summary><i class="fa-solid fa-chevron-right chev text-[9px]"></i>📊 미 지수 영향 예측 · ${esc(sc.kind || '시나리오')}${tag}</summary>${body}</details>`;
+    }
+    return inner ? `<div class="impact">${inner}</div>` : '';
+  }
   function evChip(e) {
     const impCls = IMP[e.importance] || 'imp-norm';
     const statusCls = e.status === '예정' ? 'badge-flat' : (e.importance === '최우선' ? 'badge-up' : 'badge-down');
@@ -182,6 +252,7 @@
       <div class="text-[13px] font-bold text-ink leading-snug">${esc(e.title)}</div>
       ${e.detail ? `<div class="text-[11.5px] text-muted leading-snug mt-0.5">${esc(e.detail)}</div>` : ''}
       <div class="mt-1">${src}</div>
+      ${impactHtml(e.usImpact)}
     </div>`;
   }
   function renderCalendar() {
@@ -217,6 +288,33 @@
       </div>`;
     }).join('');
   }
+  function renderRatePanel() {
+    const rp = D.ratePath, host = $('#rate-panel');
+    if (!rp || !host) return;
+    const mt = ds => { const p = (ds || '').split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}` : ds; };
+    const cards = (rp.fedPath || []).map(m => {
+      const cells = [['동결', m.hold, '#cbd5e1'], ['인하', m.cut, '#34d399'], ['인상', m.hike, '#f6465d']].map(([lab, v, c]) =>
+        `<div class="flex items-center justify-between"><span class="text-[11px] text-sub">${lab}</span><span class="font-extrabold tabular-nums text-[13px]" style="color:${c}">${v}%</span></div>`).join('');
+      return `<div class="bg-panel2/60 rounded-xl p-3 ring-1 ring-line">
+        <div class="text-[11px] font-bold text-white mb-1.5">FOMC ${mt(m.meeting)}</div>${cells}</div>`;
+    }).join('');
+    const betas = D.betas ? Object.entries(D.betas).map(([k, v]) => `${IDX_SHORT[k] || k} ×${v}`).join(' · ') : '';
+    host.innerHTML = `<div class="card p-4">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-landmark text-gold mr-1.5"></i>미국 금리 경로 — 시장 내재확률 <span class="text-sub text-xs font-medium">(CME FedWatch·선물, ${esc(rp.asOf || '')} 기준)</span></h3>
+        <span class="text-[11px] text-sub">현 기준금리 <b class="text-muted">${esc(rp.currentRange || '')}</b></span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">${cards}</div>
+      ${rp.note ? `<div class="text-[11.5px] text-muted leading-relaxed mt-3"><b class="text-gold">맥락</b> ${esc(rp.note)}</div>` : ''}
+      ${rp.cuts2026 ? `<div class="text-[11px] text-sub leading-relaxed mt-1.5">${esc(rp.cuts2026)}</div>` : ''}
+      <div class="text-[10.5px] text-sub leading-relaxed mt-3 pt-3 border-t border-line">
+        <b class="text-muted"><i class="fa-solid fa-flask mr-1"></i>예측 방법론</b> — 각 이벤트에 <b class="text-emerald">당일 실측</b>(발생, 사실)과 <b class="text-violet">시나리오 예측</b>(모델 추정)을 함께 표기.
+        시나리오별 지수 영향 %는 6월 실측 민감도(베타, S&P500 기준 ${esc(betas)})로 보정한 <b class="text-muted">추정 범위</b>이며 <b class="text-up">실측·확정이 아닙니다</b>.
+        금리 동결/인하/인상 확률만 시장 내재확률(실측)입니다. <span class="text-sub">연구용 — 투자자문 아님.</span>
+      </div>
+    </div>`;
+  }
+  renderRatePanel();
   renderCalendar();
 
   /* ===================== 탭 ===================== */

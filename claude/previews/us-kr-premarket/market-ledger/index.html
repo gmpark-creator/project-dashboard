@@ -46,6 +46,20 @@
   .imp-norm{ border-left:3px solid #3b82f6; }
   .cal-cell{ background:rgba(19,32,58,.55); border:1px solid #243352; border-radius:11px; }
   .holiday{ background:repeating-linear-gradient(45deg, rgba(246,70,93,.05), rgba(246,70,93,.05) 8px, transparent 8px, transparent 16px); }
+  /* 지수 영향 레이어 */
+  .impact{ margin-top:8px; border-top:1px dashed #243352; padding-top:7px; }
+  .ibadge{ font-variant-numeric:tabular-nums; font-weight:700; font-size:10.5px; border-radius:6px; padding:1px 5px; white-space:nowrap; }
+  details.scn{ margin-top:6px; }
+  details.scn>summary{ cursor:pointer; list-style:none; font-size:11px; font-weight:700; color:#a78bfa; display:flex; align-items:center; gap:5px; user-select:none; }
+  details.scn>summary::-webkit-details-marker{ display:none; }
+  details.scn>summary .chev{ transition:transform .15s; }
+  details.scn[open]>summary .chev{ transform:rotate(90deg); }
+  .scn-tbl{ width:100%; font-size:10.5px; margin-top:6px; }
+  .scn-tbl th,.scn-tbl td{ padding:3px 5px; text-align:right; white-space:nowrap; }
+  .scn-tbl th{ position:static; background:transparent; color:#64759a; font-size:9.5px; border-bottom:1px solid #243352; }
+  .scn-tbl td:first-child,.scn-tbl th:first-child{ text-align:left; }
+  .scn-row-occ{ background:rgba(246,70,93,.08); }
+  .prob-pill{ font-size:10.5px; font-weight:800; border-radius:6px; padding:2px 7px; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -113,12 +127,17 @@
   <!-- ===== 섹션 3: 캘린더 ===== -->
   <section id="sec-cal" class="sec">
     <div class="card p-4 mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
-      <span class="font-bold text-white text-[14px]"><i class="fa-regular fa-calendar-days text-sky mr-1.5"></i>2026년 6월 증시 캘린더</span>
+      <span class="font-bold text-white text-[14px]"><i class="fa-regular fa-calendar-days text-sky mr-1.5"></i>2026년 6월 증시 캘린더 + 미 지수 영향</span>
       <span class="text-muted"><span class="badge imp-top bg-transparent px-2">최우선</span> 그날 증시를 좌우</span>
       <span class="text-muted"><span class="badge imp-high bg-transparent px-2">높음</span></span>
       <span class="text-muted"><span class="badge imp-norm bg-transparent px-2">보통</span></span>
       <span class="text-sub ml-auto">발생(6/1~12) · <span class="text-muted">예정(6/13~30)</span> · 출처 표기</span>
+      <span class="w-full text-[11px] text-sub mt-1 pt-2 border-t border-line"><i class="fa-solid fa-flask text-violet mr-1"></i><b class="text-muted">당일 실측</b>(발생일 5대 지수 실제 등락) = 사실 · <b class="text-violet">시나리오 영향 %</b> = <b class="text-up">모델 추정(예측)</b>, 실측 아님 · 금리 동결/인하/인상 확률만 시장 내재확률(실측). 연구용 — 투자자문 아님.</span>
     </div>
+
+    <!-- 금리 경로 + 방법론 패널 -->
+    <div id="rate-panel" class="mb-4"></div>
+
     <div id="cal-status" class="card p-6 text-center text-muted text-sm">캘린더 데이터를 불러오는 중…</div>
     <div id="cal-grid" class="space-y-3"></div>
   </section>
