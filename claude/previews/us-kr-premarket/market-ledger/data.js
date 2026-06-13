@@ -1216,16 +1216,16 @@ window.LEDGER = {
               "kstTime": "23:20",
               "session": "프리마켓",
               "dir": "양전",
-              "price": 6.34,
-              "pct": 0.16
+              "price": 6.3405,
+              "pct": 0.17
             },
             {
               "etTime": "06:25",
               "kstTime": "23:25",
               "session": "프리마켓",
               "dir": "음전",
-              "price": 6.32,
-              "pct": -0.16
+              "price": 6.3205,
+              "pct": -0.15
             },
             {
               "etTime": "07:00",
@@ -1240,7 +1240,7 @@ window.LEDGER = {
               "kstTime": "02:35(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 6.32,
+              "price": 6.3199,
               "pct": -0.16
             },
             {
@@ -1248,16 +1248,16 @@ window.LEDGER = {
               "kstTime": "02:40(익일)",
               "session": "본장",
               "dir": "양전",
-              "price": 6.41,
-              "pct": 1.26
+              "price": 6.4114,
+              "pct": 1.29
             },
             {
               "etTime": "11:05",
               "kstTime": "04:05(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 6.32,
-              "pct": -0.16
+              "price": 6.325,
+              "pct": -0.08
             }
           ]
         }
@@ -1321,16 +1321,16 @@ window.LEDGER = {
               "kstTime": "02:45(익일)",
               "session": "본장",
               "dir": "양전",
-              "price": 5.3,
-              "pct": 2.51
+              "price": 5.3012,
+              "pct": 2.54
             },
             {
               "etTime": "10:00",
               "kstTime": "03:00(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 5.11,
-              "pct": -1.16
+              "price": 5.1073,
+              "pct": -1.21
             },
             {
               "etTime": "17:10",
@@ -1345,7 +1345,7 @@ window.LEDGER = {
               "kstTime": "10:15(익일)",
               "session": "애프터마켓",
               "dir": "음전",
-              "price": 5.15,
+              "price": 5.1497,
               "pct": -0.39
             },
             {
@@ -1353,7 +1353,7 @@ window.LEDGER = {
               "kstTime": "10:25(익일)",
               "session": "애프터마켓",
               "dir": "양전",
-              "price": 5.19,
+              "price": 5.1903,
               "pct": 0.39
             },
             {
@@ -1361,16 +1361,16 @@ window.LEDGER = {
               "kstTime": "10:55(익일)",
               "session": "애프터마켓",
               "dir": "음전",
-              "price": 5.15,
-              "pct": -0.39
+              "price": 5.1501,
+              "pct": -0.38
             },
             {
-              "etTime": "18:15",
-              "kstTime": "11:15(익일)",
+              "etTime": "18:10",
+              "kstTime": "11:10(익일)",
               "session": "애프터마켓",
               "dir": "양전",
-              "price": 5.19,
-              "pct": 0.39
+              "price": 5.1722,
+              "pct": 0.04
             }
           ]
         }
@@ -1490,8 +1490,8 @@ window.LEDGER = {
               "kstTime": "03:40(익일)",
               "session": "본장",
               "dir": "양전",
-              "price": 5.86,
-              "pct": 2.99
+              "price": 5.865,
+              "pct": 3.08
             }
           ]
         }
@@ -1535,15 +1535,15 @@ window.LEDGER = {
               "kstTime": "02:50(익일)",
               "session": "본장",
               "dir": "양전",
-              "price": 5.97,
-              "pct": 0.67
+              "price": 5.965,
+              "pct": 0.59
             },
             {
               "etTime": "10:05",
               "kstTime": "03:05(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 5.79,
+              "price": 5.7901,
               "pct": -2.36
             },
             {
@@ -1551,8 +1551,8 @@ window.LEDGER = {
               "kstTime": "03:45(익일)",
               "session": "본장",
               "dir": "양전",
-              "price": 6.0,
-              "pct": 1.18
+              "price": 5.998,
+              "pct": 1.15
             }
           ]
         }
@@ -1601,23 +1601,23 @@ window.LEDGER = {
           "regClose": 4.72,
           "endState": "음수",
           "reg": {
-            "up": 1,
-            "down": 2
+            "up": 2,
+            "down": 3
           },
           "ext": {
-            "up": 2,
-            "down": 2
+            "up": 3,
+            "down": 3
           },
-          "totalUp": 3,
-          "totalDown": 4,
+          "totalUp": 5,
+          "totalDown": 6,
           "crossings": [
             {
               "etTime": "04:15",
               "kstTime": "21:15",
               "session": "프리마켓",
               "dir": "음전",
-              "price": 4.93,
-              "pct": -0.8
+              "price": 4.9305,
+              "pct": -0.79
             },
             {
               "etTime": "04:30",
@@ -1632,8 +1632,24 @@ window.LEDGER = {
               "kstTime": "22:00",
               "session": "프리마켓",
               "dir": "음전",
-              "price": 4.96,
-              "pct": -0.2
+              "price": 4.9605,
+              "pct": -0.19
+            },
+            {
+              "etTime": "06:25",
+              "kstTime": "23:25",
+              "session": "프리마켓",
+              "dir": "양전",
+              "price": 4.9709,
+              "pct": 0.02
+            },
+            {
+              "etTime": "06:30",
+              "kstTime": "23:30",
+              "session": "프리마켓",
+              "dir": "음전",
+              "price": 4.9495,
+              "pct": -0.41
             },
             {
               "etTime": "08:20",
@@ -1648,7 +1664,7 @@ window.LEDGER = {
               "kstTime": "02:35(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 4.93,
+              "price": 4.9301,
               "pct": -0.8
             },
             {
@@ -1664,8 +1680,24 @@ window.LEDGER = {
               "kstTime": "02:45(익일)",
               "session": "본장",
               "dir": "음전",
-              "price": 4.95,
-              "pct": -0.4
+              "price": 4.9514,
+              "pct": -0.37
+            },
+            {
+              "etTime": "09:50",
+              "kstTime": "02:50(익일)",
+              "session": "본장",
+              "dir": "양전",
+              "price": 4.975,
+              "pct": 0.1
+            },
+            {
+              "etTime": "09:55",
+              "kstTime": "02:55(익일)",
+              "session": "본장",
+              "dir": "음전",
+              "price": 4.94,
+              "pct": -0.6
             }
           ]
         }

@@ -131,7 +131,7 @@
           <span class="text-sub tabular-nums" style="min-width:128px">${esc(c.etTime)} ET · ${esc(c.kstTime)} KST</span>
           <span class="text-sub" style="min-width:54px">${esc(c.session)}</span>
           <span class="${dc} font-bold" style="min-width:34px">${esc(c.dir)}</span>
-          <span class="tabular-nums text-muted">$${fmtUSD(c.price)} <span class="${dc} font-semibold">(${c.pct > 0 ? '+' : ''}${c.pct}%)</span></span>
+          <span class="tabular-nums text-muted">$${(Math.abs(c.price) >= 20 ? Number(c.price).toFixed(2) : Number(c.price).toFixed(4))} <span class="${dc} font-semibold">(${c.pct > 0 ? '+' : ''}${c.pct}%)</span></span>
         </div>`;
       }).join('');
       const detail = total
