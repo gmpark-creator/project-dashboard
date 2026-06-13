@@ -302,19 +302,20 @@ const PROJECTS = [
   {
     id: 'us-kr-premarket',
     no: 6,
-    name: 'US-KR Premarket Signal',
-    subtitle: '증권 — 미국 시장 종가가 한국 프리마켓에 미치는 영향 신호 대시보드',
+    name: 'Polaris Market Intelligence',
+    subtitle: '증권 — 미국·한국 증시를 잇는 주식 차트 길잡이 터미널 · 3개 카테고리(① SOXL 실시간 시세 · ② Premarket Signal · ③ 6월 시세·이벤트 데이터) — VIEW LIVE = 카테고리 선택창',
     icon: 'trending-up',
     platform: '웹 앱 · Vite + React + TypeScript · Codex 트랙',
     status: 'in-progress',
     start: '2026-05-28',
-    latest: '2026-06-11',
+    latest: '2026-06-13',
     progress: 30,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
     preview: { type:'embed', height:600, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'US-KR Premarket 카테고리 허브 — ①SOXL 실시간 시세 ②Premarket Signal 진입 랜딩 (2026-06-11 통합)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일, 본장 마감/시간외 이원 시세 (Claude 트랙)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/phase1/', label:'US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, 허브 통합으로 phase1/ 이동)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'Polaris Market Intelligence 카테고리 허브 — VIEW LIVE 진입 시 ①SOXL 실시간 시세 ②Premarket Signal ③6월 시세·이벤트 데이터 3개 카테고리 선택창 (2026-06-13 개편)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/market-ledger/', label:'③ Market Ledger — 삼성·하이닉스(KOSPI)·SOXL·SOXS(US) 6월 시작가/종가·전일대비, 본장/야간 시세 + 미국·한국 6월 증시 캘린더 (실측·이중 교차검증, Claude 2026-06-13 신규)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'① SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일, 본장 마감/시간외 이원 시세 (Claude 트랙)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/phase1/', label:'② US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, 허브 통합으로 phase1/ 이동)' }
     ]},
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을\n'
            + '분석·시각화하는 연구용 대시보드.\n'

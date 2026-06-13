@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polaris · Market Ledger — 6월 시세·이벤트 데이터</title>
+<meta name="description" content="삼성전자·SK하이닉스(KOSPI)와 SOXL·SOXS(US) 2026년 6월 시세, 그리고 6월 미국·한국 증시 캘린더. 실측 데이터(Yahoo·Naver 이중 검증). 연구용.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    base:'#0B1120', panel:'#0f1a2e', panel2:'#13203a', line:'#243352',
+    ink:'#e8eefb', muted:'#93a4c4', sub:'#64759a',
+    up:'#f6465d', down:'#3b82f6', sky:'#38bdf8', violet:'#a78bfa', emerald:'#34d399', gold:'#fbbf24'
+  } } } };
+</script>
+<style>
+  :root{ color-scheme:dark; }
+  html,body{ margin:0; }
+  body{ font-family:'Pretendard',-apple-system,'Malgun Gothic',sans-serif; background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 0%, rgba(167,139,250,.06), transparent 55%), #0B1120;
+    color:#e8eefb; -webkit-font-smoothing:antialiased; letter-spacing:-.01em; word-break:keep-all; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:#243352; border-radius:8px; }
+  .card{ background:rgba(15,26,46,.75); border:1px solid #243352; border-radius:16px; }
+  .tab{ transition:all .15s ease; }
+  .tab.active{ background:rgba(56,189,248,.14); color:#fff; border-color:rgba(56,189,248,.5); }
+  .badge{ font-variant-numeric:tabular-nums; font-weight:700; border-radius:7px; padding:2px 7px; font-size:12px; display:inline-block; }
+  .up{ color:#f6465d; } .down{ color:#3b82f6; } .flat{ color:#93a4c4; }
+  .badge-up{ color:#f6465d; background:rgba(246,70,93,.12); } .badge-down{ color:#3b82f6; background:rgba(59,130,246,.14); }
+  .badge-flat{ color:#93a4c4; background:rgba(147,164,196,.12); }
+  table{ border-collapse:collapse; width:100%; }
+  th,td{ padding:9px 12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  thead th{ position:sticky; top:0; background:#0f1a2e; color:#93a4c4; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #243352; z-index:1; }
+  tbody tr{ border-bottom:1px solid rgba(36,51,82,.55); }
+  tbody tr:hover{ background:rgba(56,189,248,.05); }
+  .sec{ display:none; } .sec.on{ display:block; }
+  @keyframes pulseDot{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+  .live-dot{ animation:pulseDot 1.6s ease-in-out infinite; }
+  .imp-top{ border-left:3px solid #f6465d; }
+  .imp-high{ border-left:3px solid #fbbf24; }
+  .imp-norm{ border-left:3px solid #3b82f6; }
+  .cal-cell{ background:rgba(19,32,58,.55); border:1px solid #243352; border-radius:11px; }
+  .holiday{ background:repeating-linear-gradient(45deg, rgba(246,70,93,.05), rgba(246,70,93,.05) 8px, transparent 8px, transparent 16px); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ===== 헤더 ===== -->
+<header class="border-b border-line bg-gradient-to-b from-panel/80 to-transparent">
+  <div class="max-w-[1240px] mx-auto px-5 py-5">
+    <div class="flex items-center gap-2 text-[11px] font-bold tracking-[.18em] text-sky uppercase">
+      <a href="../" class="hover:text-white text-sub"><i class="fa-solid fa-chevron-left mr-1"></i>Polaris</a>
+      <span class="text-sub">/</span>
+      <i class="fa-solid fa-table-list"></i><span>Market Ledger · 카테고리 ③</span>
+      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-emerald/10 ring-1 ring-emerald/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald normal-case tracking-normal">
+        <span class="live-dot w-1.5 h-1.5 rounded-full bg-emerald"></span>실측 데이터 · 이중 교차검증
+      </span>
+    </div>
+    <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold text-white">6월 시세 · 이벤트 데이터</h1>
+    <p class="mt-1.5 text-sm text-muted">삼성전자·SK하이닉스(KOSPI)와 SOXL·SOXS(US)의 2026년 6월 시세, 그리고 미국·한국 증시 6월 캘린더.
+      <span class="text-sub">시세 <b class="text-muted" id="hdr-pp">—</b> · 캘린더 <b class="text-muted" id="hdr-cp">—</b> · 기준 <b class="text-muted" id="hdr-asof">—</b></span></p>
+  </div>
+</header>
+
+<!-- ===== 탭 ===== -->
+<div class="sticky top-0 z-20 bg-base/85 backdrop-blur border-b border-line">
+  <div class="max-w-[1240px] mx-auto px-5 py-2.5 flex flex-wrap gap-2 text-sm font-bold">
+    <button data-tab="kr"  class="tab active px-3.5 py-1.5 rounded-full border border-line text-muted"><i class="fa-solid fa-won-sign mr-1.5"></i>한국 · 삼성·하이닉스</button>
+    <button data-tab="us"  class="tab px-3.5 py-1.5 rounded-full border border-line text-muted"><i class="fa-solid fa-dollar-sign mr-1.5"></i>미국 · SOXL·SOXS</button>
+    <button data-tab="cal" class="tab px-3.5 py-1.5 rounded-full border border-line text-muted"><i class="fa-regular fa-calendar-days mr-1.5"></i>6월 증시 캘린더</button>
+  </div>
+</div>
+
+<main class="max-w-[1240px] mx-auto px-5 py-6">
+
+  <!-- ===== 섹션 1: 한국 ===== -->
+  <section id="sec-kr" class="sec on">
+    <div class="grid gap-4 lg:grid-cols-2" id="kr-cards"></div>
+    <div class="card p-4 mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-chart-line text-sky mr-1.5"></i>종가 추이 <span class="text-sub text-xs font-medium">(6/1 종가 = 100 기준 리베이스)</span></h3>
+        <span class="text-[11px] text-sub">상승 <span class="up font-bold">빨강</span> · 하락 <span class="down font-bold">파랑</span> (국내 관례)</span>
+      </div>
+      <div class="h-[260px]"><canvas id="krChart"></canvas></div>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-2 mt-4" id="kr-tables"></div>
+  </section>
+
+  <!-- ===== 섹션 2: 미국 ===== -->
+  <section id="sec-us" class="sec">
+    <div class="grid gap-4 lg:grid-cols-2" id="us-cards"></div>
+    <div class="card p-4 mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-chart-line text-sky mr-1.5"></i>본장 종가 추이 <span class="text-sub text-xs font-medium">(6/1 종가 = 100 기준 리베이스)</span></h3>
+        <span class="text-[11px] text-sub">SOXL=반도체 3배 롱 · SOXS=3배 숏 (역방향)</span>
+      </div>
+      <div class="h-[260px]"><canvas id="usChart"></canvas></div>
+    </div>
+    <div class="mt-4 space-y-4" id="us-tables"></div>
+    <div class="card p-4 mt-4 text-[12.5px] text-muted leading-relaxed">
+      <b class="text-white"><i class="fa-solid fa-circle-info text-gold mr-1"></i>"미국 야간선물시장" 정의</b> —
+      SOXL·SOXS는 ETF로 자체 선물 계약이 없습니다. 본 표의 <b class="text-ink">시간외(야간)</b>는 미 정규장 전후의 <b class="text-ink">확장 거래시간(pre-market 04:00 ET + after-hours ~20:00 ET)</b> 세션을 뜻하며,
+      한국 시간 기준 낮~저녁에 해당하는 미국 종목의 야간/시간외 반응 구간입니다. <b class="text-ink">시간외 시작가</b>=프리마켓 첫 체결, <b class="text-ink">시간외 종가</b>=애프터마켓 마지막 체결.
+      <span class="text-sub">시간외 전일比% = 당일 시간외 종가가 전일(직전 거래일) 시간외 종가 대비 움직인 폭(첫날은 직전 데이터 없어 '—').</span>
+    </div>
+  </section>
+
+  <!-- ===== 섹션 3: 캘린더 ===== -->
+  <section id="sec-cal" class="sec">
+    <div class="card p-4 mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
+      <span class="font-bold text-white text-[14px]"><i class="fa-regular fa-calendar-days text-sky mr-1.5"></i>2026년 6월 증시 캘린더</span>
+      <span class="text-muted"><span class="badge imp-top bg-transparent px-2">최우선</span> 그날 증시를 좌우</span>
+      <span class="text-muted"><span class="badge imp-high bg-transparent px-2">높음</span></span>
+      <span class="text-muted"><span class="badge imp-norm bg-transparent px-2">보통</span></span>
+      <span class="text-sub ml-auto">발생(6/1~12) · <span class="text-muted">예정(6/13~30)</span> · 출처 표기</span>
+    </div>
+    <div id="cal-status" class="card p-6 text-center text-muted text-sm">캘린더 데이터를 불러오는 중…</div>
+    <div id="cal-grid" class="space-y-3"></div>
+  </section>
+
+</main>
+
+<footer class="border-t border-line mt-8">
+  <div class="max-w-[1240px] mx-auto px-5 py-5 text-[11px] text-sub flex flex-wrap items-center justify-between gap-2">
+    <span id="ftr-src">출처: —</span>
+    <span>For research only — not investment advice · 자동주문·브로커리지 없음 · <span class="font-semibold tracking-wider text-muted">G.M.PARK</span></span>
+  </div>
+</footer>
+
+<script src="./data.js"></script>
+<script src="./ledger.js"></script>
+</body>
+</html>
