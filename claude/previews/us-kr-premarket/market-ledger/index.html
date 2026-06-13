@@ -153,9 +153,36 @@
         </table>
       </div>
       <div class="text-[11px] text-sub mt-2 leading-relaxed">
-        ※ 한국 낮 14시처럼 보이는 SOXL·SOXS 변동 = <b class="text-sky">미 오버나이트(Blue Ocean ATS)</b> 구간(미 야간 20~04 ET = 한국 낮 09~17 KST). 미국 본장 전·후(프리/애프터)와 더해 <b>거래일(주중) 기준 사실상 24시간</b> 거래됩니다. <span class="text-sub">(Blue Ocean은 미 동부 일~목 저녁 운영 — 한국 월~금 낮. 한국 브로커는 이걸 한국 낮이라 '주간거래/데이마켓'이라 부름.)</span> <span class="text-sub">(SOXL/SOXS는 ETF라 '선물' 자체는 없음 — 이 야간 변동은 실제 종목의 ATS 체결입니다. 나스닥·S&P '지수선물'은 별도로 CME에서 24h 거래.)</span><br>
+        ※ 한국 낮 14시처럼 보이는 SOXL·SOXS 변동 = <b class="text-sky">미 오버나이트(Blue Ocean ATS)</b> 구간(미 야간 20~04 ET = 한국 낮 09~17 KST). 미국 본장 전·후(프리/애프터)와 더해 <b>거래일(주중) 기준 사실상 24시간</b> 거래됩니다. <span class="text-sub">(Blue Ocean은 미 동부 일~목 저녁 운영 — 한국 월~금 낮. 한국 브로커는 이걸 한국 낮이라 '주간거래/데이마켓'이라 부름.)</span> <span class="text-sub">(SOXL·SOXS <b>ETF 자체엔</b> 선물이 없지만, <b class="text-gold">반도체 섹터 지수 선물</b>(CME E-mini PHLX Semiconductor Sector futures)은 거의 24시간 거래되어 야간 방향의 선행 신호가 됩니다 — 아래 별도 표 참조. SOXL 야간 변동 자체는 실제 종목의 ATS 체결.)</span><br>
         ※ <b class="text-gold">데이터 주의</b>: 위 ③ 시세표의 <b class="text-ink">시간외 시가/종가</b>는 <b class="text-ink">프리마켓 시가(04:00 ET=17:00 KST) + 애프터마켓 종가(20:00 ET=09:00 KST)</b> 기준입니다(Yahoo Finance). <b class="text-sky">미 오버나이트(Blue Ocean) 체결가</b>는 무료 공개 API가 없어 표의 수치엔 미반영 — 세션 시간만 위에 안내합니다.
         겨울(미 표준시 EST, 11~3월)에는 한국시각이 1시간씩 늦춰집니다(본장 23:30~06:00 KST · 미 오버나이트 10:00~18:00 KST).
+      </div>
+    </div>
+
+    <!-- 반도체 섹터 선물 (미국 야간 선물 시간대) -->
+    <div class="card p-4 mt-4" style="border-color:rgba(245,158,11,.4)">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-clock-rotate-left text-gold mr-1.5"></i>반도체 섹터 선물 — "미국 야간 선물 시간대"</h3>
+        <span class="text-[11px] text-sub">CME E-mini PHLX Semiconductor Sector 선물 · 거의 24시간</span>
+      </div>
+      <div class="text-[12.5px] text-muted leading-relaxed">
+        SOXL·SOXS ETF 자체엔 선물이 없지만, <b class="text-ink">반도체 섹터 지수(PHLX 반도체지수 SOX)에는 CME 선물 「E-mini PHLX Semiconductor Sector futures」(CME 룰북 Ch.380)이 존재</b>하며 <b class="text-gold">거의 24시간</b> 거래됩니다. <span class="text-sub">(TradingView 연속선물 표기 SOX1! · 유동성은 지수선물 중 작은 편)</span>
+        미 정규장(09:30~16:00 ET)이 닫힌 <b class="text-ink">야간에도 반도체 섹터가 선물로 실시간 거래</b>되므로, 이 선물 가격이 <b class="text-sky">SOXL·SOXS의 야간/익일 방향을 가늠하는 선행 신호</b>가 됩니다(박사 지적대로).
+      </div>
+      <div class="overflow-x-auto mt-3">
+        <table class="w-full text-[12.5px]">
+          <thead><tr><th class="text-left">구분</th><th class="text-right">현지 시각 (ET·동부)</th><th class="text-right">한국 시각 (KST)</th></tr></thead>
+          <tbody>
+            <tr><td class="font-bold text-white">선물 거래(주간 전체)</td><td class="text-right tabular-nums">일 18:00 ~ 금 17:00</td><td class="text-right tabular-nums">월 07:00 ~ 토 06:00</td></tr>
+            <tr><td class="text-gold font-semibold">일일 정비 휴장</td><td class="text-right tabular-nums">매일 17:00 ~ 18:00</td><td class="text-right tabular-nums">매일 06:00 ~ 07:00</td></tr>
+            <tr style="background:rgba(245,158,11,.08)"><td class="font-bold text-gold">★ 미국 야간 구간<br><span class="text-[10px] text-sub font-normal">미 본장 마감~다음 개장(선물 + ETF 시간외·오버나이트 거래)</span></td><td class="text-right tabular-nums">16:00 ~ 익 09:30</td><td class="text-right tabular-nums font-bold text-gold">05:00 ~ 22:30</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-[11px] text-sub mt-2 leading-relaxed">
+        ※ "미국 야간 선물 시간대" = 미 본장 마감(16:00 ET=05:00 KST) 후 다음 개장(09:30 ET=22:30 KST) 전까지 — 이때 현물 정규장은 닫혀 있어도 <b class="text-gold">반도체 섹터 선물은 계속 거래</b>되고, SOXL·SOXS ETF도 애프터마켓·오버나이트(Blue Ocean)·프리마켓에서 함께 거래됩니다(선물 정비 휴장 매일 17:00~18:00 ET·주말 제외).
+        <b class="text-gold">정밀 구분</b>: SOXL/SOXS가 추종하는 건 <b class="text-ink">NYSE Semiconductor Index</b>(Direxion 공식 표기, SOXX와 동일 계열)이고 이 선물의 기초는 <b class="text-ink">PHLX 반도체지수(SOX)</b> — <b>서로 다른 반도체 지수</b>라 대체로 동행하지만 SOXL NAV를 <b>기계적으로 결정하지는 않습니다</b>(선물은 동행·선행 지표). SOXL 가격(NAV)은 실제 추종지수·구성주로 산정.
+        시각은 6월(서머타임 EDT) 기준 · 겨울(EST)은 KST 1시간씩 지연. 출처: CME Group(룰북 Ch.380) · TradingView.
       </div>
     </div>
 
