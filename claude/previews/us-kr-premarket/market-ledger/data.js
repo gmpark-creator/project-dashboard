@@ -9,7 +9,7 @@ window.LEDGER = {
   "sources": {
     "kospi": "Naver Finance siseJson.naver + Yahoo Finance chart API (이중 교차검증 — OHLC 완전 일치, 거래량 Naver 채택)",
     "us": "Yahoo Finance chart API — 정규장 일봉(본장) + 30분봉 시간외(pre/post) 세션 분류",
-    "flips": "장중 양전/음전 전환 — Yahoo Finance 5분봉(시간외 포함, includePrePost) 종가가 전일 정규장 종가(0%선) 위/아래로 교차한 횟수. 양전=음→양(전일종가 상향 돌파), 음전=양→음. 세션(본장/시간외)별 태깅. 해상도 5분(그보다 빠른 전환 미포착) · Blue Ocean 주간거래(09~17 KST)는 무료 데이터 부재로 미포함.",
+    "flips": "장중 양전/음전 전환 — Yahoo Finance 5분봉(시간외 포함, includePrePost) 종가가 전일 정규장 종가(0%선) 위/아래로 교차한 횟수. 양전=음→양(전일종가 상향 돌파), 음전=양→음. 세션(본장/시간외)별 태깅. 해상도 5분(그보다 빠른 전환 미포착) · 미 오버나이트(Blue Ocean ATS, 한국 낮 09~17 KST)는 무료 데이터 부재로 미포함.",
     "calendar": "멀티에이전트 웹리서치 6트랙 + 적대적 검증(독립 재확인) 후 중복 병합. 총 69건 (confirmed 62·date-corrected 3·downgraded 4). dropped(환각) 제외, 각 항목 1차 출처 링크 표기.",
     "impact": "지수 영향 레이어 — ① 발생(6/1~12) 이벤트엔 그날 5대 지수 '실측' 등락 부착(사실). ② 금리 동결/인하/인상 확률은 CME FedWatch/선물 등 시장 내재확률 실측. ③ 시나리오별 분기확률·지수 영향 %는 Claude Opus 4.8 과 Codex GPT 5.5 두 모델이 '각각 독립 예측'한 값을 병기(모델 추정·범위 — 실측 아님, 투자자문 아님). 두 모델이 무조건적 확률·범위로 제시(‘모름’ 없음). 책임은 이용자에게 있음."
   },
