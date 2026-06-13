@@ -120,22 +120,28 @@
         <tbody>${body}</tbody>
       </table></div>`);
   }
-  function flipsCard(meta, rows) {
+  function flipsCard(meta, rows, opts) {
+    opts = opts || {};
+    const krw = opts.ccy === 'KRW', showET = !!opts.showET;
+    const px = v => v == null ? '—' : (krw ? '₩' + fmtKRW(Math.round(v)) : '$' + (Math.abs(v) >= 20 ? Number(v).toFixed(2) : Number(v).toFixed(4)));
     const days = rows.filter(r => r.flips);
     const body = !days.length ? '<div class="text-[12px] text-sub p-2">장중 전환 데이터 없음.</div>' : days.map(r => {
       const f = r.flips, total = f.totalUp + f.totalDown;
       const stateCls = f.endState === '양수' ? 'badge-up' : f.endState === '음수' ? 'badge-down' : 'badge-flat';
       const cross = (f.crossings || []).map(c => {
         const dc = c.dir === '양전' ? 'up' : 'down';
+        const tstr = (showET && c.etTime) ? `${esc(c.etTime)} ET · ${esc(c.kstTime)} KST` : `${esc(c.kstTime)} KST`;
         return `<div class="flex flex-wrap items-center gap-x-2 text-[11px] py-1 border-b" style="border-color:rgba(36,51,82,.45)">
-          <span class="text-sub tabular-nums" style="min-width:128px">${esc(c.etTime)} ET · ${esc(c.kstTime)} KST</span>
+          <span class="text-sub tabular-nums" style="min-width:${showET ? 128 : 64}px">${tstr}</span>
           <span class="text-sub" style="min-width:54px">${esc(c.session)}</span>
           <span class="${dc} font-bold" style="min-width:34px">${esc(c.dir)}</span>
-          <span class="tabular-nums text-muted">$${(Math.abs(c.price) >= 20 ? Number(c.price).toFixed(2) : Number(c.price).toFixed(4))} <span class="${dc} font-semibold">(${c.pct > 0 ? '+' : ''}${c.pct}%)</span></span>
+          <span class="tabular-nums text-muted">${px(c.price)} <span class="${dc} font-semibold">(${c.pct > 0 ? '+' : ''}${c.pct}%)</span></span>
         </div>`;
       }).join('');
-      const detail = total
-        ? `<div class="text-[10.5px] text-sub mt-1 mb-1">본장 <span class="up font-bold">양${f.reg.up}</span>·<span class="down font-bold">음${f.reg.down}</span> / 시간외 <span class="up font-bold">양${f.ext.up}</span>·<span class="down font-bold">음${f.ext.down}</span> · 기준 전일종가 $${fmtUSD(f.prevClose)}</div>${cross}`
+      const brk = krw
+        ? `<div class="text-[10.5px] text-sub mt-1 mb-1">정규장 <span class="up font-bold">양${f.reg.up}</span>·<span class="down font-bold">음${f.reg.down}</span> · 기준 전일종가 ${px(f.prevClose)}</div>`
+        : `<div class="text-[10.5px] text-sub mt-1 mb-1">본장 <span class="up font-bold">양${f.reg.up}</span>·<span class="down font-bold">음${f.reg.down}</span> / 시간외 <span class="up font-bold">양${f.ext.up}</span>·<span class="down font-bold">음${f.ext.down}</span> · 기준 전일종가 ${px(f.prevClose)}</div>`;
+      const detail = total ? brk + cross
         : `<div class="text-[11px] text-sub mt-1">전환 0회 — 장 시작부터 마감까지 전일종가 한쪽(${f.endState})만 유지(교차 없음).</div>`;
       return `<details class="scn" style="border-bottom:1px solid #243352;padding-bottom:6px">
         <summary><i class="fa-solid fa-chevron-right chev text-[9px]"></i>
@@ -148,11 +154,11 @@
         <div class="mt-1 pl-1">${detail}</div>
       </details>`;
     }).join('');
+    const tag = meta.tag ? `<span class="text-[11px] font-bold ${meta.dir === 'bear' ? 'text-down' : 'text-up'}">${esc(meta.tag)}</span>` : '';
     return el('div', 'card overflow-hidden', `
       <div class="px-4 py-3 border-b border-line flex items-center gap-2">
-        <span class="font-bold text-white text-sm">${meta.ticker}</span>
-        <span class="text-[11px] font-bold ${meta.dir === 'bull' ? 'text-up' : 'text-down'}">${meta.tag}</span>
-        <span class="text-xs text-sub">장중 양전·음전 전환</span>
+        <span class="font-bold text-white text-sm">${esc(meta.ticker)}</span>${tag}
+        <span class="text-xs text-sub">${esc(meta.sub || '장중 양전·음전 전환')}</span>
       </div>
       <div class="p-3 space-y-1.5">${body}</div>`);
   }
@@ -161,7 +167,12 @@
     const Sx = { ticker: 'SOXS', name: 'Direxion 반도체 3배 숏', tag: '3× BEAR', dir: 'bear' };
     $('#us-cards').append(usCard(L, D.us.soxl), usCard(Sx, D.us.soxs));
     $('#us-tables').append(usTable(L, D.us.soxl), usTable(Sx, D.us.soxs));
-    if ($('#us-flips')) $('#us-flips').append(flipsCard(L, D.us.soxl), flipsCard(Sx, D.us.soxs));
+    if ($('#us-flips')) $('#us-flips').append(flipsCard(L, D.us.soxl, { ccy: 'USD', showET: true }), flipsCard(Sx, D.us.soxs, { ccy: 'USD', showET: true }));
+  }
+  if (D.kospi && $('#kr-flips')) {
+    $('#kr-flips').append(
+      flipsCard({ ticker: '삼성전자', sub: '005930' }, D.kospi.samsung, { ccy: 'KRW', showET: false }),
+      flipsCard({ ticker: 'SK하이닉스', sub: '000660' }, D.kospi.hynix, { ccy: 'KRW', showET: false }));
   }
 
   /* ===================== 차트 ===================== */

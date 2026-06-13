@@ -106,6 +106,18 @@
       <div class="h-[260px]"><canvas id="krChart"></canvas></div>
     </div>
     <div class="grid gap-4 lg:grid-cols-2 mt-4" id="kr-tables"></div>
+
+    <!-- 장중 양전·음전 전환 (KOSPI) -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-arrows-up-down text-gold mr-1.5"></i>장중 양전·음전 전환 횟수 <span class="text-sub text-xs font-medium">(전일 종가 = 0% 기준 · 정규장)</span></h3>
+        <span class="text-[11px] text-sub"><span class="up font-bold">양전</span> 음→양 · <span class="down font-bold">음전</span> 양→음</span>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-2" id="kr-flips"></div>
+      <div class="card p-3 mt-3 text-[11px] text-sub leading-relaxed">
+        <b class="text-muted"><i class="fa-solid fa-book mr-1"></i>근거·방법론</b> — 출처: <b class="text-ink">Yahoo Finance 5분봉</b>. 5분봉 종가가 <b class="text-ink">전일 종가(0%선)</b>를 <b class="text-ink">확실히</b> 넘을 때만 1회로 집계 — <b class="text-gold">0.00%(전일종가 도달/보합)는 전환으로 세지 않고</b>, 직전 확정 부호를 유지하다 <b class="text-up">반대 부호(±)</b>로 바뀔 때만(0% 터치·미교차는 제외, 독립 알고리즘 검증 완료). 한국 <b class="text-ink">정규장(09:00~15:30)</b> 기준(시간외단일가 제외) · 해상도 5분. 6/3은 지방선거 휴장.
+      </div>
+    </div>
   </section>
 
   <!-- ===== 섹션 2: 미국 ===== -->
@@ -163,7 +175,7 @@
       </div>
       <div class="grid gap-4 lg:grid-cols-2" id="us-flips"></div>
       <div class="card p-3 mt-3 text-[11px] text-sub leading-relaxed">
-        <b class="text-muted"><i class="fa-solid fa-book mr-1"></i>근거·방법론</b> — 출처: <b class="text-ink">Yahoo Finance 5분봉</b>(시간외 포함, includePrePost). 5분봉 종가가 <b class="text-ink">전일 정규장 종가(0%선)</b> 위/아래로 교차할 때마다 1회로 집계. 세션(본장/시간외)별 태깅, 각 전환의 시각(ET·KST)·가격·등락%를 근거로 기록(행 펼치기).
+        <b class="text-muted"><i class="fa-solid fa-book mr-1"></i>근거·방법론</b> — 출처: <b class="text-ink">Yahoo Finance 5분봉</b>(시간외 포함, includePrePost). 5분봉 종가가 <b class="text-ink">전일 종가(0%선)</b>를 <b class="text-ink">확실히</b> 넘을 때만 1회로 집계 — <b class="text-gold">0.00%(전일종가 도달/보합)는 전환으로 세지 않고</b> 직전 확정 부호를 유지하다 <b class="text-up">반대 부호(±)</b>로 바뀔 때만(0% 터치·미교차 제외, 독립 알고리즘 검증 완료). 세션(본장/시간외)별 태깅, 각 전환 시각(ET·KST)·가격·등락%를 근거로 기록(행 펼치기).
         <b class="text-gold">한계</b>: 5분 해상도(그보다 빠른 전환 미포착) · <b class="text-sky">미 오버나이트(Blue Ocean, 한국 낮 09~17 KST)</b>는 무료 공개 데이터 부재로 미포함(본장+프리/애프터마켓만). 재현: fetch 5m + flips.py.
       </div>
     </div>
