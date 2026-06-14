@@ -4,17 +4,17 @@
    ============================================================ */
 
 :root {
-  /* 기본 폴백 (data-mode/data-color 미설정 시) = dark · violet */
-  --ink: #130f26;
+  /* 기본 폴백 (data-mode/data-color 미설정 시) = dark · teal (FitRx 임상 톤) · 박사 지시 2026-06-14 */
+  --ink: #04181f;
   --paper: #f5f5f4;
-  --orange: #a78bfa;
-  --orange-dim: #8b6ef0;
-  --orange-soft: #ede9ff;
+  --orange: #22d3ee;
+  --orange-dim: #0891b2;
+  --orange-soft: #cffafe;
   --gray-9: #ececec;
   --gray-7: #b5b5b5;
   --gray-5: #8a8a8a;
   --gray-3: #404040;
-  --gray-1: #1d1934;
+  --gray-1: #0a2630;
 }
 
 /* ============================================================
@@ -42,9 +42,9 @@ html[data-color="rose"]   { --ink-dark:#1c0a10; --gray1-dark:#2b1219; --accent-d
 
 /* ---- DARK 모드 (기본) ---- */
 html[data-mode="dark"] {
-  --ink:    var(--ink-dark, #130f26);
-  --gray-1: var(--gray1-dark, #1d1934);
-  --orange: var(--accent-dark, #a78bfa);
+  --ink:    var(--ink-dark, #04181f);
+  --gray-1: var(--gray1-dark, #0a2630);
+  --orange: var(--accent-dark, #22d3ee);
   --paper:  #f5f5f4;
   --gray-9: #ececec;
   --gray-7: #b5b5b5;
@@ -1750,3 +1750,96 @@ html[data-mode="light"] .atlas-unused-item { border-top-color: rgba(0,0,0,0.08);
   .atlas-unused-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 680px) { .atlas-unused-grid { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   미해결 프로젝트 + Tech Stack Collection 홈 섹션 (박사 지시 2026-06-14)
+   ============================================================ */
+.s-unresolved {
+  background: var(--ink); color: var(--paper);
+  padding: 76px 0 110px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+html[data-mode="light"] .s-unresolved { border-top-color: rgba(0,0,0,0.10); }
+.unresolved-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+@media (max-width: 1000px) { .unresolved-grid { grid-template-columns: 1fr; } }
+.unresolved-card {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 24px 22px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: rgba(255,255,255,0.02);
+  position: relative; overflow: hidden;
+}
+html[data-mode="light"] .unresolved-card { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.02); }
+.unresolved-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--st-pause);
+}
+.unresolved-top { display: flex; align-items: flex-start; gap: 12px; }
+.unresolved-top .card-emblem { width: 34px; height: 34px; margin: 0; flex-shrink: 0; color: var(--orange); }
+.unresolved-id { flex: 1; min-width: 0; }
+.unresolved-id .tag {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--gray-5); display: block;
+}
+.unresolved-name {
+  font-family: var(--font-display); font-weight: 800; font-size: 19px;
+  letter-spacing: -0.015em; margin: 2px 0 0; line-height: 1.15;
+}
+.unresolved-badge {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 999px;
+  color: var(--st-pause); border: 1px solid var(--st-pause);
+  flex-shrink: 0; align-self: flex-start;
+}
+.unresolved-sub { font-size: 12.5px; line-height: 1.55; opacity: 0.6; margin: 0; }
+.unresolved-reason { font-size: 13px; line-height: 1.6; margin: 2px 0 0; }
+.unresolved-reason strong { color: var(--orange); font-weight: 700; }
+.unresolved-blockers {
+  list-style: none; margin: 4px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.unresolved-blockers li {
+  font-size: 12.5px; line-height: 1.55; opacity: 0.78;
+  padding-left: 16px; position: relative;
+}
+.unresolved-blockers li::before { content: "—"; position: absolute; left: 0; color: var(--st-pause); opacity: 0.8; }
+.unresolved-cta {
+  margin-top: auto; padding-top: 8px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+  color: var(--orange); text-decoration: none; font-weight: 600;
+  display: inline-flex; gap: 6px; align-items: center;
+}
+.unresolved-cta:hover { text-decoration: underline; }
+
+/* Tech Stack Collection — 홈 전용 섹션 (기술 스택 총집합 아래) */
+.s-techstack {
+  background: var(--ink); color: var(--paper);
+  padding: 76px 0 130px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+html[data-mode="light"] .s-techstack { border-top-color: rgba(0,0,0,0.10); }
+.techstack-subtitle { font-size: 14px; line-height: 1.6; opacity: 0.72; max-width: 880px; margin: 0 0 16px; }
+.techstack-summary { font-size: 13.5px; line-height: 1.75; opacity: 0.62; max-width: 880px; margin: 0 0 28px; }
+
+/* 프로젝트 상세 — 미해결 「난관」 박스 */
+.proj-blockers {
+  border: 1px solid var(--st-pause);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin: 22px 0 4px;
+  background: rgba(168,85,247,0.07);
+}
+.blockers-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.blockers-head strong { color: var(--st-pause); font-weight: 700; font-size: 13px; }
+.blockers-head .count { opacity: 0.55; }
+.blockers-reason { font-size: 14px; line-height: 1.65; margin: 0 0 10px; font-weight: 600; }
+.blockers-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+.blockers-list li { font-size: 13px; line-height: 1.6; opacity: 0.85; }
+
+/* 상세 eyebrow 번호 — 미해결 라벨 */
+.proj-eyebrow .num[data-unresolved] { color: var(--st-pause); }

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#070b1e">
+<title>Knowledgeverse — 놀리지버스 · 카테고리 선택</title>
+<style>
+  :root{
+    --bg:#070b1e; --bg2:#0c1330; --panel:#121a3a; --line:#2a3566;
+    --ink:#e7ecff; --muted:#94a0c8; --cyan:#22d3ee; --teal:#0e7490;
+    --science:#fbbf24; --industry:#6366f1; --fitness:#22d3ee; --future:#64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(1000px 540px at 16% -10%, rgba(99,102,241,.18), transparent 60%),
+      radial-gradient(940px 560px at 88% 110%, rgba(34,211,238,.14), transparent 60%),
+      radial-gradient(700px 420px at 50% 50%, rgba(251,191,36,.06), transparent 70%),
+      linear-gradient(160deg,#070b1e 0%,#0c1330 60%,#070b1e 100%);
+    color:var(--ink); word-break:keep-all; -webkit-font-smoothing:antialiased;
+    min-height:100%; letter-spacing:-.01em;
+  }
+
+  /* ===== SELECTOR ===== */
+  #selector{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 22px;position:relative;overflow:hidden}
+  #selector::before{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(140,160,230,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(140,160,230,.05) 1px,transparent 1px);
+    background-size:46px 46px;mask:radial-gradient(760px 540px at 50% 42%,#000,transparent 76%);pointer-events:none}
+  /* 떠다니는 별 점 — 「유니버스」 느낌 */
+  #selector::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 22%, rgba(255,255,255,.55), transparent),
+      radial-gradient(1.2px 1.2px at 78% 14%, rgba(255,255,255,.45), transparent),
+      radial-gradient(1.6px 1.6px at 64% 78%, rgba(255,255,255,.40), transparent),
+      radial-gradient(1.1px 1.1px at 30% 84%, rgba(255,255,255,.40), transparent),
+      radial-gradient(1.3px 1.3px at 90% 60%, rgba(255,255,255,.35), transparent);
+    opacity:.6}
+  .brand{text-align:center;margin-bottom:36px;position:relative;z-index:1}
+  .brand .eyebrow{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:12px}
+  .brand h1{font-size:clamp(30px,4.8vw,50px);font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(92deg,#c7d2ff,#8be8f0 55%,#c7d2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .tagline{margin-top:11px;color:var(--muted);font-size:15px;max-width:620px;margin-left:auto;margin-right:auto;line-height:1.6}
+  .brand .tagline b{color:#bfe9f5}
+
+  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;width:min(900px,100%);position:relative;z-index:1}
+  .cat{
+    position:relative;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;
+    background:linear-gradient(180deg,rgba(18,26,58,.92),rgba(9,14,34,.92));
+    padding:28px 26px 24px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;
+    display:flex;flex-direction:column;min-height:248px;color:inherit;font:inherit;
+  }
+  .cat::after{content:"";position:absolute;left:0;top:0;height:100%;width:4px;background:var(--accent)}
+  .cat:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 18px 50px rgba(0,0,0,.45),0 0 0 1px var(--accent) inset}
+  .cat:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .cat .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.08em}
+  .cat .ico{width:58px;height:58px;border-radius:15px;display:grid;place-items:center;margin:12px 0 15px;
+    background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent)}
+  .cat .ico svg{width:30px;height:30px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .cat h2{font-size:22px;font-weight:800}
+  .cat .en{font-size:12px;color:var(--muted);font-style:italic;margin-top:3px;font-weight:500}
+  .cat p{margin-top:12px;color:#c3cdf0;font-size:13.5px;line-height:1.6;flex:1}
+  .cat .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .cat .chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:#aeb9e2;border:1px solid var(--line)}
+  .cat .open{margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--accent)}
+  .cat .open .arr{transition:transform .18s}
+  .cat:hover .open .arr{transform:translateX(4px)}
+  .cat[data-cat="science"]{--accent:var(--science)}
+  .cat[data-cat="industry"]{--accent:var(--industry)}
+  .cat[data-cat="fitness"]{--accent:var(--fitness)}
+  .cat[data-cat="future"]{--accent:var(--future)}
+  /* 준비 중(추후) 카드 — 비활성 톤 */
+  .cat.soon{cursor:default;opacity:.72;border-style:dashed}
+  .cat.soon:hover{transform:none;box-shadow:none;border-color:var(--line)}
+  .cat.soon .open{color:var(--muted)}
+  .cat .soon-badge{position:absolute;top:18px;right:18px;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--future);
+    border:1px solid var(--future);border-radius:999px;padding:3px 9px}
+
+  .foot{margin-top:32px;color:var(--muted);font-size:12px;text-align:center;position:relative;z-index:1;line-height:1.7}
+  .foot b{color:#aeb9e2}
+
+  /* ===== VIEWER ===== */
+  #viewer{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
+  #viewer.on{display:flex}
+  .vbar{display:flex;align-items:center;gap:14px;padding:10px 16px;background:rgba(9,14,34,.96);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px);flex-shrink:0}
+  .back{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+    color:var(--ink);font:inherit;font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+  .back:hover{border-color:var(--cyan);background:rgba(34,211,238,.1)}
+  .vtitle{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+  .vtitle .dot{width:9px;height:9px;border-radius:50%}
+  .vtitle .vsub{color:var(--muted);font-weight:500;font-size:12.5px}
+  .vbar .spacer{flex:1}
+  .newtab{color:var(--muted);font-size:12.5px;text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:9px;transition:.15s;white-space:nowrap}
+  .newtab:hover{color:var(--cyan);border-color:var(--cyan)}
+  #frame{flex:1;width:100%;border:0;background:var(--bg)}
+
+  @media (max-width:700px){
+    .cards{grid-template-columns:1fr}
+    .cat{min-height:auto}
+    .vtitle .vsub{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 카테고리 선택 (시작 페이지) ===== -->
+<div id="selector">
+  <div class="brand">
+    <div class="eyebrow">Knowledgeverse · 놀리지버스</div>
+    <h1>카테고리를 선택하세요</h1>
+    <p class="tagline">여러 분야의 지식을 하나의 <b>유니버스</b>로 묶는 상위 아카이브입니다. 들어갈 영역을 고르면, 그 영역이 이 화면 안에서 열립니다.</p>
+  </div>
+
+  <div class="cards">
+    <!-- 01 기초과학 -->
+    <button class="cat" data-cat="science" data-url="../semiconductor-universe/?section=theory&amp;hub=1"
+            data-title="기초과학" data-sub="Basic Science · 학교 과학(초·중·고·심화·SF)">
+      <span class="num">CATEGORY 01</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/></svg>
+      </span>
+      <h2>기초과학</h2>
+      <div class="en">Basic Science — 학교 과학 읽기형 학습자료</div>
+      <p>초·중·고 과학 133단원(초28·중23·고78) + 「SF 과학 판별」 4단원, 도해 131종. 학교급→학년·과목→단원으로 읽는 학습자료. 고등은 공통·일반선택·진로선택·융합선택 선택군 네비게이션.</p>
+      <div class="meta">
+        <span class="chip">초·중·고 133단원</span><span class="chip">SF 과학 판별</span><span class="chip">도해 131종</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
+
+    <!-- 02 산업 -->
+    <button class="cat" data-cat="industry" data-url="../semiconductor-universe/?section=industry&amp;hub=1"
+            data-title="산업" data-sub="Industry · 반도체·전력·2차전지·디스플레이·철강·제련 3D">
+      <span class="num">CATEGORY 02</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M4 21V10l5 3V10l5 3V7l5 3v11"/><path d="M8 21v-4h3v4"/></svg>
+      </span>
+      <h2>산업</h2>
+      <div class="en">Industry — 5영역 3D 분류·공급망·공정·사업모델</div>
+      <p>반도체(분류·공급망·8대공정·사업모델)·전력·2차전지·디스플레이·철강·제련 5영역을 3D/한반도 지도로. 칩·기업 노드, 본사 핀, 공급망 화살표, 핵에너지 패러다임까지 데이터 주도로 무한 확장.</p>
+      <div class="meta">
+        <span class="chip">반도체·전력</span><span class="chip">2차전지·디스플레이</span><span class="chip">철강·제련</span><span class="chip">공급망 3D</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
+
+    <!-- 03 피트니스 정보 -->
+    <button class="cat" data-cat="fitness" data-url="../fitrx/"
+            data-title="피트니스 정보" data-sub="Fitness · FitRx — ACSM 2026 근거기반 운동 가이드">
+      <span class="num">CATEGORY 03</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M2 12h4l2.5-6 4 13 2.5-7H22"/></svg>
+      </span>
+      <h2>피트니스 정보</h2>
+      <div class="en">Fitness — FitRx · 근거기반 건강 도움</div>
+      <p>미국스포츠의학회(ACSM)가 2026년 17년 만에 개정한 저항성 운동 Position Stand를 임상 가이드 톤으로 정리한 인터랙티브 가이드. 목표별(근력·근비대·파워·기능) 근거기반 처방 + 2009 vs 2026 신화 검증.</p>
+      <div class="meta">
+        <span class="chip">ACSM 2026</span><span class="chip">목표별 처방</span><span class="chip">GRADE 근거수준</span><span class="chip">신화 검증</span>
+      </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
+
+    <!-- 04 추후 추가될 정보 (준비 중) -->
+    <div class="cat soon" data-cat="future" aria-disabled="true"
+         data-title="추후 추가될 정보" data-sub="Coming Soon · 유니버스 확장 슬롯">
+      <span class="soon-badge">준비 중</span>
+      <span class="num">CATEGORY 04</span>
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      </span>
+      <h2>추후 추가될 정보</h2>
+      <div class="en">Coming Soon — 새 지식 영역 확장 슬롯</div>
+      <p>Knowledgeverse는 같은 틀 위에 새 지식 영역을 계속 얹어 확장합니다. 다음 카테고리가 이 자리에 들어갈 예정입니다.</p>
+      <div class="meta">
+        <span class="chip">유니버스 확장</span><span class="chip">데이터 주도</span>
+      </div>
+      <span class="open">준비 중</span>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <b>Knowledgeverse</b> — 지식을 영역별로 묶어 확장해 가는 상위 아카이브 · 프로젝트 #7<br>
+    카테고리는 이 화면 안에서 전환됩니다 · 다른 영역으로 가려면 <b>「← 카테고리」</b>로 돌아오세요
+  </div>
+</div>
+
+<!-- ===== 뷰어 ===== -->
+<div id="viewer" aria-hidden="true">
+  <div class="vbar">
+    <button class="back" id="back" type="button">← 카테고리</button>
+    <div class="vtitle"><span class="dot" id="vdot"></span><span id="vtitle">—</span> <span class="vsub" id="vsub"></span></div>
+    <span class="spacer"></span>
+    <a class="newtab" id="newtab" href="#" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+  </div>
+  <iframe id="frame" title="선택한 카테고리" loading="lazy"></iframe>
+</div>
+
+<script>
+  var selector = document.getElementById('selector');
+  var viewer   = document.getElementById('viewer');
+  var frame    = document.getElementById('frame');
+  var vtitle   = document.getElementById('vtitle');
+  var vsub     = document.getElementById('vsub');
+  var vdot     = document.getElementById('vdot');
+  var newtab   = document.getElementById('newtab');
+  var ACCENT   = { science:'#fbbf24', industry:'#6366f1', fitness:'#22d3ee', future:'#64748b' };
+
+  function openCat(cat, url, title, sub){
+    if (!url) return;                       // 준비 중(추후) 카드는 무동작
+    frame.src = url;
+    vtitle.textContent = title;
+    vsub.textContent = sub || '';
+    vdot.style.background = ACCENT[cat] || '#22d3ee';
+    newtab.href = url;
+    viewer.classList.add('on');
+    viewer.setAttribute('aria-hidden','false');
+    selector.style.display = 'none';
+    try { history.replaceState(null, '', '#' + cat); } catch(e){}
+  }
+  function closeCat(){
+    viewer.classList.remove('on');
+    viewer.setAttribute('aria-hidden','true');
+    frame.src = 'about:blank';
+    selector.style.display = '';
+    try { history.replaceState(null, '', '#'); } catch(e){}
+  }
+
+  document.querySelectorAll('.cat').forEach(function(btn){
+    if (btn.classList.contains('soon')) return;   // 추후 카드는 클릭 비활성
+    btn.addEventListener('click', function(){
+      openCat(btn.dataset.cat, btn.dataset.url, btn.dataset.title, btn.dataset.sub);
+    });
+  });
+  document.getElementById('back').addEventListener('click', closeCat);
+
+  // 딥링크: #science / #industry / #fitness 로 진입 시 해당 카테고리 바로 열기
+  (function(){
+    var h = (location.hash || '').replace('#','');
+    if (h === 'science' || h === 'industry' || h === 'fitness') {
+      var b = document.querySelector('.cat[data-cat="'+h+'"]');
+      if (b && !b.classList.contains('soon')) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
+    }
+  })();
+</script>
+</body>
+</html>

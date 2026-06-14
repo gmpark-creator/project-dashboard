@@ -58,6 +58,14 @@ const PROJECTS = [
     icon: 'trophy',
     platform: '웹 애플리케이션',
     status: 'paused',
+    // 박사 지시 2026-06-14 — 「미해결 프로젝트」로 분류. 실패/난관 사유 표기.
+    unresolved: true,
+    stallReason: '실제 경기 영상·선수 추적 데이터를 확보하지 못해 2D 트래킹 모델을 학습·검증할 수 없는 상태.',
+    blockers: [
+      '핵심 입력인 실경기 영상·위치 데이터셋 확보 실패 — 데모(목업) 단계 이상으로 진전 불가.',
+      '추적 정확도를 검증할 정답 데이터(annotation)가 없어 모델 신뢰도 확인 불가.',
+      '데이터 확보 시점까지 무기한 보류 — 현재 우선순위 후순위.'
+    ],
     start: '2026-02-20',          // ← 예시 날짜 (실제 값으로 수정)
     latest: '2026-05-22',
     progress: 78,
@@ -366,16 +374,16 @@ const PROJECTS = [
     id: 'knowledge',
     no: 7,
     name: 'Knowledgeverse',
-    subtitle: '여러 분야의 지식을 묶어 시각화하는 상위 아카이브 — 대분류 2층(① 산업: 반도체·전력·2차전지·디스플레이·철강·제련 3D / ② 기초이론: 학교 과학) · A Curated Universe of Interactive Knowledge',
+    subtitle: '여러 분야의 지식을 하나의 「유니버스」로 묶는 상위 아카이브 — 시작페이지(카테고리 선택)에서 ① 기초과학(학교 과학) ② 산업(반도체·전력·2차전지·디스플레이·철강·제련 3D) ③ 피트니스 정보(FitRx) ④ 추후 추가될 정보 로 진입 · A Curated Universe of Interactive Knowledge',
     icon: 'book',
     platform: '웹 · 지식 아카이브 (대분류: 산업 3D / 기초이론 학습자료)',
     status: 'in-progress',
     start: '2026-05-29',
     latest: '2026-06-05',
     progress: 1,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/',
-    preview: { type:'embed', height:620, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/semiconductor-universe/', label:'Knowledgeverse — 상단 대분류로 [산업](반도체 3모드[분류·공급망·8대공정] / 전력 / 2차전지 / 디스플레이 / 철강·제련 — 각 영역 분류·공급망을 한반도 지도에) ⇄ [기초이론](과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) 전환. 기초이론은 과학→학교급(초/중/고/SF)→학년·과목→단원 읽기형 학습자료. 고등은 선택군 네비게이션(공통·일반선택·진로선택·융합선택) 11과목, 신설 「SF 과학 판별」엔 소설 삼체의 과학을 상상력↔현실↔판정으로 분해한 4단원 (2026-06-01 삼체 + 전체 QA 통합)' }
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/knowledgeverse-hub/',
+    preview: { type:'embed', height:640, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/knowledgeverse-hub/', label:'Knowledgeverse 시작페이지 — TradeLogix처럼 카테고리를 먼저 고른다: ① 기초과학(학교 과학 133단원: 초28+중23+고78 + SF판별4, 도해 131종) ② 산업(반도체·전력·2차전지·디스플레이·철강·제련 — 분류·공급망·8대공정·사업모델을 3D/한반도 지도로) ③ 피트니스 정보(FitRx — ACSM 2026 근거기반 저항운동 가이드) ④ 추후 추가될 정보. 카드를 누르면 해당 영역이 그 자리에서 열리고(상단 대분류 탭은 허브로 이전), 「← 카테고리」로 돌아와 다른 영역으로 전환한다. (2026-06-14 카테고리 허브 개편 + FitRx 편입)' }
     ]},
     // 박사 지정 줄바꿈/띄어쓰기 그대로 표시(\n=줄). 길면 dashboard.js fitSummaryLines가 폰트를 줄여 한 줄 유지.
     summary: '하나의 큰 틀 아래 여러 분야의 지식을 모아 시각화하는 8번째 프로젝트.\n'
@@ -406,6 +414,7 @@ const PROJECTS = [
       { area: '반도체 8대 공정 — 3D 웨이퍼 파이프라인 (공정 과정 모드)', tech: 'Three.js, @react-three/fiber, @react-three/drei', how: '「반도체 8대 공정」 인포그래픽을 프로젝트의 3D 스타일로 재구현한 세 번째 모드. ProcessFlow.tsx가 8단계(웨이퍼 제조·산화·포토·식각·증착·금속배선·테스트·패키징)를 뱀형(serpentine) 흐름으로 배치하고 단계 사이를 방향 화살표(TubeGeometry+cone)로 잇는다. 단계마다 고유한 절차적 3D 비주얼 — 실리콘 웨이퍼 다이격자, 투명 산화막+산소 분위기, 포토마스크 레티클+노광 콘, 식각 트렌치+플라즈마 글로우, 박막 적층 디스크 스택, 금속배선 격자+비아, 프로브 니들 검사, 완성 IC 패키지(기판+히트스프레더+골드핀). 단계를 클릭하면 카메라가 줌인하고 우측 패널에 「왜 중요한가·특징·국내 기업·해외 기업」이 열린다. AtlasArea.process 데이터(선택 필드)로 구동돼 다른 영역에는 영향 없음.' },
     ],
     issues: [
+      { type:'핵심', title:'카테고리 시작페이지(허브) 개편 + FitRx 편입 + 「기초과학」 명칭 (2026-06-14)', desc:'박사 지시 — 상단 대분류 탭(산업 ⇄ 기초이론)을 화면 최상단에서 떼어내고, TradeLogix Nexus처럼 진입 시 먼저 카테고리를 고르는 「시작페이지(허브)」를 따로 신설(previews/knowledgeverse-hub/). 4개 카드: ① 기초과학(기존 기초이론 — 학교 과학) ② 산업(반도체·전력·2차전지·디스플레이·철강·제련 3D) ③ 피트니스 정보(구 프로젝트 #10 FitRx를 Knowledgeverse 카테고리로 편입) ④ 추후 추가될 정보(준비 중 — 유니버스 확장 슬롯). 카드를 누르면 그 영역이 허브 안 뷰어(iframe)에서 열리고 「← 카테고리」로 복귀. 산업/기초과학은 semiconductor-universe 앱에 ?section=industry|theory&hub=1 딥링크로 진입하며 hub 모드에서는 인앱 SectionNav를 숨겨 상단 중복 탭을 제거. 대시보드 #7 link·preview를 허브로 교체. FitRx(#10)·Tech Stack(#9)은 넘버링에서 내려가고 #7이 「놀리지버스 유니버스」 확장의 중심이 됨.' },
       { type:'핵심', title:'반도체 유니버스 — 「사업 모델」 모드 신설: 팹리스/파운드리/IDM 업체별 설계·제조 (2026-06-05)', desc:'박사 지시 — 반도체 영역에 사업모델별로 묶어 업체별 설계·제조 역할을 설명하는 모드 추가. ViewToggle에 분류·공급망·공정과 나란히 「사업 모델」 4번째 탭(반도체 전용). 팹리스 6(NVIDIA·Apple·AMD·Broadcom·Qualcomm·MediaTek, 설계O/제조X 위탁)·파운드리 5(TSMC·Samsung/Intel Foundry·GlobalFoundries·SMIC, 설계X/제조O)·IDM 8(Intel·Samsung·SK hynix·Micron·TI·Infineon·STMicro·ADI, 설계O/제조O) = 19개사를 「설계 vs 제조」 매트릭스 + 업체 카드(설계=초록/제조=파랑 + 보충)로 표시. 콘텐츠는 워크플로 6에이전트(초안 3 + 적대적 사실검증 3)로 생성·검증 — AMD의 GF 분사·I/O 위탁, Samsung 시스템LSI/메모리/파운드리 사업부 분리, GlobalFoundries 비선단(성숙·특화), SMIC EUV 제재 한계, Intel IDM 2.0(타일 TSMC 위탁), ADI 팹라이트 하이브리드, SK hynix HBM 베이스다이 TSMC 협력 등 디테일 반영. 핵에너지 모드와 동일한 데이터 주도 패턴(AtlasArea.businessModel). lint·build PASS(tsc 타입 통과), 데이터 빈값 0·회사수 일치·id 중복 0. newton 브랜치(40de6ec)·미리보기 재배포. ⚠️ main 미병합 — Codex 사후검수 대기.' },
       { type:'핵심', title:'전력 유니버스 — 핵에너지를 전력 전용 「모드」로 재구성 (2026-06-05)', desc:'박사 지시 — Codex 1차 구현이 좌하단 플로팅 버튼→모달이던 것을, 전력 카테고리 안에 분류·공급망과 동급으로 구분된 ViewToggle 모드로 편입. 데이터 주도(반도체 process 모드와 동일 패턴): AtlasArea.nuclear? 필드 + Mode "nuclear" + ViewToggle가 area.nuclear 있을 때만 「핵에너지」 버튼 노출(전력 전용, 타 영역 미노출). NuclearParadigmPanel을 모달(dialog/X/Escape)에서 role=region 전력 모드 뷰로 전환(상단 토글 아래 z-15·pt-78), 핵 모드에서 ItemList·Legend·InfoPanel·모드안내 숨김. 좌하단 런처·nuclearOpen 상태 제거, sr-only 접근성 라벨에 핵에너지 분기. 검증: npm run lint PASS, npm run build PASS(tsc -b 타입 통과, 기존 chunk-size warning만), 번들에 핵에너지 모드 라벨·hint 존재·런처 eyebrow 0 확인. newton 브랜치(db53d40, codex df133fb 위에 재구성)·미리보기 재배포. ⚠️ main 미병합 — Codex 사후검수·통합 대기.' },
       { type:'핵심', title:'전력 유니버스 — 「핵에너지 패러다임」 비교 패널 신설 (2026-06-05, Codex)', desc:'Codex가 전력 유니버스에 핵분열 vs 핵융합 비교 대시보드를 추가. 전력 영역 선택 시에만 노출되는 런처 버튼 → 모달 패널(NuclearParadigmPanel)로 ① 핵분열/핵융합 비교 그리드(NuclearParadigmGrid) ② 석탄 vs 우라늄 vs 핵융합 연료질량 로그 SVG 차트(FuelEfficiencyChart) ③ 목표 GW 슬라이더/숫자 입력 + count-up 값 갱신 인터랙티브 계산기(InteractiveCalculator) ④ 라우트 계약 프리뷰 카드. 백엔드 서버를 새로 띄우지 않기 위해 백엔드 요구는 타입드 컨트롤러/라우터 shim으로 구현(src/api/power/nuclear.ts: getNuclearSummary·postNuclearCalculate({targetGw})·nuclearRoutes — 후일 런타임 서버 추가 시 프런트 데이터 계약 변경 없이 마운트 가능). lucide-react 아이콘 도입, 영역 전환 시 패널 리셋. 검증: npm run lint PASS, npm run build PASS(기존 Vite chunk-size warning만), 브라우저 CDP desktop/390px — 패널 열림·버튼 aria「핵에너지 패러다임 비교 패널 열기」·다이얼로그 aria·배지·라우트·SVG 차트·슬라이더·계산값 변경·수평 오버플로 0·console error 0(기존 @react-three/fiber THREE.Clock·WebGL precision warning만 관찰). Claude 측 빌드 재현 확인(tsc -b 통과=타입 정상), 미리보기 재배포. ⚠️ 현재 origin/codex 브랜치(df133fb)에만 존재 — main 미병합, 상호 교차검수·통합 대기.' },
@@ -572,6 +581,10 @@ const PROJECTS = [
     subtitle: '기술 스택 모음 — 대시보드 프로젝트들이 각 화면·기능에 어떤 기술을 쓰는지 분해하고, 다른 기술로 바꾸면 무엇이 달라지는지 시뮬레이션하며, 아직 안 쓴 기술로 만들 미래 프로젝트를 제안하는 3탭 아키텍처 진화 허브',
     icon: 'stack',
     platform: '웹 · 참고 시각화 (자급식 단일 페이지 + Tailwind)',
+    // 박사 지시 2026-06-14 — 프로젝트 넘버링에서 제외. 사이드바·홈 그리드에는 안 뜨고,
+    // 메인 홈 「기술 스택 총집합」 섹션 바로 아래 전용 섹션으로 노출(homeFeature).
+    hideFromGrid: true,
+    homeFeature: 'tech-stack',
     status: 'completed',
     start: '2026-06-05',
     latest: '2026-06-05',
@@ -611,6 +624,10 @@ const PROJECTS = [
     subtitle: '헬스케어 · 근거기반 건강 도움 — ACSM 2026 저항성 운동 Position Stand(17년 만의 개정, 137편 체계적 문헌고찰·3만 명 종합)를 임상 가이드 톤으로 정리한 인터랙티브 운동 가이드. 목표별 근거기반 처방 + 신화 검증.',
     icon: 'vitality',
     platform: '웹 · 인터랙티브 건강 가이드 (자급식 단일 HTML · Vanilla JS · 라이트 임상 테마)',
+    // 박사 지시 2026-06-14 — FitRx를 #7 Knowledgeverse 안의 「피트니스 정보」 카테고리로 편입.
+    // 독립 프로젝트 슬롯(#10)에서 내려, Knowledgeverse 시작페이지(허브) 카드로만 노출.
+    hideFromGrid: true,
+    mergedInto: 'knowledge',
     status: 'completed',
     start: '2026-06-06',
     latest: '2026-06-06',
@@ -648,7 +665,15 @@ const PROJECTS = [
     subtitle: 'AI 영상 제작 — 아이디어 한 줄이면 스토리보드→컷별 후보 생성→비교 선택→자막/사운드/보이스→완성 MP4. Runway·Luma·Veo를 엔진으로 깔되 모델명 없이 「빠른 미리보기 / 게시용 품질」 티어로. 변증법 협업(Claude UX·프론트 ↔ Codex 아키텍처·백엔드). 정식명 미정(가칭 Cutpilot).',
     icon: 'film',
     platform: '웹 애플리케이션 (Next.js · TypeScript · 정적 mock vertical slice → 실 provider 연결 예정)',
-    status: 'in-progress',
+    // 박사 지시 2026-06-14 — 「미해결 프로젝트」로 분류(미해결 3건 모두 paused로 통일). 실패/난관 사유 표기.
+    status: 'paused',
+    unresolved: true,
+    stallReason: '비용 모델 불일치 blocker + 영상 재생기(렌더러) 미구현으로 실 provider 연결 단계에서 막힘.',
+    blockers: [
+      'Codex 비용 모델 3중 불일치(design/35) blocker 미해소 — 엔진 라우팅·예산 정책 확정 불가.',
+      '영상 렌더러(자막 삽입·오디오 믹스·다중 길이컷) 미구현 — mock vertical slice에서 실제 영상 출력으로 진입 못 함.',
+      'Runway·Luma·Veo 등 고비용 외부 영상생성 API 의존 — 실 provider adapter 연결의 비용·리스크가 큼.'
+    ],
     start: '2026-06-06',
     latest: '2026-06-07',
     progress: 1,
@@ -679,6 +704,43 @@ const PROJECTS = [
     milestones: [
       { date:'2026-06-06', title:'프로젝트 착수 — 변증법 R1~R3', desc:'Claude R1 설계·프로토타입 → Codex R1 계약 → R2 UX보정 → Codex R2 mock slice → R3 QA. 모델명 비노출·티어 추상화·오케스트레이션 방향 확립.' },
       { date:'2026-06-07', title:'대시보드 #11 등록 + Next.js 앱화/R3 통합', desc:'박사 지시로 AI 영상 제작 앱(가칭 Cutpilot)을 프로젝트 11번으로 대시보드 등록(라이브 mock-app·프로토타입 프리뷰). Codex가 Next.js 앱(studio-app)에 Claude R3 QA 핵심 항목을 반영. rose 테마·film 아이콘 등록.' }
+    ]
+  },
+  {
+    // 박사 지시 2026-06-14 — 숨겨놨던 standalone 프로젝트를 「미해결 프로젝트」로 노출. 번호 미부여(standalone).
+    id: 'korea-gov-sim',
+    name: '2026 PRESIDENT KOREA',
+    subtitle: '대한민국 대통령 정치 시뮬레이션 게임 — 전체화면 인터랙티브 지도 위에서 유세·정책·위기·선거를 60개월에 걸쳐 운영하는 Map-first 시뮬레이션. 현재는 vertical slice 프로토타입.',
+    icon: 'landmark',
+    platform: '웹 게임 (Vite · React · TypeScript · SVG/Three.js 지도 · Zustand 그라운드트루스 스토어)',
+    status: 'paused',
+    unresolved: true,
+    stallReason: '정치 시뮬레이션 게임으로서 범위가 과도 — map-first 프로토타입(진행률 1%)에서 정체.',
+    blockers: [
+      '전체 게임 시스템(정책·위기·선거·60개월 진행·민심 엔진)이 단일 트랙으로 완주하기엔 범위가 지나치게 큼.',
+      '현재 산출물은 SVG 지도 + Zustand 그라운드트루스 스토어 중심의 vertical slice 1개뿐 — 핵심 게임 루프 미완성.',
+      'Claude→Codex로 메인 개발이 인수(handoff)됐으나 다른 프로젝트에 밀려 후순위, 진행률 1%로 고정.'
+    ],
+    start: '2026-05-20',
+    latest: '2026-06-01',
+    progress: 1,
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/',
+    preview: { type:'embed', height:600, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/korea-gov-sim/', label:'2026 PRESIDENT KOREA — Map-first vertical slice. 전체화면 SVG 한국 지도(휠 줌·드래그 팬), 17개 광역시도 호버/클릭/패널, 10개 데이터 레이어 토글, 줌 4+ POI 인장, Zustand 그라운드트루스 스토어, 월 단위 진행 stub(1→60).' }
+    ]},
+    summary: '대한민국 대통령 정치 시뮬레이션 게임의 첫 vertical slice — 「숨겨놨던」 미완 프로젝트.\n'
+           + '전체화면 인터랙티브 지도(순수 SVG)를 토대로 17개 광역시도·POI·정책·위기·선거를 60개월에 걸쳐 운영하는 구상이지만, 현재는 지도+스토어+월진행 stub 수준의 프로토타입에서 멈춰 있다.\n'
+           + 'UI는 Zustand 그라운드트루스 스토어만 읽는 단방향 구조로 설계됐고, Region/POI/Policy/Crisis/MapState/GameState 5종 스키마가 잡혀 있다.',
+    method: 'Vite + React + TypeScript. 지도는 순수 SVG(d3-geo 투영) + Three.js. 상태는 Zustand 단일 스토어(ground truth)에서 UI로 단방향. 데이터 레이어 토글·POI 인장·월 단위 진행은 stub. Claude(프론트엔드 별도작업) ↔ Codex(메인 개발 인수) 협업이었으나 정체.',
+    stack: ['Vite', 'React', 'TypeScript', 'Three.js', 'd3-geo', 'Zustand', 'SVG'],
+    issues: [
+      { type:'이슈', title:'범위 과대 — 핵심 게임 루프 미완성', desc:'정책 결정·위기 대응·선거·민심 시뮬레이션 등 본 게임 시스템이 구현되지 않음. 현재는 지도 조작 + 스토어 + 월진행 stub 단계에 머묾.' },
+      { type:'이슈', title:'개발 인수 후 정체', desc:'Claude→Codex로 메인 개발을 인수(handoff)했으나 다른 프로젝트 우선순위에 밀려 진행이 멈춤. 진행률 1%로 고정.' },
+      { type:'완료', title:'Map-first vertical slice 동작', desc:'전체화면 SVG 지도(줌·팬), 17개 광역시도 인터랙션, 10개 데이터 레이어 토글, 줌 4+ POI 인장(10종 mock), Zustand 스토어, 5종 스키마, 월 단위 진행 stub(1→60)까지 동작.' }
+    ],
+    milestones: [
+      { date:'2026-05-20', title:'착수 — Map-first vertical slice 설계', desc:'설계 문서 v0.1·구현 계획 v0.1 승인 기반 M1~M10 통합 슬라이스. 지도·스토어·스키마 골격.' },
+      { date:'2026-06-01', title:'개발 인수(handoff) — Claude → Codex', desc:'메인 개발을 Codex가 이어받고 Claude는 프론트엔드 별도작업. 이후 우선순위에 밀려 정체.' }
     ]
   }
 ];
@@ -763,10 +825,10 @@ const STACK_ATLAS = {
   unused: [
     { key: 'lang', label: '언어 (Programming Languages)', items: [
       { name: 'Rust', recommendation: '고성능 네이티브/WASM 계산. 3번 Solar의 케플러·N체 섭동 계산이나 8번 반도체의 대규모 노드 레이아웃·force-directed 연산을 Rust→wasm-bindgen으로 빼면 메인스레드 프레임드랍을 없앤다. 4번 INST의 오디오 DSP 전처리도 후보.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
-      { name: 'Go', recommendation: '동시성·실시간 데이터 수집 백엔드. 1번 AIS 실시간 위치 폴링/스트리밍 게이트웨이, 7번 Premarket의 FRED·ECOS·시세 멀티소스 수집기를 단일 바이너리로 상주. 현재 7번은 빌드타임 스크립트뿐이라 상시 수집 데몬으로 격상하기 좋다.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
-      { name: 'SQL', recommendation: '구조화 데이터 영속화·집계. 1번 AIS 항적 이력, 7번 Premarket 시계열 시세, 2번 DDUIM 트래킹 프레임을 테이블로 적재하고 시간 윈도우 집계. 현재 전 프로젝트가 mock/static이라 DB 도입 시 1순위.', fitProjects: ['US-KR Premarket Signal', 'AIS Ship Tracker', 'DDUIM'] },
+      { name: 'Go', recommendation: '동시성·실시간 데이터 수집 백엔드. 1번 AIS 실시간 위치 폴링/스트리밍 게이트웨이, 7번 Premarket의 FRED·ECOS·시세 멀티소스 수집기를 단일 바이너리로 상주. 현재 7번은 빌드타임 스크립트뿐이라 상시 수집 데몬으로 격상하기 좋다.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
+      { name: 'SQL', recommendation: '구조화 데이터 영속화·집계. 1번 AIS 항적 이력, 7번 Premarket 시계열 시세, 2번 DDUIM 트래킹 프레임을 테이블로 적재하고 시간 윈도우 집계. 현재 전 프로젝트가 mock/static이라 DB 도입 시 1순위.', fitProjects: ['Polaris Market Intelligence', 'AIS Ship Tracker', 'DDUIM'] },
       { name: 'WGSL (WebGPU Shading Language)', recommendation: '차세대 GPU 셰이더. 3번 Solar의 GLSL 셰이더 자산을 WebGPU/WGSL로 포팅하면 compute shader로 입자(카이퍼·트로이 2400×2) 시뮬을 GPU에서 직접. 8번 대량 노드 인스턴싱에도 유리.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
-      { name: 'Pandas / NumPy (데이터 분석)', recommendation: '데이터 분석 스택. 7번 Premarket의 매크로·테마 상관 분석, 2번 DDUIM 트래킹 통계(스프린트·점유율)를 Pandas/NumPy로. 4번 INST가 이미 Python 3.12라 분석 노트북 라인을 같은 생태계로 통일 가능. (GLSL·Python 자체는 이미 사용 중)', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] },
+      { name: 'Pandas / NumPy (데이터 분석)', recommendation: '데이터 분석 스택. 7번 Premarket의 매크로·테마 상관 분석, 2번 DDUIM 트래킹 통계(스프린트·점유율)를 Pandas/NumPy로. 4번 INST가 이미 Python 3.12라 분석 노트북 라인을 같은 생태계로 통일 가능. (GLSL·Python 자체는 이미 사용 중)', fitProjects: ['Polaris Market Intelligence', 'DDUIM'] },
       { name: 'Swift / Kotlin', recommendation: '네이티브 모바일 앱. 1번 AIS를 현장 운영자용 iOS/Android 네이티브(백그라운드 위치·푸시)로, 3번 Solar를 ARKit/ARCore 천체 AR로. 웹 우선이면 React Native/Flutter가 더 현실적이라 보조 옵션.', fitProjects: ['AIS Ship Tracker'] },
       { name: 'C++', recommendation: '초고성능 물리/렌더/DSP 코어. 단 3번 Solar는 importmap 단일 HTML 교육용이고 케플러를 이미 JS로 오차 0.22% 달성(WASM 불필요). 쓴다면 4번 INST의 DSP 병목(리샘플·STFT) 한정 PoC로 좁히되, PyTorch가 이미 C++ 커널을 쓰므로 torch.compile/ONNX 최적화가 먼저. (우선순위 최하)', fitProjects: ['INST Extractor'] },
       { name: 'C# / .NET', recommendation: '본격 게임/시뮬 확장 시 .NET·Unity 옵션이나 디렉터의 웹 릴레이 워크플로와 충돌해 적합도 낮음. 5번 PRESIDENT는 이미 Vite+React+Zustand 결정론 월루프(테스트 35/35)로 잘 도므로, C#보다 "엔진 로직을 순수 TS 모듈로 두고 Web Worker로 분리해 메인스레드 프레임 보호"가 같은 목표를 웹 안에서 달성하는 현실적 대안. (우선순위 최하)', fitProjects: ['2026 PRESIDENT KOREA'] }
@@ -774,9 +836,9 @@ const STACK_ATLAS = {
     { key: 'frontend', label: '프론트엔드 프레임워크·UI', items: [
       { name: 'Svelte / SvelteKit', recommendation: '가벼운 정적·콘텐츠 사이트. 6번 JP Global(현재 Vanilla JS)을 SvelteKit으로 재구축하면 번들이 작고 트랜지션 내장이라 디자인 톤 실험에 적합. 보일러플레이트가 적어 1인 워크플로에 효율적.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] },
       { name: 'Astro', recommendation: '콘텐츠 중심 정적 + Islands. 6번 JP Global과 이 대시보드 자체(보고서/포트폴리오)를 Astro로 만들면 기본 0-JS로 빠르고 필요한 위젯만 React island로. 8개 프로젝트 쇼케이스 허브에 이상적.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] },
-      { name: 'shadcn/ui + Radix UI', recommendation: '접근성 갖춘 헤드리스 컴포넌트. 5·7·8번의 패널·다이얼로그·드로어·툴팁을 Radix 기반 shadcn으로 표준화하면 직접 만든 인터랙션 UI의 접근성·키보드 내비를 한 번에 확보. Tailwind를 이미 써 궁합 최상.', fitProjects: ['2026 PRESIDENT KOREA', 'Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
-      { name: 'Vue 3 / Nuxt', recommendation: '대안 SPA/SSR. 신규 대시보드형 프로젝트에서 React 비교 실험용. 7번 Premarket을 Nuxt SSR로 만들면 SEO·초기 로딩 개선. (React 자산이 많아 신규 라인 한정)', fitProjects: ['US-KR Premarket Signal'] },
-      { name: 'Next.js App Router (RSC/SSR 본격)', recommendation: '1번 AIS는 이미 Next.js지만 단순 CSR 수준. App Router의 Server Components·Route Handler·streaming으로 선박 데이터 서버 패칭·SEO·엣지 캐싱까지 한 프레임워크로. 7번을 Next로 옮기면 수집 스크립트를 Route Handler로 흡수.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] }
+      { name: 'shadcn/ui + Radix UI', recommendation: '접근성 갖춘 헤드리스 컴포넌트. 5·7·8번의 패널·다이얼로그·드로어·툴팁을 Radix 기반 shadcn으로 표준화하면 직접 만든 인터랙션 UI의 접근성·키보드 내비를 한 번에 확보. Tailwind를 이미 써 궁합 최상.', fitProjects: ['2026 PRESIDENT KOREA', 'Knowledgeverse (반도체 유니버스)', 'Polaris Market Intelligence'] },
+      { name: 'Vue 3 / Nuxt', recommendation: '대안 SPA/SSR. 신규 대시보드형 프로젝트에서 React 비교 실험용. 7번 Premarket을 Nuxt SSR로 만들면 SEO·초기 로딩 개선. (React 자산이 많아 신규 라인 한정)', fitProjects: ['Polaris Market Intelligence'] },
+      { name: 'Next.js App Router (RSC/SSR 본격)', recommendation: '1번 AIS는 이미 Next.js지만 단순 CSR 수준. App Router의 Server Components·Route Handler·streaming으로 선박 데이터 서버 패칭·SEO·엣지 캐싱까지 한 프레임워크로. 7번을 Next로 옮기면 수집 스크립트를 Route Handler로 흡수.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] }
     ]},
     { key: 'graphics3d', label: '3D·그래픽·WebGL/WebGPU', items: [
       { name: 'WebGPU (WebGPURenderer)', recommendation: 'Three.js 차세대 렌더 백엔드. 3번 Solar의 입자계(카이퍼·오르트·트로이)와 8번 반도체의 대량 노드/엣지를 compute shader로 가속. Three.js를 이미 써 WebGPURenderer 전환만으로 미래 대비.', fitProjects: ['Solar System Simulator', 'Knowledgeverse (반도체 유니버스)'] },
@@ -789,11 +851,11 @@ const STACK_ATLAS = {
       { name: 'Spline', recommendation: '노코드 3D 디자인 툴. 6번 JP Global 히어로 3D 오브제나 이 대시보드 랜딩의 인터랙티브 3D 데코를 코드 없이 빠르게 임베드. 디자인 톤 실험 성격과 맞음.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
     { key: 'dataviz', label: '데이터 시각화·차트', items: [
-      { name: 'D3.js (full: scale·shape·force)', recommendation: '현재 d3-geo만 사용. 7번 Premarket 시세 라인·캔들·히트맵을 d3-scale/shape로, 8번 지식 그래프 평면 뷰를 d3-force로 그리면 풀 D3 역량 확보. 2번 DDUIM 궤적·점유율 차트에도.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)', 'DDUIM'] },
-      { name: 'ECharts', recommendation: '고밀도 인터랙티브 차트. 7번 Premarket의 매크로/테마 히트맵·캔들·줌·브러시를 즉시 풍부하게. 2번 DDUIM 선수별 통계 대시보드에도. mock UI를 실제 분석 대시보드로 끌어올리는 핵심.', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] },
-      { name: 'Recharts', recommendation: 'React 친화 선언형 차트. 7번 Premarket(React 18) 패널에 가장 빠르게 차트를 꽂는 옵션 — OvernightMacro·Theme Heatmap을 실데이터화. shadcn 차트 프리셋과 호환.', fitProjects: ['US-KR Premarket Signal'] },
-      { name: 'visx (airbnb)', recommendation: 'D3 + React 저수준 빌딩블록. 7번·8번에서 완전 커스텀 차트/그래프가 필요할 때 D3 수학과 React 렌더를 깔끔히 결합. Recharts로 부족한 맞춤 시각화에 단계적 도입.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
-      { name: 'Observable Plot', recommendation: '탐색적 분석용 간결 그래머. 7번 데이터 파이프라인 단계의 빠른 EDA·리포트 차트에 적합. 2번 DDUIM 트래킹 데이터 탐색에도 한 줄 차트로 유용.', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] }
+      { name: 'D3.js (full: scale·shape·force)', recommendation: '현재 d3-geo만 사용. 7번 Premarket 시세 라인·캔들·히트맵을 d3-scale/shape로, 8번 지식 그래프 평면 뷰를 d3-force로 그리면 풀 D3 역량 확보. 2번 DDUIM 궤적·점유율 차트에도.', fitProjects: ['Polaris Market Intelligence', 'Knowledgeverse (반도체 유니버스)', 'DDUIM'] },
+      { name: 'ECharts', recommendation: '고밀도 인터랙티브 차트. 7번 Premarket의 매크로/테마 히트맵·캔들·줌·브러시를 즉시 풍부하게. 2번 DDUIM 선수별 통계 대시보드에도. mock UI를 실제 분석 대시보드로 끌어올리는 핵심.', fitProjects: ['Polaris Market Intelligence', 'DDUIM'] },
+      { name: 'Recharts', recommendation: 'React 친화 선언형 차트. 7번 Premarket(React 18) 패널에 가장 빠르게 차트를 꽂는 옵션 — OvernightMacro·Theme Heatmap을 실데이터화. shadcn 차트 프리셋과 호환.', fitProjects: ['Polaris Market Intelligence'] },
+      { name: 'visx (airbnb)', recommendation: 'D3 + React 저수준 빌딩블록. 7번·8번에서 완전 커스텀 차트/그래프가 필요할 때 D3 수학과 React 렌더를 깔끔히 결합. Recharts로 부족한 맞춤 시각화에 단계적 도입.', fitProjects: ['Polaris Market Intelligence', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'Observable Plot', recommendation: '탐색적 분석용 간결 그래머. 7번 데이터 파이프라인 단계의 빠른 EDA·리포트 차트에 적합. 2번 DDUIM 트래킹 데이터 탐색에도 한 줄 차트로 유용.', fitProjects: ['Polaris Market Intelligence', 'DDUIM'] }
     ]},
     { key: 'maps', label: '지도·지리 GIS', items: [
       { name: 'MapLibre GL / Mapbox GL JS', recommendation: '벡터 타일 기반 GPU 지도. 1번 AIS의 Leaflet(래스터)을 MapLibre GL로 교체하면 부드러운 줌·회전·기울기·다크 베이스맵·실시간 선박 레이어. 오픈소스 MapLibre면 토큰 비용 0 — AIS 화면 격상 1순위.', fitProjects: ['AIS Ship Tracker'] },
@@ -803,11 +865,11 @@ const STACK_ATLAS = {
       { name: 'Cesium 3D Tiles (글로브)', recommendation: '3D 지구본 GIS. 1번 AIS를 시간축 3D 글로브 항적 재생으로, 8번 공급망을 3D 지구 호(arc) 흐름으로, 5번 한반도 지도를 실측 지형 3D로.', fitProjects: ['AIS Ship Tracker', 'Knowledgeverse (반도체 유니버스)'] }
     ]},
     { key: 'state', label: '상태관리·데이터 패칭', items: [
-      { name: 'TanStack Query (React Query)', recommendation: '서버 상태 캐싱·동기화. 1번 AIS 실시간 폴링, 7번 Premarket 시세/매크로 패칭에 도입하면 캐시·재시도·폴링·stale이 자동화. mock→실API 전환 시 1순위. (Zustand=클라이언트 상태, Query=서버 상태로 역할 분리)', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
+      { name: 'TanStack Query (React Query)', recommendation: '서버 상태 캐싱·동기화. 1번 AIS 실시간 폴링, 7번 Premarket 시세/매크로 패칭에 도입하면 캐시·재시도·폴링·stale이 자동화. mock→실API 전환 시 1순위. (Zustand=클라이언트 상태, Query=서버 상태로 역할 분리)', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
       { name: 'Redux Toolkit', recommendation: '복잡한 결정론 상태·타임트래블. 5번 PRESIDENT 선거 시뮬 턴처럼 액션 로그·되돌리기·리플레이가 중요한 게임 엔진에 적합. 디버깅·추적성이 Zustand보다 강함.', fitProjects: ['2026 PRESIDENT KOREA'] },
       { name: 'XState', recommendation: '상태 머신·시나리오 제어. 5번 게임 페이즈(유세→투표→개표→취임)와 3번 Solar의 시네마틱/투어 시퀀스를 명시적 FSM으로 모델링하면 엣지케이스가 줄고 흐름이 견고.', fitProjects: ['2026 PRESIDENT KOREA', 'Solar System Simulator'] },
       { name: 'Jotai', recommendation: '원자 단위 상태관리. 5번이 Zustand 단일 스토어인데 지역·정책 파생 상태가 많아지면 Jotai 아톰으로 세분화해 리렌더 범위를 좁힘. 8번 선택/하이라이트 상태에도 가벼움.', fitProjects: ['2026 PRESIDENT KOREA', 'Knowledgeverse (반도체 유니버스)'] },
-      { name: 'SWR', recommendation: '경량 데이터 패칭 훅. 7번·1번에서 TanStack Query까지 무겁다 싶을 때 stale-while-revalidate만 가볍게. Next.js(1번)와 같은 Vercel 생태계라 궁합 좋음.', fitProjects: ['US-KR Premarket Signal', 'AIS Ship Tracker'] }
+      { name: 'SWR', recommendation: '경량 데이터 패칭 훅. 7번·1번에서 TanStack Query까지 무겁다 싶을 때 stale-while-revalidate만 가볍게. Next.js(1번)와 같은 Vercel 생태계라 궁합 좋음.', fitProjects: ['Polaris Market Intelligence', 'AIS Ship Tracker'] }
     ]},
     { key: 'animation', label: '애니메이션·모션', items: [
       { name: 'GSAP', recommendation: '고성능 타임라인 애니메이션. 6번 JP Global 스크롤 연출(ScrollTrigger)과 5번 취임 시네마틱의 정교한 카메라/UI 시퀀스를 프레임 단위로. framer-motion이 못 잡는 복잡 타임라인을 보완.', fitProjects: ['Frontend & Tone Atelier (JP Global)', '2026 PRESIDENT KOREA'] },
@@ -815,57 +877,57 @@ const STACK_ATLAS = {
       { name: 'Motion One / Web Animations API', recommendation: '경량 네이티브 애니메이션. 6번 JP Global의 Vanilla JS 인터랙션을 의존성 거의 없이 부드럽게. framer-motion을 안 쓰는 바닐라 프로젝트의 표준 모션 도구.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
     { key: 'backend', label: '백엔드·서버', items: [
-      { name: 'Node.js + Express / Fastify', recommendation: '범용 JS 백엔드. 1번 AIS 데이터 프록시/캐시 API, 7번 Premarket 시세 집계 API를 가볍게. 현재 7번은 빌드타임 스크립트뿐이라 런타임 API가 생기면 실시간 갱신 가능.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
-      { name: 'Hono', recommendation: '엣지 우선 초경량 웹 프레임워크. 1번·7번 데이터 API를 Cloudflare Workers/Vercel Edge에 배포하면 글로벌 저지연. 번들이 작아 서버리스에 이상적이며 Cloudflare Workers와 직결.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
-      { name: 'NestJS', recommendation: '구조화된 TS 백엔드. AIS·Premarket·DDUIM 데이터 API를 하나의 모듈러 백엔드로 통합 운영할 때. DI·모듈·가드 구조라 1인 운영에도 유지보수성 높음.', fitProjects: ['US-KR Premarket Signal', 'AIS Ship Tracker'] },
-      { name: 'Django / DRF', recommendation: '관리 기능 포함 풀 백엔드(Python). 4번 INST가 이미 Python — FastAPI 단일 엔드포인트를 넘어 사용자·작업 이력·결과 관리가 필요해지면 Django Admin 유용. 7번 분석 결과 영속화에도.', fitProjects: ['INST Extractor', 'US-KR Premarket Signal'] }
+      { name: 'Node.js + Express / Fastify', recommendation: '범용 JS 백엔드. 1번 AIS 데이터 프록시/캐시 API, 7번 Premarket 시세 집계 API를 가볍게. 현재 7번은 빌드타임 스크립트뿐이라 런타임 API가 생기면 실시간 갱신 가능.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
+      { name: 'Hono', recommendation: '엣지 우선 초경량 웹 프레임워크. 1번·7번 데이터 API를 Cloudflare Workers/Vercel Edge에 배포하면 글로벌 저지연. 번들이 작아 서버리스에 이상적이며 Cloudflare Workers와 직결.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
+      { name: 'NestJS', recommendation: '구조화된 TS 백엔드. AIS·Premarket·DDUIM 데이터 API를 하나의 모듈러 백엔드로 통합 운영할 때. DI·모듈·가드 구조라 1인 운영에도 유지보수성 높음.', fitProjects: ['Polaris Market Intelligence', 'AIS Ship Tracker'] },
+      { name: 'Django / DRF', recommendation: '관리 기능 포함 풀 백엔드(Python). 4번 INST가 이미 Python — FastAPI 단일 엔드포인트를 넘어 사용자·작업 이력·결과 관리가 필요해지면 Django Admin 유용. 7번 분석 결과 영속화에도.', fitProjects: ['INST Extractor', 'Polaris Market Intelligence'] }
     ]},
     { key: 'aiml', label: 'AI·ML·데이터', items: [
       { name: 'OpenCV', recommendation: '컴퓨터 비전. 2번 DDUIM 보류의 핵심 이유가 트래킹 데이터 수급 — OpenCV로 경기 영상에서 선수/공을 직접 검출·추적(호모그래피 좌표 변환)하면 유료 EPTS 없이 자체 트래킹 파이프라인을 만들 수 있다. 보류 해제의 열쇠.', fitProjects: ['DDUIM'] },
       { name: 'Whisper (faster-whisper)', recommendation: '음성 인식(STT). 4번 INST에 보컬 분리 후 자동 가사 추출/자막을 추가하면 "반주 추출 + 가사 싱크"까지 한 툴로. 이미 Demucs·PyTorch CUDA를 써 GPU 자원 그대로 활용.', fitProjects: ['INST Extractor'] },
-      { name: 'Hugging Face Transformers', recommendation: '사전학습 모델 허브. 7번 Premarket에 뉴스/공시 감성분석·요약 모델을 붙여 매크로 시그널에 텍스트 신호 추가. 4번 INST(Python)와 통합해 오디오·텍스트 모델 실험 라인으로.', fitProjects: ['US-KR Premarket Signal', 'INST Extractor'] },
+      { name: 'Hugging Face Transformers', recommendation: '사전학습 모델 허브. 7번 Premarket에 뉴스/공시 감성분석·요약 모델을 붙여 매크로 시그널에 텍스트 신호 추가. 4번 INST(Python)와 통합해 오디오·텍스트 모델 실험 라인으로.', fitProjects: ['Polaris Market Intelligence', 'INST Extractor'] },
       { name: 'TensorFlow.js / MediaPipe', recommendation: '브라우저 내 ML 추론. 2번 DDUIM에 MediaPipe pose/object detection으로 클라이언트 선수 추적, 5번 PRESIDENT에 간단 정책 예측 모델을 온디바이스로. 서버 없이 추론하는 경량 라인.', fitProjects: ['DDUIM', '2026 PRESIDENT KOREA'] },
-      { name: 'ONNX Runtime (Web)', recommendation: '프레임워크 중립 모델 실행. 4번 INST 분리 모델이나 7번 예측 모델을 ONNX로 변환해 웹/엣지에서 일관 추론. PyTorch 모델을 배포 환경에 맞춰 최적화 실행하는 표준 런타임.', fitProjects: ['INST Extractor', 'US-KR Premarket Signal'] },
-      { name: 'LangChain / Vercel AI SDK', recommendation: 'LLM 오케스트레이션. 8번 반도체에 "자연어로 노드/관계 질문→그래프 하이라이트"하는 RAG 비서를, 7번 Premarket에 매크로 자연어 브리핑을. 디렉터의 지식 시각화 컨셉과 LLM이 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
+      { name: 'ONNX Runtime (Web)', recommendation: '프레임워크 중립 모델 실행. 4번 INST 분리 모델이나 7번 예측 모델을 ONNX로 변환해 웹/엣지에서 일관 추론. PyTorch 모델을 배포 환경에 맞춰 최적화 실행하는 표준 런타임.', fitProjects: ['INST Extractor', 'Polaris Market Intelligence'] },
+      { name: 'LangChain / Vercel AI SDK', recommendation: 'LLM 오케스트레이션. 8번 반도체에 "자연어로 노드/관계 질문→그래프 하이라이트"하는 RAG 비서를, 7번 Premarket에 매크로 자연어 브리핑을. 디렉터의 지식 시각화 컨셉과 LLM이 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'Polaris Market Intelligence'] },
       { name: 'text-to-video (Runway / Sora / Veo)', recommendation: '실사풍 AI 영상 생성. 단 5번 취임 시네마틱은 의도적으로 "외부 AI 영상 대신 결정론·자산0·동적 Three.js 실시간 컷신"으로 설계(2026-05-31)됐으므로 핵심 라인 아님 — 보조 인서트 컷으로만. 더 적합한 확장은 그 PoC를 이벤트별(취임·위기·선거) Three.js 컷신 템플릿화 + (용량 이슈 시) Playwright headless로 MP4 프리렌더. 생성영상은 라이선스·결정성·동적 주입 한계.', fitProjects: ['2026 PRESIDENT KOREA'] }
     ]},
     { key: 'database', label: '데이터베이스·스토리지', items: [
-      { name: 'PostgreSQL', recommendation: '관계형 주력 DB. 1번 AIS 항적, 7번 Premarket 시계열, 2번 DDUIM 트래킹 프레임의 영속 저장소. PostGIS 확장이면 AIS 지리 쿼리(반경/항로)까지 한 DB에서. 전 프로젝트가 무DB라 도입 1순위.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal', 'DDUIM'] },
-      { name: 'SQLite / libSQL (Turso)', recommendation: '파일 기반 경량 DB. 4번 INST 작업 이력·캐시(어떤 파일을 어떤 모델로), 7번 로컬 시세 스냅샷에 적합. 집 데스크탑 상주 서버(INST)와 궁합 좋고 별도 DB 서버 불필요.', fitProjects: ['INST Extractor', 'US-KR Premarket Signal'] },
+      { name: 'PostgreSQL', recommendation: '관계형 주력 DB. 1번 AIS 항적, 7번 Premarket 시계열, 2번 DDUIM 트래킹 프레임의 영속 저장소. PostGIS 확장이면 AIS 지리 쿼리(반경/항로)까지 한 DB에서. 전 프로젝트가 무DB라 도입 1순위.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence', 'DDUIM'] },
+      { name: 'SQLite / libSQL (Turso)', recommendation: '파일 기반 경량 DB. 4번 INST 작업 이력·캐시(어떤 파일을 어떤 모델로), 7번 로컬 시세 스냅샷에 적합. 집 데스크탑 상주 서버(INST)와 궁합 좋고 별도 DB 서버 불필요.', fitProjects: ['INST Extractor', 'Polaris Market Intelligence'] },
       { name: 'Supabase', recommendation: 'Postgres + Auth + Realtime + Storage BaaS. 1번 AIS 실시간 위치를 Realtime 채널로, 5번 PRESIDENT 멀티플레이/리더보드, 인증이 필요한 모든 프로젝트 백엔드를 한 번에. 1인 디렉터에게 가성비 최고.', fitProjects: ['AIS Ship Tracker', '2026 PRESIDENT KOREA'] },
-      { name: 'DuckDB', recommendation: '분석용 임베디드 OLAP. 7번 Premarket 대량 시세/매크로 집계·조인을 인메모리로 초고속(브라우저용 DuckDB-Wasm도). 2번 DDUIM 트래킹 통계 집계에도 분석 엔진으로.', fitProjects: ['US-KR Premarket Signal', 'DDUIM'] },
-      { name: 'Redis', recommendation: '인메모리 캐시·pub/sub. 1번 AIS 최신 위치 캐시와 실시간 fan-out, 7번 시세 캐시·레이트리밋에. 외부 API 호출을 줄이고 실시간 응답을 빠르게 하는 계층.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
+      { name: 'DuckDB', recommendation: '분석용 임베디드 OLAP. 7번 Premarket 대량 시세/매크로 집계·조인을 인메모리로 초고속(브라우저용 DuckDB-Wasm도). 2번 DDUIM 트래킹 통계 집계에도 분석 엔진으로.', fitProjects: ['Polaris Market Intelligence', 'DDUIM'] },
+      { name: 'Redis', recommendation: '인메모리 캐시·pub/sub. 1번 AIS 최신 위치 캐시와 실시간 fan-out, 7번 시세 캐시·레이트리밋에. 외부 API 호출을 줄이고 실시간 응답을 빠르게 하는 계층.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
       { name: 'Firebase', recommendation: '실시간 DB·인증·호스팅 BaaS(NoSQL). 단 디렉터 스택이 Postgres 친화·React/TS·정적호스팅이라 정합도는 Supabase가 더 높고 중복됨 — 클라우드 동기화가 실제 필요해질 때 Supabase 단일 선택 권장(2번 DDUIM은 보류, 5번 세이브/로드는 이미 로컬). 모바일 SDK가 강해 추후 네이티브 확장 시에만 고려.', fitProjects: ['2026 PRESIDENT KOREA'] }
     ]},
     { key: 'realtime', label: '실시간·통신', items: [
-      { name: 'WebSocket', recommendation: '양방향 실시간 스트림. 1번 AIS 위치를 폴링 대신 WebSocket 푸시로 받으면 갱신 지연·트래픽이 크게 준다. 7번 프리마켓 실시간 틱에도 핵심. 현재 실시간이 폴링 추정이라 1순위 업그레이드.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
-      { name: 'SSE (Server-Sent Events)', recommendation: '단방향 서버 푸시(경량). 7번 시세/매크로 업데이트나 4번 INST 처리 진행률 스트리밍처럼 서버→클라이언트 단방향이면 WebSocket보다 단순. HTTP 위라 프록시·배포가 쉬움.', fitProjects: ['US-KR Premarket Signal', 'INST Extractor'] },
+      { name: 'WebSocket', recommendation: '양방향 실시간 스트림. 1번 AIS 위치를 폴링 대신 WebSocket 푸시로 받으면 갱신 지연·트래픽이 크게 준다. 7번 프리마켓 실시간 틱에도 핵심. 현재 실시간이 폴링 추정이라 1순위 업그레이드.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
+      { name: 'SSE (Server-Sent Events)', recommendation: '단방향 서버 푸시(경량). 7번 시세/매크로 업데이트나 4번 INST 처리 진행률 스트리밍처럼 서버→클라이언트 단방향이면 WebSocket보다 단순. HTTP 위라 프록시·배포가 쉬움.', fitProjects: ['Polaris Market Intelligence', 'INST Extractor'] },
       { name: 'Socket.IO', recommendation: '재연결·룸 포함 실시간 레이어. 5번 PRESIDENT 멀티플레이 룸이나 2번 DDUIM 재생 동기 관전(여러 명이 같은 타임라인)에. 끊김 복원·폴백 내장으로 운영 안정성 높음.', fitProjects: ['2026 PRESIDENT KOREA', 'DDUIM'] },
       { name: 'WebRTC', recommendation: 'P2P 미디어·데이터 채널. 2번 DDUIM 영상 분석용 라이브 영상 송수신이나 5번 저지연 멀티플레이 데이터 채널에. 서버 부하 없이 직접 연결이 필요한 시나리오.', fitProjects: ['DDUIM', '2026 PRESIDENT KOREA'] }
     ]},
     { key: 'mobile', label: '모바일·크로스플랫폼', items: [
       { name: 'React Native + Expo', recommendation: 'React 자산 재사용 네이티브 앱. 1번 AIS를 현장 운영자용 모바일(백그라운드 위치·푸시)로 내는 데 최적 — React/TS를 이미 써 학습비용 최저. Expo로 빌드·배포 간소화.', fitProjects: ['AIS Ship Tracker'] },
-      { name: 'Capacitor / PWA', recommendation: '웹앱을 앱처럼 래핑. 기존 웹 자산(2번 DDUIM, 7번 Premarket, 이 대시보드)을 코드 거의 그대로 설치형 PWA/앱스토어 앱으로. 가장 적은 노력으로 모바일 배포를 얻는 현실적 1순위.', fitProjects: ['DDUIM', 'US-KR Premarket Signal'] },
+      { name: 'Capacitor / PWA', recommendation: '웹앱을 앱처럼 래핑. 기존 웹 자산(2번 DDUIM, 7번 Premarket, 이 대시보드)을 코드 거의 그대로 설치형 PWA/앱스토어 앱으로. 가장 적은 노력으로 모바일 배포를 얻는 현실적 1순위.', fitProjects: ['DDUIM', 'Polaris Market Intelligence'] },
       { name: 'Tauri', recommendation: '경량 데스크탑 앱(Rust+웹). 4번 INST 추출기를 로컬 GPU 서버 없이 설치형 데스크탑 앱으로 패키징(Electron보다 가볍고 빠름). 집 데스크탑 상주 구조를 일반 사용자용 앱으로 배포할 때.', fitProjects: ['INST Extractor'] },
       { name: 'Flutter', recommendation: '단일 코드 고성능 크로스플랫폼. 3번 Solar 모바일 천체 앱이나 5번 PRESIDENT 모바일 게임처럼 부드러운 커스텀 UI/애니메이션이 중요할 때. 웹과 별개 네이티브 라인을 팔 경우 후보.', fitProjects: ['Solar System Simulator', '2026 PRESIDENT KOREA'] }
     ]},
     { key: 'build', label: '빌드·번들·런타임·패키지', items: [
-      { name: 'pnpm + 모노레포 workspace', recommendation: '디스크 효율·엄격한 의존성 + 워크스페이스. Vite/React 프로젝트가 다수(5·7·8)이고 공유 UI·타입이 생기면 pnpm workspace로 모노레포화해 중복 설치 제거·일괄 빌드. 멀티프로젝트 구조에 최적.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal', '2026 PRESIDENT KOREA'] },
+      { name: 'pnpm + 모노레포 workspace', recommendation: '디스크 효율·엄격한 의존성 + 워크스페이스. Vite/React 프로젝트가 다수(5·7·8)이고 공유 UI·타입이 생기면 pnpm workspace로 모노레포화해 중복 설치 제거·일괄 빌드. 멀티프로젝트 구조에 최적.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'Polaris Market Intelligence', '2026 PRESIDENT KOREA'] },
       { name: 'Vite (바닐라 프로젝트로 확대)', recommendation: '3번 Solar(importmap+CDN, 빌드 없음)·6번 JP Global(Vanilla, 빌드 없음)에 Vite를 도입해 CDN importmap 의존(런타임 외부호출)을 self-host 번들로 전환. 8번에서 @fontsource self-host로 런타임 외부호출 0을 만든 선례와 동일 방향.', fitProjects: ['Solar System Simulator', 'Frontend & Tone Atelier (JP Global)'] },
-      { name: 'Bun', recommendation: '올인원 초고속 런타임·패키지매니저·번들러. 7번 Premarket의 Node ESM 데이터 스크립트를 Bun으로 돌리면 실행·설치가 크게 빨라지고 신규 백엔드(Hono 등) 런타임으로도. 1인 반복 속도 향상.', fitProjects: ['US-KR Premarket Signal'] },
-      { name: 'Turborepo', recommendation: '모노레포 빌드 캐시·태스크 오케스트레이션. pnpm workspace와 함께 8개 프로젝트를 한 레포에서 증분 빌드·원격 캐시. 이 대시보드가 사실상 멀티프로젝트 허브이므로 빌드 파이프라인 통합에 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'US-KR Premarket Signal'] },
-      { name: 'Deno', recommendation: '보안·TS 네이티브 런타임. 7번 외부 API 수집 스크립트를 권한 명시적 Deno로 실행하면 안전성이 높고 의존성 관리가 간결. Deno Deploy 엣지 배포와도 연결.', fitProjects: ['US-KR Premarket Signal'] }
+      { name: 'Bun', recommendation: '올인원 초고속 런타임·패키지매니저·번들러. 7번 Premarket의 Node ESM 데이터 스크립트를 Bun으로 돌리면 실행·설치가 크게 빨라지고 신규 백엔드(Hono 등) 런타임으로도. 1인 반복 속도 향상.', fitProjects: ['Polaris Market Intelligence'] },
+      { name: 'Turborepo', recommendation: '모노레포 빌드 캐시·태스크 오케스트레이션. pnpm workspace와 함께 8개 프로젝트를 한 레포에서 증분 빌드·원격 캐시. 이 대시보드가 사실상 멀티프로젝트 허브이므로 빌드 파이프라인 통합에 직결.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'Polaris Market Intelligence'] },
+      { name: 'Deno', recommendation: '보안·TS 네이티브 런타임. 7번 외부 API 수집 스크립트를 권한 명시적 Deno로 실행하면 안전성이 높고 의존성 관리가 간결. Deno Deploy 엣지 배포와도 연결.', fitProjects: ['Polaris Market Intelligence'] }
     ]},
     { key: 'testing', label: '테스트·품질', items: [
       { name: 'Vitest', recommendation: 'Vite 네이티브 단위 테스트. 5번 PRESIDENT의 Zustand 게임 엔진(민심·예산·위기 로직)과 3번 Solar 케플러 계산처럼 결정론 순수 함수에 단위 테스트를 붙이면 회귀 방지. Vite를 이미 써 설정이 거의 없음.', fitProjects: ['2026 PRESIDENT KOREA', 'Solar System Simulator'] },
-      { name: 'Testing Library (React)', recommendation: '컴포넌트 동작 테스트. 7번·8번의 React 패널/인터랙션을 사용자 관점으로 테스트. Vitest와 결합해 UI 회귀를 잡는 표준 조합.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'Testing Library (React)', recommendation: '컴포넌트 동작 테스트. 7번·8번의 React 패널/인터랙션을 사용자 관점으로 테스트. Vitest와 결합해 UI 회귀를 잡는 표준 조합.', fitProjects: ['Polaris Market Intelligence', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'Storybook', recommendation: '컴포넌트 카탈로그·시각 문서. 6번 JP Global의 디자인 톤 실험과 8·7번 UI 컴포넌트를 격리 환경에서 variant·톤별로 비교. 디렉터의 "톤 실험" 성격과 정확히 맞고 시각 회귀 테스트로도 확장.', fitProjects: ['Frontend & Tone Atelier (JP Global)', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'ESLint + Prettier / Biome', recommendation: '정적 분석·포맷 표준화. 8개 프로젝트 코드 스타일 통일. 특히 Biome는 ESLint+Prettier를 단일 고속 도구로 대체해 1인 멀티프로젝트 유지보수 부담을 줄임. 6번 Vanilla JS·신규 프로젝트 품질 기준선.', fitProjects: ['Frontend & Tone Atelier (JP Global)'] }
     ]},
     { key: 'devops', label: '배포·인프라·CI/CD', items: [
-      { name: 'GitHub Actions (CI/CD)', recommendation: '자동 빌드·테스트·배포. 가장 직접적 적용: ① 이 대시보드의 미리보기 빌드(dist→previews/) 자동 동기화 ② 7번 Premarket refresh-data.mjs(FRED·ECOS)를 일일 cron 자동 갱신 ③ lint·typecheck·build·Playwright 시각 회귀 게이트 + 자동 커밋·푸시. 디렉터의 "AI 릴레이 후 자동 커밋·푸시·배포" 루틴을 파이프라인화.', fitProjects: ['US-KR Premarket Signal', 'Solar System Simulator', 'DDUIM'] },
+      { name: 'GitHub Actions (CI/CD)', recommendation: '자동 빌드·테스트·배포. 가장 직접적 적용: ① 이 대시보드의 미리보기 빌드(dist→previews/) 자동 동기화 ② 7번 Premarket refresh-data.mjs(FRED·ECOS)를 일일 cron 자동 갱신 ③ lint·typecheck·build·Playwright 시각 회귀 게이트 + 자동 커밋·푸시. 디렉터의 "AI 릴레이 후 자동 커밋·푸시·배포" 루틴을 파이프라인화.', fitProjects: ['Polaris Market Intelligence', 'Solar System Simulator', 'DDUIM'] },
       { name: 'Docker', recommendation: '환경 재현·컨테이너 배포. 4번 INST의 Python 3.12 + PyTorch CUDA 환경을 Docker로 고정하면 다른 머신/서버에서도 동일 GPU 추론 재현. 신규 백엔드(Express/NestJS/Go) 표준 배포 단위로도.', fitProjects: ['INST Extractor'] },
-      { name: 'Cloudflare Workers / Pages', recommendation: '엣지 서버리스 + 정적 호스팅. 1번·7번 데이터 프록시 API를 Workers로 글로벌 저지연 배포하고 Pages로 프론트 호스팅. Hono와 결합하면 비용 거의 0의 풀 엣지 스택.', fitProjects: ['AIS Ship Tracker', 'US-KR Premarket Signal'] },
+      { name: 'Cloudflare Workers / Pages', recommendation: '엣지 서버리스 + 정적 호스팅. 1번·7번 데이터 프록시 API를 Workers로 글로벌 저지연 배포하고 Pages로 프론트 호스팅. Hono와 결합하면 비용 거의 0의 풀 엣지 스택.', fitProjects: ['AIS Ship Tracker', 'Polaris Market Intelligence'] },
       { name: 'Fly.io / Railway / Render', recommendation: '상시 컨테이너 호스팅. 4번 INST의 GPU 서버나 신규 Node/Python 백엔드를 집 데스크탑 의존 없이 클라우드 상주. WebSocket 같은 장기 연결 서버 호스팅에 GitHub Pages/Vercel보다 적합.', fitProjects: ['INST Extractor', 'AIS Ship Tracker'] },
       { name: 'Sentry', recommendation: '런타임 에러·성능 모니터링. 3번 Solar처럼 복잡한 셰이더/런타임의 TDZ·WebGL 에러(실제 디버깅 이력 있음)를 배포 환경에서 자동 수집. 1인 운영에서 사용자 측 오류를 놓치지 않게.', fitProjects: ['Solar System Simulator', '2026 PRESIDENT KOREA'] }
     ]},
@@ -881,7 +943,7 @@ const STACK_ATLAS = {
       { name: 'librosa (Python)', recommendation: '오디오 분석 라이브러리. 4번 INST(Python)에서 분리 전후 BPM·키·온셋·스펙트럼 분석으로 메타데이터를 풍부하게. Whisper 가사 추출과 결합하면 종합 음원 분석 백엔드가 된다.', fitProjects: ['INST Extractor'] }
     ]},
     { key: 'assets', label: '폰트·아이콘·자산', items: [
-      { name: 'Iconify (15만+ 통합 아이콘)', recommendation: '여러 아이콘 세트를 단일 API로 온디맨드 로드. 8개 프로젝트가 제각각 아이콘 라이브러리를 쓰는 것을 Iconify로 통일해 번들·관리 부담을 줄임.', fitProjects: ['US-KR Premarket Signal', 'Knowledgeverse (반도체 유니버스)'] },
+      { name: 'Iconify (15만+ 통합 아이콘)', recommendation: '여러 아이콘 세트를 단일 API로 온디맨드 로드. 8개 프로젝트가 제각각 아이콘 라이브러리를 쓰는 것을 Iconify로 통일해 번들·관리 부담을 줄임.', fitProjects: ['Polaris Market Intelligence', 'Knowledgeverse (반도체 유니버스)'] },
       { name: 'glTF 압축 (DRACO / KTX2)', recommendation: '3D 에셋 최적화 파이프라인. 8·3·5번에서 Blender로 만든 glTF 모델을 DRACO(지오메트리)·KTX2(텍스처)로 압축해 로딩 가속. 3D 프로젝트 다수라 자산 최적화 표준으로.', fitProjects: ['Knowledgeverse (반도체 유니버스)', 'Solar System Simulator'] },
       { name: 'Variable Fonts (Noto Sans KR 등)', recommendation: '가변 폰트 타이포 자산. 6번 JP Global의 한·일·영 다국어 톤 실험과 5번 UI에 굵기/폭을 동적 제어. Pretendard 외 가변폰트·서브셋팅으로 로딩과 표현력을 동시에.', fitProjects: ['Frontend & Tone Atelier (JP Global)', '2026 PRESIDENT KOREA'] }
     ]}

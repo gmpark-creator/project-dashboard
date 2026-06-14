@@ -36,6 +36,14 @@
   function pad2(n) { return String(n).padStart(2, '0'); }
   function pad3(n) { return String(n).padStart(3, '0'); }
 
+  /* ---------- 프로젝트 분류 (박사 지시 2026-06-14) ----------
+     · unresolved   : 「미해결 프로젝트」 섹션 — 실패·난관에 봉착해 보류 (사이드바·홈 그리드 제외)
+     · hideFromGrid : 그리드·사이드바 비노출 (예: Tech Stack Collection = 홈 전용 섹션, FitRx = Knowledgeverse 편입)
+     · homeFeature  : 홈 하단 전용 섹션으로 렌더 (예: 'tech-stack') */
+  function gridProjects(projects)   { return projects.filter(p => !p.unresolved && !p.hideFromGrid); }
+  function unresolvedList(projects) { return projects.filter(p => p.unresolved); }
+  function featureProject(projects, key) { return projects.find(p => p.homeFeature === key); }
+
   /* ---------- ICONS — 프로젝트별 앰블럼 (인라인 SVG, 직접 그림) ----------
      박사 발화 "각 프로젝트별 앰블럼 다시 복구. 뜀 = 트로피, Solar = 태양"
      viewBox 24x24, stroke 1.8px, currentColor (테마 색 자동 따름). */
@@ -314,8 +322,8 @@
   /* ---------- 1b) DISPLAY MODE SWITCHER (박사 지시 2026-05-30 개편) ----------
      우상단 스위처 = 「어두운 계열 / 밝은 계열」 2종만. 프로젝트별 액센트는 라우트(data-color)가 담당. */
   const MODES = [
-    { id: 'dark',  ko: '어두운 계열', en: 'Dark',  swatch: '#15111f', accent: '#a78bfa' },
-    { id: 'light', ko: '밝은 계열',   en: 'Light', swatch: '#f4efe2', accent: '#c98a2e' }
+    { id: 'dark',  ko: '어두운 계열', en: 'Dark',  swatch: '#04181f', accent: '#22d3ee' },
+    { id: 'light', ko: '밝은 계열',   en: 'Light', swatch: '#f4efe2', accent: '#0e7490' }
   ];
 
   function setupColorSwitcher() {
@@ -531,9 +539,10 @@
     const list = $('#sidebar-list');
     const count = $('#sidebar-count');
     if (!list) return;
-    if (count) count.textContent = pad2(projects.length);
+    const items = gridProjects(projects);   // 미해결·편입(hideFromGrid) 프로젝트는 사이드바에서 제외
+    if (count) count.textContent = pad2(items.length);
 
-    list.innerHTML = projects.map((p, i) => `
+    list.innerHTML = items.map((p, i) => `
       <a class="sidebar-link" data-id="${escapeHtml(p.id)}" href="#/p/${escapeHtml(p.id)}">
         <span class="num">${pad2(p.no || (i+1))}</span>
         <span class="emblem">${emblem(p.icon)}</span>
@@ -541,6 +550,15 @@
         <span class="dot" data-st="${escapeHtml(p.status)}" title="${statusLabel(p.status)}"></span>
       </a>
     `).join('');
+  }
+
+  /* 푸터 Quick Nav — gridProjects 기반(미해결·편입 제외). 박사 지시 2026-06-14 (스테일 라벨·드리프트 차단). */
+  function renderFooterNav(projects) {
+    const ul = $('#footer-nav');
+    if (!ul) return;
+    const items = gridProjects(projects);
+    ul.innerHTML = '<li><a href="#/" data-route="home">All Projects</a></li>'
+      + items.map(p => `<li><a href="#/p/${escapeHtml(p.id)}">${escapeHtml(p.name)}</a></li>`).join('');
   }
 
   function setSidebarActive(route) {
@@ -606,6 +624,13 @@
      ============================================================ */
   function renderProjectDetail(p, idx) {
     const num = pad2(p.no || (idx + 1));
+    const numLabel = p.unresolved ? '미해결' : ('+ ' + num);   // 미해결/번호 미부여 프로젝트는 번호 대신 라벨
+    const blockerBox = (p.unresolved && (p.stallReason || (p.blockers && p.blockers.length))) ? `
+      <div class="proj-blockers">
+        <div class="blockers-head"><strong>+ 미해결 · 실패/난관 사유</strong><span class="count">STALLED</span></div>
+        ${p.stallReason ? `<p class="blockers-reason">${escapeHtml(p.stallReason)}</p>` : ''}
+        ${(p.blockers && p.blockers.length) ? `<ul class="blockers-list">${p.blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+      </div>` : '';
     const meta = `
       <div class="proj-metarow">
         <div class="proj-meta-cell">
@@ -709,7 +734,7 @@
         <div class="container">
           <div class="proj-eyebrow">
             <div class="left">
-              <span class="num">+ ${num}</span>
+              <span class="num"${p.unresolved ? ' data-unresolved="true"' : ''}>${numLabel}</span>
               <span class="tag">PROJECT · ${escapeHtml(p.id.toUpperCase())}</span>
               <span class="platform">${escapeHtml(p.platform || '')}</span>
             </div>
@@ -737,6 +762,8 @@
             <h2 class="proj-name reveal-line">${escapeHtml(p.name)}</h2>
           </div>
           <p class="proj-subtitle reveal-up">${escapeHtml(p.subtitle || '')}</p>
+
+          ${blockerBox}
 
           ${meta}
 
@@ -855,14 +882,14 @@
       </div>`).join('');
 
     return `
-      <section class="stack-atlas" data-index="02" data-theme="dark" id="stack-atlas">
+      <section class="stack-atlas" data-index="03" data-theme="dark" id="stack-atlas">
         <div class="container">
           <div class="atlas-head reveal-up">
             <h3>기술 스택 총집합</h3>
-            <p class="note">전 프로젝트가 쓴 스택 · 어디에 쓰였나 · 아직 안 쓴 기술 &amp; 추천</p>
+            <p class="note">전 트랙(활성·미해결 포함)이 쓴 스택 · 어디에 쓰였나 · 아직 안 쓴 기술 &amp; 추천</p>
           </div>
 
-          <div class="atlas-section-head"><strong>+ IN USE · 사용 중</strong><span class="count">${pad2(totalTech)} STACKS · ${pad2(projects.length)} PROJECTS</span></div>
+          <div class="atlas-section-head"><strong>+ IN USE · 사용 중</strong><span class="count">${pad2(totalTech)} STACKS · 전 트랙 누적</span></div>
           <div class="atlas-cats">${usedHtml}</div>
 
           <div class="atlas-section-head atlas-gap"><strong>+ NOT YET USED · 미사용 &amp; 추천</strong><span class="count">${pad2(unusedCount)} CANDIDATES</span></div>
@@ -872,13 +899,73 @@
   }
 
   /* ============================================================
-     RENDER — home view (page hero + status summary + 6 card grid)
+     RENDER — 미해결 프로젝트 (홈, 메인 그리드 아래) · 박사 지시 2026-06-14
+     실패·난관에 봉착해 보류된 프로젝트(DDUIM·2026 PRESIDENT KOREA·Cutpilot)를
+     사유와 함께 별도 섹션으로 노출. unresolved:true 데이터로 구동.
+     ============================================================ */
+  function renderUnresolved(list) {
+    if (!list || !list.length) return '';
+    const cards = list.map(p => `
+      <article class="unresolved-card">
+        <div class="unresolved-top">
+          <span class="card-emblem">${emblem(p.icon)}</span>
+          <div class="unresolved-id">
+            <span class="tag">${p.no ? '#' + pad2(p.no) + ' · ' : ''}${escapeHtml(p.id.toUpperCase())}</span>
+            <h4 class="unresolved-name">${escapeHtml(p.name)}</h4>
+          </div>
+          <span class="unresolved-badge">미해결</span>
+        </div>
+        <p class="unresolved-sub">${escapeHtml(p.subtitle || '')}</p>
+        ${p.stallReason ? `<p class="unresolved-reason"><strong>난관 ·</strong> ${escapeHtml(p.stallReason)}</p>` : ''}
+        ${(p.blockers && p.blockers.length) ? `<ul class="unresolved-blockers">${p.blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+        <a class="unresolved-cta" href="#/p/${escapeHtml(p.id)}">자세히 보기 <span aria-hidden="true">→</span></a>
+      </article>
+    `).join('');
+    return `
+      <section class="s-unresolved" data-index="02" data-theme="dark" id="unresolved">
+        <div class="container">
+          <div class="home-grid-head">
+            <h3>미해결 프로젝트</h3>
+            <p class="note"><strong>+ ${pad2(list.length)}</strong> · 실패·난관에 봉착해 보류된 프로젝트</p>
+          </div>
+          <div class="unresolved-grid">${cards}</div>
+        </div>
+      </section>`;
+  }
+
+  /* ============================================================
+     RENDER — Tech Stack Collection (홈, 기술 스택 총집합 아래) · 박사 지시 2026-06-14
+     프로젝트 넘버링에서는 빠지되, 메인 하단 「기술 스택 총집합」 바로 아래에
+     기존 구조(요약 + 프리뷰 임베드)대로 노출. homeFeature:'tech-stack' 데이터로 구동.
+     ============================================================ */
+  function renderTechStackCollection(p) {
+    if (!p) return '';
+    const summaryHtml = p.summary
+      ? `<p class="techstack-summary">${escapeHtml(p.summary).replace(/\n/g, '<br>')}</p>`
+      : '';
+    return `
+      <section class="s-techstack" data-index="04" data-theme="dark" id="tech-stack-collection">
+        <div class="container">
+          <div class="home-grid-head">
+            <h3>${escapeHtml(p.name)}</h3>
+            <p class="note">기술 스택 총집합의 확장 — 넘버링 외 참고 허브 · <strong>완성</strong></p>
+          </div>
+          <p class="techstack-subtitle">${escapeHtml(p.subtitle || '')}</p>
+          ${summaryHtml}
+          ${renderPreview(p)}
+        </div>
+      </section>`;
+  }
+
+  /* ============================================================
+     RENDER — home view (page hero + status summary + card grid)
      ============================================================ */
   function renderHome(projects) {
-    const total = projects.length;
-    const done   = projects.filter(p => p.status === 'completed').length;
-    const active = projects.filter(p => p.status === 'in-progress').length;
-    const pause  = projects.filter(p => p.status === 'paused').length;
+    const grid   = gridProjects(projects);          // 사이드바·그리드·카운트 = 활성 프로젝트만 (미해결·편입 제외)
+    const total  = grid.length;
+    const done   = grid.filter(p => p.status === 'completed').length;
+    const active = grid.filter(p => p.status === 'in-progress').length;
+    const pause  = grid.filter(p => p.status === 'paused').length;
 
     const todayStr = (function () {
       const now = new Date();
@@ -887,7 +974,7 @@
       return kst.getFullYear() + '-' + pad2(kst.getMonth()+1) + '-' + pad2(kst.getDate());
     })();
 
-    const cards = projects.map((p, i) => `
+    const cards = grid.map((p, i) => `
       <a class="home-card" href="#/p/${escapeHtml(p.id)}">
         <span class="card-emblem">${emblem(p.icon)}</span>
         <div class="card-row">
@@ -922,7 +1009,7 @@
 
           <div class="page-lead">
             <p class="lead reveal-up">
-              A consolidated report covering all <strong>${projects.length} projects</strong>, active and completed.
+              A consolidated report covering all <strong>${total} projects</strong>, active and completed.
               Select a project from the left sidebar, or click a card below to navigate to its detail page.
             </p>
             <div class="marker reveal-up">
@@ -953,7 +1040,11 @@
         </div>
       </section>
 
-      ${renderStackAtlas(projects)}
+      ${renderUnresolved(unresolvedList(projects))}
+
+      ${renderStackAtlas(projects.filter(p => p.id !== 'tech-stack'))}
+
+      ${renderTechStackCollection(featureProject(projects, 'tech-stack'))}
     `;
   }
 
@@ -973,7 +1064,7 @@
      매핑은 index.html FOUC 스크립트와 공유(window.__PROJECT_COLOR) — 단일 소스. */
   function applyRouteColor(route) {
     const map = window.__PROJECT_COLOR || {};
-    let color = window.__DEFAULT_COLOR || 'violet';
+    let color = window.__DEFAULT_COLOR || 'teal';
     if (route && route.type === 'detail' && map[route.id]) color = map[route.id];
     document.documentElement.dataset.color = color;   // 프로젝트 hue (배경 모드는 data-mode가 별도 관리)
   }
@@ -1027,6 +1118,7 @@
 
     const projects = window.PROJECTS || [];
     renderSidebar(projects);
+    renderFooterNav(projects);
 
     // initial route
     renderRoute();

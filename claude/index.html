@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#04181f">
   <meta name="description" content="G.M.PARK — Project Reports. 진행 중·완료된 6개 프로젝트의 통합 보고서.">
   <title>Project Reports — G.M.PARK</title>
 
@@ -12,14 +12,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
-  <link rel="stylesheet" href="css/dashboard.css?v=20260604-9teal">
+  <link rel="stylesheet" href="css/dashboard.css?v=20260614-teal-hub">
 
   <!-- 컬러 시스템 + FOUC 방지 (CSS 로드 전 즉시 적용) · 박사 지시 2026-05-30 개편.
        · data-mode  = 어두운(dark) / 밝은(light) 계열 — 우상단 스위처 선택, localStorage 영속(기본 dark)
-       · data-color = 프로젝트 고유 hue — 라우트(해시) 자동. 홈/전체 = violet, 각 프로젝트 = 고유색.
-       매핑은 dashboard.js와 공유(window.__PROJECT_COLOR) — 단일 소스. -->
+       · data-color = 프로젝트 고유 hue — 라우트(해시) 자동. 홈/전체 = teal(FitRx 임상 톤), 각 프로젝트 = 고유색.
+       매핑은 dashboard.js와 공유(window.__PROJECT_COLOR) — 단일 소스.
+       박사 지시 2026-06-14: 기본(베이스) 색을 바이올렛 → FitRx teal(시안/청록)로 전환. -->
   <script>
-    window.__DEFAULT_COLOR = 'violet';
+    window.__DEFAULT_COLOR = 'teal';
     window.__PROJECT_COLOR = {
       'ais':             'blue',   /* 1 · 블루(해양) */
       'sports':          'green',  /* 2 · DDUIM(뜀) 그린 */
@@ -150,16 +151,8 @@
           </div>
           <div class="footer-col">
             <h5>Quick Nav</h5>
-            <ul>
-              <li><a href="#/">All Projects</a></li>
-              <li><a href="#/p/ais">AIS Ship Tracker</a></li>
-              <li><a href="#/p/sports">DDUIM</a></li>
-              <li><a href="#/p/solar">Solar System</a></li>
-              <li><a href="#/p/inst">INST Extractor</a></li>
-              <li><a href="#/p/korea-gov-sim">2026 PRESIDENT KOREA</a></li>
-              <li><a href="#/p/jpglobal-web">Frontend &amp; Tone Atelier</a></li>
-              <li><a href="#/p/us-kr-premarket">US-KR Premarket Signal</a></li>
-            </ul>
+            <!-- gridProjects 기반 데이터 드리븐 — dashboard.js renderFooterNav가 채움(스테일·드리프트 차단). -->
+            <ul id="footer-nav"><li><a href="#/" data-route="home">All Projects</a></li></ul>
           </div>
         </div>
         <div class="footer-bottom">
@@ -172,7 +165,7 @@
 
 </div>
 
-<script src="js/projects-data.js?v=20260606-sf" defer></script>
-<script src="js/dashboard.js?v=20260605-tsc" defer></script>
+<script src="js/projects-data.js?v=20260614-hub" defer></script>
+<script src="js/dashboard.js?v=20260614-hub" defer></script>
 </body>
 </html>
