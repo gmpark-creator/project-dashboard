@@ -23,6 +23,7 @@
 <script src="bosesa-data-1-2025.js"></script>
 <script src="bosesa-data-1-2024.js"></script>
 <script src="bosesa-data-1-2023.js"></script>
+<script src="bosesa-data-1-2023b.js"></script>
 <script src="bosesa-data-1-2022.js"></script>
 <script src="bosesa-data-1-2021.js"></script>
 <script src="bosesa-data-1-2020.js"></script>
@@ -734,6 +735,7 @@ const S = {
   bosesaView:'intro',        // 'intro' | 'quiz'
   bosesaSubject:1,
   bosesaYear:2025,
+  bosesaForm:'A',            // 'A' | 'B' — A형/B형 (현재 1과목 2023만 B형 보유)
   quizOpen:{},               // { questionNo: true } — 정답 공개된 문제
 };
 
@@ -747,6 +749,7 @@ try {
   if (q.get('view')) S.view = q.get('view');
   if (q.get('subject')) { S.bosesaSubject = +q.get('subject'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
   if (q.get('year')) { S.bosesaYear = +q.get('year'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
+  if (q.get('form')) { S.bosesaForm = (String(q.get('form')).toUpperCase()==='B'?'B':'A'); }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
 
@@ -755,10 +758,12 @@ function setState(patch){
   Object.assign(S, patch);
   if (patch.customsType && patch.customsType !== prevType){ S.activeNode = null; S.modalField = null; }
   if (patch.port && patch.port !== prevPort){ S.activeNode = null; }
-  if (patch.bosesaYear !== undefined || patch.bosesaSubject !== undefined){ S.quizOpen = {}; }
+  if (patch.bosesaYear !== undefined || patch.bosesaSubject !== undefined){ S.quizOpen = {}; S.bosesaForm = 'A'; }
   saveState();
   render();
 }
+// A형/B형 전환 (박사 지시 2026-06-14, 2023 1과목 B형 추가). 토글 시 펼친 정답은 초기화.
+function setBosesaForm(f){ setState({ bosesaForm: (f==='B'?'B':'A'), quizOpen:{} }); }
 
 let _bosesaMenuOpen = false, _s1MenuOpen = false, _s2MenuOpen = false, _s3MenuOpen = false, _s4MenuOpen = false, _s5MenuOpen = false;
 function toggleBosesaMenu(){
@@ -1387,6 +1392,13 @@ function renderBosesaQuiz(){
   } else if(S.bosesaSubject===5 && S.bosesaYear===2019){
     data = typeof BOSESA_DATA_5_2019 !== 'undefined' ? BOSESA_DATA_5_2019 : null;
   }
+
+  // ── A형/B형 (박사 지시 2026-06-14): 현재 과목+연도에 B형 데이터가 있으면 토글 제공 ──
+  // 2023년 1과목만 B형 보유. B형 선택 시 데이터 교체.
+  const bForm = (S.bosesaSubject===1 && S.bosesaYear===2023 && typeof BOSESA_DATA_1_2023B !== 'undefined')
+    ? BOSESA_DATA_1_2023B : null;
+  if(bForm && S.bosesaForm === 'B'){ data = bForm; }
+
   if(!data){
     root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
       <i class="fa-solid fa-clock text-2xl mb-2 block text-slate-600"></i>해당 연도/과목 데이터가 아직 준비되지 않았습니다.</div>`;
@@ -1447,6 +1459,14 @@ function renderBosesaQuiz(){
         <div class="text-xs font-bold text-violet-400 tracking-widest uppercase">보세사 기출문제</div>
         <h2 class="text-xl font-bold text-white">${data.year}년 ${data.subjectNo ?? data.subject}과목 — ${esc(data.subjectName)}</h2>
         <p class="text-xs text-slate-400 mt-1">${data.answerForm ?? '기출'} · 총 ${data.totalQuestions ?? data.questions.length}문항</p>
+        ${bForm ? `<div class="inline-flex items-center gap-2 mt-2">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">유형</span>
+          <div class="inline-flex rounded-lg overflow-hidden border border-violet-700/60">
+            <button onclick="setBosesaForm('A')" class="px-3 py-1 text-xs font-bold ${S.bosesaForm!=='B'?'bg-violet-700 text-white':'bg-slate-800/70 text-slate-300 hover:bg-slate-700'}">A형</button>
+            <button onclick="setBosesaForm('B')" class="px-3 py-1 text-xs font-bold ${S.bosesaForm==='B'?'bg-violet-700 text-white':'bg-slate-800/70 text-slate-300 hover:bg-slate-700'}">B형</button>
+          </div>
+          <span class="text-[10px] text-slate-500">2023년 1과목은 A·B형 두 유형 제공</span>
+        </div>` : ''}
         <a href="bosesa-mobile/" target="_blank" rel="noopener"
            class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-300 bg-emerald-900/30 border border-emerald-700/50 rounded-lg px-3 py-1.5 hover:bg-emerald-900/50">
           <i class="fa-solid fa-mobile-screen-button"></i> 📱 모바일 전용 보세사 뷰어 열기

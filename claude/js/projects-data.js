@@ -477,16 +477,16 @@ const PROJECTS = [
     id: 'tradelogix',
     no: 8,
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 — 공식정답표 전수검증)',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 + 2023년 1과목 B형 25문항 = 900문항, A·B형 토글 — 공식정답표 전수검증)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
-    latest: '2026-06-12',
+    latest: '2026-06-14',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 보세사 뷰어는 1~5과목 2019~2025 전연도 875문항까지 완성' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 보세사 뷰어는 1~5과목 2019~2025 전연도 875문항 + 2023년 1과목 B형(A·B형 토글)까지 완성' }
     ]},
     summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
            + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
@@ -503,6 +503,7 @@ const PROJECTS = [
       { area: '디자인 시스템', tech: 'Tailwind CSS, FontAwesome', how: '다크 엔터프라이즈 SaaS(베이스 #0F172A, slate 컨테이너) + 재무/리스크 경계 그라데이션(비용 emerald·위험 rose·세액 violet). FontAwesome 아이콘.' },
     ],
     issues: [
+      { type:'완료', title:'보세사 1과목 2023년 B형 추가 — A·B형 토글 + Codex 교차검증 (2026-06-14)', desc:'박사 지시 — 「2023년 보세사 기출문제(강의용)」 PDF(1과목 수출입통관절차 B형 1~25번) + 공식 정답표(B형)를 대시보드에 B형으로 추가. 분석 결과 B형은 A형과 동일한 시험(문항·선지·정답 동일)으로 출제 순서만 13칸 회전된 형태임을 확인 — 검증된 A형(bosesa-data-1-2023.js)을 B형 출제순서로 재배열하고 2023년 B형 공식 정답표로 25문항 정답을 전수 대조해 일치 확인(Q16 복수정답 ④⑤ 포함). PDF 문제·정답 이미지를 Claude 비전 정독 + Codex(codex exec, 이미지 첨부)로 교차검증해 원문 일치 확인. bosesa-data-1-2023b.js(BOSESA_DATA_1_2023B, answerForm "B형") 신규. 본 뷰어·모바일 뷰어 모두 2023 1과목에서 「A형/B형」 토글 제공(?form=B 딥링크), Edge 헤드리스로 A·B 전환·내용·정답 렌더 검증. 이로써 2023 1과목은 A형(기존)·B형(신규) 2개 유형 보유.' },
       { type:'완료', title:'#9 워크스페이스·레포 신설 (변증법 협업 베이스 적용)', desc:'기존 프로젝트와 분리된 독립 레포 gmpark-creator/tradelogix-nexus(private) 생성 — master(박사 베이스라인)/newton(Claude)/codex(Codex) 3 worktree 물리 격리. AGENTS.md·CODEX_SYNC.md 변증법 규약 + Part 1 R1 Thesis 영속화.' },
       { type:'완료', title:'Part 1 통관 마스터 구현 완료 — 변증법 R1~R3 + Codex 검수 PASS', desc:'Claude 제안 ↔ Codex 반박 3라운드(R1·R2 BLOCK → R3 PASS·IMPLEMENTATION GO) 후 Claude 단독 구현(index.html 52KB): 상태머신 v2, 통관 3유형 동등 플로우(수입9/수출6/반송5), Incoterms 11 8필드 구조체+비용/위험 게이지, 수입신고필증 10필드 인스펙터+세액 read-only 카드(부가세 과표=과세가격+관세+내국세), desktop/mobile 이중렌더+lazy+접근성+fallback. Codex 사후검수 PASS(데이터계약 55 + Playwright headless + 390px overflow0 + 모달 생성/제거 + CDN fallback smoke). 라이브 프리뷰 배포.' },
       { type:'완료', title:'선사 업무 — 선박 증서 31종 도해 추가 (2026-06-05)', desc:'#9의 두 축(통관 / 선사 업무) 중 「선사 업무」 자료. 국제항해 컨테이너선 증서철 31종 PDF를 Claude 워크플로(32 에이전트 병렬)로 명칭·근거협약·용도·유효기간을 추출·교차감사해 8개 기능분류(등록·국적 / 선급·구조·안전·통신 / 해양환경 / 안전관리·보안 / 선원·노동 / 보험·재정보증 / 위험물 / 검역) 인터랙티브 도해(자급식 단일 HTML)로 작성. 각 증서의 정의·「선사 업무 용도」·미보유 시 결과·근거협약을 카드+분류 필터+검색으로 제공. 공개 게시 위해 선명·IMO·소유/관리회사·보험·선원·증서번호 등 식별·상업·개인정보를 마스킹(상세본은 로컬 비공개). Part 1 통관 마스터와 별개의 독립 단일 HTML로 previews/ship-certs/에 배치.' },

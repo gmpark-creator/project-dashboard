@@ -78,6 +78,10 @@
   <div class="chips" id="subjectChips"></div>
   <div class="rowlabel">연도</div>
   <div class="chips" id="yearChips"></div>
+  <div id="formRow" class="hidden">
+    <div class="rowlabel">유형 <small style="color:var(--sub);font-weight:600">· 2023년 1과목 A·B형</small></div>
+    <div class="chips" id="formChips"></div>
+  </div>
   <div class="topbar2">
     <span class="meta" id="meta">과목·연도를 선택하세요</span>
     <button class="ansBtn" id="ansToggle">정답·해설 표시</button>
@@ -105,8 +109,10 @@
   ];
   var YEARS = [2025,2024,2023,2022,2021,2020,2019];
   var CN = ['①','②','③','④','⑤','⑥','⑦','⑧'];
-  var state = { subject:1, year:2025, answersShown:true };
+  var state = { subject:1, year:2025, form:'A', answersShown:true };
   var loaded = {};
+  // B형 보유 여부 (현재 2023년 1과목만 A·B형 두 유형)
+  function hasBForm(s,y){ return s===1 && y===2023; }
 
   var $ = function(id){ return document.getElementById(id); };
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
@@ -116,8 +122,9 @@
   function analysisText(a){ var t = (a && typeof a==='object') ? nn(a.reason, a.text) : a; return String(t==null?'':t); }
 
   // const(전역 lexical)로 선언된 BOSESA_DATA_* 를 이름으로 가져오기 (window 속성 아님 → direct eval)
-  function getData(s,y){
+  function getData(s,y,form){
     var n='BOSESA_DATA_'+s+'_'+y;
+    if(form==='B' && hasBForm(s,y)) n+='B';   // 2023 1과목 B형 = BOSESA_DATA_1_2023B
     try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; }
   }
 
@@ -128,23 +135,36 @@
     $('yearChips').innerHTML = YEARS.map(function(y){
       return '<button class="chip sub'+(y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
     }).join('');
+    // 유형(A형/B형) 토글 — B형 보유 연도/과목에서만 노출
+    var formRow=$('formRow');
+    if(hasBForm(state.subject,state.year)){
+      formRow.classList.remove('hidden');
+      $('formChips').innerHTML = ['A','B'].map(function(f){
+        return '<button class="chip sub'+(f===state.form?' on':'')+'" data-f="'+f+'">'+f+'형</button>';
+      }).join('');
+    } else {
+      formRow.classList.add('hidden');
+    }
   }
 
   function load(){
-    var s=state.subject, y=state.year, key=s+'_'+y;
+    var s=state.subject, y=state.year;
+    var isB = (state.form==='B' && hasBForm(s,y));
+    var fileBase = 'bosesa-data-'+s+'-'+y+(isB?'b':'');
+    var key = s+'_'+y+(isB?'b':'');
     $('empty').classList.add('hidden');
     $('qlist').innerHTML='';
     if (loaded[key]) { render(); return; }
     $('loading').classList.remove('hidden');
     var sc=document.createElement('script');
-    sc.src='../bosesa-data-'+s+'-'+y+'.js';
+    sc.src='../'+fileBase+'.js';
     sc.onload=function(){ loaded[key]=true; $('loading').classList.add('hidden'); render(); };
     sc.onerror=function(){ $('loading').classList.add('hidden'); $('empty').classList.remove('hidden'); };
     document.head.appendChild(sc);
   }
 
   function render(){
-    var data = getData(state.subject, state.year);
+    var data = getData(state.subject, state.year, state.form);
     var sname = (SUBJECTS.filter(function(x){return x.no===state.subject;})[0]||{}).name||'';
     if (!data || !data.questions) { $('empty').classList.remove('hidden'); $('meta').textContent=state.year+'년 '+state.subject+'과목'; return; }
     $('meta').textContent = state.year+'년 · '+state.subject+'과목 '+sname+' · 총 '+(data.totalQuestions||data.questions.length)+'문항'+(data.answerForm?(' · '+data.answerForm):'');
@@ -177,10 +197,13 @@
 
   // events
   $('subjectChips').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; renderChips(); load();
+    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips(); load();
   });
   $('yearChips').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b)return; state.year=+b.dataset.y; renderChips(); load();
+    var b=e.target.closest('.chip'); if(!b)return; state.year=+b.dataset.y; state.form='A'; renderChips(); load();
+  });
+  $('formChips').addEventListener('click', function(e){
+    var b=e.target.closest('.chip'); if(!b)return; state.form=(b.dataset.f==='B'?'B':'A'); renderChips(); load();
   });
   $('ansToggle').addEventListener('click', function(){
     state.answersShown=!state.answersShown;
@@ -191,6 +214,15 @@
   var totop=$('totop');
   window.addEventListener('scroll', function(){ totop.style.display = window.scrollY>500?'block':'none'; });
   totop.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+
+  // URL 파라미터(?subject=1&year=2023&form=B)로 직행 — 공유/딥링크용
+  try {
+    var q=new URLSearchParams(location.search);
+    if(q.get('subject')) state.subject=+q.get('subject');
+    if(q.get('year')) state.year=+q.get('year');
+    if(q.get('form')) state.form=(String(q.get('form')).toUpperCase()==='B'?'B':'A');
+    if(!hasBForm(state.subject,state.year)) state.form='A';
+  } catch(e){}
 
   renderChips();
   load();
