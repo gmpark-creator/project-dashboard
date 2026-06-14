@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "asOf": "2026-06-15",
+    "source": "Claude(Opus 4.8) Thesis + Codex(GPT-5.5) Antithesis R1~R2. 임계값 = LEDGER 실측 분위수(data/derived-stats.generated.js · POLARIS_DERIVED.quantiles).",
+    "computedFrom": "us-kr-premarket/market-ledger/data.js + data/derived-stats.generated.js",
+    "sampleSize": 10,
+    "exploratory": true,
+    "disclaimer": "조건 일치(확률 아님)를 투명하게 합산하는 교육용 규칙입니다. 매매 신호·투자자문이 아니며, 임계값은 2026년 6월 소표본(n<20) 분위수라 일반화·예측을 보장하지 않습니다. 책임은 이용자 본인에게 있습니다."
+  },
+  "labels": ["상승형 조건 일치", "하락형 조건 일치", "혼합", "데이터 부족"],
+  "scoring": {
+    "method": "비방향 조건 일치 가중합 (확률·기대수익 산출 아님)",
+    "phases": ["preOpen", "openKnown"],
+    "rule": "hardGate 또는 dataQualityFail → '데이터 부족'. activeWeight<minActiveWeight → '데이터 부족'. |bull-bear|<=mixedBand → '혼합'. 그 외 bull>bear ? '상승형 조건 일치' : '하락형 조건 일치'.",
+    "minActiveWeight": 3,
+    "mixedBand": 1,
+    "weightRange": [0, 2],
+    "note": "preOpen 단계는 당일 한국 결과(close/chgPct/high/low/volume/flips/usImpact.realized)를 절대 참조하지 않는다(룩어헤드 금지). 당일 결과는 '사후 복기' 패널 전용."
+  },
+  "gates": [
+    {
+      "id": "soxl_soxs_sanity_gate",
+      "label": "SOXL/SOXS 역방향 정합 게이트",
+      "phase": "preOpen",
+      "ledgerFields": ["us.soxl[].regChgPct", "us.soxs[].regChgPct"],
+      "formula": "inverseError = |SOXL.regChgPct + SOXS.regChgPct|; signOk = sign(SOXL)===-sign(SOXS)",
+      "fail": "signOk=false 또는 inverseError > 2.0 (부호 역전·명백한 데이터 오류만)",
+      "warn": "inverseError > 0.985 (고변동/경미한 괴리 — 점수 유지)",
+      "threshold": { "type": "ledgerQuantile", "failValue": 2.0, "warnValue": 0.985, "note": "6월 실측 최대 |SOXL+SOXS|=1.03(6/5 대변동일)도 정상이므로 fail은 부호역전 또는 >2.0(명백 오류)만. 0.985 초과는 경고로 강등해 정상 고변동일을 데이터부족으로 오판하지 않음.", "quantileWarn": 0.9, "sampleSize": 10, "computedFrom": "|SOXL+SOXS regChgPct| (POLARIS_DERIVED.quantiles.inverseError)", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "onFail": "데이터 부족",
+      "rationale": "SOXL↔SOXS 실측 상관 −1.000. 부호 불일치/큰 괴리는 데이터·세션 오류 신호 → 점수 산출 중단."
+    },
+    {
+      "id": "event_hard_gate",
+      "label": "이벤트 하드 게이트 (예정 촉매만)",
+      "phase": "preOpen",
+      "ledgerFields": ["calendar[].date", "calendar[].importance", "calendar[].category"],
+      "formula": "선택 한국일 T 또는 직전 미국세션 D에, importance==='최우선' 이며 category가 '예정 촉매'(통화정책/물가/고용/실적/지표) ∩ NOT 사후묘사(지수/수급/지정학/거시/원자재/심리)인 이벤트가 있으면 hardGate. FOMC·CPI·NFP·실적은 개장 전 예정이 알려진 촉매라 정당하게 게이트하고, '코스피 -8%' 같은 지수/수급 사후 묘사는 카테고리로 제외. 게이트는 점수를 억제만 하며 이벤트의 수치(가격·등락)를 점수에 읽지 않으므로 수치 룩어헤드 누출 없음.",
+      "scheduledCategories": ["통화정책", "물가", "고용", "실적", "지표"],
+      "excludedPostHocCategories": ["지수", "수급", "지정학", "거시", "원자재", "심리"],
+      "onFail": "변동성 경고 / 근거 부족",
+      "rationale": "FOMC·CPI/PPI·NFP·주요 실적(AVGO·ORCL·MU 등)처럼 개장 전에 예정이 알려진 촉매일에만 방향성보다 변동성·근거 부족을 우선한다. '코스피 -8% 블랙먼데이' 같은 지수/수급 사후 묘사로 게이트하면 당일 결과를 미리 쓰는 룩어헤드가 되므로 제외. modelScenario(opus/gpt/prob)는 어떤 경우에도 점수 요인 금지."
+    }
+  ],
+  "factors": [
+    {
+      "id": "us_semis_lag1_relay",
+      "label": "미국 반도체 직전세션 → 한국 시가 전이",
+      "phase": "preOpen",
+      "ledgerFields": ["indices.rows.SOX[].chgPct"],
+      "derivedRefs": ["POLARIS_DERIVED.transmission.SOX_to_SAMSUNG.lag1", "POLARIS_DERIVED.transmission.SOX_to_HYNIX.lag1"],
+      "formula": "sox = 한국일 T의 직전 미국세션 D의 SOX.chgPct (lag1만 사용; 같은날 lag0은 r≈0.02로 금지)",
+      "threshold": { "type": "ledgerQuantile", "bull": { "op": ">=", "value": 4.588, "quantile": 0.75 }, "bear": { "op": "<=", "value": -2.095, "quantile": 0.25 }, "value": 4.588, "sampleSize": 10, "computedFrom": "POLARIS_DERIVED.quantiles.SOX_chgPct", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "weight": 2,
+      "sideMapping": { "bull": "상승형", "bear": "하락형", "between": "중립" },
+      "missingPolicy": "직전 미국세션 없음 → 비활성(중립)",
+      "rationale": "SOX→삼성 lag1 r=0.836·SOX→하이닉스 lag1 r=0.834. 주 요인(가중치 2). lag0(같은날)은 r≈0.02~0.06으로 금지."
+    },
+    {
+      "id": "semi_leadership",
+      "label": "반도체 리더십 (SOX − 나스닥)",
+      "phase": "preOpen",
+      "ledgerFields": ["indices.rows.SOX[].chgPct", "indices.rows.IXIC[].chgPct"],
+      "formula": "lead = SOX.chgPct(D) − IXIC.chgPct(D)",
+      "threshold": { "type": "ledgerQuantile", "bull": { "op": ">=", "value": 4.133, "quantile": 0.75 }, "bear": { "op": "<=", "value": -1.432, "quantile": 0.25 }, "value": 4.133, "sampleSize": 10, "computedFrom": "POLARIS_DERIVED.quantiles.lead_SOX_minus_IXIC", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "weight": 1,
+      "sideMapping": { "bull": "상승형", "bear": "하락형", "between": "중립" },
+      "missingPolicy": "지수 결측 → 비활성",
+      "rationale": "반도체가 시장(나스닥)보다 강/약한지. 단순 지수 효과와 반도체 특화 강도를 분리."
+    },
+    {
+      "id": "levered_etf_confirm",
+      "label": "레버리지 ETF 확인 (SOXL/SOXS)",
+      "phase": "preOpen",
+      "ledgerFields": ["us.soxl[].regChgPct", "us.soxs[].regChgPct"],
+      "formula": "방향은 SOXL 기준, SOXS로 교차 확인",
+      "threshold": { "type": "ledgerQuantile", "bull": { "op": ">=", "value": 13.208, "quantile": 0.75, "soxs": -13.865, "and": "SOXS <= -13.865" }, "bear": { "op": "<=", "value": -5.925, "quantile": 0.25, "soxs": 5.488, "and": "SOXS >= 5.488" }, "value": 13.208, "sampleSize": 10, "computedFrom": "POLARIS_DERIVED.quantiles.SOXL_regChgPct / SOXS_regChgPct", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "weight": 1,
+      "sideMapping": { "bull": "상승형", "bear": "하락형", "between": "중립" },
+      "missingPolicy": "ETF 결측 → 비활성",
+      "rationale": "SOX↔SOXL r=0.998이라 독립 요인이 아닌 보조 확인(가중치 1)으로 제한해 중복 계상 방지."
+    },
+    {
+      "id": "afterhours_reclaim_fade",
+      "label": "시간외 회복/페이드 압력",
+      "phase": "preOpen",
+      "ledgerFields": ["us.soxl[].extVsRegPct", "us.soxs[].extVsRegPct"],
+      "formula": "extPressure = (SOXL.extVsRegPct − SOXS.extVsRegPct) / 2",
+      "threshold": { "type": "fixed", "bull": { "op": ">=", "value": 2.0 }, "bear": { "op": "<=", "value": -2.0 }, "volatilityWarnAbs": 4.04, "value": 2.0, "sampleSize": 20, "computedFrom": "고정 ±2.0; 경고 임계 = POLARIS_DERIVED.quantiles.extVsRegAbs.p75", "exploratory": true, "sampleCaveat": "n<20 per-symbol exploratory" },
+      "weight": 1,
+      "sideMapping": { "bull": "상승형", "bear": "하락형", "between": "중립" },
+      "missingPolicy": "시간외 결측 → 비활성",
+      "rationale": "본장 종가 대비 시간외 방향(야간 회복/페이드). |extPressure|≥4.04(p75)면 변동성 경고."
+    },
+    {
+      "id": "kr_open_gap_vs_range",
+      "label": "한국 시가갭 / 평균 일중폭 비율",
+      "phase": "openKnown",
+      "ledgerFields": ["kospi.{symbol}[T].open", "kospi.{symbol}[T].flips.prevClose"],
+      "derivedRefs": ["POLARIS_DERIVED.perSymbol.SAMSUNG.avgRangePct", "POLARIS_DERIVED.perSymbol.HYNIX.avgRangePct"],
+      "formula": "gapPct = (open − prevClose)/prevClose*100; gapRatio = gapPct / avgRangePct",
+      "threshold": { "type": "fixed", "bull": { "op": ">=", "value": 0.5 }, "bear": { "op": "<=", "value": -0.5 }, "hardWarnAbs": 1.0, "value": 0.5, "sampleSize": 16, "computedFrom": "고정 비율 0.5; avgRangePct=POLARIS_DERIVED.perSymbol", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "weight": 1,
+      "sideMapping": { "bull": "상승형", "bear": "하락형", "between": "중립" },
+      "missingPolicy": "시가/전일종가 결측 → 비활성",
+      "rationale": "시가갭이 평균 일중폭의 절반 이상이면 방향 단서(단 추격 리스크). |gapRatio|≥1.0이면 갭 과대 경고. open은 개장 시 알려지는 값이므로 openKnown 단계."
+    },
+    {
+      "id": "relay_gap_alignment",
+      "label": "전이-시가갭 방향 정합",
+      "phase": "openKnown",
+      "ledgerFields": ["indices.rows.SOX[].chgPct", "kospi.{symbol}[T].open", "kospi.{symbol}[T].flips.prevClose"],
+      "formula": "aligned = sign(sox(D)) === sign(gapPct(T)); 활성조건 |sox|>=2.86(SOX abs p50) and |gapPct|>=4.437(KR abs gap p50)",
+      "threshold": { "type": "ledgerQuantile", "activeSoxAbs": 2.86, "activeGapAbs": 4.437, "value": 2.86, "sampleSize": 10, "computedFrom": "POLARIS_DERIVED.quantiles.SOX_absChgPct.p50 / KR_gapAbs.p50", "exploratory": true, "sampleCaveat": "n<20 exploratory" },
+      "weight": 1,
+      "sideMapping": { "aligned-up": "상승형", "aligned-down": "하락형", "conflict": "혼합" },
+      "missingPolicy": "활성조건 미달 → 비활성. 부호 불일치 → conflict(점수 대신 충돌 표시)",
+      "rationale": "전이는 '미국 D → 한국 T 시가'에만 의미. 미국 강세인데 한국 갭다운 등 불일치는 방향 점수 대신 충돌로 표기."
+    },
+    {
+      "id": "flip_execution_risk",
+      "label": "체결 난이도(휩쏘) 오버레이",
+      "phase": "postSessionReplay",
+      "ledgerFields": ["kospi.{symbol}[].flips", "us.soxl[].flips", "us.soxs[].flips"],
+      "formula": "flip-replay whipsawIndex 사용 (사후/실시간 실행 품질)",
+      "threshold": { "type": "fixed", "overlayWarnAt": 50, "value": 50, "sampleSize": 18, "computedFrom": "flip-replay whipsawIndex (0~100)", "exploratory": true, "sampleCaveat": "사후 복기 전용" },
+      "weight": 0,
+      "sideMapping": { "note": "방향 점수에 미가산. 체결 난이도 경고만." },
+      "missingPolicy": "flips 결측 → 오버레이 생략",
+      "rationale": "flip은 pre-open 방향 요인이 아니라 사후/실시간 체결 품질 지표 → 가중치 0(오버레이)."
+    }
+  ]
+}

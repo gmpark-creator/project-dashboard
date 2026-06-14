@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>반도체 단타 데이터·지식 베이스 — Polaris</title>
+<meta name="description" content="미국·코스피 반도체 단타를 위한 유니버스·실측 파생통계·플레이북·리스크규칙·용어집. 연구·교육용.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body { background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
+  ::-webkit-scrollbar{height:8px;width:8px} ::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0B1120] sticky top-0 z-10 backdrop-blur">
+  <div class="max-w-[1100px] mx-auto px-5 py-4">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div>
+        <a href="../" class="text-[11px] text-slate-500 hover:text-sky-400"><i class="fa-solid fa-arrow-left"></i> Polaris 허브</a>
+        <h1 class="text-xl font-extrabold text-white mt-0.5"><i class="fa-solid fa-cubes text-emerald-400"></i> 반도체 단타 데이터·지식 베이스</h1>
+      </div>
+      <div class="text-[11px] text-slate-500">기준일 <b id="asof" class="text-slate-300">—</b> · 실측 LEDGER 파생</div>
+    </div>
+    <nav id="nav" class="flex flex-wrap gap-1.5 mt-3"></nav>
+  </div>
+</header>
+
+<main class="max-w-[1100px] mx-auto px-5 py-6">
+  <div id="content"></div>
+</main>
+
+<footer class="border-t border-slate-800 mt-8">
+  <div class="max-w-[1100px] mx-auto px-5 py-5 text-[11px] leading-5 text-slate-500">
+    <b class="text-slate-400">고지:</b> 본 페이지는 연구·교육용 참고 자료입니다. 파생통계는 2026년 6월 실측 OHLC(market-ledger, 이중 교차검증)에 대한 결정론적 계산이며 <b>소표본 관측 기록</b>으로 통계적 일반화·예측을 보장하지 않습니다. 종목코드·티커·역할은 공개정보 기반이나 거래 전 원출처에서 재확인하세요. <b>투자자문이 아니며 매매 결정·결과의 책임은 이용자 본인에게 있습니다.</b>
+  </div>
+</footer>
+
+<!-- Tailwind safelist (JS 동적 조립 클래스 보장) -->
+<div class="hidden bg-amber-500/15 text-amber-400 bg-emerald-500/15 text-emerald-400 text-emerald-300 bg-emerald-500/5 ring-emerald-500/20 text-teal-400 text-violet-400 text-rose-400 text-sky-400 text-slate-400"></div>
+<script src="../market-ledger/data.js?v=20260615"></script>
+<script src="./derived-stats.generated.js?v=20260615"></script>
+<script src="./core-data.js?v=20260615"></script>
+<script src="./data-hub.js?v=20260615"></script>
+</body>
+</html>

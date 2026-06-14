@@ -311,19 +311,23 @@ const PROJECTS = [
     id: 'us-kr-premarket',
     no: 6,
     name: 'Polaris Market Intelligence',
-    subtitle: '증권 — 미국·한국 증시를 잇는 주식 차트 길잡이 터미널 · 3개 카테고리(① SOXL 실시간 시세 · ② Premarket Signal · ③ 6월 시세·이벤트 데이터) — VIEW LIVE = 카테고리 선택창',
+    subtitle: '증권 — 미국·한국 반도체 단타(당일매매) 의사결정 지원 터미널 · 실시간·기록 3종(①SOXL 실시간 ②Premarket Signal ③6월 시세·이벤트) + 신규 트레이딩 도구·데이터 4종(④단타 데스크 ⑤시그널 엔진 ⑥0%선 전환 리플레이어 ⑦데이터·지식 베이스) — Claude·Codex 변증법(R1~R3) 구축',
     icon: 'trending-up',
     platform: '웹 앱 · Vite + React + TypeScript · Codex 트랙',
     status: 'in-progress',
     start: '2026-05-28',
-    latest: '2026-06-13',
+    latest: '2026-06-15',
     progress: 30,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
     preview: { type:'embed', height:600, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'Polaris Market Intelligence 카테고리 허브 — VIEW LIVE 진입 시 ①SOXL 실시간 시세 ②Premarket Signal ③6월 시세·이벤트 데이터 3개 카테고리 선택창 (2026-06-13 개편)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/market-ledger/', label:'③ Market Ledger — 삼성·하이닉스(KOSPI)·SOXL·SOXS(US) 6월 시작가/종가·전일대비, 본장/야간 시세 + 미국·한국 6월 증시 캘린더 (실측·이중 교차검증, Claude 2026-06-13 신규)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'① SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일, 본장 마감/시간외 이원 시세 (Claude 트랙)' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/phase1/', label:'② US-KR Premarket Signal — Phase 1 (Codex 빌드 dist, 허브 통합으로 phase1/ 이동)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'Polaris 허브 — 2섹션(실시간·기록 3종 + 신규 트레이딩 도구·데이터 4종) 카테고리 선택창 (2026-06-15 확장)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/desk/', label:'④ 단타 트레이딩 데스크 (C1, 애널리스트 콕핏 유사) — 오버나잇 릴레이(lag1 전이)·KOSPI 피벗/ATR·리스크 계산기·섹터 히트맵·상관 스냅샷·라이브 차트. 실측 결정론 계산 (Claude·Codex 변증법, 2026-06-15)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/signal-engine/', label:'⑤ 단타 시그널 엔진 (Claude 아이디어) — rules.json 외부화·투명 조건 그레이더. 미국→한국 lag1 전이 등 요인 분해, 이벤트 게이트, 룩어헤드 차단. 매매신호 아님 (2026-06-15)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/flip-replay/', label:'⑥ 0%선 전환 리플레이어 (Codex 아이디어) — 실측 5분봉 양전/음전 전환으로 체결 난이도(휩쏘) 복기. Clean trend/Zero-line chop 등 결정론 라벨 (2026-06-15)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/data/', label:'⑦ 데이터·지식 베이스 (C3) — 반도체 유니버스(measured 4·referenceOnly 45)·실측 파생통계(상관·전이·변동성, n 표기)·플레이북·리스크규칙·용어집 (2026-06-15)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/market-ledger/', label:'③ Market Ledger — 삼성·하이닉스·SOXL·SOXS 6월 시세 + 미국·한국 6월 캘린더 (실측·이중 교차검증)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/soxl-live/', label:'① SOXL + 구성종목 30 실시간 시세 — 토스증권 스타일 (Claude 트랙)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/phase1/', label:'② US-KR Premarket Signal — Phase 1 (Codex 빌드 dist)' }
     ]},
     summary: '미국 증시의 종가·매크로·테마 신호가 한국 프리마켓 시간대(KST 새벽~오전)에 미치는 영향을\n'
            + '분석·시각화하는 연구용 대시보드.\n'
@@ -355,7 +359,8 @@ const PROJECTS = [
       { type:'완료', title:'SOXL 핵심 구성종목 20 실시간 시세 대시보드 추가 (Claude, 2026-06-11)', desc:'박사 지시로 SOXL ETF 기초자산 20종목(NVDA·AVGO·AMD·TSM·ASML·MU 등) 전용 실시간 시세 화면을 단일 HTML로 신설, 본 프로젝트 하위 프리뷰(soxl-live/)로 편입. Chart.js + Tailwind CDN 다크 증권사 테마. 한국 증시 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. 0.7초 틱 가우시안 랜덤워크 시뮬레이션 엔진(종목별 변동성 차등 + 기준가 평균회귀) — 프로덕션 WebSocket 교체 지점 주석 명시, applyTick() 이후 렌더 파이프라인은 실데이터 전환 시 그대로 재사용. 행 클릭 차트 전환 + 최근 50틱 스크롤 윈도우 + 전일종가 점선 기준선. 트랙 분리 준수: Codex dist(index.html/assets) 무수정, 하위 폴더로만 추가.' },
       { type:'완료', title:'SOXL 시세 화면 20→30종목 전체 확장 (Claude, 2026-06-11)', desc:'1차 지시 프롬프트(Gemini 작성)에서 누락됐던 소수 종목 10개 보완 — SWKS 스카이웍스·QRVO 코보·LSCC 래티스·STM ST마이크로·UMC·ENTG 엔테그리스·RMBS 램버스·WOLF 울프스피드·COHR 코히런트·ALGM 알레그로. 박사가 SOXL 전체 구성종목 리스트를 새로 받아 재지시. 종목별 기준가·변동성 차등 부여, 헤더·테이블 라벨 30으로 갱신. 이로써 SOXL 기초자산 30종목 전량 수록.' },
       { type:'핵심', title:'SOXL 시세 화면 토스증권 스타일 전면 개편 + SOXL 본체 추가 (Claude, 2026-06-11)', desc:'박사가 토스증권(tossinvest.com) 실시간 차트 캡처를 레퍼런스로 제시 — 종목 하나씩이 아닌 전 종목 상시 노출 + SOXL ETF 자체를 맨 위 고정 요구. 다크 테마 → 토스풍 라이트 테마(흰 카드 + #f2f4f6 배경 + Pretendard) 전환. 좌측 = SOXL(★ 고정, 3x 배지) + 구성종목 30 전체 리스트(순위·원형 로고·종목명), 종목별 이원 시세: 본장 마감가(전일대비 % 배지, 고정) / 시간외·선물 현재가(전일대비 % 배지, 0.7초 실시간) + 시간외 거래대금. 등락률은 토스풍 배경 배지(상승 빨강/하락 파랑). 우측 = 클릭 종목 상세 패널(라이브 차트 + 전일종가·본장마감·시간외 거래대금) sticky. 본장 등락은 섹터 공통무브 + 종목별 개별무브로 상관 생성, SOXL = 섹터무브 3배(레버리지 재현).' },
-      { type:'핵심', title:'SOXL 시세 화면 실측 데이터 베이크 + 등락 기준 토스 정합 (Claude, 2026-06-11)', desc:'박사 지적: 실제 토스에선 본장 폭락 후 야간시장 반등으로 빨간불인데 화면은 랜덤 시뮬이라 안 맞음 + 시간외 %가 전일대비로 계산돼 토스 기준(마감가 대비)과 상이. 정정 2건: ① 시간외·선물 등락률 기준을 전일대비 → 본장 마감가 대비로 변경(토스 동일 기준 — 폭락 후 반등 시 빨간불 재현). ② 31종목 전일종가·본장마감가(06-11 05:00 KST)·시간외 마지막 체결가(09:00 KST)를 Yahoo Finance에서 실측 수집(fetch-quotes.mjs)해 하드코딩 베이크 — 실제 06-11 반도체 폭락(SOXL 201.68→180.65, -10.4%) 그대로 반영. 틱은 실측가 중심 미세변동만. 한계 명시: 한국 낮시간(09~17시 KST) 토스 시세는 Blue Ocean ATS 체결가로 무료 공개 API 부재 → 화면 안내문에 영속 + 재베이크는 fetch-quotes.mjs 재실행.' }
+      { type:'핵심', title:'SOXL 시세 화면 실측 데이터 베이크 + 등락 기준 토스 정합 (Claude, 2026-06-11)', desc:'박사 지적: 실제 토스에선 본장 폭락 후 야간시장 반등으로 빨간불인데 화면은 랜덤 시뮬이라 안 맞음 + 시간외 %가 전일대비로 계산돼 토스 기준(마감가 대비)과 상이. 정정 2건: ① 시간외·선물 등락률 기준을 전일대비 → 본장 마감가 대비로 변경(토스 동일 기준 — 폭락 후 반등 시 빨간불 재현). ② 31종목 전일종가·본장마감가(06-11 05:00 KST)·시간외 마지막 체결가(09:00 KST)를 Yahoo Finance에서 실측 수집(fetch-quotes.mjs)해 하드코딩 베이크 — 실제 06-11 반도체 폭락(SOXL 201.68→180.65, -10.4%) 그대로 반영. 틱은 실측가 중심 미세변동만. 한계 명시: 한국 낮시간(09~17시 KST) 토스 시세는 Blue Ocean ATS 체결가로 무료 공개 API 부재 → 화면 안내문에 영속 + 재베이크는 fetch-quotes.mjs 재실행.' },
+      { type:'핵심', title:'반도체 단타 트레이딩 도구·데이터 3카테고리 신설 (Claude·Codex 변증법, 2026-06-15)', desc:'박사 단발 지시("최고의 투자자 듀오, 단타 승률·수익 도움 프로그램")로 Polaris 베이스 위에 3카테고리 구축. C1 「단타 트레이딩 데스크」(desk/): 오버나잇 릴레이·KOSPI 플로어피벗/ATR·리스크 계산기(가정입력만)·섹터 히트맵·상관 스냅샷·TradingView 라이브차트(외부 표기). C2 각자 1아이디어: ⑤Claude 「단타 시그널 엔진」(signal-engine/, rules.json 외부화 투명 그레이더·미국→한국 lag1 전이·이벤트 게이트·룩어헤드 차단·LEDGER 리플레이 기본/수동 워터마크), ⑥Codex 「0%선 전환 리플레이어」(flip-replay/, 실측 5분봉 flip로 체결난이도 휩쏘 복기·Clean trend/Zero-line chop 등 결정론 라벨). C3 「데이터·지식 베이스」(data/): 반도체 유니버스(measured 4·referenceOnly 45)·실측 파생통계(build-derived.mjs로 상관·전이·변동성·분위수 계산, n 표기 소표본 고지)·플레이북(실date 연결)·리스크규칙·용어집 + schema-validate.mjs 빌드게이트. 핵심 실측 발견: 미국 반도체 세션→한국 *다음* 거래일 시가갭 전이 r=0.836(삼성)·0.834(하이닉스), 같은날(lag0)은 r≈0.02. 가드레일 유지(투자자문/매매지시/확률·승률 출력 금지, 연구·교육 전용). 기존 자산(soxl-live/phase1/market-ledger) 무수정. 변증법 R1(Thesis+Antithesis)·R2(구체사양)·R3(산출물 검수), Codex 로컬 CLI(gpt-5.5 read-only) 직접 호출.' }
     ],
     milestones: [
       { date:'2026-05-28', title:'Initial design — US-KR Premarket 컨셉 (Codex)', desc:'commit c613660. docs/DESIGN.md 영속. safety: 연구 전용 · 자동주문·브로커리지·라이브데이터 금지 명시.' },
@@ -367,7 +372,8 @@ const PROJECTS = [
       { isCore:true, date:'2026-05-28', title:'박사 progress 30% 픽스', desc:'박사 발화 "구현율은 30퍼센트로 고정". 향후 갱신은 박사 직접 발화 대기.' },
       { isCore:true, date:'2026-06-11', title:'SOXL 구성종목 실시간 시세 화면 편입 + 30종목 전량 확장 (Claude)', desc:'박사 지시로 SOXL 기초자산 실시간 시세(시뮬레이션 스트리밍) 단일 HTML을 soxl-live/ 하위 프리뷰로 추가(1차 20종목). 같은 날 1차 프롬프트에서 누락됐던 10종목(SWKS·QRVO·LSCC·STM·UMC·ENTG·RMBS·WOLF·COHR·ALGM) 보완으로 30종목 전량 수록. 다크 증권사 테마 + 한국 색 관례(상승 빨강/하락 파랑) + 전 UI 한국어. Codex Phase 1 dist는 무수정(트랙 분리).' },
       { isCore:true, date:'2026-06-11', title:'토스증권 스타일 개편 — SOXL 본체 + 본장 마감/시간외 이원 시세 (Claude)', desc:'박사 토스증권 캡처 레퍼런스 반영. 라이트 테마 전환, 전 종목 상시 노출 리스트(SOXL ★ 맨 위 + 3x 배지), 종목별 본장 마감가(고정)/시간외·선물 현재가(실시간) 각각 전일대비 % 배지 표기. 우측 클릭 종목 상세 패널 + 라이브 차트.' },
-      { isCore:true, date:'2026-06-11', title:'실측 데이터 베이크 + 시간외 등락 기준 토스 정합 (Claude)', desc:'시간외 % 기준을 본장 마감가 대비로 정정(토스 동일). 31종목 전일종가·본장마감·시간외 체결가 Yahoo 실측 수집 베이크 — 06-11 실제 반도체 폭락 반영. Blue Ocean ATS(한국 낮시간 토스 시세) 무료 API 부재 한계 화면 명시.' }
+      { isCore:true, date:'2026-06-11', title:'실측 데이터 베이크 + 시간외 등락 기준 토스 정합 (Claude)', desc:'시간외 % 기준을 본장 마감가 대비로 정정(토스 동일). 31종목 전일종가·본장마감·시간외 체결가 Yahoo 실측 수집 베이크 — 06-11 실제 반도체 폭락 반영. Blue Ocean ATS(한국 낮시간 토스 시세) 무료 API 부재 한계 화면 명시.' },
+      { isCore:true, date:'2026-06-15', title:'반도체 단타 도구·데이터 3카테고리 신설 (Claude·Codex 변증법)', desc:'C1 단타 트레이딩 데스크 + C2 시그널 엔진(Claude)·0%선 전환 리플레이어(Codex) + C3 데이터·지식 베이스. 실측 LEDGER 결정론 파생(상관·전이·변동성·분위수), rules.json 외부화·룩어헤드 차단·소표본 고지·가드레일 유지. 변증법 R1~R3(Codex 로컬 CLI 직접 검수). 랜딩 2섹션 확장, LIVE 과장문구 정정. progress 30 고정(박사 standing).' }
     ]
   },
   {
