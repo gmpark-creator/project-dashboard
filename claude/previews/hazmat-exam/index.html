@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ko" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위험물산업기사 기출문제 뷰어</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode:'class',
+    theme:{ extend:{
+      colors:{ base:'#0F172A', fire:'#f97316', chem:'#06b6d4', haz:'#a855f7' },
+      fontFamily:{ sans:['Pretendard','-apple-system','Segoe UI','Malgun Gothic','sans-serif'] }
+    }}
+  };
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="hazmat-2019-3.js"></script>
+<script src="hazmat-2019-1.js"></script>
+<script src="hazmat-2020-2.js"></script>
+<style>
+  :root{ color-scheme:dark; }
+  html,body{ margin:0; background:#0F172A; color:#e2e8f0;
+    font-family:'Pretendard',-apple-system,'Segoe UI','Malgun Gothic',sans-serif; line-height:1.5; word-break:keep-all; }
+  #appLayout{ display:flex; min-height:100vh; }
+  #sidebar{ width:228px; min-width:228px; background:#060d1a; border-right:1px solid #1e293b;
+    position:sticky; top:0; height:100vh; overflow-y:auto; flex-shrink:0; display:flex; flex-direction:column; }
+  #appContent{ flex:1; min-width:0; max-width:860px; margin:0 auto; padding:20px 16px 60px; }
+  .sb-logo{ padding:16px 14px 10px; border-bottom:1px solid #1e293b; }
+  .sb-label{ font-size:10px; font-weight:700; color:#475569; letter-spacing:.1em; text-transform:uppercase; padding:10px 10px 4px; }
+  .sb-item{ width:100%; text-align:left; padding:7px 12px; border-radius:8px; font-size:13px; color:#94a3b8;
+    cursor:pointer; border:none; background:transparent; display:flex; align-items:center; gap:8px; line-height:1.3;
+    transition:background .12s,color .12s; }
+  .sb-item:hover{ background:#1e293b; color:#e2e8f0; }
+  .sb-item.on-info{ background:#1e293b; color:#f97316; }
+  .sb-item.on-quiz{ background:#1e293b; color:#a855f7; }
+  .sb-divider{ border-top:1px solid #1e293b; margin:6px 8px; }
+  /* quiz cards */
+  .q-card{ background:#1e293b; border:1px solid #334155; border-radius:14px; padding:18px 20px; margin-bottom:10px; }
+  .q-num{ font-size:11px; color:#64748b; font-weight:700; margin-bottom:6px; }
+  .q-text{ font-size:14px; color:#e2e8f0; line-height:1.75; font-weight:600; margin-bottom:12px; }
+  .q-img-note{ font-size:11px; color:#fb923c; background:#431407; border-radius:6px; padding:4px 8px; display:inline-block; margin-bottom:8px; }
+  .q-choice{ width:100%; text-align:left; padding:9px 14px; border-radius:8px; font-size:13px; color:#94a3b8;
+    cursor:pointer; border:1px solid #334155; background:#0F172A; display:flex; align-items:flex-start; gap:8px;
+    line-height:1.5; margin-top:5px; transition:border-color .12s,color .12s; }
+  .q-choice:hover:not(.revealed){ border-color:#475569; color:#e2e8f0; }
+  .q-choice.correct{ border-color:#22c55e; background:#052e1a; color:#4ade80; font-weight:700; }
+  .q-choice.wrong{ border-color:#1e293b; color:#475569; }
+  .q-choice.selected-wrong{ border-color:#ef4444; background:#2d0707; color:#fca5a5; }
+  .q-choice.disabled{ pointer-events:none; }
+  .q-footer{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .btn-ans{ padding:5px 14px; border-radius:8px; font-size:12px; font-weight:700; background:#1e1b4b; color:#a5b4fc;
+    border:1px solid #3730a3; cursor:pointer; transition:background .12s; }
+  .btn-ans:hover{ background:#312e81; }
+  .q-verify{ font-size:11px; color:#fb923c; display:flex; align-items:center; gap:4px; }
+  .q-no-ans{ font-size:12px; color:#64748b; font-style:italic; }
+  /* subject tabs */
+  .sub-tab{ padding:6px 14px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;
+    border:1px solid #334155; background:#1e293b; color:#64748b; transition:all .12s; }
+  .sub-tab.active-1{ border-color:#0891b2; background:#0c1a25; color:#22d3ee; }
+  .sub-tab.active-2{ border-color:#d97706; background:#1c1007; color:#fbbf24; }
+  .sub-tab.active-3{ border-color:#7c3aed; background:#160e24; color:#c084fc; }
+  .sub-tab.active-all{ border-color:#334155; background:#293548; color:#e2e8f0; }
+  /* score bar */
+  .score-bar{ height:6px; background:#1e293b; border-radius:3px; overflow:hidden; }
+  .score-fill{ height:100%; border-radius:3px; transition:width .4s ease; }
+  /* info panel */
+  .info-card{ background:#1e293b; border:1px solid #334155; border-radius:14px; padding:18px 20px; margin-bottom:12px; }
+  .info-badge{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; }
+  .scrollbar-thin::-webkit-scrollbar{ width:5px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb{ background:#334155; border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="appLayout">
+<!-- ─── SIDEBAR ─── -->
+<nav id="sidebar" class="scrollbar-thin">
+  <div class="sb-logo">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:20px">🔥</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#f97316;">위험물산업기사</div>
+        <div style="font-size:10px;color:#475569;">기출문제 뷰어</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px;">
+    <div class="sb-label">메뉴</div>
+    <button class="sb-item on-info" onclick="showSection('info')" id="sb-info">
+      <i class="fa fa-circle-info fa-fw"></i> 시험 정보
+    </button>
+    <button class="sb-item" onclick="showSection('quiz')" id="sb-quiz">
+      <i class="fa fa-pen-to-square fa-fw"></i> 기출문제 풀기
+    </button>
+    <div class="sb-divider"></div>
+    <div class="sb-label">회차 선택</div>
+    <button class="sb-item" onclick="setExam(HAZMAT_2019_3)" id="btn-2019-3">
+      <i class="fa fa-calendar-day fa-fw" style="color:#22c55e;"></i>
+      <span>2019년 3회 <span style="font-size:10px;color:#22c55e;margin-left:4px;">●완전</span></span>
+    </button>
+    <button class="sb-item" onclick="setExam(HAZMAT_2019_1)" id="btn-2019-1">
+      <i class="fa fa-calendar-day fa-fw" style="color:#fb923c;"></i>
+      <span>2019년 1회 <span style="font-size:10px;color:#fb923c;margin-left:4px;">▲부분</span></span>
+    </button>
+    <button class="sb-item" onclick="setExam(HAZMAT_2020_2)" id="btn-2020-2">
+      <i class="fa fa-calendar-day fa-fw" style="color:#22c55e;"></i>
+      <span>2020년 2회 <span style="font-size:10px;color:#22c55e;margin-left:4px;">●검수</span></span>
+    </button>
+    <div class="sb-divider"></div>
+    <div class="sb-label">과목 필터</div>
+    <button class="sb-item" onclick="setSubject(0)" id="sub-btn-0"><i class="fa fa-list fa-fw"></i> 전체 (60문항)</button>
+    <button class="sb-item" onclick="setSubject(1)" id="sub-btn-1"><i class="fa fa-flask fa-fw" style="color:#22d3ee;"></i> 일반화학</button>
+    <button class="sb-item" onclick="setSubject(2)" id="sub-btn-2"><i class="fa fa-fire fa-fw" style="color:#fbbf24;"></i> 화재예방과 소화방법</button>
+    <button class="sb-item" onclick="setSubject(3)" id="sub-btn-3"><i class="fa fa-biohazard fa-fw" style="color:#c084fc;"></i> 위험물의 성질과 취급</button>
+    <div class="sb-divider"></div>
+    <div class="sb-label">진행</div>
+    <div id="sidebar-score" style="padding:8px 10px;font-size:12px;color:#64748b;">문제를 선택하세요</div>
+  </div>
+</nav>
+
+<!-- ─── MAIN CONTENT ─── -->
+<div id="appContent">
+
+<!-- ── 시험 정보 ─────────────────────────────── -->
+<section id="sec-info">
+  <div style="margin-bottom:20px;">
+    <div style="font-size:22px;font-weight:800;color:#f97316;margin-bottom:4px;">🔥 위험물산업기사</div>
+    <div style="font-size:13px;color:#64748b;">소방청 감독 · 한국산업인력공단(Q-Net) 시행 · 국가기술자격</div>
+  </div>
+
+  <div class="info-card">
+    <div style="font-size:13px;font-weight:700;color:#f97316;margin-bottom:12px;"><i class="fa fa-calendar-check fa-fw"></i> 2026년 시험 일정</div>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="color:#64748b;border-bottom:1px solid #334155;">
+          <th style="padding:6px 10px;text-align:left;font-weight:700;">구분</th>
+          <th style="padding:6px 10px;text-align:center;">1회</th>
+          <th style="padding:6px 10px;text-align:center;">2회</th>
+          <th style="padding:6px 10px;text-align:center;">3회</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #1e293b;"><td style="padding:7px 10px;color:#94a3b8;">필기 원서접수</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">1.12~1.15</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">4.20~4.23</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">7.20~7.23</td></tr>
+        <tr style="border-bottom:1px solid #1e293b;"><td style="padding:7px 10px;color:#94a3b8;">필기 시험</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">1.30~3.3</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">5.9~5.29</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">8.7~9.1</td></tr>
+        <tr style="border-bottom:1px solid #1e293b;"><td style="padding:7px 10px;color:#94a3b8;">필기 합격발표</td><td style="padding:7px 10px;text-align:center;color:#4ade80;">3.11(수)</td><td style="padding:7px 10px;text-align:center;color:#4ade80;">6.10(수)</td><td style="padding:7px 10px;text-align:center;color:#4ade80;">9.9(수)</td></tr>
+        <tr style="border-bottom:1px solid #1e293b;"><td style="padding:7px 10px;color:#94a3b8;">실기 시험</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">3.23~5.6</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">6.22~8.5</td><td style="padding:7px 10px;text-align:center;color:#e2e8f0;">9.21~11.13</td></tr>
+        <tr><td style="padding:7px 10px;color:#94a3b8;">최종 합격발표</td><td style="padding:7px 10px;text-align:center;color:#fb923c;">6.5/6.12</td><td style="padding:7px 10px;text-align:center;color:#fb923c;">9.4/9.11</td><td style="padding:7px 10px;text-align:center;color:#fb923c;">12.11/12.18</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div class="info-card">
+      <div style="font-size:13px;font-weight:700;color:#22d3ee;margin-bottom:10px;"><i class="fa fa-flask fa-fw"></i> 필기 시험 과목</div>
+      <div style="font-size:13px;color:#e2e8f0;font-weight:700;margin-bottom:6px;">CBT (컴퓨터 기반)</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">총 60문항 · 90분</div>
+      <div style="margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1e293b;">
+          <span style="font-size:10px;font-weight:700;color:#22d3ee;background:#042f2e;padding:2px 6px;border-radius:4px;">1과목</span>
+          <span style="font-size:13px;color:#e2e8f0;">일반화학</span>
+          <span style="font-size:11px;color:#64748b;margin-left:auto;">20문항</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1e293b;">
+          <span style="font-size:10px;font-weight:700;color:#fbbf24;background:#1c1007;padding:2px 6px;border-radius:4px;">2과목</span>
+          <span style="font-size:13px;color:#e2e8f0;">화재예방과 소화방법</span>
+          <span style="font-size:11px;color:#64748b;margin-left:auto;">20문항</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+          <span style="font-size:10px;font-weight:700;color:#c084fc;background:#160e24;padding:2px 6px;border-radius:4px;">3과목</span>
+          <span style="font-size:13px;color:#e2e8f0;">위험물의 성질과 취급</span>
+          <span style="font-size:11px;color:#64748b;margin-left:auto;">20문항</span>
+        </div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div style="font-size:13px;font-weight:700;color:#fb923c;margin-bottom:10px;"><i class="fa fa-pen fa-fw"></i> 실기 시험</div>
+      <div style="font-size:13px;color:#e2e8f0;font-weight:700;margin-bottom:6px;">필답형</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">20문항 · 2시간 · 주관식</div>
+      <div style="margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+          <span style="font-size:10px;font-weight:700;color:#c084fc;background:#160e24;padding:2px 6px;border-radius:4px;">과목</span>
+          <span style="font-size:13px;color:#e2e8f0;">위험물 취급 실무</span>
+        </div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;">각 5점 × 20문항 = 100점</div>
+      </div>
+      <div style="margin-top:12px;background:#0F172A;border-radius:8px;padding:10px;">
+        <div style="font-size:11px;color:#64748b;margin-bottom:4px;">합격기준</div>
+        <div style="font-size:12px;color:#e2e8f0;">필기: 과목당 <b style="color:#4ade80;">40점</b> 이상 + 평균 <b style="color:#4ade80;">60점</b> 이상</div>
+        <div style="font-size:12px;color:#e2e8f0;">실기: <b style="color:#4ade80;">60점</b> 이상</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div style="font-size:13px;font-weight:700;color:#a855f7;margin-bottom:10px;"><i class="fa fa-database fa-fw"></i> 수록 기출 현황</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <div style="background:#1a2535;border:1px solid #334155;border-radius:8px;padding:8px 14px;font-size:12px;">
+        <div style="color:#4ade80;font-weight:700;margin-bottom:2px;">2019년 3회 <span style="font-size:10px;background:#052e1a;padding:1px 5px;border-radius:4px;">완전본</span></div>
+        <div style="color:#64748b;">60문항 · 전 정답 포함</div>
+      </div>
+      <div style="background:#1a2535;border:1px solid #334155;border-radius:8px;padding:8px 14px;font-size:12px;">
+        <div style="color:#fb923c;font-weight:700;margin-bottom:2px;">2019년 1회 <span style="font-size:10px;background:#1c1007;padding:1px 5px;border-radius:4px;">부분본</span></div>
+        <div style="color:#64748b;">60문항 · 일부 Codex 검증 예정</div>
+      </div>
+      <div style="background:#1a2535;border:1px solid #334155;border-radius:8px;padding:8px 14px;font-size:12px;">
+        <div style="color:#4ade80;font-weight:700;margin-bottom:2px;">2020년 2회 <span style="font-size:10px;background:#052e1a;padding:1px 5px;border-radius:4px;">Claude검수</span></div>
+        <div style="color:#64748b;">60문항 · 4문항 kinz오류 정정</div>
+      </div>
+      <div style="background:#1a2535;border:1px dashed #334155;border-radius:8px;padding:8px 14px;font-size:12px;opacity:.5;">
+        <div style="color:#64748b;font-weight:700;margin-bottom:2px;">2018~2020 기타 회차</div>
+        <div style="color:#475569;">추가 예정</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:#64748b;background:#0F172A;border-radius:8px;padding:10px;">
+      <i class="fa fa-triangle-exclamation fa-fw" style="color:#fb923c;"></i>
+      <b style="color:#fb923c;">교차검증 안내</b> — ⚠️ 표시 문제는 kinz.kr 정답과 실제 정답이 다를 수 있어 Codex 검증 진행 중입니다.
+      이미지·표가 포함된 문제는 원본 시험지와 함께 보세요.
+    </div>
+  </div>
+
+  <button onclick="showSection('quiz')" style="width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#dc2626);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-top:4px;">
+    <i class="fa fa-play fa-fw"></i> 기출문제 풀기 시작
+  </button>
+</section>
+
+<!-- ── 기출문제 퀴즈 ────────────────────────────── -->
+<section id="sec-quiz" style="display:none;">
+  <!-- 컨트롤 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+    <div>
+      <div id="quiz-title" style="font-size:16px;font-weight:800;color:#e2e8f0;"></div>
+      <div id="quiz-sub" style="font-size:12px;color:#64748b;margin-top:2px;"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="sub-tabs">
+      <button class="sub-tab active-all" onclick="setSubject(0)" data-sub="0">전체</button>
+      <button class="sub-tab" onclick="setSubject(1)" data-sub="1">① 일반화학</button>
+      <button class="sub-tab" onclick="setSubject(2)" data-sub="2">② 화재예방</button>
+      <button class="sub-tab" onclick="setSubject(3)" data-sub="3">③ 위험물성질</button>
+    </div>
+  </div>
+
+  <!-- 점수 -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;">
+    <div style="flex:1;">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px;">정답률</div>
+      <div class="score-bar"><div id="score-fill" class="score-fill" style="width:0%;background:#22c55e;"></div></div>
+    </div>
+    <div style="text-align:right;min-width:80px;">
+      <div id="score-text" style="font-size:14px;font-weight:700;color:#e2e8f0;">0 / 0</div>
+      <div id="score-pct" style="font-size:11px;color:#64748b;">0%</div>
+    </div>
+    <button onclick="resetAll()" style="padding:5px 12px;border-radius:8px;background:#1e293b;color:#94a3b8;border:1px solid #334155;cursor:pointer;font-size:12px;">
+      <i class="fa fa-rotate-right fa-fw"></i> 초기화
+    </button>
+  </div>
+
+  <!-- 문제 목록 -->
+  <div id="quiz-list"></div>
+</section>
+
+</div><!-- /appContent -->
+</div><!-- /appLayout -->
+
+<script>
+// ── 데이터 레지스트리 ─────────────────────────────
+const EXAMS = [HAZMAT_2019_3, HAZMAT_2019_1, HAZMAT_2020_2];
+let currentExam = HAZMAT_2019_3;
+let currentSubject = 0; // 0=전체
+let answered = {}; // { no: { selected, correct } }
+
+const SUB_COLORS = ['','#22d3ee','#fbbf24','#c084fc'];
+const SUB_LABELS = ['전체','일반화학','화재예방과 소화방법','위험물의 성질과 취급'];
+const CHOICE_LABELS = ['①','②','③','④'];
+
+// ── 섹션 전환 ────────────────────────────────────
+function showSection(id){
+  document.getElementById('sec-info').style.display = id==='info' ? '' : 'none';
+  document.getElementById('sec-quiz').style.display = id==='quiz' ? '' : 'none';
+  document.querySelectorAll('[id^="sb-"]').forEach(b => b.classList.remove('on-info','on-quiz'));
+  if(id==='info') document.getElementById('sb-info').classList.add('on-info');
+  if(id==='quiz') document.getElementById('sb-quiz').classList.add('on-quiz');
+}
+
+// ── 시험 선택 ────────────────────────────────────
+function setExam(exam){
+  currentExam = exam;
+  answered = {};
+  // highlight sidebar
+  document.querySelectorAll('[id^="btn-"]').forEach(b=>b.style.color='');
+  const key = `btn-${exam.year}-${exam.session}`;
+  const btn = document.getElementById(key);
+  if(btn) btn.style.color = '#a855f7';
+  renderQuiz();
+  showSection('quiz');
+}
+
+// ── 과목 필터 ────────────────────────────────────
+function setSubject(sub){
+  currentSubject = sub;
+  // tab highlight
+  document.querySelectorAll('.sub-tab').forEach(t => {
+    t.className = 'sub-tab';
+    if(t.dataset.sub == sub){
+      if(sub===0) t.classList.add('active-all');
+      else t.classList.add(`active-${sub}`);
+    }
+  });
+  renderQuiz();
+}
+
+// ── 문제 렌더 ────────────────────────────────────
+function renderQuiz(){
+  const exam = currentExam;
+  document.getElementById('quiz-title').textContent =
+    `${exam.year}년 제${exam.session}회 (${exam.sessionDate || ''})`;
+  document.getElementById('quiz-sub').textContent =
+    currentSubject===0 ? `전체 60문항` : `${currentSubject}과목 — ${SUB_LABELS[currentSubject]} (20문항)`;
+
+  const qs = exam.questions.filter(q => currentSubject===0 || q.sub===currentSubject);
+  const container = document.getElementById('quiz-list');
+  container.innerHTML = '';
+
+  qs.forEach(q => {
+    const ans = answered[q.no];
+    const hasAns = q.answer != null;
+    const needsVerify = q.needsVerify;
+    const hasImg = q.hasImage;
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `qcard-${q.no}`;
+
+    const subBadgeColor = SUB_COLORS[q.sub];
+    let html = `<div class="q-num">
+      <span style="color:${subBadgeColor};font-weight:700;">${q.sub}과목</span>
+      <span style="margin:0 6px;color:#1e293b;">·</span>
+      <span>문제 ${q.no}</span>
+      ${needsVerify ? `<span class="q-verify" style="margin-left:8px;"><i class="fa fa-triangle-exclamation"></i> Codex 검증 예정</span>` : ''}
+    </div>`;
+
+    if(hasImg) html += `<div class="q-img-note"><i class="fa fa-image fa-fw"></i> 원본에 그림·표 포함 — 실제 시험지 병행 참고</div>`;
+    html += `<div class="q-text">${q.text}</div>`;
+
+    if(!hasAns){
+      html += `<div class="q-no-ans"><i class="fa fa-circle-info fa-fw"></i> 정답 확인 중 (Codex 검증 예정)</div>`;
+    } else {
+      q.choices.forEach((c, i) => {
+        const idx = i + 1;
+        let cls = 'q-choice';
+        if(ans){
+          cls += ' disabled';
+          if(idx === q.answer) cls += ' correct';
+          else if(idx === ans.selected) cls += ' selected-wrong';
+          else cls += ' wrong';
+        }
+        html += `<button class="${cls}" onclick="selectAnswer(${q.no},${idx})">${CHOICE_LABELS[i]} ${c}</button>`;
+      });
+    }
+
+    html += `<div class="q-footer">`;
+    if(hasAns && !ans){
+      html += `<button class="btn-ans" onclick="revealAnswer(${q.no})"><i class="fa fa-eye fa-fw"></i> 정답 보기</button>`;
+    }
+    if(ans){
+      const correct = ans.selected === q.answer;
+      html += `<span style="font-size:12px;font-weight:700;color:${correct?'#4ade80':'#f87171'};">
+        <i class="fa fa-${correct?'circle-check':'circle-xmark'} fa-fw"></i>
+        ${correct?'정답':'오답'} — 정답: ${CHOICE_LABELS[q.answer-1]}
+      </span>`;
+    }
+    html += `</div>`;
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+
+  updateScore();
+}
+
+// ── 정답 선택 ────────────────────────────────────
+function selectAnswer(qno, selected){
+  const q = currentExam.questions.find(x => x.no === qno);
+  if(!q || answered[qno]) return;
+  answered[qno] = { selected, correct: selected === q.answer };
+  rerenderCard(q);
+  updateScore();
+}
+
+function revealAnswer(qno){
+  const q = currentExam.questions.find(x => x.no === qno);
+  if(!q) return;
+  answered[qno] = { selected: q.answer, correct: true, revealed: true };
+  rerenderCard(q);
+  updateScore();
+}
+
+function rerenderCard(q){
+  const ans = answered[q.no];
+  const hasImg = q.hasImage;
+  const card = document.getElementById(`qcard-${q.no}`);
+  if(!card) return;
+
+  const subBadgeColor = SUB_COLORS[q.sub];
+  let html = `<div class="q-num">
+    <span style="color:${subBadgeColor};font-weight:700;">${q.sub}과목</span>
+    <span style="margin:0 6px;color:#1e293b;">·</span>
+    <span>문제 ${q.no}</span>
+    ${q.needsVerify ? `<span class="q-verify" style="margin-left:8px;"><i class="fa fa-triangle-exclamation"></i> Codex 검증 예정</span>` : ''}
+  </div>`;
+  if(hasImg) html += `<div class="q-img-note"><i class="fa fa-image fa-fw"></i> 원본에 그림·표 포함 — 실제 시험지 병행 참고</div>`;
+  html += `<div class="q-text">${q.text}</div>`;
+
+  q.choices.forEach((c, i) => {
+    const idx = i + 1;
+    let cls = 'q-choice disabled';
+    if(idx === q.answer) cls += ' correct';
+    else if(idx === ans.selected && ans.selected !== q.answer) cls += ' selected-wrong';
+    else cls += ' wrong';
+    html += `<button class="${cls}">${CHOICE_LABELS[i]} ${c}</button>`;
+  });
+
+  const correct = ans.selected === q.answer && !ans.revealed;
+  html += `<div class="q-footer"><span style="font-size:12px;font-weight:700;color:${correct?'#4ade80':'#f87171'};">
+    <i class="fa fa-${correct?'circle-check':'circle-xmark'} fa-fw"></i>
+    ${ans.revealed?'정답 공개':'('+((ans.selected===q.answer)?'정답':'오답')+')'} — 정답: ${CHOICE_LABELS[q.answer-1]}
+  </span></div>`;
+
+  card.innerHTML = html;
+}
+
+// ── 점수 업데이트 ─────────────────────────────────
+function updateScore(){
+  const qs = currentExam.questions.filter(q => currentSubject===0 || q.sub===currentSubject);
+  const answerable = qs.filter(q => q.answer != null);
+  const done = Object.keys(answered).filter(k => {
+    const q = currentExam.questions.find(x=>x.no==k);
+    return q && (currentSubject===0 || q.sub===currentSubject);
+  });
+  const correct = done.filter(k => answered[k]?.correct && !answered[k]?.revealed).length;
+  const attempted = done.length;
+  const pct = attempted ? Math.round(correct/attempted*100) : 0;
+
+  document.getElementById('score-text').textContent = `${correct} / ${attempted}`;
+  document.getElementById('score-pct').textContent = `${pct}%`;
+  document.getElementById('score-fill').style.width = `${pct}%`;
+  document.getElementById('score-fill').style.background = pct>=60 ? '#22c55e' : pct>=40 ? '#fbbf24' : '#ef4444';
+  document.getElementById('sidebar-score').innerHTML =
+    `<div style="color:#e2e8f0;font-weight:700;">${correct} / ${attempted} 정답</div>
+    <div style="color:#64748b;">${pct}% 정답률</div>`;
+}
+
+// ── 초기화 ──────────────────────────────────────
+function resetAll(){
+  answered = {};
+  renderQuiz();
+}
+
+// ── 초기 실행 ────────────────────────────────────
+setExam(HAZMAT_2019_3);
+showSection('info');
+</script>
+</body>
+</html>

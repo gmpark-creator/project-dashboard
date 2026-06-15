@@ -750,6 +750,41 @@ const PROJECTS = [
       { date:'2026-05-20', title:'착수 — Map-first vertical slice 설계', desc:'설계 문서 v0.1·구현 계획 v0.1 승인 기반 M1~M10 통합 슬라이스. 지도·스토어·스키마 골격.' },
       { date:'2026-06-01', title:'개발 인수(handoff) — Claude → Codex', desc:'메인 개발을 Codex가 이어받고 Claude는 프론트엔드 별도작업. 이후 우선순위에 밀려 정체.' }
     ]
+  },
+  {
+    id: 'hazmat',
+    no: 12,
+    name: '위험물산업기사 기출문제 뷰어',
+    subtitle: '국가기술자격 위험물산업기사 필기 CBT 기출 인터랙티브 뷰어 — 3과목(일반화학·화재예방과 소화방법·위험물의 성질과 취급) × 복수 회차. kinz.kr 데이터 + Claude 1차 오답검수(kinz 오류 정정) + Codex 교차검증.',
+    icon: 'fire',
+    platform: '웹 (단일 HTML · Tailwind Play CDN · Vanilla JS · 과목 필터 + 정답 인터랙션)',
+    status: 'in-progress',
+    start: '2026-06-15',
+    latest: '2026-06-15',
+    progress: 1,
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/hazmat-exam/',
+    preview: { type:'embed', height:640, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/hazmat-exam/', label:'위험물산업기사 기출문제 뷰어 — 2019년 3회(60문항 완전본)·2019년 1회(60문항 부분본)·2020년 2회(60문항 Claude 검수본). 과목별 필터·정답/오답 인터랙션·Codex 검증 예정 문항 표시.' }
+    ]},
+    summary: '위험물산업기사 필기 CBT 기출문제를 인터랙티브하게 풀어볼 수 있는 뷰어.\n'
+           + '3과목(일반화학 20문항 / 화재예방과 소화방법 20문항 / 위험물의 성질과 취급 20문항)으로 구성되며, 회차별·과목별 필터로 원하는 범위만 선택 학습 가능.\n'
+           + 'kinz.kr 기출 데이터를 수집해 Claude 1차 오답검수(계산 오류·물질 특성 오류 정정)를 거쳐 수록, Codex 2차 교차검증 예정.',
+    method: '단일 HTML(Tailwind CDN + Vanilla JS) + 회차별 데이터 JS 파일 분리 구조. 정답 선택 시 즉각 피드백(정답=초록/오답=빨강/정답 공개=보라). Codex 검증 필요 문항은 ⚠️ 표시.',
+    stack: ['HTML5', 'Tailwind CSS', 'Vanilla JS', 'FontAwesome'],
+    stackDetail: [
+      { area: '문제 렌더링·인터랙션', tech: 'Vanilla JS', how: '과목 필터, 정답 선택, 오답 피드백, 점수 집계를 상태 기반으로 구현. 카드 단위 업데이트로 리렌더 최소화.' },
+      { area: '스타일링', tech: 'Tailwind CSS', how: '다크 엔터프라이즈 테마(베이스 #0F172A, slate 카드). 과목별 색(1과목=cyan, 2과목=amber, 3과목=purple).' },
+      { area: '데이터', tech: 'Vanilla JS (JS 모듈 파일)', how: '회차별 hazmat-YYYY-N.js 파일 분리. kinz.kr 원본 + Claude 검수(계산오류 정정, needsVerify 플래그, hasImage 플래그).' }
+    ],
+    issues: [
+      { type:'완료', title:'2019년 3회 — 60문항 완전본 수록', desc:'kinz.kr/exam/5942 기반 60문항 전수록. 전 정답 kinz.kr 확인 완료. hazmat-2019-3.js 신규.' },
+      { type:'완료', title:'2019년 1회 — 60문항 부분본 수록', desc:'kinz.kr/exam/5944 기반 60문항 수록. 일부 needsVerify 플래그 + 이미지 포함 문항 hasImage 표시. hazmat-2019-1.js 신규.' },
+      { type:'완료', title:'2020년 2회 — 60문항 Claude 검수본 수록', desc:'kinz.kr/exam/98244 기반 60문항 수록. Claude 1차 오답검수: Q21 계산오류(22.4→61.2L), Q35 계산오류(23.81→47.62m³), Q41 물질특성오류(적린≠자연발화→4번), Q48 needsVerify(동유 vs 피마자유). hazmat-2020-2.js 신규.' },
+      { type:'예정', title:'Codex 2차 교차검증', desc:'needsVerify 플래그 문항 전수 Codex 검증 예정. 2018년·2020년 1회·3회 등 추가 회차 수록 예정.' }
+    ],
+    milestones: [
+      { date:'2026-06-15', title:'프로젝트 #12 신설 — 위험물산업기사 기출문제 뷰어', desc:'kinz.kr 기출 수집 → Claude 1차 오답검수 → 인터랙티브 뷰어 빌드(index.html). 2019년 3회·1회·2020년 2회 3개 회차 = 180문항 수록. Codex 교차검증 대기.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
