@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디렉터 코멘트 · 실전 트레이딩 로그 — Polaris Market Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body { background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
+  /* 타임라인 좌측 연결선 */
+  .tl { position:relative; }
+  .tl::before { content:""; position:absolute; left:15px; top:6px; bottom:6px; width:2px;
+    background:linear-gradient(180deg, rgba(56,189,248,.0), rgba(56,189,248,.45) 12%, rgba(52,211,153,.45) 88%, rgba(52,211,153,0)); }
+  .tl-dot { position:absolute; left:7px; width:18px; height:18px; border-radius:50%; border:3px solid #0B1120; }
+  .pct { font-variant-numeric:tabular-nums; }
+  .quote { background:linear-gradient(135deg, rgba(56,189,248,.06), rgba(168,85,247,.05)); }
+</style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col">
+
+<!-- ===== Header ===== -->
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0B1120] sticky top-0 z-40 backdrop-blur-sm">
+  <div class="max-w-[1000px] mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <a href="../" class="text-[10px] font-bold tracking-widest text-sky-400 uppercase hover:text-sky-300 transition-colors">
+        <i class="fa-solid fa-arrow-left mr-1"></i>Polaris Market Intelligence
+      </a>
+      <h1 class="mt-1 text-xl font-extrabold text-white">디렉터 코멘트 <span class="text-sky-400">· 실전 트레이딩 로그</span></h1>
+      <p class="text-[11px] text-slate-500 mt-0.5">G.M.PARK가 장중 직접 관찰·판단한 SOXL 매매 일지 — 1인칭 실전 복기</p>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-800 ring-1 ring-slate-700 px-3 py-1 text-[10px] font-bold text-slate-300">
+        <i class="fa-solid fa-flask text-sky-400 text-[9px]"></i>RESEARCH ONLY · 투자자문 아님
+      </span>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 ring-1 ring-red-500/30 px-3 py-1 text-[10px] font-bold text-red-400">
+        <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>SOXL = 3배 레버리지 · 고위험
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1">
+  <div class="max-w-[1000px] mx-auto px-6 py-8 space-y-8">
+
+    <!-- 안내 -->
+    <p class="text-[12px] leading-relaxed text-slate-400 bg-slate-900/50 ring-1 ring-slate-800 rounded-xl px-4 py-3">
+      <i class="fa-solid fa-pen-nib text-sky-400 mr-1"></i>
+      이 카테고리는 디렉터 본인이 장을 직접 지켜보며 남기는 <b class="text-slate-200">실전 코멘트 모음</b>입니다.
+      수치·관찰은 장중 체감 기준의 기록이며 정밀 시세 데이터가 아닙니다. 매매 권유가 아닌 개인 복기·교육용 메모입니다.
+      <span class="text-slate-500">시각 표기는 한국시간(KST), 괄호 안은 미 동부시간(ET).</span>
+    </p>
+
+    <!-- ===== ENTRY 01 ===== -->
+    <article class="rounded-2xl bg-slate-900/70 ring-1 ring-slate-800 overflow-hidden">
+
+      <!-- Entry header -->
+      <div class="px-5 sm:px-7 py-5 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-900/40">
+        <div class="flex items-center gap-2 flex-wrap text-[10px] font-bold tracking-widest uppercase">
+          <span class="text-sky-400">Entry 01</span>
+          <span class="text-slate-600">·</span>
+          <span class="text-slate-400">SOXL · SOXS</span>
+        </div>
+        <h2 class="mt-1.5 text-2xl font-extrabold text-white">2026-06-18 → 06-19 · 미국 본장 <span class="text-amber-300">네 마녀의 날</span> 야간 복기</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/30 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+            <i class="fa-solid fa-hat-wizard text-[10px]"></i>네 마녀의 날(Quadruple Witching) — 지수·개별 선물·옵션 4종 동시 만기
+          </span>
+          <span class="inline-flex items-center gap-1.5 rounded-lg bg-violet-500/10 ring-1 ring-violet-500/30 px-2.5 py-1 text-[11px] font-semibold text-violet-300">
+            <i class="fa-solid fa-calendar-xmark text-[10px]"></i>06-19(금) 준틴스(Juneteenth National Independence Day) 휴장 → 만기가 목요일로 앞당겨짐
+          </span>
+        </div>
+      </div>
+
+      <!-- 마감(취침) 스냅샷 -->
+      <div class="px-5 sm:px-7 py-5">
+        <div class="flex items-center gap-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-3">
+          <i class="fa-solid fa-bed"></i> 디렉터 취침 시점 스냅샷 · 06-19 03:40 KST
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-xl bg-emerald-500/5 ring-1 ring-emerald-500/25 px-4 py-3 text-center">
+            <div class="text-[11px] text-slate-400">전일 대비</div>
+            <div class="mt-0.5 text-2xl font-extrabold text-emerald-400 pct">+19.38%</div>
+          </div>
+          <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 px-4 py-3 text-center">
+            <div class="text-[11px] text-slate-400">SOXL (USD)</div>
+            <div class="mt-0.5 text-2xl font-extrabold text-white pct">$279.20</div>
+          </div>
+          <div class="rounded-xl bg-slate-800/60 ring-1 ring-slate-700 px-4 py-3 text-center">
+            <div class="text-[11px] text-slate-400">토스 환산(KRW)</div>
+            <div class="mt-0.5 text-2xl font-extrabold text-white pct">422,222<span class="text-base">원</span></div>
+          </div>
+        </div>
+        <p class="mt-2 text-[11px] text-slate-500">디렉터가 자러 들어간 06-19 새벽 3시 40분 기준. 본장 마감(05:00 KST)까지는 끝까지 지켜보지 못함.</p>
+      </div>
+
+      <!-- 예측 vs 실제 -->
+      <div class="px-5 sm:px-7 pb-5">
+        <div class="rounded-xl ring-1 ring-rose-500/30 bg-rose-500/[.04] p-4">
+          <div class="flex items-center gap-2 text-[11px] font-bold tracking-widest text-rose-300 uppercase mb-2">
+            <i class="fa-solid fa-scale-unbalanced"></i> 예측 vs 실제 — 개장 직후의 반전
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3 text-[12.5px] leading-relaxed">
+            <div class="rounded-lg bg-slate-900/60 ring-1 ring-slate-800 p-3">
+              <div class="text-[11px] font-bold text-rose-300 mb-1"><i class="fa-solid fa-arrow-trend-down mr-1"></i>나의 예측</div>
+              <p class="text-slate-300">네 마녀의 날이라 본장 개장 직후 <b>선물 만기 이익 실현 매도</b>가 쏟아져 <b>일시적 급락</b>이 나올 것이라 봤다.
+              <span class="text-slate-400">SOXL을 처분하고 SOXS를 미리 사둘까 고민할 정도였다.</span></p>
+            </div>
+            <div class="rounded-lg bg-slate-900/60 ring-1 ring-emerald-500/20 p-3">
+              <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>실제 관측</div>
+              <p class="text-slate-300">예상한 급락은 없었다. 개장 직후 <b>불과 몇 분 사이에 +1.5~2.5% 이상을 말아 올리는</b> 광경이 관측됐고,
+              이어 <b class="text-emerald-300">15~16%까지 단숨에</b> 끌어올렸다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 사전 전략 -->
+      <div class="px-5 sm:px-7 pb-5">
+        <div class="rounded-xl ring-1 ring-sky-500/25 bg-sky-500/[.04] p-4">
+          <div class="flex items-center gap-2 text-[11px] font-bold tracking-widest text-sky-300 uppercase mb-2">
+            <i class="fa-solid fa-robot"></i> 장 전 AI 전략 — 제미나이 · GPT
+          </div>
+          <p class="text-[12.5px] leading-relaxed text-slate-300">
+            두 AI는 이번 장을 앞두고, <b>매도 물량이 쏟아질 두 구간</b>을 짚고 그 <b>직전에 매도</b>할 것을 권했다 —
+          </p>
+          <div class="mt-3 grid sm:grid-cols-2 gap-3 text-[12px]">
+            <div class="rounded-lg bg-slate-900/60 ring-1 ring-slate-800 p-3">
+              <div class="text-[11px] font-bold text-amber-300 mb-1">① 본장 개장 직후(06-18 22:30) 매도 속출</div>
+              <p class="text-slate-300">선물 거래 이익 실현 물량. → 추천 매도 타이밍 <b class="text-amber-200">22시경(개장 전)</b>.</p>
+            </div>
+            <div class="rounded-lg bg-slate-900/60 ring-1 ring-slate-800 p-3">
+              <div class="text-[11px] font-bold text-amber-300 mb-1">② 본장 마감 직전(06-19 05:00) 매도 속출</div>
+              <p class="text-slate-300">마감 청산 물량. → 추천 매도 타이밍 <b class="text-amber-200">새벽 3시경</b>(마감 2시간 전, "안전빵").</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 타임라인 -->
+      <div class="px-5 sm:px-7 pb-6">
+        <div class="flex items-center gap-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-4">
+          <i class="fa-solid fa-timeline"></i> 시간대별 무빙 (야간선물 → 프리장 → 본장)
+        </div>
+
+        <div class="tl pl-12 space-y-5">
+
+          <!-- 07:00 기상 -->
+          <div class="relative">
+            <span class="tl-dot bg-slate-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-slate-300">06-18 07:00 KST</span>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">기상</span>
+              <span class="ml-auto text-[12px] font-extrabold text-emerald-400 pct">+3~4%</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">자고 일어났을 때 이미 <b class="text-slate-200">+3~4% 구간</b>에서 출발해 있었다.</p>
+          </div>
+
+          <!-- 야간선물장 -->
+          <div class="relative">
+            <span class="tl-dot bg-slate-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold text-slate-300">야간 선물장 (Overnight)</span>
+              <span class="ml-auto text-[12px] font-bold text-emerald-400/80">완만한 우상향 ↗</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">점진적으로 조금씩 우상향.</p>
+          </div>
+
+          <!-- 17:00 장 통합 -->
+          <div class="relative">
+            <span class="tl-dot bg-sky-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-slate-300">06-18 17:00 KST</span>
+              <span class="text-[10px] font-bold text-sky-400 uppercase tracking-widest">장 통합</span>
+              <span class="ml-auto text-[12px] font-bold text-emerald-400/80">상향 지속 ↗</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">세션 통합 시점에도 흐름을 꺾지 않고 상향을 이어감.</p>
+          </div>
+
+          <!-- 프리장 -->
+          <div class="relative">
+            <span class="tl-dot bg-violet-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold text-slate-300">프리장 ~ 06-18 22:30 직전</span>
+              <span class="text-[10px] font-bold text-violet-300 uppercase tracking-widest">Pre-market</span>
+              <span class="ml-auto text-[12px] font-extrabold text-emerald-400 pct">+12.5 ~ 13.5%</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">본장 개장 전까지 <b class="text-slate-200">점진적이면서도 빠른 속도로</b> +12.5~13.5%까지 끌어올림.</p>
+          </div>
+
+          <!-- 22:30 본장 개장 -->
+          <div class="relative">
+            <span class="tl-dot bg-rose-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-white">06-18 22:30 KST <span class="text-slate-500 font-medium">(09:30 ET)</span></span>
+              <span class="text-[10px] font-bold text-rose-300 uppercase tracking-widest">본장 개장</span>
+              <span class="ml-auto text-[12px] font-extrabold text-emerald-400 pct">→ 15 ~ 16%</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-300">급락을 예상했으나 정반대 — 몇 분 만에 <b class="text-emerald-300">+1.5~2.5% 이상</b>을 말아 올리며
+              <b class="text-emerald-300">15~16%까지 단숨에</b> 상승.</p>
+          </div>
+
+          <!-- 본장 ~ 03:00 -->
+          <div class="relative">
+            <span class="tl-dot bg-amber-400"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-slate-300">본장 진행 ~ 06-19 03:00 KST</span>
+              <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest">와리가리</span>
+              <span class="ml-auto text-[12px] font-extrabold text-emerald-400 pct">→ 20%p</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">위아래로 <b class="text-slate-200">와리가리(등락 반복) 무빙</b>을 치면서 <b class="text-slate-200">아주 천천히</b> 20% 포인트까지 점진 상승.</p>
+          </div>
+
+          <!-- 03:00 ~ 04:00 횡보 -->
+          <div class="relative">
+            <span class="tl-dot bg-slate-500"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-slate-300">06-19 03:00 ~ 04:00 KST</span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">횡보</span>
+              <span class="ml-auto text-[12px] font-bold text-slate-400">→ ↔ 동결</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-400">아주 천천히 하락하거나 동결인 느낌으로 <b class="text-slate-200">횡보</b>.</p>
+          </div>
+
+          <!-- 05:00 마감 (관측 못함) -->
+          <div class="relative">
+            <span class="tl-dot bg-rose-400/60"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold tabular-nums text-slate-400">06-19 05:00 KST <span class="text-slate-600 font-medium">(16:00 ET)</span></span>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">본장 마감 · 미관측</span>
+            </div>
+            <p class="mt-1 text-[12.5px] text-slate-500">마감 직전 매도 물량을 직접 확인하고 싶었지만 — <b class="text-slate-400">잠이 와서 보지 못함(취침).</b></p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 단타 구간 메모 -->
+      <div class="px-5 sm:px-7 pb-6">
+        <div class="rounded-xl ring-1 ring-amber-500/30 bg-amber-500/[.05] p-4">
+          <div class="flex items-center gap-2 text-[11px] font-bold tracking-widest text-amber-300 uppercase mb-1.5">
+            <i class="fa-solid fa-arrows-left-right-to-line"></i> 단타 구간 메모 — 16% ~ 20%p
+          </div>
+          <p class="text-[12.5px] leading-relaxed text-slate-300">
+            16%부터 20% 포인트 사이 구간은 <b>매물이 많고 변동이 커서</b>, <b class="text-amber-200">0.5% 차익을 잡고 10분 단위 정도로
+            사팔사팔(사고팔고) 단타치기 좋은 구간</b>이었다.
+          </p>
+        </div>
+      </div>
+
+      <!-- 디렉터 마무리 노트 -->
+      <div class="px-5 sm:px-7 pb-7">
+        <blockquote class="quote rounded-xl ring-1 ring-slate-700/70 p-4 text-[13px] leading-relaxed text-slate-300 italic">
+          <i class="fa-solid fa-quote-left text-slate-600 mr-1"></i>
+          새벽 5시 본장 마감 직전의 매도 물량을 두 눈으로 직접 확인하고 싶었지만, 잠이 쏟아져 자러 간다.
+          06-19 새벽 3시 40분, SOXL <b class="not-italic text-white">422,222원 ($279.20) · 전일 대비 +19.38%</b> 시점에서 오늘 복기를 마무리하고 들어간다.
+          <span class="block mt-2 text-right text-[11px] not-italic font-bold tracking-wider text-slate-500">— G.M.PARK</span>
+        </blockquote>
+      </div>
+
+    </article>
+
+  </div>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="border-t border-slate-800">
+  <div class="max-w-[1000px] mx-auto px-6 py-5 text-[11px] text-slate-500 flex items-center justify-between flex-wrap gap-2">
+    <span>Polaris Market Intelligence · 디렉터 코멘트 — 개인 복기·교육용, 투자자문/매매신호 아님</span>
+    <span class="font-semibold tracking-wider">G.M.PARK</span>
+  </div>
+</footer>
+
+</body>
+</html>
