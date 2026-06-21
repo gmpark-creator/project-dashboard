@@ -28,6 +28,8 @@
 <script src="bosesa-data-1-2021.js"></script>
 <script src="bosesa-data-1-2020.js"></script>
 <script src="bosesa-data-1-2019.js"></script>
+<!-- 중요 개념(7개년 빈출 정리) — 과목별. 박사 지시 2026-06-21, Claude·Codex 협업 -->
+<script src="bosesa-concepts-1.js"></script>
 <script src="bosesa-data-2-2025.js"></script>
 <script src="bosesa-data-2-2024.js"></script>
 <script src="bosesa-data-2-2023.js"></script>
@@ -120,6 +122,22 @@
   .bq-analysis{ background:#0F172A; border:1px solid #334155; border-radius:8px; padding:10px 14px;
     font-size:12px; color:#94a3b8; line-height:1.6; margin-top:6px; }
   .bq-analysis b{ color:#e2e8f0; }
+  /* ===== 중요 개념 카드 ===== */
+  .sb-concepts{ color:#fbbf24 !important; font-weight:700; }
+  .sb-concepts.sb-on-concepts{ background:#1e293b; color:#fcd34d !important; }
+  .bc-badge{ display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; letter-spacing:.02em; }
+  .bc-yr{ display:inline-block; font-size:10px; font-weight:700; color:#a5b4fc; background:#1e1b4b;
+    border:1px solid #4338ca55; border-radius:6px; padding:1px 6px; margin:0 3px 3px 0; }
+  .bc-sec{ border-radius:8px; padding:10px 13px; font-size:12px; line-height:1.65; margin-top:7px; white-space:pre-wrap; }
+  .bc-concept{ background:#0b1220; border:1px solid #334155; color:#cbd5e1; }
+  .bc-trap{ background:#2a0e12; border:1px solid #f43f5e44; color:#fda4af; }
+  .bc-key{ background:#0d1f12; border:1px solid #10b98144; color:#86efac; }
+  .bc-caution{ background:#241a04; border:1px solid #f59e0b44; color:#fcd34d; }
+  .bc-memo{ background:#0a1a24; border:1px solid #38bdf844; color:#7dd3fc; }
+  .bc-law{ background:#160f24; border:1px solid #8b5cf644; color:#c4b5fd; }
+  .bc-sec b, .bc-sec .bc-h{ color:#f1f5f9; font-weight:800; }
+  .bc-sec ul{ margin:4px 0 0; padding-left:18px; }
+  .bc-sec li{ margin:2px 0; }
 </style>
 </head>
 <body class="bg-[#0F172A] text-slate-200 antialiased">
@@ -196,6 +214,9 @@
         </button>
         <button class="sb-item sb-child2" id="sb-year-2019" onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:1,bosesaYear:2019})">
           <i class="fa-solid fa-circle w-2 text-center text-violet-400"></i>2019년
+        </button>
+        <button class="sb-item sb-child2 sb-concepts" id="sb-concepts-1" onclick="setState({view:'bosesa',bosesaView:'concepts',bosesaSubject:1})">
+          <i class="fa-solid fa-star w-2 text-center text-amber-400"></i>중요 개념 <span class="text-[9px] font-bold text-amber-400/80 ml-1">7개년 빈출</span>
         </button>
       </div>
       <!-- 2과목 -->
@@ -732,11 +753,12 @@ DB.glossary = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.glossary) || [
 const S = {
   view: 'customs',           // 'customs' | 'bosesa'
   customsType:'import', port:'new', incoterm:null, activeNode:null, modalField:null,
-  bosesaView:'intro',        // 'intro' | 'quiz'
+  bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts'
   bosesaSubject:1,
   bosesaYear:2025,
   bosesaForm:'A',            // 'A' | 'B' — A형/B형 (현재 1과목 2023만 B형 보유)
   quizOpen:{},               // { questionNo: true } — 정답 공개된 문제
+  conceptsReveal:true,       // 중요 개념: 해설·정답 표시(true=학습모드) / 가림(false=셀프테스트)
 };
 
 /* ── 상태 보존: 라이브 리로드(파일 저장 시 자동 새로고침) 후에도 보던 화면·펼친 문항 유지.
@@ -750,6 +772,7 @@ try {
   if (q.get('subject')) { S.bosesaSubject = +q.get('subject'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
   if (q.get('year')) { S.bosesaYear = +q.get('year'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
   if (q.get('form')) { S.bosesaForm = (String(q.get('form')).toUpperCase()==='B'?'B':'A'); }
+  if (q.get('concepts')) { S.view='bosesa'; S.bosesaView='concepts'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
 
@@ -979,6 +1002,11 @@ function renderSidebar(){
       if(el) el.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===subject&&S.bosesaYear===year?' sb-on-year':'');
     });
   });
+  // 중요 개념(과목별) active
+  for(let s=1;s<=5;s++){
+    const el = $('sb-concepts-'+s);
+    if(el) el.className = 'sb-item sb-child2 sb-concepts' + (S.view==='bosesa'&&S.bosesaView==='concepts'&&S.bosesaSubject===s?' sb-on-concepts':'');
+  }
 
 }
 
@@ -1282,8 +1310,11 @@ function renderBosesa(){
   const root = $('bosesaRoot');
   if(!root) return;
   if(S.bosesaView==='intro'){ renderBosesaIntro(); return; }
+  if(S.bosesaView==='concepts'){ renderBosesaConcepts(); return; }
   renderBosesaQuiz();
 }
+
+function toggleConceptsReveal(){ S.conceptsReveal = !S.conceptsReveal; saveState(); renderBosesaConcepts(); }
 
 function renderBosesaIntro(){
   $('bosesaRoot').innerHTML = `
@@ -1485,6 +1516,98 @@ function renderBosesaQuiz(){
       </div>
     </div>
     ${qsHTML}`;
+}
+
+function renderBosesaConcepts(){
+  const root = $('bosesaRoot');
+  let data = null;
+  const sub = S.bosesaSubject;
+  if(sub===1) data = (typeof BOSESA_CONCEPTS_1 !== 'undefined') ? BOSESA_CONCEPTS_1 : null;
+  else if(sub===2) data = (typeof BOSESA_CONCEPTS_2 !== 'undefined') ? BOSESA_CONCEPTS_2 : null;
+  else if(sub===3) data = (typeof BOSESA_CONCEPTS_3 !== 'undefined') ? BOSESA_CONCEPTS_3 : null;
+  else if(sub===4) data = (typeof BOSESA_CONCEPTS_4 !== 'undefined') ? BOSESA_CONCEPTS_4 : null;
+  else if(sub===5) data = (typeof BOSESA_CONCEPTS_5 !== 'undefined') ? BOSESA_CONCEPTS_5 : null;
+
+  if(!data || !Array.isArray(data.concepts)){
+    root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
+      <i class="fa-solid fa-star text-2xl mb-2 block text-amber-500/60"></i>${sub}과목 중요 개념 정리가 아직 준비되지 않았습니다.</div>`;
+    return;
+  }
+
+  const CIRC = ['','①','②','③','④','⑤','⑥','⑦','⑧'];
+  const IMP = {
+    '최빈출':{ bg:'#4c0519', bd:'#f43f5e', fg:'#fda4af' },
+    '빈출':  { bg:'#3b1c04', bd:'#f59e0b', fg:'#fcd34d' },
+    '중요':  { bg:'#2e1065', bd:'#8b5cf6', fg:'#c4b5fd' },
+    '주의':  { bg:'#082f49', bd:'#38bdf8', fg:'#7dd3fc' },
+  };
+  const reveal = S.conceptsReveal !== false;
+
+  const cardsHTML = data.concepts.map((c,i)=>{
+    const n = i+1;
+    const imp = IMP[c.importance] || IMP['중요'];
+    const yrs = Array.isArray(c.years) ? c.years.slice().sort() : [];
+    const ans = Array.isArray(c.answer) ? c.answer : (c.answer!=null?[c.answer]:[]);
+    const choicesHTML = (c.choices||[]).map((ch,ci)=>{
+      const num = ci+1;
+      const isCorrect = ans.includes(num);
+      const txt = ch && typeof ch==='object' ? (ch.text ?? ch.label ?? '') : ch;
+      let cls = 'bq-choice';
+      if(reveal) cls += isCorrect ? ' bq-correct' : ' bq-wrong';
+      return `<div class="${cls}" style="cursor:default">
+        <span class="font-bold flex-shrink-0">${CIRC[num]||num}</span>
+        <span>${esc(String(txt).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
+      </div>`;
+    }).join('');
+    const ansLabel = ans.map(x=>CIRC[x]||x).join('');
+    const listOf = arr => Array.isArray(arr)&&arr.length
+      ? `<ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : (arr? `<div>${esc(arr)}</div>`:'');
+
+    const analysis = reveal ? `
+      <div class="bc-sec bc-key"><span class="bc-h"><i class="fa-solid fa-circle-check mr-1"></i>실제 정답${ansLabel?` · ${ansLabel}`:''}</span><div class="mt-1">${esc(c.answerKey||'')}</div></div>
+      ${c.conceptExplanation?`<div class="bc-sec bc-concept"><span class="bc-h"><i class="fa-solid fa-book mr-1"></i>핵심 개념</span><div class="mt-1">${esc(c.conceptExplanation)}</div></div>`:''}
+      ${c.trapAnalysis?`<div class="bc-sec bc-trap"><span class="bc-h"><i class="fa-solid fa-triangle-exclamation mr-1"></i>오답 유도 포인트</span><div class="mt-1">${esc(c.trapAnalysis)}</div></div>`:''}
+      ${(c.cautions&&c.cautions.length)?`<div class="bc-sec bc-caution"><span class="bc-h"><i class="fa-solid fa-circle-exclamation mr-1"></i>조심할 것</span>${listOf(c.cautions)}</div>`:''}
+      ${(c.memorize&&c.memorize.length)?`<div class="bc-sec bc-memo"><span class="bc-h"><i class="fa-solid fa-bookmark mr-1"></i>암기 포인트</span>${listOf(c.memorize)}</div>`:''}
+      ${c.lawBasis?`<div class="bc-sec bc-law"><span class="bc-h"><i class="fa-solid fa-scale-balanced mr-1"></i>법령 근거</span><div class="mt-1">${esc(c.lawBasis)}</div></div>`:''}
+      ${c.sourceRef?`<div class="text-[10px] text-slate-500 mt-2"><i class="fa-solid fa-link mr-1"></i>근거 기출: ${esc(c.sourceRef)}</div>`:''}
+    ` : `<div class="text-[11px] text-slate-500 mt-3"><i class="fa-solid fa-eye-slash mr-1"></i>셀프테스트 모드 — 상단 「정답·해설 보기」로 해설을 펼치세요.</div>`;
+
+    return `<div class="bq-card" id="bc-${n}">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-amber-400 font-extrabold">중요개념 ${n}</span>
+          <span class="bc-badge" style="background:${imp.bg};border:1px solid ${imp.bd};color:${imp.fg}">${esc(c.importance||'중요')}</span>
+          <span class="text-sm font-bold text-slate-100">${esc(c.title||'')}</span>
+        </div>
+        <div class="flex-shrink-0">${yrs.map(y=>`<span class="bc-yr">${y}</span>`).join('')}</div>
+      </div>
+      <div class="bq-q mt-3"><span class="text-violet-400 font-bold mr-2">Q.</span>${esc(c.question||'')}</div>
+      <div class="mt-3">${choicesHTML}</div>
+      ${analysis}
+    </div>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div>
+        <div class="text-xs font-bold text-amber-400 tracking-widest uppercase"><i class="fa-solid fa-star mr-1"></i>보세사 중요 개념 · 7개년 빈출 정리</div>
+        <h2 class="text-xl font-bold text-white">${data.subjectNo ?? data.subject ?? sub}과목 — ${esc(data.subjectName||'')}</h2>
+        <p class="text-xs text-slate-400 mt-1">${esc(data.years||'2019~2025')} 기출 교차분석 · 총 <b class="text-amber-300">${data.concepts.length}</b>개 핵심 유형 · 빈출/유사/중요 유형 총정리</p>
+        <p class="text-[10px] text-slate-500 mt-1">Claude(Opus 4.8)·Codex 교차검증 정리 — 정답은 공식 정답표 기준 불변</p>
+        <a href="bosesa-mobile/?subject=${sub}&view=concepts" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-300 bg-emerald-900/30 border border-emerald-700/50 rounded-lg px-3 py-1.5 hover:bg-emerald-900/50">
+          <i class="fa-solid fa-mobile-screen-button"></i> 📱 모바일에서 중요 개념 보기
+        </a>
+      </div>
+      <div class="flex gap-2">
+        <button class="text-xs px-3 py-2 rounded-lg ${reveal?'bg-amber-900/50 text-amber-200 border border-amber-700/60':'bg-slate-700 text-slate-300 border border-slate-600'}"
+          onclick="toggleConceptsReveal()">
+          <i class="fa-solid ${reveal?'fa-eye':'fa-eye-slash'} mr-1"></i>${reveal?'정답·해설 보임':'정답·해설 가림'}
+        </button>
+      </div>
+    </div>
+    ${cardsHTML}`;
 }
 
 /* ================= init ================= */

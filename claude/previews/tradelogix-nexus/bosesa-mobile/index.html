@@ -68,6 +68,23 @@
     width:46px; height:46px; border-radius:50%; background:var(--ink); color:#fff; border:none; font-size:18px;
     box-shadow:0 4px 14px rgba(0,0,0,.25); cursor:pointer; display:none; }
   footer{ text-align:center; font-size:10.5px; color:var(--sub); padding:14px; }
+  /* ===== 중요 개념 (모바일) ===== */
+  .cmeta{ margin-top:5px; }
+  .impb{ display:inline-block; font-size:10px; font-weight:800; color:#fff; background:#b45309; border-radius:6px; padding:1px 7px; margin-right:4px; }
+  .yrb{ display:inline-block; font-size:10px; font-weight:700; color:#3730a3; background:#eef2ff; border:1px solid #c7d2fe; border-radius:5px; padding:0 5px; margin:0 3px 3px 0; }
+  .qbody{ font-size:16px; line-height:1.62; margin-top:11px; padding:11px 12px; background:#fafbfc; border:1px solid var(--line); border-radius:10px; white-space:pre-wrap; }
+  .cbx{ font-size:14.5px; line-height:1.66; border-radius:10px; padding:11px 12px; margin-top:8px; border:1px solid var(--line); white-space:pre-wrap; }
+  .cbx b{ display:block; font-size:11px; font-weight:800; margin-bottom:4px; letter-spacing:.02em; }
+  .cbx ul{ margin:4px 0 0; padding-left:18px; } .cbx li{ margin:2px 0; }
+  .cbx-key{ background:#e7f6ec; border-color:#a7e0bd; } .cbx-key b{ color:#0b8a3e; }
+  .cbx-con{ background:#f3f6fb; border-color:#cdd9ea; } .cbx-con b{ color:#1f4e8f; }
+  .cbx-trap{ background:#fdecef; border-color:#f5b5c0; } .cbx-trap b{ color:#c81e3a; }
+  .cbx-cau{ background:#fff6e6; border-color:#f3d28a; } .cbx-cau b{ color:#9a6700; }
+  .cbx-memo{ background:#e9f4fe; border-color:#a8d4f5; } .cbx-memo b{ color:#1167b1; }
+  .cbx-law{ background:#f3eefe; border-color:#cdb8f0; } .cbx-law b{ color:#6b3fb5; }
+  .srcref{ font-size:11px; color:var(--sub); margin-top:8px; }
+  .chip.cept{ border-color:#f59e0b; color:#b45309; font-weight:800; }
+  .chip.cept.on{ background:#f59e0b; border-color:#f59e0b; color:#fff; }
 </style>
 </head>
 <body>
@@ -109,7 +126,7 @@
   ];
   var YEARS = [2025,2024,2023,2022,2021,2020,2019];
   var CN = ['①','②','③','④','⑤','⑥','⑦','⑧'];
-  var state = { subject:1, year:2025, form:'A', answersShown:true };
+  var state = { subject:1, year:2025, form:'A', answersShown:true, view:'exam' }; // view: 'exam' | 'concepts'
   var loaded = {};
   // B형 보유 여부 (현재 2023년 1과목만 A·B형 두 유형)
   function hasBForm(s,y){ return s===1 && y===2023; }
@@ -127,14 +144,17 @@
     if(form==='B' && hasBForm(s,y)) n+='B';   // 2023 1과목 B형 = BOSESA_DATA_1_2023B
     try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; }
   }
+  // 중요 개념(과목별) 전역 BOSESA_CONCEPTS_* 로드
+  function getConcepts(s){ var n='BOSESA_CONCEPTS_'+s; try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; } }
 
   function renderChips(){
     $('subjectChips').innerHTML = SUBJECTS.map(function(s){
       return '<button class="chip'+(s.no===state.subject?' on':'')+'" data-s="'+s.no+'">'+s.no+'과목<span class="sname">'+esc(s.name)+'</span></button>';
     }).join('');
+    var cpt = state.view==='concepts';
     $('yearChips').innerHTML = YEARS.map(function(y){
-      return '<button class="chip sub'+(y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
-    }).join('');
+      return '<button class="chip sub'+(!cpt&&y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
+    }).join('') + '<button class="chip sub cept'+(cpt?' on':'')+'" data-concepts="1">⭐ 중요개념</button>';
     // 유형(A형/B형) 토글 — B형 보유 연도/과목에서만 노출
     var formRow=$('formRow');
     if(hasBForm(state.subject,state.year)){
@@ -195,12 +215,64 @@
     window.scrollTo(0,0);
   }
 
+  function loadConcepts(){
+    var s=state.subject, key='concepts_'+s;
+    $('empty').classList.add('hidden'); $('qlist').innerHTML='';
+    if(loaded[key]){ renderConcepts(); return; }
+    $('loading').classList.remove('hidden');
+    var sc=document.createElement('script');
+    sc.src='../bosesa-concepts-'+s+'.js';
+    sc.onload=function(){ loaded[key]=true; $('loading').classList.add('hidden'); renderConcepts(); };
+    sc.onerror=function(){ $('loading').classList.add('hidden'); $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 중요개념 준비 중'; };
+    document.head.appendChild(sc);
+  }
+
+  function renderConcepts(){
+    var data = getConcepts(state.subject);
+    var sname = (SUBJECTS.filter(function(x){return x.no===state.subject;})[0]||{}).name||'';
+    if(!data || !data.concepts){ $('empty').classList.remove('hidden'); $('meta').textContent=state.subject+'과목 중요개념'; return; }
+    $('meta').textContent = state.subject+'과목 '+sname+' · 중요 개념 '+data.concepts.length+'개 · 7개년 빈출';
+    var show = state.answersShown;
+    function sec(cls,label,txt){ return txt? '<div class="cbx '+cls+'"><b>'+label+'</b>'+esc(txt)+'</div>':''; }
+    function secList(cls,label,arr){ if(!Array.isArray(arr)||!arr.length) return ''; return '<div class="cbx '+cls+'"><b>'+label+'</b><ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'; }
+    var html = data.concepts.map(function(c,idx){
+      var n=idx+1;
+      var ans = Array.isArray(c.answer)? c.answer : (c.answer!=null?[c.answer]:[]);
+      var yrs = Array.isArray(c.years)? c.years.slice().sort() : [];
+      var choices=(c.choices||[]).map(function(ch,i){
+        var isC = show && ans.indexOf(i+1)>=0;
+        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(choiceText(ch))+'</li>';
+      }).join('');
+      var ansNums = ans.map(function(a){ return CN[a-1]||a; }).join(', ');
+      var box = show ? ('<div class="ansbox">'
+        + (ansNums?'<div class="ans-line"><span class="k">정답</span>'+ansNums+'</div>':'')
+        + sec('cbx-key','실제 정답',c.answerKey)
+        + sec('cbx-con','핵심 개념',c.conceptExplanation)
+        + sec('cbx-trap','오답 유도 포인트',c.trapAnalysis)
+        + secList('cbx-cau','조심할 것',c.cautions)
+        + secList('cbx-memo','암기 포인트',c.memorize)
+        + sec('cbx-law','법령 근거',c.lawBasis)
+        + (c.sourceRef?'<div class="srcref">근거 기출: '+esc(c.sourceRef)+'</div>':'')
+        + '</div>') : '<div class="srcref">‘정답·해설 표시’로 해설을 펼치세요.</div>';
+      var badges = '<span class="impb">'+esc(c.importance||'중요')+'</span>'+yrs.map(function(y){return '<span class="yrb">'+y+'</span>';}).join('');
+      return '<div class="qcard"><div class="qhead"><span class="qno" style="background:#b45309;font-size:12px">★'+n+'</span>'
+        + '<div class="qtext">'+esc(c.title||'')+'<div class="cmeta">'+badges+'</div></div></div>'
+        + '<div class="qbody">'+esc(c.question||'')+'</div>'
+        + '<ol class="choices">'+choices+'</ol>' + box + '</div>';
+    }).join('');
+    $('qlist').innerHTML = html;
+    window.scrollTo(0,0);
+  }
+
   // events
   $('subjectChips').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips(); load();
+    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips();
+    if(state.view==='concepts'){ loadConcepts(); } else { load(); }
   });
   $('yearChips').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b)return; state.year=+b.dataset.y; state.form='A'; renderChips(); load();
+    var b=e.target.closest('.chip'); if(!b)return;
+    if(b.dataset.concepts){ state.view='concepts'; renderChips(); loadConcepts(); return; }
+    state.view='exam'; state.year=+b.dataset.y; state.form='A'; renderChips(); load();
   });
   $('formChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return; state.form=(b.dataset.f==='B'?'B':'A'); renderChips(); load();
@@ -209,7 +281,7 @@
     state.answersShown=!state.answersShown;
     this.textContent = state.answersShown?'정답·해설 표시':'정답·해설 숨김(시험모드)';
     this.classList.toggle('off', !state.answersShown);
-    render();
+    if(state.view==='concepts'){ renderConcepts(); } else { render(); }
   });
   var totop=$('totop');
   window.addEventListener('scroll', function(){ totop.style.display = window.scrollY>500?'block':'none'; });
@@ -222,10 +294,11 @@
     if(q.get('year')) state.year=+q.get('year');
     if(q.get('form')) state.form=(String(q.get('form')).toUpperCase()==='B'?'B':'A');
     if(!hasBForm(state.subject,state.year)) state.form='A';
+    if(q.get('view')==='concepts') state.view='concepts';
   } catch(e){}
 
   renderChips();
-  load();
+  if(state.view==='concepts'){ loadConcepts(); } else { load(); }
 })();
 </script>
 </body>
