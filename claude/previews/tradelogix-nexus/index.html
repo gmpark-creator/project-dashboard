@@ -129,6 +129,8 @@
   /* ===== 중요 개념 카드 ===== */
   .sb-concepts{ color:#fbbf24 !important; font-weight:700; }
   .sb-concepts.sb-on-concepts{ background:#1e293b; color:#fcd34d !important; }
+  .sb-answer-notes{ color:#34d399 !important; font-weight:700; }
+  .sb-answer-notes.sb-on-answer-notes{ background:#1e293b; color:#6ee7b7 !important; }
   .bc-badge{ display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; letter-spacing:.02em; }
   .bc-yr{ display:inline-block; font-size:10px; font-weight:700; color:#a5b4fc; background:#1e1b4b;
     border:1px solid #4338ca55; border-radius:6px; padding:1px 6px; margin:0 3px 3px 0; }
@@ -142,6 +144,14 @@
   .bc-sec b, .bc-sec .bc-h{ color:#f1f5f9; font-weight:800; }
   .bc-sec ul{ margin:4px 0 0; padding-left:18px; }
   .bc-sec li{ margin:2px 0; }
+  .ba-year{ position:sticky; top:0; z-index:3; background:#0f172acc; backdrop-filter:blur(10px);
+    border:1px solid #334155; border-radius:10px; padding:10px 14px; margin:18px 0 10px; }
+  .ba-chip{ display:inline-flex; align-items:flex-start; gap:8px; border:1px solid #10b98166; background:#052e1a;
+    color:#bbf7d0; border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.55; margin:4px 6px 0 0; }
+  .ba-basis{ background:#0b1220; border:1px solid #334155; border-radius:8px; padding:12px 14px;
+    font-size:12px; color:#cbd5e1; line-height:1.65; margin-top:10px; white-space:pre-wrap; }
+  .ba-analysis{ background:#06281b; border:1px solid #10b98144; border-radius:8px; padding:10px 14px;
+    font-size:12px; color:#86efac; line-height:1.6; margin-top:7px; white-space:pre-wrap; }
 </style>
 </head>
 <body class="bg-[#0F172A] text-slate-200 antialiased">
@@ -221,6 +231,9 @@
         </button>
         <button class="sb-item sb-child2 sb-concepts" id="sb-concepts-1" onclick="setState({view:'bosesa',bosesaView:'concepts',bosesaSubject:1})">
           <i class="fa-solid fa-star w-2 text-center text-amber-400"></i>중요 개념 <span class="text-[9px] font-bold text-amber-400/80 ml-1">7개년 빈출</span>
+        </button>
+        <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-1" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:1})">
+          <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
         </button>
       </div>
       <!-- 2과목 -->
@@ -769,7 +782,7 @@ DB.glossary = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.glossary) || [
 const S = {
   view: 'customs',           // 'customs' | 'bosesa'
   customsType:'import', port:'new', incoterm:null, activeNode:null, modalField:null,
-  bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts'
+  bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts' | 'answerNotes'
   bosesaSubject:1,
   bosesaYear:2025,
   bosesaForm:'A',            // 'A' | 'B' — A형/B형 (현재 1과목 2023만 B형 보유)
@@ -789,6 +802,7 @@ try {
   if (q.get('year')) { S.bosesaYear = +q.get('year'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
   if (q.get('form')) { S.bosesaForm = (String(q.get('form')).toUpperCase()==='B'?'B':'A'); }
   if (q.get('concepts')) { S.view='bosesa'; S.bosesaView='concepts'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
+  if (q.get('answers')) { S.view='bosesa'; S.bosesaView='answerNotes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
 
@@ -900,6 +914,30 @@ function openAllQuizAnswers(){
   S.quizOpen = openState;
   saveState();
   renderBosesaQuiz();
+}
+
+const BOSESA_STUDY_YEARS = [2025,2024,2023,2022,2021,2020,2019];
+const BOSESA_ANSWER_NOTES_READY = [1];
+const CIRCLED = ['','①','②','③','④','⑤','⑥','⑦','⑧'];
+
+function toAnswerArray(v){ return Array.isArray(v) ? v : (Number.isInteger(v) ? [v] : []); }
+function qNoOf(q, idx){ return q.no ?? q.number ?? q.id ?? (idx+1); }
+function qTextOf(q){ return q.text ?? q.stemText ?? q.question ?? ''; }
+function choiceTextOf(c){ return typeof c === 'string' ? c : (c?.text ?? c?.label ?? ''); }
+function analysisTextOf(a){ return typeof a === 'string' ? a : (a?.reason ?? a?.text ?? ''); }
+function getBosesaData(subject, year){
+  if(subject===1 && year===2025) return (typeof BOSESA_DATA_1_2025 !== 'undefined') ? BOSESA_DATA_1_2025 : null;
+  if(subject===1 && year===2024) return (typeof BOSESA_DATA_1_2024 !== 'undefined') ? BOSESA_DATA_1_2024 : null;
+  if(subject===1 && year===2023) return (typeof BOSESA_DATA_1_2023 !== 'undefined') ? BOSESA_DATA_1_2023 : null;
+  if(subject===1 && year===2022) return (typeof BOSESA_DATA_1_2022 !== 'undefined') ? BOSESA_DATA_1_2022 : null;
+  if(subject===1 && year===2021) return (typeof BOSESA_DATA_1_2021 !== 'undefined') ? BOSESA_DATA_1_2021 : null;
+  if(subject===1 && year===2020) return (typeof BOSESA_DATA_1_2020 !== 'undefined') ? BOSESA_DATA_1_2020 : null;
+  if(subject===1 && year===2019) return (typeof BOSESA_DATA_1_2019 !== 'undefined') ? BOSESA_DATA_1_2019 : null;
+  return null;
+}
+function subjectNameForAnswerNotes(subject){
+  const data = BOSESA_STUDY_YEARS.map(y=>getBosesaData(subject,y)).find(Boolean);
+  return data ? data.subjectName : '';
 }
 
 const TYPES = [
@@ -1022,6 +1060,10 @@ function renderSidebar(){
   for(let s=1;s<=5;s++){
     const el = $('sb-concepts-'+s);
     if(el) el.className = 'sb-item sb-child2 sb-concepts' + (S.view==='bosesa'&&S.bosesaView==='concepts'&&S.bosesaSubject===s?' sb-on-concepts':'');
+  }
+  for(let s=1;s<=5;s++){
+    const el = $('sb-answer-notes-'+s);
+    if(el) el.className = 'sb-item sb-child2 sb-answer-notes' + (S.view==='bosesa'&&S.bosesaView==='answerNotes'&&S.bosesaSubject===s?' sb-on-answer-notes':'');
   }
 
 }
@@ -1327,10 +1369,82 @@ function renderBosesa(){
   if(!root) return;
   if(S.bosesaView==='intro'){ renderBosesaIntro(); return; }
   if(S.bosesaView==='concepts'){ renderBosesaConcepts(); return; }
+  if(S.bosesaView==='answerNotes'){ renderBosesaAnswerNotes(); return; }
   renderBosesaQuiz();
 }
 
 function toggleConceptsReveal(){ S.conceptsReveal = !S.conceptsReveal; saveState(); renderBosesaConcepts(); }
+
+function renderBosesaAnswerNotes(){
+  const root = $('bosesaRoot');
+  const sub = S.bosesaSubject;
+  if(!BOSESA_ANSWER_NOTES_READY.includes(sub)){
+    root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
+      <i class="fa-solid fa-bolt text-2xl mb-2 block text-emerald-500/70"></i>${sub}과목 정답 해설 빠른회독은 아직 준비 중입니다.</div>`;
+    return;
+  }
+
+  const sections = BOSESA_STUDY_YEARS.map(year=>{
+    const data = getBosesaData(sub, year);
+    if(!data || !Array.isArray(data.questions)) return '';
+    const cards = data.questions.map((q, idx)=>{
+      const qno = qNoOf(q, idx);
+      const qtext = qTextOf(q);
+      const answers = toAnswerArray(q.answer);
+      const basis = q.answerBasis ?? q.explanation ?? '';
+      const answerChips = answers.map(n=>{
+        const text = choiceTextOf(q.choices?.[n-1] ?? '');
+        return `<div class="ba-chip"><span class="font-extrabold text-emerald-200">${CIRCLED[n]||n}</span><span>${esc(String(text).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span></div>`;
+      }).join('');
+      const correctAnalysis = Array.isArray(q.choiceAnalysis)
+        ? answers.map(n=>analysisTextOf(q.choiceAnalysis[n-1])).filter(Boolean)
+        : [];
+      return `<article class="bq-card" id="ba-${year}-${qno}">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="text-[11px] font-bold text-emerald-300 tracking-widest">${year}년 · Q${qno}</div>
+          <div class="text-[11px] font-bold text-slate-500">${data.answerForm ?? 'A형'}</div>
+        </div>
+        <div class="bq-q mt-2">${esc(qtext)}</div>
+        <div class="mt-3">
+          <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check mr-1"></i>정답</div>
+          ${answerChips}
+        </div>
+        ${basis ? `<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>` : ''}
+        ${correctAnalysis.length ? `<div class="ba-analysis"><span class="font-bold text-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>정답 선지 해설</span><div class="mt-1">${correctAnalysis.map(esc).join('<br>')}</div></div>` : ''}
+      </article>`;
+    }).join('');
+    return `<section id="answer-notes-${year}">
+      <div class="ba-year flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="text-xs font-extrabold text-white">${year}년 ${data.subjectNo ?? data.subject ?? sub}과목</div>
+          <div class="text-[11px] text-slate-400">${esc(data.subjectName || '')} · ${data.questions.length}문항 · 정답 선지만 빠른회독</div>
+        </div>
+        <a class="text-[11px] font-bold text-emerald-300 hover:text-emerald-200" href="#answer-notes-top">
+          <i class="fa-solid fa-arrow-up mr-1"></i>위로
+        </a>
+      </div>
+      ${cards}
+    </section>`;
+  }).join('');
+
+  const total = BOSESA_STUDY_YEARS.reduce((sum, year)=>{
+    const data = getBosesaData(sub, year);
+    return sum + (data?.questions?.length || 0);
+  }, 0);
+  root.innerHTML = `
+    <div id="answer-notes-top" class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div>
+        <div class="text-xs font-bold text-emerald-400 tracking-widest uppercase"><i class="fa-solid fa-bolt mr-1"></i>보세사 정답 해설 · 빠른회독</div>
+        <h2 class="text-xl font-bold text-white">${sub}과목 — ${esc(subjectNameForAnswerNotes(sub))}</h2>
+        <p class="text-xs text-slate-400 mt-1">2025년부터 2019년까지 · 총 <b class="text-emerald-300">${total}</b>문항 · 문제/정답/정답 근거만 표시</p>
+        <p class="text-[10px] text-slate-500 mt-1">오답 선지 4개는 숨기고, 공식 정답과 정답 선지 해설만 빠르게 회독하도록 구성.</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        ${BOSESA_STUDY_YEARS.map(y=>`<a href="#answer-notes-${y}" class="text-xs px-3 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">${y}</a>`).join('')}
+      </div>
+    </div>
+    ${sections}`;
+}
 
 function renderBosesaIntro(){
   $('bosesaRoot').innerHTML = `
