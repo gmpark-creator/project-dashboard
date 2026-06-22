@@ -65,6 +65,7 @@
 <script src="bosesa-data-5-2020.js"></script>
 <script src="bosesa-data-5-2019.js"></script>
 <script src="bosesa-concepts-5.js"></script>
+<script src="bosesa-rare-types.js"></script>
 <script src="customs-practice-data.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
@@ -131,6 +132,8 @@
   .sb-concepts.sb-on-concepts{ background:#1e293b; color:#fcd34d !important; }
   .sb-answer-notes{ color:#34d399 !important; font-weight:700; }
   .sb-answer-notes.sb-on-answer-notes{ background:#1e293b; color:#6ee7b7 !important; }
+  .sb-rare-types{ color:#f472b6 !important; font-weight:700; }
+  .sb-rare-types.sb-on-rare-types{ background:#1e293b; color:#f9a8d4 !important; }
   .bc-badge{ display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; letter-spacing:.02em; }
   .bc-yr{ display:inline-block; font-size:10px; font-weight:700; color:#a5b4fc; background:#1e1b4b;
     border:1px solid #4338ca55; border-radius:6px; padding:1px 6px; margin:0 3px 3px 0; }
@@ -152,6 +155,10 @@
     font-size:12px; color:#cbd5e1; line-height:1.65; margin-top:10px; white-space:pre-wrap; }
   .ba-analysis{ background:#06281b; border:1px solid #10b98144; border-radius:8px; padding:10px 14px;
     font-size:12px; color:#86efac; line-height:1.6; margin-top:7px; white-space:pre-wrap; }
+  .br-meta{ display:inline-flex; align-items:center; gap:6px; color:#f9a8d4; background:#3b0a24;
+    border:1px solid #db277755; border-radius:999px; padding:3px 9px; font-size:10px; font-weight:800; }
+  .br-source{ display:inline-flex; align-items:center; gap:6px; color:#fbcfe8; background:#500724;
+    border:1px solid #be185d66; border-radius:8px; padding:7px 10px; font-size:11px; font-weight:800; }
 </style>
 </head>
 <body class="bg-[#0F172A] text-slate-200 antialiased">
@@ -235,6 +242,9 @@
         <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-1" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:1})">
           <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
         </button>
+        <button class="sb-item sb-child2 sb-rare-types" id="sb-rare-types-1" onclick="setState({view:'bosesa',bosesaView:'rareTypes',bosesaSubject:1})">
+          <i class="fa-solid fa-gem w-2 text-center text-rose-300"></i>희소 유형 <span class="text-[9px] font-bold text-rose-300/80 ml-1">낯선·저빈출</span>
+        </button>
       </div>
       <!-- 2과목 -->
       <button class="sb-item sb-child" onclick="toggleSubject2()">
@@ -268,6 +278,9 @@
         </button>
         <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-2" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:2})">
           <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
+        </button>
+        <button class="sb-item sb-child2 sb-rare-types" id="sb-rare-types-2" onclick="setState({view:'bosesa',bosesaView:'rareTypes',bosesaSubject:2})">
+          <i class="fa-solid fa-gem w-2 text-center text-rose-300"></i>희소 유형 <span class="text-[9px] font-bold text-rose-300/80 ml-1">낯선·저빈출</span>
         </button>
       </div>
       <!-- 3과목 -->
@@ -312,6 +325,9 @@
         <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-3" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:3})">
           <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
         </button>
+        <button class="sb-item sb-child2 sb-rare-types" id="sb-rare-types-3" onclick="setState({view:'bosesa',bosesaView:'rareTypes',bosesaSubject:3})">
+          <i class="fa-solid fa-gem w-2 text-center text-rose-300"></i>희소 유형 <span class="text-[9px] font-bold text-rose-300/80 ml-1">낯선·저빈출</span>
+        </button>
       </div>
   <!-- 4과목 -->
   <button class="sb-item sb-child" onclick="toggleSubject4()">
@@ -346,6 +362,9 @@
   <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-4" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:4})">
   <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
   </button>
+  <button class="sb-item sb-child2 sb-rare-types" id="sb-rare-types-4" onclick="setState({view:'bosesa',bosesaView:'rareTypes',bosesaSubject:4})">
+  <i class="fa-solid fa-gem w-2 text-center text-rose-300"></i>희소 유형 <span class="text-[9px] font-bold text-rose-300/80 ml-1">낯선·저빈출</span>
+  </button>
   </div>
 <button class="sb-item sb-child" onclick="toggleSubject5()">
   <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>5과목 자율관리 및 관세벌칙
@@ -378,6 +397,9 @@
   </button>
   <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-5" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:5})">
     <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
+  </button>
+  <button class="sb-item sb-child2 sb-rare-types" id="sb-rare-types-5" onclick="setState({view:'bosesa',bosesaView:'rareTypes',bosesaSubject:5})">
+    <i class="fa-solid fa-gem w-2 text-center text-rose-300"></i>희소 유형 <span class="text-[9px] font-bold text-rose-300/80 ml-1">낯선·저빈출</span>
   </button>
 </div>
     </div>
@@ -794,7 +816,7 @@ DB.glossary = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.glossary) || [
 const S = {
   view: 'customs',           // 'customs' | 'bosesa'
   customsType:'import', port:'new', incoterm:null, activeNode:null, modalField:null,
-  bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts' | 'answerNotes'
+  bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts' | 'answerNotes' | 'rareTypes'
   bosesaSubject:1,
   bosesaYear:2025,
   bosesaForm:'A',            // 'A' | 'B' — A형/B형 (현재 1과목 2023만 B형 보유)
@@ -815,6 +837,7 @@ try {
   if (q.get('form')) { S.bosesaForm = (String(q.get('form')).toUpperCase()==='B'?'B':'A'); }
   if (q.get('concepts')) { S.view='bosesa'; S.bosesaView='concepts'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if (q.get('answers')) { S.view='bosesa'; S.bosesaView='answerNotes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
+  if (q.get('rare')) { S.view='bosesa'; S.bosesaView='rareTypes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
 
@@ -1104,6 +1127,10 @@ function renderSidebar(){
   for(let s=1;s<=5;s++){
     const el = $('sb-answer-notes-'+s);
     if(el) el.className = 'sb-item sb-child2 sb-answer-notes' + (S.view==='bosesa'&&S.bosesaView==='answerNotes'&&S.bosesaSubject===s?' sb-on-answer-notes':'');
+  }
+  for(let s=1;s<=5;s++){
+    const el = $('sb-rare-types-'+s);
+    if(el) el.className = 'sb-item sb-child2 sb-rare-types' + (S.view==='bosesa'&&S.bosesaView==='rareTypes'&&S.bosesaSubject===s?' sb-on-rare-types':'');
   }
 
 }
@@ -1410,6 +1437,7 @@ function renderBosesa(){
   if(S.bosesaView==='intro'){ renderBosesaIntro(); return; }
   if(S.bosesaView==='concepts'){ renderBosesaConcepts(); return; }
   if(S.bosesaView==='answerNotes'){ renderBosesaAnswerNotes(); return; }
+  if(S.bosesaView==='rareTypes'){ renderBosesaRareTypes(); return; }
   renderBosesaQuiz();
 }
 
@@ -1484,6 +1512,90 @@ function renderBosesaAnswerNotes(){
       </div>
     </div>
     ${sections}`;
+}
+
+function getBosesaRareTypesData(subject){
+  const rare = (typeof BOSESA_RARE_TYPES !== 'undefined') ? BOSESA_RARE_TYPES : null;
+  return rare?.subjects?.[subject] || rare?.subjects?.[String(subject)] || null;
+}
+
+function findBosesaQuestion(subject, year, questionNo){
+  const data = getBosesaData(subject, year);
+  if(!data || !Array.isArray(data.questions)) return null;
+  const q = data.questions.find((x, idx)=>qNoOf(x, idx) === questionNo);
+  return q ? { data, q } : null;
+}
+
+function renderBosesaRareTypes(){
+  const root = $('bosesaRoot');
+  const sub = S.bosesaSubject;
+  const rareAll = (typeof BOSESA_RARE_TYPES !== 'undefined') ? BOSESA_RARE_TYPES : null;
+  const data = getBosesaRareTypesData(sub);
+  if(!data || !Array.isArray(data.items)){
+    root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
+      <i class="fa-solid fa-gem text-2xl mb-2 block text-rose-400/70"></i>${sub}과목 희소 유형 정리는 아직 준비 중입니다.</div>`;
+    return;
+  }
+
+  const listOf = arr => Array.isArray(arr)&&arr.length
+    ? `<ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '';
+
+  const cardsHTML = data.items.map((item, idx)=>{
+    const found = findBosesaQuestion(sub, item.year, item.questionNo);
+    const q = found?.q;
+    const form = found?.data?.answerForm ?? 'A형';
+    const answers = q ? toAnswerArray(q.answer) : [];
+    const answerChips = q ? answers.map(n=>{
+      const text = choiceTextOf(q.choices?.[n-1] ?? '');
+      return `<div class="ba-chip"><span class="font-extrabold text-emerald-200">${CIRCLED[n]||n}</span><span>${esc(String(text).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span></div>`;
+    }).join('') : '<div class="text-xs text-rose-300">대표 문항을 찾지 못했습니다.</div>';
+    const correctAnalysis = q && Array.isArray(q.choiceAnalysis)
+      ? answers.map(n=>analysisTextOf(q.choiceAnalysis[n-1])).filter(Boolean)
+      : [];
+    const basis = q ? (q.answerBasis ?? q.explanation ?? '') : '';
+    const qtext = q ? qTextOf(q) : '';
+    return `<article class="bq-card" id="br-${sub}-${idx+1}">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-rose-300 font-extrabold">희소유형 ${idx+1}</span>
+          <span class="br-meta"><i class="fa-solid fa-gem"></i>${esc(item.rarity||'저빈출')}</span>
+          <span class="text-sm font-bold text-slate-100">${esc(item.title||'')}</span>
+        </div>
+        <span class="br-source"><i class="fa-solid fa-link"></i>${item.year}년 Q${item.questionNo} · ${esc(form)}</span>
+      </div>
+      <div class="bq-q mt-3"><span class="text-rose-300 font-bold mr-2">대표문항</span>${esc(qtext)}</div>
+      <div class="mt-3">
+        <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check mr-1"></i>공식 정답</div>
+        ${answerChips}
+      </div>
+      <div class="bc-sec bc-trap"><span class="bc-h"><i class="fa-solid fa-fingerprint mr-1"></i>희소성 판단</span><div class="mt-1">${esc(item.reason||'')}</div></div>
+      <div class="bc-sec bc-concept"><span class="bc-h"><i class="fa-solid fa-compass mr-1"></i>공부 포인트</span><div class="mt-1">${esc(item.studyFocus||'')}</div></div>
+      ${(item.watch&&item.watch.length)?`<div class="bc-sec bc-caution"><span class="bc-h"><i class="fa-solid fa-eye mr-1"></i>다시 나오면 볼 것</span>${listOf(item.watch)}</div>`:''}
+      ${item.ifReappears?`<div class="bc-sec bc-memo"><span class="bc-h"><i class="fa-solid fa-rotate mr-1"></i>재출제 대응</span><div class="mt-1">${esc(item.ifReappears)}</div></div>`:''}
+      ${basis?`<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>`:''}
+      ${correctAnalysis.length?`<div class="ba-analysis"><span class="font-bold text-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>정답 선지 해설</span><div class="mt-1">${correctAnalysis.map(esc).join('<br>')}</div></div>`:''}
+      <div class="mt-3">
+        <button class="text-[11px] font-bold text-slate-300 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 hover:bg-slate-700"
+          onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:${sub},bosesaYear:${item.year}})">
+          <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>${item.year}년 원문 문제로 이동
+        </button>
+      </div>
+    </article>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div>
+        <div class="text-xs font-bold text-rose-300 tracking-widest uppercase"><i class="fa-solid fa-gem mr-1"></i>보세사 희소 유형 · 낯선/저빈출 문제유형</div>
+        <h2 class="text-xl font-bold text-white">${data.subjectNo ?? sub}과목 — ${esc(data.subjectName||'')}</h2>
+        <p class="text-xs text-slate-400 mt-1">${esc(rareAll?.years||'2019~2025')} 기출 역방향 분석 · 총 <b class="text-rose-300">${data.items.length}</b>개 희소 유형 · 빈출 개념에 덜 묶이는 절차/예외/기관·기간 매칭</p>
+        <p class="text-[10px] text-slate-500 mt-1">${esc(rareAll?.method||'원본 기출 데이터의 공식 정답을 참조해 저빈출 유형을 선별했습니다.')}</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        ${data.items.map((_,i)=>`<a href="#br-${sub}-${i+1}" class="text-xs px-3 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">${i+1}</a>`).join('')}
+      </div>
+    </div>
+    ${cardsHTML}`;
 }
 
 function renderBosesaIntro(){
