@@ -42,13 +42,14 @@
     font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; }
   .qtext{ font-size:17.5px; font-weight:700; line-height:1.6; letter-spacing:-.01em; }
   ol.choices{ list-style:none; margin:14px 0 0; padding:0; }
-  ol.choices li{ position:relative; padding:11px 12px 11px 40px; border:1px solid var(--line); border-radius:10px;
+  ol.choices li{ display:flex; align-items:flex-start; gap:8px; padding:11px 12px; border:1px solid var(--line); border-radius:10px;
     margin-bottom:8px; font-size:16px; line-height:1.55; background:#fff; }
-  ol.choices li .cn{ position:absolute; left:12px; top:11px; font-weight:800; color:var(--sub); font-size:15px; }
-  li.correct{ background:var(--green-bg); border-color:var(--green); padding-right:56px; }
+  ol.choices li .cn{ flex:0 0 auto; font-weight:800; color:var(--sub); font-size:15px; padding-top:1px; }
+  ol.choices li .ctext{ flex:1; min-width:0; }
+  li.correct{ background:var(--green-bg); border-color:var(--green); }
   li.correct .cn{ color:var(--green); }
-  li.correct::after{ content:'정답'; position:absolute; right:10px; top:9px; font-size:10px; font-weight:800;
-    color:#fff; background:var(--green); border-radius:5px; padding:2px 6px; }
+  li.correct::after{ content:'정답'; flex:0 0 auto; align-self:flex-start; font-size:10px; font-weight:800;
+    color:#fff; background:var(--green); border-radius:5px; padding:2px 6px; white-space:nowrap; margin-top:2px; }
   .ansbox{ margin-top:13px; border-top:1px dashed var(--line); padding-top:12px; }
   .ans-line{ font-size:15px; font-weight:800; color:var(--green); margin-bottom:8px; }
   .ans-line .k{ color:var(--sub); font-weight:700; margin-right:5px; }
@@ -197,7 +198,7 @@
       var CA = Array.isArray(q.choiceAnalysis)? q.choiceAnalysis : null;
       var choices = (q.choices||[]).map(function(c,i){
         var isC = show && ans.indexOf(i+1)>=0;
-        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(choiceText(c))+'</li>';
+        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span><span class="ctext">'+esc(choiceText(c))+'</span></li>';
       }).join('');
       var ansNums = ans.map(function(a){ return CN[a-1]||a; }).join(', ');
       var caHTML = CA ? ('<details class="ca"><summary>선지별 분석 보기</summary>'+CA.map(function(t,i){
@@ -241,7 +242,7 @@
       var yrs = Array.isArray(c.years)? c.years.slice().sort() : [];
       var choices=(c.choices||[]).map(function(ch,i){
         var isC = show && ans.indexOf(i+1)>=0;
-        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(choiceText(ch))+'</li>';
+        return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span><span class="ctext">'+esc(choiceText(ch))+'</span></li>';
       }).join('');
       var ansNums = ans.map(function(a){ return CN[a-1]||a; }).join(', ');
       var box = show ? ('<div class="ansbox">'
