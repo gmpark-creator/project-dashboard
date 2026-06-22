@@ -495,16 +495,16 @@ const PROJECTS = [
     id: 'tradelogix',
     no: 8,
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 + 2023년 1과목 B형 25문항 = 900문항, A·B형 토글 — 공식정답표 전수검증)',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 + 2023년 1과목 B형 25문항 = 900문항, A·B형 토글 — 공식정답표 전수검증 + 중요 개념·7개년 빈출 1~5과목 완성 + 정답 해설·빠른회독 1~5과목 완성)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
-    latest: '2026-06-14',
+    latest: '2026-06-22',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 보세사 뷰어는 1~5과목 2019~2025 전연도 875문항 + 2023년 1과목 B형(A·B형 토글)까지 완성' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/', label:'VIEW → 카테고리 선택: 「통관절차」(부산항 통관 + Incoterms 2020 + 수입신고필증)와 「선사업무」(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박증서 31종)를 한 화면에서 선택·전환 — 보세사 뷰어는 1~5과목 2019~2025 전연도 875문항 + 2023년 1과목 B형(A·B형 토글) + 중요 개념·7개년 빈출(1~5과목 완성) + 정답 해설·빠른회독(1~5과목, 875문항 전수검증 PASS)' }
     ]},
     summary: '지식 대시보드 시리즈 9번 — 무역·물류 「통관」을 인터랙티브하게 학습하는 단일 페이지 대시보드.\n'
            + '부산항 북항/신항을 기준으로 수입·수출·반송 통관 프로세스, Incoterms 2020 비용/위험 분기점, 한국 수입신고필증 10대 항목을 한 화면에서 탐색한다.\n'
@@ -548,7 +548,9 @@ const PROJECTS = [
       { type:'완료', title:'보세사 1과목 2021년 PDF 원문 텍스트 대조 보정 (2026-06-12)', desc:'박사 지시 — 바탕화면 보세사 기출/기출과 정답/1과목 모음/21년 1과목.pdf를 렌더 이미지로 직접 대조해 bosesa-data-1-2021.js의 문제 본문·보기 텍스트를 공식 PDF 기준으로 보정. 이번 범위는 오탈자/문구 불일치 수정만이며 정답·오답·해설 검수는 후속 작업으로 분리. 상세 수정 항목은 internal/notes/2026-06-12-bosesa-subject1-2021-pdf-text-audit.md에 기록.' },
       { type:'완료', title:'보세사 1과목 2020년 PDF 원문 텍스트 대조 보정 (2026-06-12)', desc:'박사 지시 — 바탕화면 보세사 기출/기출과 정답/1과목 모음/20년 1과목.pdf를 렌더 이미지로 직접 대조해 bosesa-data-1-2020.js의 문제 본문·보기 텍스트를 공식 PDF 기준으로 보정. 이번 범위는 오탈자/문구 불일치 수정만이며 정답·오답·해설 검수는 후속 작업으로 분리. 상세 수정 항목은 internal/notes/2026-06-12-bosesa-subject1-2020-pdf-text-audit.md에 기록.' },
       { type:'완료', title:'보세사 1과목 2019년 PDF 원문 텍스트 대조 보정 (2026-06-12)', desc:'박사 지시 — 바탕화면 보세사 기출/기출과 정답/1과목 모음/19년 1과목.pdf를 렌더 이미지로 직접 대조해 bosesa-data-1-2019.js의 문제 본문·보기 텍스트를 공식 PDF 기준으로 보정. 이번 범위는 오탈자/문구 불일치 수정만이며 정답·오답·해설 검수는 후속 작업으로 분리. 상세 수정 항목은 internal/notes/2026-06-12-bosesa-subject1-2019-pdf-text-audit.md에 기록.' },
-      { type:'완료', title:'보세사 1과목 2019~2025년 공식 정답표 번호 대조 보정 (2026-06-12)', desc:'박사 지시 — 바탕화면 보세사 기출/기출과 정답/1과목 모음의 19~25년 PDF 1쪽 공식 정답표를 기준으로 1과목 175문항 answer 배열만 전수 대조. 2019·2020은 불일치 없음, 2021~2025 총 28문항 정답 번호를 PDF 기준으로 보정. 해설·오답 분석은 이번 범위에서 제외하고 answerTargets 인덱스에 후속 검수 대상으로 기록. 상세 기록: internal/notes/2026-06-12-bosesa-subject1-2019-2025-answer-key-audit.md.' }
+      { type:'완료', title:'보세사 1과목 2019~2025년 공식 정답표 번호 대조 보정 (2026-06-12)', desc:'박사 지시 — 바탕화면 보세사 기출/기출과 정답/1과목 모음의 19~25년 PDF 1쪽 공식 정답표를 기준으로 1과목 175문항 answer 배열만 전수 대조. 2019·2020은 불일치 없음, 2021~2025 총 28문항 정답 번호를 PDF 기준으로 보정. 해설·오답 분석은 이번 범위에서 제외하고 answerTargets 인덱스에 후속 검수 대상으로 기록. 상세 기록: internal/notes/2026-06-12-bosesa-subject1-2019-2025-answer-key-audit.md.' },
+      { type:'완료', title:'보세사 중요 개념 · 7개년 빈출 — 1~5과목 전과목 완성 (2026-06-22)', desc:'Codex 작업. 보세사 1~5과목 × 2019~2025년 기출에서 반복 출제된 핵심 개념을 과목별로 정리한 「중요 개념 · 7개년 빈출」 카테고리를 전과목 완성. 데이터 파일: bosesa-concepts-{1~5}.js (bosesa-concepts-1.js ~ bosesa-concepts-5.js), 렌더러: renderBosesaConcepts(). 관련 커밋: e4878ca(1과목) · 33a0bab(2과목) · 37d900f(3과목 신설) · fd54263(3과목 보충 마무리 + 모바일 정답 배지 정렬) · 085f321(4과목) · c485cbe(5과목). Claude 독립 검수: node --check 41파일 ALL PASS + 인라인 스크립트 파싱 OK.' },
+      { type:'완료', title:'보세사 정답 해설 · 빠른회독 — 1~5과목 전과목 완성 (2026-06-22)', desc:'Codex 작업. 문제·공식 정답·정답 근거·정답 선지 해설만 표시하고 오답 선지는 숨긴 「정답 해설 · 빠른회독」 카테고리를 1~5과목 전과목 완성. 2019~2025년 875문항 전수 커버. 데이터: bosesa-data-{1~5}-{2019~2025}.js, 렌더러: renderBosesaAnswerNotes(), 준비배열: BOSESA_ANSWER_NOTES_READY=[1,2,3,4,5]. 관련 커밋: 181738e(1과목) · 459d83c(2과목) · ec6faa2(3과목) · 8f5ee0c(4과목) · db6d837(5과목) · 2c99e8a(PDF 보정). Claude 독립 5중 검수: ①node --check 41파일 ALL PASS ②인라인 스크립트 파싱 OK ③875문항 상세 감사(answerBasis≥40자·choiceAnalysis 정답선지≥20자·placeholder 0건) issueCount=0 ④브라우저 DOM 감사(Chrome headless, 각 과목 cards=175·basis=175·analysis=175·wrong=0) 전과목 PASS ⑤JS 파일 41개 syntax PASS.' }
     ],
     milestones: [
       { date:'2026-06-04', title:'프로젝트 #9 신설 — TradeLogix Nexus (무역과 물류)', desc:'지식 대시보드 시리즈 9번으로 신설. Part 1 = 통관 마스터(부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증). 독립 레포·worktree 격리 셋업, 대시보드 등록.' },
@@ -591,7 +593,9 @@ const PROJECTS = [
       { date:'2026-06-12', title:'보세사 1과목 2020년 — PDF 원문 문제·보기 텍스트 보정', desc:'바탕화면 보세사 기출/기출과 정답/1과목 모음/20년 1과목.pdf를 기준으로 2020년 1과목의 문제 본문과 보기 텍스트를 대조하고 오탈자·문구 불일치를 보정. 정답·해설은 이번 대조 범위에서 제외하고 후속 전수 검수 대상으로 남김. 상세 기록: internal/notes/2026-06-12-bosesa-subject1-2020-pdf-text-audit.md.' },
       { date:'2026-06-12', title:'보세사 1과목 2019년 — PDF 원문 문제·보기 텍스트 보정', desc:'바탕화면 보세사 기출/기출과 정답/1과목 모음/19년 1과목.pdf를 기준으로 2019년 1과목의 문제 본문과 보기 텍스트를 대조하고 오탈자·문구 불일치를 보정. 정답·해설은 이번 대조 범위에서 제외하고 후속 전수 검수 대상으로 남김. 상세 기록: internal/notes/2026-06-12-bosesa-subject1-2019-pdf-text-audit.md.' },
       { date:'2026-06-12', title:'보세사 1과목 2019~2025년 — 공식 정답표 번호 전수 대조 보정', desc:'19~25년 1과목 PDF 공식 정답표를 기준으로 175문항 answer 배열만 전수 대조. 2019·2020은 불일치 없음, 2021~2025 총 28문항 정답 번호를 PDF 기준으로 보정. 정답 근거와 오답 해설은 후속 검수 대상으로 분리하고 answerTargets 인덱스에 기록. 상세 기록: internal/notes/2026-06-12-bosesa-subject1-2019-2025-answer-key-audit.md.' },
-      { date:'2026-06-12', title:'판다 익스프레스 라인 카테고리 신설 — 카히제·핀인베스트 그룹 분석 인포그래픽', desc:'박사 직접 지시. TradeLogix Nexus 카테고리 선택 허브(tradelogix-hub)에 통관절차·선사업무와 동일 계층의 세 번째 카테고리 「판다 익스프레스 라인」(보라 액센트)을 순수 추가 — 기존 2카드·URL·라우팅 무수정. 신규 페이지 previews/panda-express-line/kakhidze-fininvest-intel/ — 러시아 물류기업 핀인베스트(ФинИнвест)/소유주 알렉산드르 카히제(Александр Кахидзе)의 지배구조·매출(2024 그룹합산 690억₽)·자금조달(국가·은행 레버리지 약 80%)·대외관계(CMA CGM 로고페르 50% €1 인수, 동명이사 주의 등) 분석. 9개 섹션, 조직도·자금플로우·관계맵을 인라인 SVG(텍스트 검색가능)로, 신뢰도 3등급 배지(확인·추정·미검증), 다크/라이트·A4 print·상단 고정 목차, 외부 네트워크 의존성 0. 헤드리스 QA 전체 PASS(콘솔에러 0·허브에서 판다→카히제 페이지 라우팅 진입 확인) + 데이터 정합성 적대감사(섹션별 에이전트 4개) 실결함 0건.' }
+      { date:'2026-06-12', title:'판다 익스프레스 라인 카테고리 신설 — 카히제·핀인베스트 그룹 분석 인포그래픽', desc:'박사 직접 지시. TradeLogix Nexus 카테고리 선택 허브(tradelogix-hub)에 통관절차·선사업무와 동일 계층의 세 번째 카테고리 「판다 익스프레스 라인」(보라 액센트)을 순수 추가 — 기존 2카드·URL·라우팅 무수정. 신규 페이지 previews/panda-express-line/kakhidze-fininvest-intel/ — 러시아 물류기업 핀인베스트(ФинИнвест)/소유주 알렉산드르 카히제(Александр Кахидзе)의 지배구조·매출(2024 그룹합산 690억₽)·자금조달(국가·은행 레버리지 약 80%)·대외관계(CMA CGM 로고페르 50% €1 인수, 동명이사 주의 등) 분석. 9개 섹션, 조직도·자금플로우·관계맵을 인라인 SVG(텍스트 검색가능)로, 신뢰도 3등급 배지(확인·추정·미검증), 다크/라이트·A4 print·상단 고정 목차, 외부 네트워크 의존성 0. 헤드리스 QA 전체 PASS(콘솔에러 0·허브에서 판다→카히제 페이지 라우팅 진입 확인) + 데이터 정합성 적대감사(섹션별 에이전트 4개) 실결함 0건.' },
+      { date:'2026-06-22', title:'보세사 중요 개념 · 7개년 빈출 — 1~5과목 전과목 완성 (Codex 작업 + Claude 검수)', desc:'Codex가 1~5과목 × 2019~2025년 기출 핵심 개념을 과목별로 정리한 bosesa-concepts-{1~5}.js 완성. renderBosesaConcepts() 렌더러 연동. 3과목은 토큰 한도 초과 이후 Codex 보충(fd54263). Claude 독립 검수: node --check 41파일 ALL PASS + 인라인 스크립트 파싱 OK.' },
+      { date:'2026-06-22', title:'보세사 정답 해설 · 빠른회독 — 1~5과목 전과목 완성 + 5중 독립 검수 PASS (Codex 작업 + Claude 검수)', desc:'Codex가 1~5과목 전과목에 renderBosesaAnswerNotes() 기반 빠른회독 카테고리를 완성. 2019~2025년 875문항 전수 커버, 오답 선지 비표시 설계. Claude 5중 독립 검수: ①node --check 41파일 ALL PASS ②인라인 스크립트 파싱 OK ③875문항 상세 감사(answerBasis≥40자·정답선지해설≥20자·placeholder 0건) issueCount=0 ④Chrome headless DOM 감사(각 과목 cards=175·basis=175·analysis=175·wrong=0) 5과목 전부 PASS ⑤JS 파일 41개 syntax PASS. 전 게이트 PASS 확인 후 대시보드 반영.' }
     ]
   },
   {
