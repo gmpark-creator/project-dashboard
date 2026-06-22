@@ -343,6 +343,9 @@
   <button class="sb-item sb-child2 sb-concepts" id="sb-concepts-4" onclick="setState({view:'bosesa',bosesaView:'concepts',bosesaSubject:4})">
   <i class="fa-solid fa-star w-2 text-center text-amber-400"></i>중요 개념 <span class="text-[9px] font-bold text-amber-400/80 ml-1">7개년 빈출</span>
   </button>
+  <button class="sb-item sb-child2 sb-answer-notes" id="sb-answer-notes-4" onclick="setState({view:'bosesa',bosesaView:'answerNotes',bosesaSubject:4})">
+  <i class="fa-solid fa-bolt w-2 text-center text-emerald-400"></i>정답 해설 <span class="text-[9px] font-bold text-emerald-400/80 ml-1">빠른회독</span>
+  </button>
   </div>
 <button class="sb-item sb-child" onclick="toggleSubject5()">
   <i class="fa-solid fa-folder w-4 text-center text-slate-500"></i>5과목 자율관리 및 관세벌칙
@@ -923,7 +926,7 @@ function openAllQuizAnswers(){
 }
 
 const BOSESA_STUDY_YEARS = [2025,2024,2023,2022,2021,2020,2019];
-const BOSESA_ANSWER_NOTES_READY = [1,2,3];
+const BOSESA_ANSWER_NOTES_READY = [1,2,3,4];
 const CIRCLED = ['','①','②','③','④','⑤','⑥','⑦','⑧'];
 
 function toAnswerArray(v){ return Array.isArray(v) ? v : (Number.isInteger(v) ? [v] : []); }
@@ -953,6 +956,13 @@ function getBosesaData(subject, year){
   if(subject===3 && year===2021) return (typeof BOSESA_DATA_3_2021 !== 'undefined') ? BOSESA_DATA_3_2021 : null;
   if(subject===3 && year===2020) return (typeof BOSESA_DATA_3_2020 !== 'undefined') ? BOSESA_DATA_3_2020 : null;
   if(subject===3 && year===2019) return (typeof BOSESA_DATA_3_2019 !== 'undefined') ? BOSESA_DATA_3_2019 : null;
+  if(subject===4 && year===2025) return (typeof BOSESA_DATA_4_2025 !== 'undefined') ? BOSESA_DATA_4_2025 : null;
+  if(subject===4 && year===2024) return (typeof BOSESA_DATA_4_2024 !== 'undefined') ? BOSESA_DATA_4_2024 : null;
+  if(subject===4 && year===2023) return (typeof BOSESA_DATA_4_2023 !== 'undefined') ? BOSESA_DATA_4_2023 : null;
+  if(subject===4 && year===2022) return (typeof BOSESA_DATA_4_2022 !== 'undefined') ? BOSESA_DATA_4_2022 : null;
+  if(subject===4 && year===2021) return (typeof BOSESA_DATA_4_2021 !== 'undefined') ? BOSESA_DATA_4_2021 : null;
+  if(subject===4 && year===2020) return (typeof BOSESA_DATA_4_2020 !== 'undefined') ? BOSESA_DATA_4_2020 : null;
+  if(subject===4 && year===2019) return (typeof BOSESA_DATA_4_2019 !== 'undefined') ? BOSESA_DATA_4_2019 : null;
   return null;
 }
 function subjectNameForAnswerNotes(subject){
