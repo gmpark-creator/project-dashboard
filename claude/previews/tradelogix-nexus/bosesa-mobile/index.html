@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b8a3e">
 <title>보세사 기출문제 — 모바일</title>
-<meta name="description" content="보세사 자격시험 기출문제 모바일 뷰어 — 1~5과목 · 2019~2025년. 문제·선지·정답·해설을 큰 글씨로.">
+<meta name="description" content="보세사 자격시험 기출문제 모바일 뷰어 — 1~5과목 · 2019~2025년. 문제·정답·해설 + 중요개념 · 정답해설 빠른회독 · 희소유형.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
   :root{ --green:#0b8a3e; --green-bg:#e7f6ec; --blue:#1f6feb; --ink:#15181d; --sub:#6b7280; --line:#e6e8eb; --bg:#f4f6f8; --card:#ffffff; }
@@ -53,7 +53,7 @@
   .ansbox{ margin-top:13px; border-top:1px dashed var(--line); padding-top:12px; }
   .ans-line{ font-size:15px; font-weight:800; color:var(--green); margin-bottom:8px; }
   .ans-line .k{ color:var(--sub); font-weight:700; margin-right:5px; }
-  .basis{ font-size:15.5px; line-height:1.72; background:#fbfbfc; border:1px solid var(--line); border-radius:10px; padding:12px 13px; }
+  .basis{ font-size:15.5px; line-height:1.72; background:#fbfbfc; border:1px solid var(--line); border-radius:10px; padding:12px 13px; white-space:pre-wrap; }
   .basis .k{ display:block; font-size:11px; font-weight:800; color:var(--green); margin-bottom:5px; letter-spacing:.02em; }
   details.ca{ margin-top:10px; }
   details.ca>summary{ cursor:pointer; list-style:none; font-size:12.5px; font-weight:800; color:var(--blue); padding:7px 0; }
@@ -86,6 +86,32 @@
   .srcref{ font-size:11px; color:var(--sub); margin-top:8px; }
   .chip.cept{ border-color:#f59e0b; color:#b45309; font-weight:800; }
   .chip.cept.on{ background:#f59e0b; border-color:#f59e0b; color:#fff; }
+  /* ===== 정답 해설 · 빠른회독 (모바일) ===== */
+  .chip.ansk{ border-color:#0b8a3e; color:#0b8a3e; font-weight:800; }
+  .chip.ansk.on{ background:#0b8a3e; border-color:#0b8a3e; color:#fff; }
+  /* ===== 희소 유형 (모바일) ===== */
+  .chip.rare{ border-color:#db2777; color:#9d174d; font-weight:800; }
+  .chip.rare.on{ background:#db2777; border-color:#db2777; color:#fff; }
+  /* 카테고리 안내 박스 + 공통 라벨 */
+  .catbar{ background:#fff; border:1px solid var(--line); border-radius:13px; padding:13px 14px; margin-bottom:13px; }
+  .catbar .ct{ font-size:14px; font-weight:800; }
+  .catbar .cd{ font-size:12px; color:var(--sub); margin-top:4px; line-height:1.55; }
+  .catbar .cd b{ color:var(--ink); }
+  .seclabel{ font-size:11px; font-weight:800; color:var(--green); margin:13px 2px 5px; letter-spacing:.02em; }
+  .yearsep{ background:var(--green); color:#fff; font-size:14px; font-weight:800; border-radius:11px;
+    padding:9px 14px; margin:20px 0 11px; box-shadow:0 2px 8px rgba(11,138,62,.22); }
+  .yearsep small{ font-weight:600; opacity:.85; font-size:11px; margin-left:7px; }
+  .anhead{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .yrtag{ display:inline-block; font-size:12px; font-weight:800; color:#0b8a3e; background:#e7f6ec; border:1px solid #a7e0bd; border-radius:7px; padding:2px 9px; }
+  .formtag{ display:inline-block; font-size:10.5px; font-weight:700; color:var(--sub); }
+  .anschip{ display:flex; gap:8px; align-items:flex-start; background:#e7f6ec; border:1px solid #a7e0bd;
+    border-radius:10px; padding:10px 12px; font-size:15.5px; line-height:1.55; margin-top:8px; overflow-wrap:anywhere; }
+  .anschip .cn{ flex:0 0 auto; font-weight:800; color:#0b8a3e; }
+  .rb-rarity{ display:inline-block; font-size:10.5px; font-weight:800; color:#fff; background:#db2777; border-radius:6px; padding:2px 8px; }
+  .rb-src{ display:inline-block; font-size:10.5px; font-weight:700; color:#9d174d; background:#fce7f3; border:1px solid #f9a8d4; border-radius:6px; padding:2px 8px; }
+  .qnobtn{ margin-top:13px; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800;
+    color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:10px; padding:9px 13px; cursor:pointer; }
+  .qnobtn:active{ background:#f4f6f8; }
 </style>
 </head>
 <body>
@@ -94,7 +120,7 @@
   <div class="title"><span class="dot"></span>보세사 기출문제 <small>모바일 뷰어 · 1~5과목 · 2019~2025</small></div>
   <div class="rowlabel">과목</div>
   <div class="chips" id="subjectChips"></div>
-  <div class="rowlabel">연도</div>
+  <div class="rowlabel">연도 · 학습 카테고리</div>
   <div class="chips" id="yearChips"></div>
   <div id="formRow" class="hidden">
     <div class="rowlabel">유형 <small style="color:var(--sub);font-weight:600">· 2023년 1과목 A·B형</small></div>
@@ -127,38 +153,67 @@
   ];
   var YEARS = [2025,2024,2023,2022,2021,2020,2019];
   var CN = ['①','②','③','④','⑤','⑥','⑦','⑧'];
-  var state = { subject:1, year:2025, form:'A', answersShown:true, view:'exam' }; // view: 'exam' | 'concepts'
-  var loaded = {};
+  // view: 'exam' | 'concepts' | 'answerNotes' | 'rareTypes'
+  var state = { subject:1, year:2025, form:'A', answersShown:true, view:'exam' };
   // B형 보유 여부 (현재 2023년 1과목만 A·B형 두 유형)
   function hasBForm(s,y){ return s===1 && y===2023; }
 
   var $ = function(id){ return document.getElementById(id); };
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
   function nn(){ for(var i=0;i<arguments.length;i++){ if(arguments[i]!=null) return arguments[i]; } return ''; }
+  function subjName(s){ var o=SUBJECTS.filter(function(x){return x.no===s;})[0]; return o?o.name:''; }
+  function qNoOf(q,i){ return q.no!=null?q.no:(q.id!=null?q.id:(q.number!=null?q.number:i+1)); }
+  function ansArr(v){ return Array.isArray(v)? v : (v!=null?[v]:[]); }
   // 선지/선지분석은 문자열 또는 {label,text}/{reason,text} 객체 두 형태가 섞여 있어 정규화(기존 뷰어와 동일)
   function choiceText(c){ var t = (c && typeof c==='object') ? nn(c.text, c.label) : c; return String(t==null?'':t).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''); }
   function analysisText(a){ var t = (a && typeof a==='object') ? nn(a.reason, a.text) : a; return String(t==null?'':t); }
 
-  // const(전역 lexical)로 선언된 BOSESA_DATA_* 를 이름으로 가져오기 (window 속성 아님 → direct eval)
+  // const(전역 lexical)로 선언된 BOSESA_* 를 이름으로 가져오기 (window 속성 아님 → direct eval)
   function getData(s,y,form){
     var n='BOSESA_DATA_'+s+'_'+y;
     if(form==='B' && hasBForm(s,y)) n+='B';   // 2023 1과목 B형 = BOSESA_DATA_1_2023B
     try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; }
   }
-  // 중요 개념(과목별) 전역 BOSESA_CONCEPTS_* 로드
   function getConcepts(s){ var n='BOSESA_CONCEPTS_'+s; try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; } }
+  function getRareTypes(){ try { return eval('typeof BOSESA_RARE_TYPES!=="undefined" ? BOSESA_RARE_TYPES : null'); } catch(e){ return null; } }
+
+  // ===== 데이터 파일 주입 + 폴링 로더 (script const 재선언 충돌 방지: 1회만 주입) =====
+  var injected = {};
+  function injectOnce(src){
+    if(injected[src]) return;
+    injected[src]=true;
+    var sc=document.createElement('script'); sc.src=src; document.head.appendChild(sc);
+  }
+  function waitFor(pred, cb){ var t=0; (function w(){ if(pred()||t>80){ cb(); return; } t++; setTimeout(w,40); })(); }
+
+  // ===== 공통 렌더 헬퍼 (정답해설/희소유형) =====
+  function answerChips(q, ans){
+    return ans.map(function(n){
+      var t = choiceText((q.choices||[])[n-1] || '');
+      return '<div class="anschip"><span class="cn">'+(CN[n-1]||n)+'</span><span>'+esc(t)+'</span></div>';
+    }).join('');
+  }
+  function correctAnalysis(q, ans){
+    if(!Array.isArray(q.choiceAnalysis)) return [];
+    return ans.map(function(n){ return analysisText(q.choiceAnalysis[n-1]); }).filter(Boolean);
+  }
+  function listOf(arr){ return (Array.isArray(arr)&&arr.length) ? '<ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>' : ''; }
 
   function renderChips(){
     $('subjectChips').innerHTML = SUBJECTS.map(function(s){
       return '<button class="chip'+(s.no===state.subject?' on':'')+'" data-s="'+s.no+'">'+s.no+'과목<span class="sname">'+esc(s.name)+'</span></button>';
     }).join('');
-    var cpt = state.view==='concepts';
-    $('yearChips').innerHTML = YEARS.map(function(y){
-      return '<button class="chip sub'+(!cpt&&y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
-    }).join('') + '<button class="chip sub cept'+(cpt?' on':'')+'" data-concepts="1">⭐ 중요개념</button>';
-    // 유형(A형/B형) 토글 — B형 보유 연도/과목에서만 노출
+    var v = state.view;
+    var yc = YEARS.map(function(y){
+      return '<button class="chip sub'+(v==='exam'&&y===state.year?' on':'')+'" data-y="'+y+'">'+y+'</button>';
+    }).join('');
+    yc += '<button class="chip sub cept'+(v==='concepts'?' on':'')+'" data-view="concepts">⭐ 중요개념</button>';
+    yc += '<button class="chip sub ansk'+(v==='answerNotes'?' on':'')+'" data-view="answerNotes">⚡ 정답해설</button>';
+    yc += '<button class="chip sub rare'+(v==='rareTypes'?' on':'')+'" data-view="rareTypes">💎 희소유형</button>';
+    $('yearChips').innerHTML = yc;
+    // 유형(A형/B형) 토글 — 기출 보기 + B형 보유 연도/과목에서만 노출
     var formRow=$('formRow');
-    if(hasBForm(state.subject,state.year)){
+    if(v==='exam' && hasBForm(state.subject,state.year)){
       formRow.classList.remove('hidden');
       $('formChips').innerHTML = ['A','B'].map(function(f){
         return '<button class="chip sub'+(f===state.form?' on':'')+'" data-f="'+f+'">'+f+'형</button>';
@@ -168,32 +223,43 @@
     }
   }
 
+  // 현재 view에 맞는 로더 호출
+  function reloadCurrent(){
+    if(state.view==='concepts') loadConcepts();
+    else if(state.view==='answerNotes') loadAnswerNotes();
+    else if(state.view==='rareTypes') loadRareTypes();
+    else load();
+  }
+  function switchView(v){ state.view=v; renderChips(); syncAnsToggle(); reloadCurrent(); }
+  function syncAnsToggle(){
+    // 정답해설/희소유형은 항상 해설 노출 → 토글 숨김
+    $('ansToggle').style.display = (state.view==='answerNotes'||state.view==='rareTypes') ? 'none' : '';
+  }
+
+  // ===== 기출 보기 =====
   function load(){
     var s=state.subject, y=state.year;
-    var isB = (state.form==='B' && hasBForm(s,y));
-    var fileBase = 'bosesa-data-'+s+'-'+y+(isB?'b':'');
-    var key = s+'_'+y+(isB?'b':'');
-    $('empty').classList.add('hidden');
-    $('qlist').innerHTML='';
-    if (loaded[key]) { render(); return; }
+    var src='../bosesa-data-'+s+'-'+y+((state.form==='B'&&hasBForm(s,y))?'b':'')+'.js';
+    $('empty').classList.add('hidden'); $('qlist').innerHTML='';
+    if(getData(s,y,state.form)){ render(); return; }
     $('loading').classList.remove('hidden');
-    var sc=document.createElement('script');
-    sc.src='../'+fileBase+'.js';
-    sc.onload=function(){ loaded[key]=true; $('loading').classList.add('hidden'); render(); };
-    sc.onerror=function(){ $('loading').classList.add('hidden'); $('empty').classList.remove('hidden'); };
-    document.head.appendChild(sc);
+    injectOnce(src);
+    waitFor(function(){ return getData(s,y,state.form)!=null; }, function(){
+      $('loading').classList.add('hidden');
+      if(getData(s,y,state.form)) render(); else $('empty').classList.remove('hidden');
+    });
   }
 
   function render(){
     var data = getData(state.subject, state.year, state.form);
-    var sname = (SUBJECTS.filter(function(x){return x.no===state.subject;})[0]||{}).name||'';
+    var sname = subjName(state.subject);
     if (!data || !data.questions) { $('empty').classList.remove('hidden'); $('meta').textContent=state.year+'년 '+state.subject+'과목'; return; }
     $('meta').textContent = state.year+'년 · '+state.subject+'과목 '+sname+' · 총 '+(data.totalQuestions||data.questions.length)+'문항'+(data.answerForm?(' · '+data.answerForm):'');
     var show = state.answersShown;
-    var html = data.questions.map(function(q){
-      var qno = nn(q.no, q.id, q.number);
+    var html = data.questions.map(function(q,idx){
+      var qno = qNoOf(q,idx);
       var qtext = nn(q.text, q.stemText, q.question);
-      var ans = Array.isArray(q.answer)? q.answer : (q.answer!=null?[q.answer]:[]);
+      var ans = ansArr(q.answer);
       var basis = nn(q.answerBasis, q.explanation);
       var CA = Array.isArray(q.choiceAnalysis)? q.choiceAnalysis : null;
       var choices = (q.choices||[]).map(function(c,i){
@@ -216,21 +282,23 @@
     window.scrollTo(0,0);
   }
 
+  // ===== 중요 개념 =====
   function loadConcepts(){
-    var s=state.subject, key='concepts_'+s;
+    var s=state.subject;
     $('empty').classList.add('hidden'); $('qlist').innerHTML='';
-    if(loaded[key]){ renderConcepts(); return; }
+    if(getConcepts(s)){ renderConcepts(); return; }
     $('loading').classList.remove('hidden');
-    var sc=document.createElement('script');
-    sc.src='../bosesa-concepts-'+s+'.js';
-    sc.onload=function(){ loaded[key]=true; $('loading').classList.add('hidden'); renderConcepts(); };
-    sc.onerror=function(){ $('loading').classList.add('hidden'); $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 중요개념 준비 중'; };
-    document.head.appendChild(sc);
+    injectOnce('../bosesa-concepts-'+s+'.js');
+    waitFor(function(){ return getConcepts(s)!=null; }, function(){
+      $('loading').classList.add('hidden');
+      if(getConcepts(s)) renderConcepts();
+      else { $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 중요개념 준비 중'; }
+    });
   }
 
   function renderConcepts(){
     var data = getConcepts(state.subject);
-    var sname = (SUBJECTS.filter(function(x){return x.no===state.subject;})[0]||{}).name||'';
+    var sname = subjName(state.subject);
     if(!data || !data.concepts){ $('empty').classList.remove('hidden'); $('meta').textContent=state.subject+'과목 중요개념'; return; }
     $('meta').textContent = state.subject+'과목 '+sname+' · 중요 개념 '+data.concepts.length+'개 · 7개년 빈출';
     var show = state.answersShown;
@@ -238,7 +306,7 @@
     function secList(cls,label,arr){ if(!Array.isArray(arr)||!arr.length) return ''; return '<div class="cbx '+cls+'"><b>'+label+'</b><ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'; }
     var html = data.concepts.map(function(c,idx){
       var n=idx+1;
-      var ans = Array.isArray(c.answer)? c.answer : (c.answer!=null?[c.answer]:[]);
+      var ans = ansArr(c.answer);
       var yrs = Array.isArray(c.years)? c.years.slice().sort() : [];
       var choices=(c.choices||[]).map(function(ch,i){
         var isC = show && ans.indexOf(i+1)>=0;
@@ -265,41 +333,137 @@
     window.scrollTo(0,0);
   }
 
-  // events
+  // ===== 정답 해설 · 빠른회독 (7개년 정답·근거만) =====
+  function loadAnswerNotes(){
+    var s=state.subject;
+    $('empty').classList.add('hidden'); $('qlist').innerHTML='';
+    $('loading').classList.remove('hidden');
+    YEARS.forEach(function(y){ injectOnce('../bosesa-data-'+s+'-'+y+'.js'); });
+    waitFor(function(){ return YEARS.every(function(y){ return getData(s,y,'A')!=null; }); }, function(){
+      $('loading').classList.add('hidden'); renderAnswerNotes();
+    });
+  }
+
+  function renderAnswerNotes(){
+    var s=state.subject, total=0;
+    var sections = YEARS.map(function(y){
+      var data=getData(s,y,'A');
+      if(!data || !data.questions) return '';
+      total += data.questions.length;
+      var cards = data.questions.map(function(q,idx){
+        var qno=qNoOf(q,idx), qtext=nn(q.text,q.stemText,q.question);
+        var ans=ansArr(q.answer);
+        var basis=nn(q.answerBasis,q.explanation);
+        var ca=correctAnalysis(q,ans);
+        return '<div class="qcard" id="an-'+y+'-'+qno+'">'
+          + '<div class="anhead"><span class="yrtag">'+y+'년 · '+esc(qno)+'번</span><span class="formtag">'+esc(data.answerForm||'A형')+'</span></div>'
+          + '<div class="qtext" style="margin-top:10px">'+esc(qtext)+'</div>'
+          + '<div class="seclabel">정답</div>'+answerChips(q,ans)
+          + (basis?'<div class="basis" style="margin-top:10px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
+          + (ca.length?'<div class="cbx cbx-key" style="margin-top:8px"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+          + '</div>';
+      }).join('');
+      return '<div class="yearsep">'+y+'년 '+s+'과목<small>'+data.questions.length+'문항 · 정답·근거만</small></div>'+cards;
+    }).join('');
+    $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · 총 '+total+'문항';
+    var intro = '<div class="catbar"><div class="ct">⚡ 정답 해설 · 빠른회독</div>'
+      + '<div class="cd">2025→2019년 7개년. 오답 선지는 숨기고 <b>공식 정답 · 정답 근거 · 정답 선지 해설</b>만 빠르게 회독.</div></div>';
+    $('qlist').innerHTML = intro + sections;
+    window.scrollTo(0,0);
+  }
+
+  // ===== 희소 유형 · 낯선·저빈출 =====
+  function loadRareTypes(){
+    var s=state.subject;
+    $('empty').classList.add('hidden'); $('qlist').innerHTML='';
+    $('loading').classList.remove('hidden');
+    injectOnce('../bosesa-rare-types.js');
+    YEARS.forEach(function(y){ injectOnce('../bosesa-data-'+s+'-'+y+'.js'); });
+    waitFor(function(){ return getRareTypes()!=null && YEARS.every(function(y){ return getData(s,y,'A')!=null; }); }, function(){
+      $('loading').classList.add('hidden'); renderRareTypes();
+    });
+  }
+
+  function renderRareTypes(){
+    var s=state.subject;
+    var all=getRareTypes();
+    var data = (all && all.subjects) ? (all.subjects[s] || all.subjects[String(s)]) : null;
+    if(!data || !Array.isArray(data.items)){ $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 희소 유형'; return; }
+    var cards = data.items.map(function(item,idx){
+      var src=getData(s,item.year,'A');
+      var q=null;
+      if(src && Array.isArray(src.questions)) q=src.questions.find(function(x,i){ return qNoOf(x,i)===item.questionNo; });
+      var form=(src&&src.answerForm)||'A형';
+      var ans=q?ansArr(q.answer):[];
+      var qtext=q?nn(q.text,q.stemText,q.question):'';
+      var basis=q?nn(q.answerBasis,q.explanation):'';
+      var ca=q?correctAnalysis(q,ans):[];
+      var ansHTML = q? answerChips(q,ans) : '<div class="srcref" style="color:#db2777">대표 문항을 찾지 못했습니다.</div>';
+      return '<div class="qcard" id="rare-'+s+'-'+(idx+1)+'">'
+        + '<div class="anhead"><span class="rb-rarity">희소유형 '+(idx+1)+'</span><span class="rb-src">'+esc(item.rarity||'저빈출')+'</span></div>'
+        + '<div class="qtext" style="margin-top:9px">'+esc(item.title||'')+'</div>'
+        + '<div class="srcref" style="margin-top:6px">근거 기출: <b style="color:#9d174d">'+item.year+'년 '+esc(item.questionNo)+'번 · '+esc(form)+'</b></div>'
+        + '<div class="seclabel" style="color:#9d174d">대표문항</div>'
+        + '<div class="qbody">'+esc(qtext)+'</div>'
+        + '<div class="seclabel">공식 정답</div>'+ansHTML
+        + (item.reason?'<div class="cbx cbx-trap"><b>희소성 판단</b>'+esc(item.reason)+'</div>':'')
+        + (item.studyFocus?'<div class="cbx cbx-con"><b>공부 포인트</b>'+esc(item.studyFocus)+'</div>':'')
+        + ((item.watch&&item.watch.length)?'<div class="cbx cbx-cau"><b>다시 나오면 볼 것</b>'+listOf(item.watch)+'</div>':'')
+        + (item.ifReappears?'<div class="cbx cbx-memo"><b>재출제 대응</b>'+esc(item.ifReappears)+'</div>':'')
+        + (basis?'<div class="basis" style="margin-top:8px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
+        + (ca.length?'<div class="cbx cbx-key"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+        + '<button class="qnobtn" data-goyear="'+item.year+'">→ '+item.year+'년 원문 문제로 이동</button>'
+        + '</div>';
+    }).join('');
+    $('meta').textContent = s+'과목 '+subjName(s)+' · 희소 유형 '+data.items.length+'개 · 저빈출';
+    var intro = '<div class="catbar"><div class="ct">💎 희소 유형 · 낯선·저빈출</div>'
+      + '<div class="cd">'+esc((all&&all.years)||'2019~2025')+' 기출 역방향 분석 · 총 <b>'+data.items.length+'</b>개. 빈출 개념에 덜 묶이는 절차·예외·기관/기간 매칭 유형.</div></div>';
+    $('qlist').innerHTML = intro + cards;
+    window.scrollTo(0,0);
+  }
+
+  // ===== events =====
   $('subjectChips').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips();
-    if(state.view==='concepts'){ loadConcepts(); } else { load(); }
+    var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips(); reloadCurrent();
   });
   $('yearChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return;
-    if(b.dataset.concepts){ state.view='concepts'; renderChips(); loadConcepts(); return; }
-    state.view='exam'; state.year=+b.dataset.y; state.form='A'; renderChips(); load();
+    if(b.dataset.view){ switchView(b.dataset.view); return; }
+    state.view='exam'; state.year=+b.dataset.y; state.form='A'; renderChips(); syncAnsToggle(); load();
   });
   $('formChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return; state.form=(b.dataset.f==='B'?'B':'A'); renderChips(); load();
+  });
+  // 희소유형 → 원문 기출 이동
+  $('qlist').addEventListener('click', function(e){
+    var b=e.target.closest('.qnobtn'); if(!b)return;
+    state.view='exam'; state.year=+b.dataset.goyear; state.form='A'; renderChips(); syncAnsToggle(); load();
   });
   $('ansToggle').addEventListener('click', function(){
     state.answersShown=!state.answersShown;
     this.textContent = state.answersShown?'정답·해설 표시':'정답·해설 숨김(시험모드)';
     this.classList.toggle('off', !state.answersShown);
-    if(state.view==='concepts'){ renderConcepts(); } else { render(); }
+    if(state.view==='concepts'){ renderConcepts(); } else if(state.view==='exam'){ render(); }
   });
   var totop=$('totop');
   window.addEventListener('scroll', function(){ totop.style.display = window.scrollY>500?'block':'none'; });
   totop.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
 
-  // URL 파라미터(?subject=1&year=2023&form=B)로 직행 — 공유/딥링크용
+  // URL 파라미터(?subject=1&year=2023&form=B&view=…&rare=1)로 직행 — 공유/딥링크용
   try {
     var q=new URLSearchParams(location.search);
     if(q.get('subject')) state.subject=+q.get('subject');
     if(q.get('year')) state.year=+q.get('year');
     if(q.get('form')) state.form=(String(q.get('form')).toUpperCase()==='B'?'B':'A');
     if(!hasBForm(state.subject,state.year)) state.form='A';
-    if(q.get('view')==='concepts') state.view='concepts';
+    var vw=q.get('view');
+    if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes') state.view=vw;
+    if(q.get('rare')) state.view='rareTypes';
   } catch(e){}
 
   renderChips();
-  if(state.view==='concepts'){ loadConcepts(); } else { load(); }
+  syncAnsToggle();
+  reloadCurrent();
 })();
 </script>
 </body>
