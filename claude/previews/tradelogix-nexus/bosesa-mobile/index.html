@@ -100,6 +100,11 @@
   /* ===== 희소 유형 (모바일) ===== */
   .chip.rare{ border-color:#db2777; color:#9d174d; font-weight:800; }
   .chip.rare.on{ background:#db2777; border-color:#db2777; color:#fff; }
+  .chip.mid{ border-color:#0284c7; color:#0369a1; font-weight:800; }
+  .chip.mid.on{ background:#0284c7; border-color:#0284c7; color:#fff; }
+  .mb-tier{ display:inline-block; font-size:10.5px; font-weight:800; color:#fff; background:#0284c7; border-radius:6px; padding:2px 8px; }
+  .mb-src{ display:inline-block; font-size:10.5px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #7dd3fc; border-radius:6px; padding:2px 8px; }
+  .mb-mem{ display:inline-block; font-size:10.5px; font-weight:700; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:2px 7px; margin:0 4px 4px 0; }
   /* 카테고리 안내 박스 + 공통 라벨 */
   .catbar{ background:#fff; border:1px solid var(--line); border-radius:13px; padding:13px 14px; margin-bottom:13px; }
   .catbar .ct{ font-size:14px; font-weight:800; }
@@ -184,6 +189,7 @@
   }
   function getConcepts(s){ var n='BOSESA_CONCEPTS_'+s; try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; } }
   function getRareTypes(){ try { return eval('typeof BOSESA_RARE_TYPES!=="undefined" ? BOSESA_RARE_TYPES : null'); } catch(e){ return null; } }
+  function getMidFreq(){ try { return eval('typeof BOSESA_MID_FREQ!=="undefined" ? BOSESA_MID_FREQ : null'); } catch(e){ return null; } }
 
   // ===== 데이터 파일 주입 + 폴링 로더 (script const 재선언 충돌 방지: 1회만 주입) =====
   var injected = {};
@@ -218,6 +224,7 @@
     yc += '<button class="chip sub cept'+(v==='concepts'?' on':'')+'" data-view="concepts">⭐ 중요개념</button>';
     yc += '<button class="chip sub ansk'+(v==='answerNotes'?' on':'')+'" data-view="answerNotes">⚡ 정답해설</button>';
     yc += '<button class="chip sub rare'+(v==='rareTypes'?' on':'')+'" data-view="rareTypes">💎 희소유형</button>';
+    yc += '<button class="chip sub mid'+(v==='midFreq'?' on':'')+'" data-view="midFreq">📊 중빈도</button>';
     $('yearChips').innerHTML = yc;
     // 유형(A형/B형) 토글 — 기출 보기 + B형 보유 연도/과목에서만 노출
     var formRow=$('formRow');
@@ -236,12 +243,13 @@
     if(state.view==='concepts') loadConcepts();
     else if(state.view==='answerNotes') loadAnswerNotes();
     else if(state.view==='rareTypes') loadRareTypes();
+    else if(state.view==='midFreq') loadMidFreq();
     else load();
   }
   function switchView(v){ state.view=v; renderChips(); syncAnsToggle(); reloadCurrent(); }
   function syncAnsToggle(){
     // 정답해설/희소유형은 항상 해설 노출 → 토글 숨김
-    $('ansToggle').style.display = (state.view==='answerNotes'||state.view==='rareTypes') ? 'none' : '';
+    $('ansToggle').style.display = (state.view==='answerNotes'||state.view==='rareTypes'||state.view==='midFreq') ? 'none' : '';
   }
 
   // ===== 기출 보기 =====
@@ -464,6 +472,64 @@
     window.scrollTo(0,0);
   }
 
+  // ===== 중빈도 유형 · 남은 문항 =====
+  function loadMidFreq(){
+    var s=state.subject;
+    $('empty').classList.add('hidden'); $('qlist').innerHTML='';
+    $('loading').classList.remove('hidden');
+    injectOnce('../bosesa-midfreq.js');
+    YEARS.forEach(function(y){ injectOnce('../bosesa-data-'+s+'-'+y+'.js'); });
+    waitFor(function(){ return getMidFreq()!=null && YEARS.every(function(y){ return getData(s,y,'A')!=null; }); }, function(){
+      $('loading').classList.add('hidden'); renderMidFreq();
+    });
+  }
+
+  function renderMidFreq(){
+    var s=state.subject;
+    var all=getMidFreq();
+    var data = (all && all.subjects) ? (all.subjects[s] || all.subjects[String(s)]) : null;
+    if(!data || !Array.isArray(data.items) || !data.items.length){ $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 중빈도 유형'; return; }
+    var cards = data.items.map(function(item,idx){
+      var ry=item.representativeYear!=null?item.representativeYear:item.year;
+      var rn=item.representativeNo!=null?item.representativeNo:item.questionNo;
+      var src=getData(s,ry,'A');
+      var q=null;
+      if(src && Array.isArray(src.questions)) q=src.questions.find(function(x,i){ return qNoOf(x,i)===rn; });
+      var form=(src&&src.answerForm)||'A형';
+      var ans=q?ansArr(q.answer):[];
+      var qtext=q?nn(q.text,q.stemText,q.question):'';
+      var basis=q?nn(q.answerBasis,q.explanation):'';
+      var ca=q?correctAnalysis(q,ans):[];
+      var ansHTML = q? answerChips(q,ans) : '<div class="srcref" style="color:#0369a1">대표 문항을 찾지 못했습니다.</div>';
+      var members=Array.isArray(item.members)?item.members:[];
+      var memHTML=members.map(function(m){ return '<span class="mb-mem">'+m.year+' Q'+m.no+'</span>'; }).join('');
+      var freqN=members.length||1;
+      return '<div class="qcard" id="mid-'+s+'-'+(idx+1)+'">'
+        + '<div class="anhead"><span class="mb-tier">중빈도 '+(idx+1)+'</span><span class="mb-src">'+esc(item.tier||'중빈도')+' · '+freqN+'회</span></div>'
+        + '<div class="qtext" style="margin-top:9px">'+esc(item.title||'')+'</div>'
+        + (memHTML?'<div class="srcref" style="margin-top:6px">출제 이력: '+memHTML+'</div>':'')
+        + '<div class="srcref" style="margin-top:4px">대표 기출: <b style="color:#0369a1">'+ry+'년 '+esc(rn)+'번 · '+esc(form)+'</b></div>'
+        + '<div class="seclabel" style="color:#0369a1">대표문항</div>'
+        + '<div class="qbody">'+esc(qtext)+'</div>'
+        + '<div class="seclabel">공식 정답</div>'+ansHTML
+        + (item.clusterBasis?'<div class="cbx cbx-con"><b>묶음 근거</b>'+esc(item.clusterBasis)+'</div>':'')
+        + (item.reason?'<div class="cbx cbx-memo"><b>중빈도 판단</b>'+esc(item.reason)+'</div>':'')
+        + (item.studyFocus?'<div class="cbx cbx-key"><b>공부 포인트</b>'+esc(item.studyFocus)+'</div>':'')
+        + ((item.watch&&item.watch.length)?'<div class="cbx cbx-cau"><b>다시 나오면 볼 것</b>'+listOf(item.watch)+'</div>':'')
+        + (item.examTip?'<div class="cbx cbx-memo"><b>시험장 팁</b>'+esc(item.examTip)+'</div>':'')
+        + (item.domainNote?'<div class="srcref" style="margin-top:6px;color:#0369a1">'+esc(item.domainNote)+'</div>':'')
+        + (basis?'<div class="basis" style="margin-top:8px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
+        + (ca.length?'<div class="cbx cbx-key"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+        + '<button class="qnobtn" data-goyear="'+ry+'">→ '+ry+'년 원문 문제로 이동</button>'
+        + '</div>';
+    }).join('');
+    $('meta').textContent = s+'과목 '+subjName(s)+' · 중빈도 유형 '+data.items.length+'개 · 남은문항';
+    var intro = '<div class="catbar"><div class="ct">📊 중빈도 유형 · 남은 문항</div>'
+      + '<div class="cd">'+esc((all&&all.years)||'2019~2025')+' 기출 · 중요개념 밖 <b>'+data.items.length+'</b>개. 빈출은 아니지만 반복·전이 가능성이 있어 공부할 가치가 있는 토픽.</div></div>';
+    $('qlist').innerHTML = intro + cards;
+    window.scrollTo(0,0);
+  }
+
   // ===== events =====
   $('subjectChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips(); reloadCurrent();
@@ -500,8 +566,9 @@
     if(q.get('form')) state.form=(String(q.get('form')).toUpperCase()==='B'?'B':'A');
     if(!hasBForm(state.subject,state.year)) state.form='A';
     var vw=q.get('view');
-    if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes') state.view=vw;
+    if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes'||vw==='midFreq') state.view=vw;
     if(q.get('rare')) state.view='rareTypes';
+    if(q.get('mid')) state.view='midFreq';
   } catch(e){}
 
   renderChips();
