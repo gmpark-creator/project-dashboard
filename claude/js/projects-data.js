@@ -311,16 +311,17 @@ const PROJECTS = [
     id: 'us-kr-premarket',
     no: 6,
     name: 'Polaris Market Intelligence',
-    subtitle: '증권 — 미국·한국 반도체 단타(당일매매) 의사결정 지원 터미널 · 실시간·기록 3종(①SOXL 실시간 ②Premarket Signal ③6월 시세·이벤트) + 신규 트레이딩 도구·데이터 5종(④단타 데스크 ⑤시그널 엔진 ⑥0%선 전환 리플레이어 ⑦데이터·지식 베이스 ⑧단타 생존 가이드 5원칙) + 디렉터 코멘트(실전 트레이딩 로그) — Claude·Codex 변증법(R1~R3) 구축',
+    subtitle: '증권 — 미국·한국 반도체 단타(당일매매) 의사결정 지원 터미널 · 실시간·기록 3종(①SOXL 실시간 ②Premarket Signal ③6월 시세·이벤트) + 신규 트레이딩 도구·데이터 5종(④단타 데스크 ⑤시그널 엔진 ⑥0%선 전환 리플레이어 ⑦데이터·지식 베이스 ⑧단타 생존 가이드 5원칙) + 디렉터 코멘트(실전 트레이딩 로그) + 암호화폐 크로스 워치(BTC 골드/데드크로스) — Claude·Codex 변증법(R1~R3) 구축',
     icon: 'trending-up',
     platform: '웹 앱 · Vite + React + TypeScript · Codex 트랙',
     status: 'in-progress',
     start: '2026-05-28',
-    latest: '2026-06-19',
+    latest: '2026-06-24',
     progress: 30,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/',
     preview: { type:'embed', height:600, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'Polaris 허브 — 3섹션(디렉터 코멘트 + 실시간·기록 3종 + 트레이딩 도구·데이터 5종) 카테고리 선택창 (2026-06-19 확장)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/', label:'Polaris 허브 — 4섹션(디렉터 코멘트 + 암호화폐 크로스 워치 + 실시간·기록 3종 + 트레이딩 도구·데이터 5종) 카테고리 선택창 (2026-06-24 BTC 워치 추가)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/btc-crosswatch/', label:'BTC 골드/데드크로스 워치 — 비트코인 일봉 50/200일 SMA 교차 상태 요약. Codex가 Binance BTCUSDT 1D klines + CoinGecko BTC/USD daily 기준 SMA 직접 계산. 판정: 현재 골든크로스 아님(50일선이 200일선보다 약 $5.2k 아래) — 2025-05-22 골드크로스 → 2025-11-16 데드크로스 → 이후 50<200 유지. 당일(2026-06-24 진행중 일봉) 장중 +0.4% 반등 반영. 핵심수치 패널·교차 이력 타임라인·영문 Market Summary·TradingView 라이브 차트(외부)·미확정 캔들 주의. 연구·교육용·투자자문 아님. (2026-06-24 신설)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/director-log/', label:'디렉터 코멘트 — 실전 트레이딩 로그. 디렉터(G.M.PARK)가 장중 직접 관찰한 1인칭 SOXL 매매 일지. Entry 01 = 2026-06-18→19 네 마녀의 날 야간 복기. 03:40 +19.38%·$279.20 → 04:36 LIVE 마감 24분 전 +20.7%·427,000원(21% 근접), 차익 매물보다 매수세 우위로 하락 없이 점진 상향, 스페이스X -10%→-2.5% 회복 관측 포함. (2026-06-19 신설)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/desk/', label:'④ 단타 트레이딩 데스크 (C1, 애널리스트 콕핏 유사) — 오버나잇 릴레이(lag1 전이)·KOSPI 피벗/ATR·리스크 계산기·섹터 히트맵·상관 스냅샷·라이브 차트. 실측 결정론 계산 (Claude·Codex 변증법, 2026-06-15)' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/us-kr-premarket/signal-engine/', label:'⑤ 단타 시그널 엔진 (Claude 아이디어) — rules.json 외부화·투명 조건 그레이더. 미국→한국 lag1 전이 등 요인 분해, 이벤트 게이트, 룩어헤드 차단. 매매신호 아님 (2026-06-15)' },
@@ -367,6 +368,7 @@ const PROJECTS = [
       { type:'핵심', title:'Market Ledger — Opus 4.8·GPT 5.5 AI 이중 예측 레이어 신설 (2026-06-13)', desc:'commits 29dfcd3·2783a0d·ecf6bcb. 6월 캘린더에 Opus 4.8·GPT 5.5 이중 예측 레이어 추가: 어느 AI가 당일 방향(상승/하락)을 정확히 맞혔는지 사후 복기 가능. SOXL 구성비중 표시 + 미국 거래시간 ET/KST 병기 + Opus·GPT 예측 색상 구분 + SOXL/SOXS 장중 양전·음전 전환 집계. 연구·교육용(투자자문 아님) 가드레일 유지.' },
       { type:'완료', title:'Market Ledger 연속 정합화 — 야간세션·전환·거래시간·선물 시간대 (2026-06-13~14)', desc:'commits b68d26c·550a6ee·3951413·3660167·2151fdc. 5커밋 연속 정합화: ① 야간 세션 명칭 \'미 오버나이트(Overnight)\' 우선으로 정정 ② SOXL/SOXS 양전·음전 전환 대칭 복원 ③ \'확실한 교차만\' 검증 강화 + 삼성·하이닉스 전환 추가 ④ 미국 거래시간 표를 4세션으로 보강(Blue Ocean 주간거래 누락 정정) ⑤ \'미국 야간 선물 시간대\' 반도체 섹터 선물(CME E-mini PHLX) 표기 추가 + 선물 관련 서술 정정.' },
       { type:'완료', title:'단타 생존 가이드 5원칙 인포그래픽 신설 (Claude, 2026-06-16)', desc:'박사 지시(Gemini 작성 프롬프트 기반) — 토스증권 화면 기준 5원칙 인터랙티브 인포그래픽 HTML 신설(previews/us-kr-premarket/survival-guide/index.html, git push 전 현재 작업트리 신설). 토스풍 모의 화면(SVG 캔들차트+거래량+호가창)에 5원칙 번호 배지·형광 하이라이트·SVG 대시 애니메이션으로 도식화: ①거래량·거래대금(폭발 막대 황색 점멸) ②뉴스·공시 탭 강조 ③지지·저항선(3분/5분봉 타점) ④호가창·체결강도 도식 ⑤기계적 손절(-2% 빨간 점선+🚨). 카테고리 허브 ⑧ 카드 추가, subtitle·preview items 갱신. 연구·교육용 가드레일.' },
+      { type:'완료', title:'암호화폐 크로스 워치 카테고리 신설 — BTC 골드/데드크로스 (Claude, 2026-06-24)', desc:'박사 지시(Codex 분석 지시문 #3 반영)로 Polaris 허브에 「암호화폐 · 크로스 워치」 섹션 + BTC 골드/데드크로스 워치 페이지(btc-crosswatch/) 신설. Codex가 Binance BTCUSDT 1D klines + CoinGecko BTC/USD daily를 기준으로 50일/200일 SMA를 직접 계산. 판정: 현재 골든크로스 아님 — 표준 정의(일봉 50일선이 200일선 상향돌파) 미충족, 50일선이 200일선보다 약 $5.2k 아래. 최신 체크값(2026-06-24 진행중 UTC 일봉): 현재가 ~$62,989·당일시가 ~$62,735·당일 +0.4%·50D SMA ~$71.16k·200D SMA ~$76.36k·50/200 spread ~−$5.20k(전일확정 ~−$4.97k, 최근 −$4.17k→−$5.20k로 확대). 교차 이력: 2025-05-22 골드크로스 → 2025-11-16 데드크로스 → 이후 50<200 유지. 당일 장중 상승은 반영됐으나 현재가가 50일선보다도 낮아 근접 아님 — post-death-cross/recovery-not-confirmed. 페이지 구성: No-Golden-Cross 판정 배너·핵심수치 카드·교차 이력 타임라인·영문 Market Summary·TradingView 라이브 차트(외부 위젯, BINANCE:BTCUSDT 일봉 + MA50/200)·미확정 캔들 주의(종가 확정 후 재계산). 다크 슬레이트 테마(허브 톤 정합), 연구·교육용·투자자문 아님 가드레일. progress 30 고정.' },
       { type:'완료', title:'디렉터 코멘트 카테고리 신설 — 실전 트레이딩 로그 (Claude, 2026-06-19)', desc:'박사 직접 지시로 Polaris 허브에 「디렉터 코멘트」 카테고리(director-log/) 신설 — 디렉터(G.M.PARK)가 장중 직접 관찰·판단한 1인칭 SOXL 매매 일지. 허브 index.html 상단에 섹션 0(피처드 카드) 추가. Entry 01 = 2026-06-18→19 미국 본장 네 마녀의 날(준틴스 06-19 휴장으로 만기 목요일 앞당김) 야간 복기: 07시 기상 +3~4% → 야간선물 완만 우상향 → 17시 장통합 상향 → 프리장 +12.5~13.5% → 22:30 본장 개장(급락 예측 빗나가고 몇 분 만에 +1.5~2.5%↑ 말아올려 15~16%) → 03시 20%p까지 와리가리 점진 상승 → 03~04시 횡보. 16~20%p = 0.5% 차익 10분 단위 사팔사팔 단타 구간 메모. 제미나이·GPT 사전 전략(개장 직후·마감 직전 매도물량 속출 → 22시경/새벽3시 매도 추천) 기록. 06-19 03:40 SOXL 422,222원·$279.20·+19.38%. ★04:36 KST LIVE 추가(마감 24분 전): SOXL 427,000원·+20.7%(21% 근접) — 디렉터 미취침·관전 지속. 네 마녀의 날 차익 매물 우려 대비 실제로는 매도 물량을 매수가 다 받아내 하락 없이 점진 상향, 스페이스X도 본장 -10%→-2.5%로 회복(양전 근접) 관측 기록. ★디렉터 룰 추가: 05시 본장 마감 이후 미장 애프터장(After-hours)은 쳐다도 보지 말자 — "안 올라가는 쓰레기장"(관망 대상 제외). 다크 슬레이트 테마(허브 톤 정합), 연구·교육용 가드레일.' }
     ],
     milestones: [
@@ -385,6 +387,7 @@ const PROJECTS = [
       { date:'2026-06-14', title:'Market Ledger — 반도체 섹터 선물 시간대 보강 (Claude)', desc:'commit 2151fdc. CME E-mini PHLX 반도체 섹터 선물 야간 시간대 표기 추가 + 선물 관련 서술 정정.' },
       { isCore:true, date:'2026-06-16', title:'단타 생존 가이드 5원칙 인포그래픽 신설 (Claude)', desc:'박사 지시(Gemini 프롬프트) — survival-guide/index.html(작업트리 신설). 카테고리 허브 ⑧ + subtitle·preview 갱신.' },
       { isCore:true, date:'2026-06-15', title:'반도체 단타 도구·데이터 3카테고리 신설 (Claude·Codex 변증법)', desc:'C1 단타 트레이딩 데스크 + C2 시그널 엔진(Claude)·0%선 전환 리플레이어(Codex) + C3 데이터·지식 베이스. 실측 LEDGER 결정론 파생(상관·전이·변동성·분위수), rules.json 외부화·룩어헤드 차단·소표본 고지·가드레일 유지. 변증법 R1~R3(Codex 로컬 CLI 직접 검수). 랜딩 2섹션 확장, LIVE 과장문구 정정. progress 30 고정(박사 standing).' },
+      { isCore:true, date:'2026-06-24', title:'암호화폐 크로스 워치 신설 — BTC 골드/데드크로스 (Claude)', desc:'박사 지시(Codex 분석 지시문 반영). Polaris 허브에 「암호화폐 · 크로스 워치」 섹션 + BTC 골드/데드크로스 워치(btc-crosswatch/) 신설. Codex가 Binance·CoinGecko 기준 50/200 SMA 직접 계산 → 판정 「현재 골든크로스 아님」(50일선 −$5.2k 아래, 2025-11-16 데드크로스 이후 회복 미확정). 당일 진행중 일봉 +0.4% 반등 반영. 판정 배너·핵심수치·교차 이력·영문 요약·TradingView 라이브차트(외부)·미확정 캔들 주의. 연구·교육용 가드레일. progress 30 고정.' },
       { isCore:true, date:'2026-06-19', title:'디렉터 코멘트 카테고리 신설 — 실전 트레이딩 로그 (Claude)', desc:'박사 직접 지시. Polaris 허브에 디렉터 1인칭 SOXL 매매 일지(director-log/) 신설 + 허브 섹션 0 피처드 카드. Entry 01 = 2026-06-18→19 네 마녀의 날(준틴스 휴장으로 만기 목요일 앞당김) 야간 복기 — 시간대별 무빙 타임라인(+3~4%→프리 12.5~13.5%→개장 직후 급락 예측 반전 15~16%→03시 20%p→횡보), 16~20%p 사팔사팔 단타 구간, 제미나이·GPT 사전 매도 전략, 03:40 +19.38%·$279.20·422,222원. ★04:36 LIVE 추가(마감 24분 전, 미취침 관전): +20.7%·427,000원·21% 근접, 차익 매물 < 매수세로 하락 없이 점진 상향, 스페이스X -10%→-2.5% 회복. + 디렉터 룰: 05시 이후 미장 애프터장은 관망 제외("안 올라가는 쓰레기장"). 연구·교육용 가드레일. progress 30 고정.' }
     ]
   },
