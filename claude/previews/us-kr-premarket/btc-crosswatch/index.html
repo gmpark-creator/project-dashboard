@@ -9,6 +9,7 @@
 <style>
   body { background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
   .tabular { font-variant-numeric: tabular-nums; }
+  .seg-btn.on { background:#f59e0b; color:#0b1120; border-color:#f59e0b; }
 </style>
 </head>
 <body class="text-slate-200 min-h-screen flex flex-col">
@@ -18,103 +19,87 @@
     <a href="../" class="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-400 hover:text-sky-300 mb-3"><i class="fa-solid fa-arrow-left"></i> Polaris 카테고리로</a>
     <div class="flex items-center gap-2 text-xs font-semibold tracking-widest text-amber-400 uppercase flex-wrap">
       <i class="fa-brands fa-bitcoin"></i><span>Polaris · 암호화폐 크로스 워치</span>
-      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 ring-1 ring-slate-500/30 px-2.5 py-0.5 text-[10px] font-bold text-slate-300 normal-case tracking-normal">
-        <i class="fa-solid fa-flask text-[9px]"></i> RESEARCH ONLY · 기술적 상태 요약 · 투자자문 아님
+      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 normal-case tracking-normal">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE 계산 · 투자자문 아님
       </span>
     </div>
     <h1 class="mt-2 text-3xl font-extrabold text-white">BTC <span class="text-amber-400">골든/데드크로스 워치</span></h1>
-    <p class="mt-2 text-sm text-slate-400">비트코인(BTC/USD) 일봉 <b class="text-slate-300">50일 / 200일 이동평균(SMA)</b> 교차 상태 모니터. Codex가 Binance BTCUSDT 1D klines + CoinGecko BTC/USD daily를 기준으로 SMA를 직접 계산.</p>
+    <p class="mt-2 text-sm text-slate-400">비트코인(BTC/USD) 일봉 이동평균(SMA) 교차 상태를 <b class="text-slate-300">브라우저에서 직접 실시간 계산</b>합니다. Binance BTCUSDT 1일봉을 받아와 SMA를 산출 — 기준은 <b class="text-amber-300">5/20(단타)</b> 또는 <b class="text-slate-300">50/200(클래식)</b> 선택.</p>
   </div>
 </header>
 
 <main class="flex-1">
   <div class="max-w-[1000px] mx-auto px-6 py-9 space-y-8">
 
+    <!-- 기준 토글 -->
+    <section>
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-xs font-bold tracking-widest text-slate-500 uppercase"><i class="fa-solid fa-sliders mr-1"></i>교차 기준</span>
+        <div class="inline-flex rounded-xl overflow-hidden ring-1 ring-slate-700">
+          <button id="seg-5-20" class="seg-btn on text-sm font-bold px-4 py-2 bg-slate-800 text-slate-200 border-r border-slate-700">5 / 20 <span class="text-[10px] font-normal opacity-70">단타</span></button>
+          <button id="seg-50-200" class="seg-btn text-sm font-bold px-4 py-2 bg-slate-800 text-slate-200">50 / 200 <span class="text-[10px] font-normal opacity-70">클래식</span></button>
+        </div>
+        <span id="updated" class="text-[11px] text-slate-500 ml-auto">불러오는 중…</span>
+      </div>
+      <p class="mt-2 text-[11px] text-slate-500">골든크로스 = 단기선(짧은 일수)이 장기선(긴 일수)을 <b>아래→위로</b> 돌파. <b class="text-amber-300">5/20</b>은 단타·단기 스윙에서 흔히 쓰는 빠른 신호(휩쏘 많음), <b class="text-slate-300">50/200</b>은 기관이 쓰는 느리지만 묵직한 추세 신호입니다.</p>
+    </section>
+
     <!-- 판정 배너 -->
-    <section class="rounded-2xl bg-gradient-to-r from-rose-500/10 via-slate-900/70 to-slate-900/70 ring-1 ring-rose-500/30 p-6">
+    <section id="verdict" class="rounded-2xl ring-1 p-6 ring-slate-700 bg-slate-900/70">
       <div class="flex items-start gap-4 flex-wrap">
-        <div class="w-12 h-12 rounded-xl bg-rose-500/15 ring-1 ring-rose-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-xmark text-rose-400 text-2xl"></i></div>
+        <div id="v-ico" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-slate-700/30"><i class="fa-solid fa-hourglass-half text-slate-300 text-2xl"></i></div>
         <div class="flex-1 min-w-[240px]">
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-extrabold text-white">현재 골든크로스 아님</h2>
-            <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/15 ring-1 ring-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-300 uppercase tracking-widest">No Golden Cross</span>
+            <h2 id="v-title" class="text-xl font-extrabold text-white">계산 중…</h2>
+            <span id="v-badge" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-slate-700/40 text-slate-300">—</span>
           </div>
-          <p class="mt-2 text-[13px] leading-relaxed text-slate-300">표준 정의(일봉 50일 이동평균이 200일 이동평균을 <b>상향 돌파</b>)에 해당하지 않습니다. 현재 50일선이 200일선보다 <b class="text-rose-300">약 $5.2k 아래</b>에 있어, <b>데드크로스 이후 구조(post-death-cross)</b>가 이어지는 회복 미확정 국면입니다.</p>
-          <p class="mt-2 text-[12px] leading-relaxed text-slate-400">오늘 BTC가 장중 상승 중인 점은 값에 <b class="text-slate-300">반영</b>돼 있습니다. 다만 현재가가 50일선보다도 상당히 낮아, 당일 상승만으로 골든크로스에 근접했다고 보긴 어렵습니다.</p>
+          <p id="v-desc" class="mt-2 text-[13px] leading-relaxed text-slate-300">Binance 일봉을 받아오는 중입니다.</p>
         </div>
       </div>
     </section>
 
     <!-- 핵심 수치 -->
     <section>
-      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-solid fa-calculator"></i> Codex 최신 체크값</h2>
-      <p class="text-[11px] text-slate-500 mb-4">기준: <b class="text-slate-400">2026-06-24 진행 중 UTC 일봉</b> (미확정 캔들)</p>
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">현재가 / 진행중 종가</div>
-          <div class="mt-1 text-2xl font-extrabold text-white tabular">~$62,989</div>
-        </div>
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">당일 시가</div>
-          <div class="mt-1 text-2xl font-extrabold text-slate-200 tabular">~$62,735</div>
-        </div>
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-emerald-500/30 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">당일 변화 (장중)</div>
-          <div class="mt-1 text-2xl font-extrabold text-emerald-400 tabular">~+0.4%</div>
-        </div>
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">50일 SMA</div>
-          <div class="mt-1 text-2xl font-extrabold text-sky-300 tabular">~$71.16k</div>
-        </div>
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">200일 SMA</div>
-          <div class="mt-1 text-2xl font-extrabold text-violet-300 tabular">~$76.36k</div>
-        </div>
-        <div class="rounded-xl bg-slate-900/70 ring-1 ring-rose-500/30 p-4">
-          <div class="text-[10px] uppercase tracking-widest text-slate-500">50/200 Spread</div>
-          <div class="mt-1 text-2xl font-extrabold text-rose-400 tabular">~−$5.20k</div>
-          <div class="text-[11px] text-slate-500 mt-0.5">전일 확정 기준 ~−$4.97k</div>
-        </div>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-calculator"></i> 핵심 수치 <span id="basis-label" class="normal-case tracking-normal text-amber-300">(5/20 기준)</span></h2>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-[10px] uppercase tracking-widest text-slate-500">현재가</div><div id="m-price" class="mt-1 text-2xl font-extrabold text-white tabular">—</div></div>
+        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-[10px] uppercase tracking-widest text-slate-500"><span id="m-short-l">5일</span> SMA</div><div id="m-short" class="mt-1 text-2xl font-extrabold text-amber-300 tabular">—</div></div>
+        <div class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-[10px] uppercase tracking-widest text-slate-500"><span id="m-long-l">20일</span> SMA</div><div id="m-long" class="mt-1 text-2xl font-extrabold text-sky-300 tabular">—</div></div>
+        <div id="m-spread-box" class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-[10px] uppercase tracking-widest text-slate-500">단기−장기 Spread</div><div id="m-spread" class="mt-1 text-2xl font-extrabold tabular text-slate-200">—</div><div id="m-lastcross" class="text-[11px] text-slate-500 mt-0.5">—</div></div>
       </div>
-      <div class="mt-3 rounded-xl bg-slate-900/50 ring-1 ring-slate-800 p-4 text-[12px] text-slate-400 leading-relaxed">
-        <i class="fa-solid fa-arrow-trend-down text-rose-400 mr-1"></i> Spread 추세: 최근 <b class="text-slate-300">−$4.17k → −$5.20k</b> 방향으로 <b class="text-rose-300">더 벌어진</b> 상태 — 골든크로스로 좁혀지는 게 아니라 멀어지는 흐름.
+    </section>
+
+    <!-- 인라인 그래프 -->
+    <section>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-chart-line"></i> 이동평균 그래프 <span id="chart-sub" class="normal-case tracking-normal text-slate-600">· 종가 + 5일선 + 20일선</span></h2>
+      <div class="rounded-2xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
+        <div id="legend" class="flex items-center gap-4 flex-wrap text-[11px] mb-2"></div>
+        <div style="position:relative;width:100%;height:320px"><canvas id="cv" style="width:100%;height:100%"></canvas></div>
+      </div>
+      <p class="mt-2 text-[11px] text-slate-500">🟡 골든크로스 / 🔵 데드크로스 지점에 마커. 단기선이 장기선 위면 정배열(상승 우위), 아래면 역배열. 한국 관례 상승=빨강 계열로 표기하지 않고, 선은 구분색(단기=골드/장기=블루)으로 그립니다.</p>
+    </section>
+
+    <!-- 두 기준 비교 -->
+    <section>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-scale-balanced"></i> 두 기준 한눈에</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div id="cmp-5-20" class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-sm font-bold text-amber-300">5 / 20 (단타)</div><div class="mt-1 text-[13px] text-slate-300">계산 중…</div></div>
+        <div id="cmp-50-200" class="rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4"><div class="text-sm font-bold text-slate-200">50 / 200 (클래식)</div><div class="mt-1 text-[13px] text-slate-300">계산 중…</div></div>
       </div>
     </section>
 
     <!-- 교차 이력 -->
     <section>
-      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-4"><i class="fa-solid fa-timeline"></i> 최근 교차 이력 (Binance 1D 기준)</h2>
-      <div class="space-y-3">
-        <div class="flex items-center gap-4 rounded-xl bg-slate-900/70 ring-1 ring-slate-800 p-4">
-          <span class="w-9 h-9 rounded-lg bg-amber-500/15 ring-1 ring-amber-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-up text-amber-400"></i></span>
-          <div><div class="text-sm font-bold text-white">🟡 골든크로스</div><div class="text-[12px] text-slate-400">2025-05-22 — 50일선이 200일선 상향 돌파</div></div>
-        </div>
-        <div class="flex items-center gap-4 rounded-xl bg-slate-900/70 ring-1 ring-rose-500/20 p-4">
-          <span class="w-9 h-9 rounded-lg bg-rose-500/15 ring-1 ring-rose-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-down text-rose-400"></i></span>
-          <div><div class="text-sm font-bold text-white">💀 데드크로스</div><div class="text-[12px] text-slate-400">2025-11-16 — 50일선이 200일선 하향 이탈</div></div>
-        </div>
-        <div class="flex items-center gap-4 rounded-xl bg-slate-900/40 ring-1 ring-slate-800 p-4">
-          <span class="w-9 h-9 rounded-lg bg-slate-500/15 ring-1 ring-slate-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-ellipsis text-slate-400"></i></span>
-          <div><div class="text-sm font-bold text-slate-200">이후 현재까지</div><div class="text-[12px] text-slate-400">50일선 &lt; 200일선 상태 유지 — 골든크로스 미발생</div></div>
-        </div>
-      </div>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-timeline"></i> 최근 교차 이력 <span id="hist-sub" class="normal-case tracking-normal text-slate-600">· 5/20 기준</span></h2>
+      <div id="history" class="space-y-2"><div class="text-[13px] text-slate-500">계산 중…</div></div>
     </section>
 
-    <!-- 영문 요약 (대시보드 표준 요약) -->
-    <section class="rounded-2xl bg-slate-900/70 ring-1 ring-slate-800 p-6">
-      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-quote-left"></i> Market Summary</h2>
-      <p class="text-[15px] leading-relaxed text-slate-200">BTC: <b class="text-rose-300">No golden cross.</b> Price is rebounding intraday, but the 50D SMA remains below the 200D SMA by about <b class="text-white">$5.2k</b>. Structure remains <b class="text-slate-100">post-death-cross / recovery-not-confirmed.</b></p>
-    </section>
-
-    <!-- 라이브 차트 (외부 위젯) -->
+    <!-- 라이브 차트 (외부) -->
     <section>
-      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-chart-line"></i> 라이브 차트 <span class="normal-case tracking-normal text-slate-600">· TradingView (외부)</span></h2>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3"><i class="fa-solid fa-up-right-from-square"></i> 인터랙티브 차트 <span class="normal-case tracking-normal text-slate-600">· TradingView (외부, MA 5·20·50·200)</span></h2>
       <div class="rounded-2xl overflow-hidden ring-1 ring-slate-800 bg-slate-900/70">
-        <div class="tradingview-widget-container">
-          <div id="tv_btc" style="height:460px;width:100%"></div>
-        </div>
+        <div class="tradingview-widget-container"><div id="tv_btc" style="height:460px;width:100%"></div></div>
       </div>
-      <p class="mt-2 text-[11px] text-slate-500">차트에서 직접 50일·200일 단순이동평균(SMA)을 올려 교차를 확인하실 수 있습니다. 위 수치 패널은 Codex 계산값(SMA 직접 산출) 기준입니다.</p>
     </section>
 
     <!-- 주의 -->
@@ -122,7 +107,7 @@
       <div class="flex items-start gap-3">
         <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5"></i>
         <div class="text-[12px] leading-relaxed text-slate-300">
-          <b class="text-amber-300">미확정 캔들 주의.</b> 현재 2026-06-24 일봉은 아직 마감 전(진행 중) 캔들입니다. 정식 골든크로스 판정은 <b>일봉 종가 확정 후 재계산</b>하는 것이 맞습니다. 본 페이지는 <b>투자 조언이 아니라 기술적 상태 요약</b>입니다.
+          <b class="text-amber-300">미확정 캔들 주의.</b> 오늘 일봉은 마감 전(진행 중) 캔들이라 종가가 계속 바뀝니다 — 특히 <b>5/20은 선이 얇아 장중에 골든↔데드가 자주 뒤집힙니다(휩쏘).</b> 정식 판정은 일봉 종가 확정 후가 정확합니다. 본 페이지는 <b>기술적 상태 요약 · 투자 조언 아님.</b> 데이터: Binance BTCUSDT 1D klines 실시간 계산.
         </div>
       </div>
     </section>
@@ -137,28 +122,184 @@
   </div>
 </footer>
 
-<script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-  try {
-    new TradingView.widget({
-      container_id: "tv_btc",
-      symbol: "BINANCE:BTCUSDT",
-      interval: "D",
-      autosize: true,
-      theme: "dark",
-      style: "1",
-      locale: "kr",
-      hide_side_toolbar: true,
-      allow_symbol_change: true,
-      studies: [
-        { id: "MASimple@tv-basicstudies", inputs: { length: 50 } },
-        { id: "MASimple@tv-basicstudies", inputs: { length: 200 } }
-      ]
-    });
-  } catch(e) {
-    var el = document.getElementById("tv_btc");
-    if(el) el.innerHTML = '<div style="padding:24px;color:#94a3b8;font-size:13px">라이브 차트를 불러오지 못했습니다. (외부 위젯) <a href="https://www.tradingview.com/symbols/BTCUSD/" target="_blank" rel="noopener" style="color:#38bdf8">TradingView에서 BTC 차트 열기</a></div>';
+(function(){
+  var GOLD="#f59e0b", BLUE="#38bdf8", PRICE="#475569";
+  var state = { closes:[], dates:[], pair:[5,20] };
+  var sma = {}; // period -> array
+
+  function fmtUSD(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+  function fmtUSD2(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function computeSMA(closes, p){
+    var out = new Array(closes.length).fill(null), run=0;
+    for(var i=0;i<closes.length;i++){ run+=closes[i]; if(i>=p) run-=closes[i-p]; if(i>=p-1) out[i]=run/p; }
+    return out;
   }
+  function crosses(shortA, longA, dates){
+    var res=[], prev=null;
+    for(var i=0;i<shortA.length;i++){
+      if(shortA[i]!=null && longA[i]!=null){
+        var diff=shortA[i]-longA[i];
+        if(prev!=null){ if(prev<=0&&diff>0) res.push({idx:i,date:dates[i],type:'GOLDEN'}); if(prev>=0&&diff<0) res.push({idx:i,date:dates[i],type:'DEATH'}); }
+        prev=diff;
+      }
+    }
+    return res;
+  }
+
+  function statusOf(pair){
+    var s=sma[pair[0]], l=sma[pair[1]], n=state.closes.length;
+    if(!s||!l||s[n-1]==null||l[n-1]==null) return null;
+    var sv=s[n-1], lv=l[n-1], spread=sv-lv, pct=spread/lv*100;
+    var cr=crosses(s,l,state.dates);
+    var near = Math.abs(pct) < 0.3;
+    var golden = spread>0;
+    return { sv:sv, lv:lv, spread:spread, pct:pct, golden:golden, near:near, crosses:cr, last:cr[cr.length-1]||null };
+  }
+
+  function renderVerdict(){
+    var st = statusOf(state.pair);
+    var sp=state.pair[0], lp=state.pair[1];
+    document.getElementById('basis-label').textContent='('+sp+'/'+lp+' 기준)';
+    document.getElementById('m-short-l').textContent=sp+'일';
+    document.getElementById('m-long-l').textContent=lp+'일';
+    document.getElementById('hist-sub').textContent='· '+sp+'/'+lp+' 기준';
+    document.getElementById('chart-sub').textContent='· 종가 + '+sp+'일선 + '+lp+'일선';
+    if(!st){ return; }
+    var n=state.closes.length, price=state.closes[n-1];
+    document.getElementById('m-price').textContent=fmtUSD(price);
+    document.getElementById('m-short').textContent=fmtUSD(st.sv);
+    document.getElementById('m-long').textContent=fmtUSD(st.lv);
+    var spEl=document.getElementById('m-spread');
+    spEl.textContent=(st.spread>=0?'+':'−')+'$'+Math.abs(st.spread).toLocaleString('en-US',{maximumFractionDigits:0})+' ('+st.pct.toFixed(2)+'%)';
+    spEl.style.color = st.spread>=0 ? '#f87171' : '#60a5fa';
+    document.getElementById('m-lastcross').textContent = st.last ? ('최근 '+(st.last.type==='GOLDEN'?'🟡골든':'🔵데드')+'크로스 '+st.last.date) : '구간 내 교차 없음';
+
+    var box=document.getElementById('verdict'), ico=document.getElementById('v-ico'), title=document.getElementById('v-title'), badge=document.getElementById('v-badge'), desc=document.getElementById('v-desc');
+    var goldenState = st.golden;
+    var emoji, headline, badgeTxt, ring, bg, icoBg, icoColor, iconCls;
+    if(st.near){
+      headline='교차선에 근접 — 경계 구간'; badgeTxt='Borderline'; ring='ring-amber-500/40'; bg='bg-amber-500/5'; icoBg='bg-amber-500/15'; icoColor='text-amber-400'; iconCls='fa-arrows-left-right';
+    } else if(goldenState){
+      headline='골든크로스 상태 (정배열)'; badgeTxt='Golden / Bullish'; ring='ring-rose-500/30'; bg='bg-rose-500/5'; icoBg='bg-rose-500/15'; icoColor='text-rose-400'; iconCls='fa-arrow-trend-up';
+    } else {
+      headline='데드크로스 상태 (역배열)'; badgeTxt='Death / Bearish'; ring='ring-blue-500/30'; bg='bg-blue-500/5'; icoBg='bg-blue-500/15'; icoColor='text-blue-400'; iconCls='fa-arrow-trend-down';
+    }
+    box.className='rounded-2xl ring-1 p-6 '+ring+' '+bg;
+    ico.className='w-12 h-12 rounded-xl flex items-center justify-center shrink-0 '+icoBg;
+    ico.innerHTML='<i class="fa-solid '+iconCls+' '+icoColor+' text-2xl"></i>';
+    title.textContent=headline;
+    badge.textContent=badgeTxt;
+    badge.className='inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest '+(st.near?'bg-amber-500/15 text-amber-300':(goldenState?'bg-rose-500/15 text-rose-300':'bg-blue-500/15 text-blue-300'));
+    var lastTxt = st.last ? (st.last.date+' '+(st.last.type==='GOLDEN'?'골든크로스':'데드크로스')) : '구간 내 교차 없음';
+    desc.innerHTML = sp+'일선('+fmtUSD(st.sv)+')이 '+lp+'일선('+fmtUSD(st.lv)+')보다 <b>'+(st.spread>=0?'위':'아래')+'</b>, 격차 <b>'+(st.spread>=0?'+':'−')+'$'+Math.abs(st.spread).toLocaleString('en-US',{maximumFractionDigits:0})+' ('+st.pct.toFixed(2)+'%)</b>. 가장 최근 교차: <b>'+lastTxt+'</b>.'
+      + (st.near ? ' <span class="text-amber-300">두 선이 거의 붙어 있어 장중에 방향이 쉽게 뒤집힐 수 있습니다.</span>' : '');
+
+    // 이력
+    var hist=document.getElementById('history');
+    var recent=st.crosses.slice(-6).reverse();
+    if(!recent.length){ hist.innerHTML='<div class="text-[13px] text-slate-500">표시 구간 내 교차 이벤트가 없습니다 (장기 추세 유지).</div>'; }
+    else {
+      hist.innerHTML=recent.map(function(c){
+        var g=c.type==='GOLDEN';
+        return '<div class="flex items-center gap-3 rounded-xl bg-slate-900/70 ring-1 '+(g?'ring-amber-500/20':'ring-blue-500/20')+' p-3">'
+          +'<span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 '+(g?'bg-amber-500/15':'bg-blue-500/15')+'"><i class="fa-solid '+(g?'fa-arrow-up text-amber-400':'fa-arrow-down text-blue-400')+'"></i></span>'
+          +'<div><div class="text-sm font-bold text-white">'+(g?'🟡 골든크로스':'🔵 데드크로스')+'</div><div class="text-[12px] text-slate-400">'+c.date+'</div></div></div>';
+      }).join('');
+    }
+  }
+
+  function cmpLine(pair, elId){
+    var st=statusOf(pair); var el=document.getElementById(elId);
+    var head=el.querySelector('div'); // keep title div, replace 2nd
+    var lines=el.querySelectorAll('div');
+    if(!st){ return; }
+    var txt = (st.near?'⚠️ 교차 근접':(st.golden?'🔴 정배열(골든 상태)':'🔵 역배열(데드 상태)'))
+      + ' · 격차 '+(st.spread>=0?'+':'−')+'$'+Math.abs(st.spread).toLocaleString('en-US',{maximumFractionDigits:0})+' ('+st.pct.toFixed(2)+'%)'
+      + (st.last?(' · 최근 '+(st.last.type==='GOLDEN'?'골든':'데드')+' '+st.last.date):'');
+    lines[1].innerHTML='<span class="text-slate-300">'+txt+'</span>';
+  }
+
+  function drawChart(){
+    var cv=document.getElementById('cv'); if(!cv) return;
+    var dpr=window.devicePixelRatio||1;
+    var cssW=cv.clientWidth||cv.parentElement.clientWidth, cssH=cv.clientHeight||320;
+    cv.width=cssW*dpr; cv.height=cssH*dpr;
+    var ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,cssW,cssH);
+    var n=state.closes.length; if(!n) return;
+    var sp=state.pair[0], lp=state.pair[1];
+    var W = (lp<=20) ? 90 : 240; var start=Math.max(0, n-W);
+    var sA=sma[sp], lA=sma[lp];
+    var padL=8, padR=58, padT=12, padB=22, plotW=cssW-padL-padR, plotH=cssH-padT-padB;
+    // min/max
+    var lo=Infinity, hi=-Infinity;
+    for(var i=start;i<n;i++){ var vals=[state.closes[i], sA[i], lA[i]]; for(var k=0;k<vals.length;k++){ var v=vals[k]; if(v!=null){ if(v<lo)lo=v; if(v>hi)hi=v; } } }
+    if(!isFinite(lo)){ return; }
+    var pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+    function X(i){ return padL + (i-start)/(W-1)*plotW; }
+    function Y(v){ return padT + (1-(v-lo)/(hi-lo))*plotH; }
+    // grid + price labels
+    ctx.strokeStyle='rgba(148,163,184,.12)'; ctx.fillStyle='#64748b'; ctx.font='10px sans-serif'; ctx.lineWidth=1;
+    for(var g=0; g<=4; g++){ var yv=lo+(hi-lo)*g/4; var yy=Y(yv); ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(padL+plotW,yy); ctx.stroke(); ctx.fillText('$'+Math.round(yv).toLocaleString('en-US'), padL+plotW+4, yy+3); }
+    // x date labels
+    ctx.fillStyle='#64748b'; ctx.textAlign='center';
+    for(var t=0;t<=3;t++){ var ii=start+Math.round((n-1-start)*t/3); var xx=X(ii); ctx.fillText((state.dates[ii]||'').slice(5), xx, cssH-6); }
+    ctx.textAlign='left';
+    function line(arr,color,wd){ ctx.strokeStyle=color; ctx.lineWidth=wd; ctx.beginPath(); var started=false; for(var i=start;i<n;i++){ var v=arr[i]; if(v==null){ started=false; continue; } var x=X(i),y=Y(v); if(!started){ctx.moveTo(x,y);started=true;} else ctx.lineTo(x,y);} ctx.stroke(); }
+    line(state.closes, PRICE, 1);
+    line(lA, BLUE, 2);
+    line(sA, GOLD, 2);
+    // cross markers
+    var cr=crosses(sA,lA,state.dates);
+    cr.forEach(function(c){ if(c.idx<start) return; var x=X(c.idx), y=Y(lA[c.idx]); ctx.beginPath();
+      if(c.type==='GOLDEN'){ ctx.fillStyle=GOLD; ctx.moveTo(x,y-9); ctx.lineTo(x-5,y-1); ctx.lineTo(x+5,y-1); }
+      else { ctx.fillStyle=BLUE; ctx.moveTo(x,y+9); ctx.lineTo(x-5,y+1); ctx.lineTo(x+5,y+1); }
+      ctx.closePath(); ctx.fill();
+    });
+    // legend
+    document.getElementById('legend').innerHTML =
+      '<span class="inline-flex items-center gap-1.5"><span style="width:14px;height:3px;background:'+GOLD+';display:inline-block;border-radius:2px"></span><span class="text-slate-300">'+sp+'일선</span></span>'
+      +'<span class="inline-flex items-center gap-1.5"><span style="width:14px;height:3px;background:'+BLUE+';display:inline-block;border-radius:2px"></span><span class="text-slate-300">'+lp+'일선</span></span>'
+      +'<span class="inline-flex items-center gap-1.5"><span style="width:14px;height:3px;background:'+PRICE+';display:inline-block;border-radius:2px"></span><span class="text-slate-400">종가</span></span>'
+      +'<span class="text-slate-500 ml-auto">최근 '+W+'일</span>';
+  }
+
+  function renderAll(){ renderVerdict(); cmpLine([5,20],'cmp-5-20'); cmpLine([50,200],'cmp-50-200'); drawChart(); }
+
+  function setPair(p){
+    state.pair=p;
+    document.getElementById('seg-5-20').classList.toggle('on', p[0]===5);
+    document.getElementById('seg-50-200').classList.toggle('on', p[0]===50);
+    renderAll();
+  }
+  document.getElementById('seg-5-20').addEventListener('click', function(){ setPair([5,20]); });
+  document.getElementById('seg-50-200').addEventListener('click', function(){ setPair([50,200]); });
+  window.addEventListener('resize', drawChart);
+
+  function load(){
+    var ctrl=new AbortController(); var to=setTimeout(function(){ctrl.abort();},9000);
+    fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=500',{signal:ctrl.signal,cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        clearTimeout(to);
+        state.closes=d.map(function(c){return +c[4];});
+        state.dates=d.map(function(c){return new Date(c[0]).toISOString().slice(0,10);});
+        [5,20,50,200].forEach(function(p){ sma[p]=computeSMA(state.closes,p); });
+        document.getElementById('updated').textContent='업데이트 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})+' · '+state.dates[state.dates.length-1]+' 일봉(진행중)';
+        renderAll();
+      })
+      .catch(function(){ clearTimeout(to); document.getElementById('updated').textContent='데이터 불러오기 실패 — 잠시 후 재시도'; });
+  }
+  load();
+  setInterval(load, 30000); // 30초마다 재계산 (일봉이라 잦을 필요 없음, 진행중 캔들만 갱신)
+
+  // TradingView (외부, 5·20·50·200)
+  var s=document.createElement('script'); s.src='https://s3.tradingview.com/tv.js';
+  s.onload=function(){ try{ new TradingView.widget({ container_id:'tv_btc', symbol:'BINANCE:BTCUSDT', interval:'D', autosize:true, theme:'dark', style:'1', locale:'kr', hide_side_toolbar:true, allow_symbol_change:true,
+    studies:[ {id:'MASimple@tv-basicstudies',inputs:{length:5}}, {id:'MASimple@tv-basicstudies',inputs:{length:20}}, {id:'MASimple@tv-basicstudies',inputs:{length:50}}, {id:'MASimple@tv-basicstudies',inputs:{length:200}} ] }); }catch(e){ var el=document.getElementById('tv_btc'); if(el) el.innerHTML='<div style="padding:24px;color:#94a3b8;font-size:13px">라이브 차트를 불러오지 못했습니다. <a href="https://www.tradingview.com/symbols/BTCUSD/" target="_blank" rel="noopener" style="color:#38bdf8">TradingView에서 열기</a></div>'; } };
+  document.body.appendChild(s);
+})();
 </script>
 
 </body>
