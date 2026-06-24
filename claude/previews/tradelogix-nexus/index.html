@@ -819,6 +819,7 @@ const S = {
   bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts' | 'answerNotes' | 'rareTypes'
   bosesaSubject:1,
   bosesaYear:2025,
+  bosesaAnswerYear:'all',    // 정답해설 탭: 'all'(전체 합본) | 연도(숫자) — 'quiz'의 bosesaYear와 분리
   bosesaForm:'A',            // 'A' | 'B' — A형/B형 (현재 1과목 2023만 B형 보유)
   quizOpen:{},               // { questionNo: true } — 정답 공개된 문제
   conceptsReveal:true,       // 중요 개념: 해설·정답 표시(true=학습모드) / 가림(false=셀프테스트)
@@ -836,7 +837,7 @@ try {
   if (q.get('year')) { S.bosesaYear = +q.get('year'); S.view = 'bosesa'; S.bosesaView = 'quiz'; }
   if (q.get('form')) { S.bosesaForm = (String(q.get('form')).toUpperCase()==='B'?'B':'A'); }
   if (q.get('concepts')) { S.view='bosesa'; S.bosesaView='concepts'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
-  if (q.get('answers')) { S.view='bosesa'; S.bosesaView='answerNotes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
+  if (q.get('answers')) { S.view='bosesa'; S.bosesaView='answerNotes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); const ay=q.get('answers'); S.bosesaAnswerYear = (/^\d{4}$/.test(ay) ? +ay : 'all'); }
   if (q.get('rare')) { S.view='bosesa'; S.bosesaView='rareTypes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
@@ -1452,31 +1453,22 @@ function renderBosesaAnswerNotes(){
     return;
   }
 
-  // ── 연도별 분리 보기 (박사 지시 2026-06-24): 7개년 한 페이지 → 연도 탭으로 1개년씩 ──
-  // 보유 연도 산출 + 현재 선택 연도 보정(미보유/범위밖이면 보유 연도로 자동 이동)
+  // ── 연도별 + 전체 합본 보기 (박사 지시 2026-06-24): 「전체」 탭(2025 왼쪽) + 연도별 탭 ──
   const availYears = BOSESA_STUDY_YEARS.filter(y=>{
     const d = getBosesaData(sub, y);
     return d && Array.isArray(d.questions) && d.questions.length;
   });
-  let year = BOSESA_STUDY_YEARS.includes(S.bosesaYear) ? S.bosesaYear : (availYears[0] ?? BOSESA_STUDY_YEARS[0]);
-  if(availYears.length && !availYears.includes(year)) year = availYears[0];
-
   const total = availYears.reduce((sum, y)=> sum + (getBosesaData(sub, y)?.questions?.length || 0), 0);
 
-  // 연도 선택 탭 (정답해설 뷰 안에서만 연도 전환 — bosesaView 유지)
-  const yearTabs = BOSESA_STUDY_YEARS.map(y=>{
-    const has = availYears.includes(y);
-    const on = y===year;
-    const cls = on
-      ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-900/40'
-      : has ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
-            : 'bg-slate-900/60 text-slate-600 border-slate-800 cursor-not-allowed';
-    return `<button ${has?`onclick="setState({bosesaView:'answerNotes',bosesaSubject:${sub},bosesaYear:${y}})"`:'disabled'}
-      class="text-sm font-bold px-4 py-2 rounded-lg border transition-colors ${cls}">${y}<span class="text-[10px] font-normal ml-1 opacity-70">${has?(getBosesaData(sub,y)?.questions?.length||0):'–'}</span></button>`;
-  }).join('');
+  // 선택 상태: 'all'(전체 합본) 또는 특정 연도. 기본 'all'(기존 합본 보기).
+  let sel = S.bosesaAnswerYear;
+  if(sel !== 'all'){
+    sel = BOSESA_STUDY_YEARS.includes(sel) ? sel : 'all';
+    if(sel !== 'all' && availYears.length && !availYears.includes(sel)) sel = availYears[0] ?? 'all';
+  }
 
-  const data = getBosesaData(sub, year);
-  const cards = (data && Array.isArray(data.questions)) ? data.questions.map((q, idx)=>{
+  // 카드 1개 빌더 (연도별·전체 공용)
+  const cardOf = (q, idx, year, data)=>{
     const qno = qNoOf(q, idx);
     const qtext = qTextOf(q);
     const answers = toAnswerArray(q.answer);
@@ -1501,7 +1493,55 @@ function renderBosesaAnswerNotes(){
       ${basis ? `<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>` : ''}
       ${correctAnalysis.length ? `<div class="ba-analysis"><span class="font-bold text-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>정답 선지 해설</span><div class="mt-1">${correctAnalysis.map(esc).join('<br>')}</div></div>` : ''}
     </article>`;
-  }).join('') : '';
+  };
+
+  // 탭 빌더 (전체/연도 공용)
+  const mkTab = (label, val, on, has, badge)=>{
+    const cls = on
+      ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-900/40'
+      : has ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
+            : 'bg-slate-900/60 text-slate-600 border-slate-800 cursor-not-allowed';
+    const arg = (typeof val==='number') ? val : `'${val}'`;
+    return `<button ${has?`onclick="setState({bosesaView:'answerNotes',bosesaSubject:${sub},bosesaAnswerYear:${arg}})"`:'disabled'}
+      class="text-sm font-bold px-4 py-2 rounded-lg border transition-colors ${cls}">${label}${badge!=null?`<span class="text-[10px] font-normal ml-1 opacity-70">${badge}</span>`:''}</button>`;
+  };
+  const allTab = mkTab('전체', 'all', sel==='all', true, total);
+  const yearTabs = BOSESA_STUDY_YEARS.map(y=>{
+    const has = availYears.includes(y);
+    return mkTab(String(y), y, sel===y, has, has?(getBosesaData(sub,y)?.questions?.length||0):'–');
+  }).join('');
+
+  let body;
+  if(sel === 'all'){
+    body = BOSESA_STUDY_YEARS.map(year=>{
+      const data = getBosesaData(sub, year);
+      if(!data || !Array.isArray(data.questions)) return '';
+      const cards = data.questions.map((q, idx)=>cardOf(q, idx, year, data)).join('');
+      return `<section id="answer-notes-${year}">
+        <div class="ba-year flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div class="text-xs font-extrabold text-white">${year}년 ${data.subjectNo ?? data.subject ?? sub}과목</div>
+            <div class="text-[11px] text-slate-400">${esc(data.subjectName || '')} · ${data.questions.length}문항 · 정답 선지만 빠른회독</div>
+          </div>
+          <a class="text-[11px] font-bold text-emerald-300 hover:text-emerald-200" href="#answer-notes-top"><i class="fa-solid fa-arrow-up mr-1"></i>위로</a>
+        </div>
+        ${cards}</section>`;
+    }).join('');
+  } else {
+    const data = getBosesaData(sub, sel);
+    const cards = (data && Array.isArray(data.questions)) ? data.questions.map((q, idx)=>cardOf(q, idx, sel, data)).join('') : '';
+    body = `<div class="ba-year flex items-center justify-between gap-3 flex-wrap mb-3">
+        <div>
+          <div class="text-sm font-extrabold text-white">${sel}년 ${data?.subjectNo ?? data?.subject ?? sub}과목</div>
+          <div class="text-[11px] text-slate-400">${esc(data?.subjectName || '')} · ${data?.questions?.length || 0}문항 · 정답 선지만 빠른회독</div>
+        </div>
+      </div>
+      ${cards || `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400"><i class="fa-solid fa-clock text-2xl mb-2 block text-slate-600"></i>${sel}년 ${sub}과목 정답 해설은 아직 준비 중입니다.</div>`}`;
+  }
+
+  const curInfo = (sel==='all')
+    ? `전체 합본 · 7개년 누적 <b class="text-emerald-300">${total}</b>문항`
+    : `연도별 분리 보기 · 7개년 누적 <b class="text-emerald-300">${total}</b>문항 · 현재 <b class="text-emerald-300">${sel}년 ${getBosesaData(sub,sel)?.questions?.length || 0}문항</b>`;
 
   root.innerHTML = `
     <div id="answer-notes-top" class="mb-4">
@@ -1509,19 +1549,13 @@ function renderBosesaAnswerNotes(){
         <div>
           <div class="text-xs font-bold text-emerald-400 tracking-widest uppercase"><i class="fa-solid fa-bolt mr-1"></i>보세사 정답 해설 · 빠른회독</div>
           <h2 class="text-xl font-bold text-white">${sub}과목 — ${esc(subjectNameForAnswerNotes(sub))}</h2>
-          <p class="text-xs text-slate-400 mt-1">연도별 분리 보기 · 7개년 누적 <b class="text-emerald-300">${total}</b>문항 · 현재 <b class="text-emerald-300">${year}년 ${data?.questions?.length || 0}문항</b></p>
-          <p class="text-[10px] text-slate-500 mt-1">오답 선지 4개는 숨기고, 공식 정답과 정답 선지 해설만 빠르게 회독하도록 구성. 아래 연도 탭으로 한 해씩 골라 보세요.</p>
+          <p class="text-xs text-slate-400 mt-1">${curInfo}</p>
+          <p class="text-[10px] text-slate-500 mt-1">오답 선지 4개는 숨기고, 공식 정답과 정답 선지 해설만 빠르게 회독. 「전체」는 7개년을 한 번에, 연도 탭은 한 해씩.</p>
         </div>
       </div>
-      <div class="flex gap-2 flex-wrap mt-3 pb-3 border-b border-slate-800">${yearTabs}</div>
+      <div class="flex gap-2 flex-wrap mt-3 pb-3 border-b border-slate-800">${allTab}${yearTabs}</div>
     </div>
-    <div class="ba-year flex items-center justify-between gap-3 flex-wrap mb-3">
-      <div>
-        <div class="text-sm font-extrabold text-white">${year}년 ${data?.subjectNo ?? data?.subject ?? sub}과목</div>
-        <div class="text-[11px] text-slate-400">${esc(data?.subjectName || '')} · ${data?.questions?.length || 0}문항 · 정답 선지만 빠른회독</div>
-      </div>
-    </div>
-    ${cards || `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400"><i class="fa-solid fa-clock text-2xl mb-2 block text-slate-600"></i>${year}년 ${sub}과목 정답 해설은 아직 준비 중입니다.</div>`}`;
+    ${body}`;
 }
 
 function getBosesaRareTypesData(subject){

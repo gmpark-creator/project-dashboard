@@ -162,7 +162,7 @@
   var YEARS = [2025,2024,2023,2022,2021,2020,2019];
   var CN = ['①','②','③','④','⑤','⑥','⑦','⑧'];
   // view: 'exam' | 'concepts' | 'answerNotes' | 'rareTypes'
-  var state = { subject:1, year:2025, form:'A', answersShown:true, view:'exam' };
+  var state = { subject:1, year:2025, answerYear:'all', form:'A', answersShown:true, view:'exam' };
   // B형 보유 여부 (현재 2023년 1과목만 A·B형 두 유형)
   function hasBForm(s,y){ return s===1 && y===2023; }
 
@@ -352,23 +352,21 @@
     });
   }
 
-  // 연도별 분리 보기 (박사 지시 2026-06-24): 7개년 한 페이지 → 연도 탭으로 1개년씩
+  // 연도별 + 전체 합본 보기 (박사 지시 2026-06-24): 「전체」 탭(2025 왼쪽) + 연도별 탭
   function renderAnswerNotes(){
     var s=state.subject;
     var avail = YEARS.filter(function(y){ var d=getData(s,y,'A'); return d && d.questions && d.questions.length; });
     var total = avail.reduce(function(sum,y){ var d=getData(s,y,'A'); return sum + ((d&&d.questions)?d.questions.length:0); }, 0);
-    var year = (YEARS.indexOf(state.year)>=0) ? state.year : (avail[0]||YEARS[0]);
-    if(avail.length && avail.indexOf(year)<0){ year=avail[0]; }
-    state.year = year;
 
-    var tabs = YEARS.map(function(y){
-      var has = avail.indexOf(y)>=0;
-      var cnt = has ? (getData(s,y,'A').questions.length) : 0;
-      return '<button class="an-yeartab'+(y===year?' on':'')+(has?'':' off')+'"'+(has?' data-anyear="'+y+'"':' disabled')+'>'+y+'<small>'+(has?cnt:'–')+'</small></button>';
-    }).join('');
+    // 선택: 'all'(전체 합본) 또는 연도. 기본 'all'.
+    var sel = state.answerYear;
+    if(sel!=='all'){
+      sel = (YEARS.indexOf(sel)>=0) ? sel : 'all';
+      if(sel!=='all' && avail.length && avail.indexOf(sel)<0) sel = avail[0] || 'all';
+    }
+    state.answerYear = sel;
 
-    var data=getData(s,year,'A');
-    var cards = (data && data.questions) ? data.questions.map(function(q,idx){
+    function cardOf(q, idx, year, data){
       var qno=qNoOf(q,idx), qtext=nn(q.text,q.stemText,q.question);
       var ans=ansArr(q.answer);
       var basis=nn(q.answerBasis,q.explanation);
@@ -380,13 +378,39 @@
         + (basis?'<div class="basis" style="margin-top:10px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
         + (ca.length?'<div class="cbx cbx-key" style="margin-top:8px"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
         + '</div>';
-    }).join('') : '';
-    $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · '+year+'년 '+((data&&data.questions)?data.questions.length:0)+'문항';
-    var intro = '<div class="catbar"><div class="ct">⚡ 정답 해설 · 빠른회독 — 연도별</div>'
-      + '<div class="cd">7개년 누적 <b>'+total+'</b>문항. 아래 연도 탭으로 한 해씩 골라 보세요. 오답 선지는 숨기고 <b>공식 정답 · 정답 근거 · 정답 선지 해설</b>만 회독.</div></div>'
-      + '<div class="an-yeartabs">'+tabs+'</div>'
-      + '<div class="yearsep">'+year+'년 '+s+'과목<small>'+((data&&data.questions)?data.questions.length:0)+'문항 · 정답·근거만</small></div>';
-    $('qlist').innerHTML = intro + (cards || '<div class="srcref" style="padding:14px;text-align:center">'+year+'년 '+s+'과목 정답 해설은 아직 준비 중입니다.</div>');
+    }
+    function mkTab(label, val, on, has, badge){
+      return '<button class="an-yeartab'+(on?' on':'')+(has?'':' off')+'"'+(has?' data-anyear="'+val+'"':' disabled')+'>'+label+'<small>'+badge+'</small></button>';
+    }
+    var allTab = mkTab('전체','all', sel==='all', true, total);
+    var yearTabs = YEARS.map(function(y){
+      var has = avail.indexOf(y)>=0;
+      return mkTab(String(y), y, sel===y, has, has?getData(s,y,'A').questions.length:'–');
+    }).join('');
+
+    var body;
+    if(sel==='all'){
+      body = YEARS.map(function(y){
+        var data=getData(s,y,'A');
+        if(!data || !data.questions) return '';
+        var cards = data.questions.map(function(q,idx){ return cardOf(q,idx,y,data); }).join('');
+        return '<div class="yearsep" id="an-y-'+y+'">'+y+'년 '+s+'과목<small>'+data.questions.length+'문항 · 정답·근거만</small></div>'+cards;
+      }).join('');
+      $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · 전체 '+total+'문항';
+    } else {
+      var d2=getData(s,sel,'A');
+      var cards2 = (d2 && d2.questions) ? d2.questions.map(function(q,idx){ return cardOf(q,idx,sel,d2); }).join('') : '';
+      body = '<div class="yearsep">'+sel+'년 '+s+'과목<small>'+((d2&&d2.questions)?d2.questions.length:0)+'문항 · 정답·근거만</small></div>'
+        + (cards2 || '<div class="srcref" style="padding:14px;text-align:center">'+sel+'년 '+s+'과목 정답 해설은 아직 준비 중입니다.</div>');
+      $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · '+sel+'년 '+((d2&&d2.questions)?d2.questions.length:0)+'문항';
+    }
+    var curInfo = (sel==='all')
+      ? '7개년 누적 <b>'+total+'</b>문항을 한 번에. 「전체」 또는 연도 탭으로 전환.'
+      : '7개년 누적 <b>'+total+'</b>문항. 현재 <b>'+sel+'년</b>. 「전체」 또는 다른 연도 탭으로 전환.';
+    var intro = '<div class="catbar"><div class="ct">⚡ 정답 해설 · 빠른회독</div>'
+      + '<div class="cd">'+curInfo+' 오답 선지는 숨기고 <b>공식 정답 · 정답 근거 · 정답 선지 해설</b>만 회독.</div></div>'
+      + '<div class="an-yeartabs">'+allTab+yearTabs+'</div>';
+    $('qlist').innerHTML = intro + body;
     window.scrollTo(0,0);
   }
 
@@ -454,7 +478,7 @@
   });
   // 희소유형 → 원문 기출 이동
   $('qlist').addEventListener('click', function(e){
-    var yt=e.target.closest('.an-yeartab'); if(yt && yt.dataset.anyear){ state.year=+yt.dataset.anyear; renderAnswerNotes(); return; }
+    var yt=e.target.closest('.an-yeartab'); if(yt && yt.dataset.anyear){ state.answerYear=(yt.dataset.anyear==='all')?'all':+yt.dataset.anyear; renderAnswerNotes(); return; }
     var b=e.target.closest('.qnobtn'); if(!b)return;
     state.view='exam'; state.year=+b.dataset.goyear; state.form='A'; renderChips(); syncAnsToggle(); load();
   });
