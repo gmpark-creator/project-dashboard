@@ -1,0 +1,50 @@
+{
+  "title": "브로드컴·오라클 2026 실적 후 주가 + SOXL/SOXS 반응 (Polaris #6 신규 카테고리 데이터)",
+  "generated": "2026-06-24",
+  "source": "Yahoo Finance v8 chart API(원시 JSON) + stockanalysis.com(history) 교차검증 — 두 소스 종가·등락률 센트 단위 일치. 정성 맥락=CNBC·Broadcom/Oracle IR·prnewswire·indmoney·intellectia/kavout(섹터 급락).",
+  "currency": "USD (정규장 종가 기준)",
+  "convention": "한국 증시 관례 색상: 상승=빨강, 하락=파랑. %는 전 거래일 종가 대비.",
+  "disclaimer": "연구·교육용. 투자자문/매매신호 아님. SOXL/SOXS=일일 3배 레버리지 ETF(복리 괴리·고변동).",
+  "events": [
+    {
+      "ticker": "AVGO", "name": "브로드컴(Broadcom)", "fiscal": "Q2 FY2026 (분기말 2026-05-03)",
+      "reportDate": "2026-06-03", "reportDow": "수", "timing": "장 마감 후(AMC)",
+      "results": "매출 $22.2B(+48% YoY·사상최대), EPS $2.44(컨센 $2.32, +5% 비트), AI 반도체 매출 $10.8B(+143%).",
+      "whyDrop": "호실적에도 급락 — CEO Hock Tan이 연간 AI 칩 매출 목표($1,000억) 미상향 + Q3 AI 가이던스 $16B(컨센 $17.2B 하회).",
+      "day0": { "date": "2026-06-03", "close": 479.23, "chg": -0.49, "note": "발표 직전 종가(신고가권). 시간외 약 -15%." },
+      "day1": { "date": "2026-06-04", "close": 418.91, "chg": -12.59, "open": 408.99, "low": 403.01, "note": "반응일. 시가갭 -14.7%, 장중저 -15.9%, 종가 -12.59%." },
+      "week1": { "date": "2026-06-10", "close": 372.10, "chgFromDay0": -22.4, "note": "발표(6/3) 후 거래일 5일 = 1주일 후. 주간 저점이기도 함." },
+      "sampleEnd": { "date": "2026-06-18", "close": 411.35, "chgFromDay0": -14.2, "note": "표본 종료일. 6/11부터 반등해 일부 회복(여전히 6/3 대비 -14.2%)." },
+      "ripple": "AVGO의 약한 AI 가이던스가 6/5 반도체 섹터 전체 급락(보도 기준 PHLX SOX -10.3%·2020년 이후 최대 낙폭·$1T+ 증발)의 방아쇠."
+    },
+    {
+      "ticker": "ORCL", "name": "오라클(Oracle)", "fiscal": "Q4 FY2026 (분기말 2026-05-31)",
+      "reportDate": "2026-06-10", "reportDow": "수", "timing": "장 마감 후(AMC)",
+      "results": "매출 $19.2B(+21%), 클라우드 $9.9B(+47%·IaaS +93%), EPS $2.11(컨센 $1.89, +12% 비트), 수주잔고 대규모.",
+      "whyDrop": "호실적에도 급락 — FY27 자금조달 $400억(기존 $200억의 2배) 계획, FY26 잉여현금흐름 -$237억(AI 인프라 capex), Q1 EPS 가이던스($1.72~1.76)·차입 우려.",
+      "day0": { "date": "2026-06-10", "close": 201.26, "chg": -2.21, "note": "발표 직전 종가(이미 6/1 고점 $248.15에서 조정 중). 시간외 약 -10%." },
+      "day1": { "date": "2026-06-11", "close": 184.10, "chg": -8.53, "open": 179.67, "low": 175.28, "note": "반응일. 시가갭 -10.8%, 장중저 -12.9%, 종가 -8.53%." },
+      "week1": { "date": "2026-06-17", "close": 183.53, "chgFromDay0": -8.8, "note": "발표(6/10) 후 거래일 5일 = 1주일 후." },
+      "sampleEnd": { "date": "2026-06-18", "close": 184.29, "chgFromDay0": -8.4, "note": "표본 종료일. 6/12부터 $183~193 박스권 안착." },
+      "ripple": "오라클은 반도체가 아님(SW/클라우드)이라 SOXL/SOXS 직접 구성요소 아님. 게다가 반응일(6/11) 반도체는 6/5 급락 반등 국면이라 SOXL +24%로 디커플링 — ORCL 하락이 반도체를 끌어내리지 않음."
+    }
+  ],
+  "sectorCrash_0605": "[보도 기준] 2026-06-05(금) PHLX 반도체지수(SOX) -10.3%(2020년 이후 최대 단일 낙폭), 칩株 시총 $1T+ 증발. 방아쇠=브로드컴 약한 AI 가이던스 + 메모리 위기 + IDC 스마트폰 수요 2026년 -13% 전망. 엔비디아 -6%, 마이크론 -11%, AMD -10.5%, 마벨 -12%. → SOXL 당일 -30.5%, SOXS +31.5%. ※SOXL/SOXS 추종지수는 ICE 반도체지수(SOXX 동일)로 PHLX SOX와 다른 지수지만 거의 같이 움직임 — '반도체지수 약 -10%의 3배'는 근사.",
+  "soxlNote": "SOXL/SOXS=3배 '일일' 레버리지(SOXL 불·SOXS 베어). ⚠일일 목표 수익률이며 보유기간 누적은 지수 누적의 3배가 아님(매일 리밸런싱·복리 경로 의존). 6/3~6/18 반도체가 등락 반복하며 순변동 작자 SOXL은 $280.54→$279.29(≈-0.4%, 거의 제자리)인데 같은 구간 SOXS는 $4.91→$3.59(-26.9%)로 베어 ETF가 크게 깎임 — 박스·고변동장에서 레버리지 ETF 변동성 끌림(decay)의 전형. SOXL 52주 범위 $22.57~$302(고변동 입증).",
+  "daily": [
+    { "date": "2026-06-01", "avgo": 459.97, "avgoChg": 2.95, "orcl": 248.15, "orclChg": 9.91, "soxl": 227.03, "soxlChg": 1.20, "soxs": 6.26, "soxsChg": -1.11 },
+    { "date": "2026-06-02", "avgo": 481.57, "avgoChg": 4.70, "orcl": 244.58, "orclChg": -1.44, "soxl": 266.32, "soxlChg": 17.31, "soxs": 5.17, "soxsChg": -17.41 },
+    { "date": "2026-06-03", "avgo": 479.23, "avgoChg": -0.49, "orcl": 230.33, "orclChg": -5.83, "soxl": 280.54, "soxlChg": 5.34, "soxs": 4.91, "soxsChg": -5.03, "mark": "AVGO 실적발표(장후)" },
+    { "date": "2026-06-04", "avgo": 418.91, "avgoChg": -12.59, "orcl": 236.34, "orclChg": 2.61, "soxl": 262.70, "soxlChg": -6.36, "soxs": 5.20, "soxsChg": 5.91, "mark": "AVGO 반응일" },
+    { "date": "2026-06-05", "avgo": 385.73, "avgoChg": -7.92, "orcl": 213.68, "orclChg": -9.59, "soxl": 182.54, "soxlChg": -30.51, "soxs": 6.84, "soxsChg": 31.54, "mark": "섹터 급락 SOX -10.3%" },
+    { "date": "2026-06-08", "avgo": 396.60, "avgoChg": 2.82, "orcl": 211.82, "orclChg": -0.87, "soxl": 211.44, "soxlChg": 15.83, "soxs": 5.69, "soxsChg": -16.81 },
+    { "date": "2026-06-09", "avgo": 392.16, "avgoChg": -1.12, "orcl": 205.81, "orclChg": -2.84, "soxl": 201.68, "soxlChg": -4.62, "soxs": 5.93, "soxsChg": 4.22 },
+    { "date": "2026-06-10", "avgo": 372.10, "avgoChg": -5.12, "orcl": 201.26, "orclChg": -2.21, "soxl": 180.65, "soxlChg": -10.43, "soxs": 6.57, "soxsChg": 10.79, "mark": "ORCL 실적발표(장후) · AVGO 주간저점" },
+    { "date": "2026-06-11", "avgo": 385.57, "avgoChg": 3.62, "orcl": 184.10, "orclChg": -8.53, "soxl": 223.99, "soxlChg": 23.99, "soxs": 4.97, "soxsChg": -24.35, "mark": "ORCL 반응일" },
+    { "date": "2026-06-12", "avgo": 382.07, "avgoChg": -0.91, "orcl": 184.13, "orclChg": 0.02, "soxl": 234.68, "soxlChg": 4.77, "soxs": 4.72, "soxsChg": -5.03 },
+    { "date": "2026-06-15", "avgo": 393.94, "avgoChg": 3.11, "orcl": 192.64, "orclChg": 4.62, "soxl": 272.50, "soxlChg": 16.12, "soxs": 3.95, "soxsChg": -16.31 },
+    { "date": "2026-06-16", "avgo": 376.71, "avgoChg": -4.37, "orcl": 188.33, "orclChg": -2.24, "soxl": 226.19, "soxlChg": -16.99, "soxs": 4.63, "soxsChg": 17.22 },
+    { "date": "2026-06-17", "avgo": 392.90, "avgoChg": 4.30, "orcl": 183.53, "orclChg": -2.55, "soxl": 233.86, "soxlChg": 3.39, "soxs": 4.46, "soxsChg": -3.67 },
+    { "date": "2026-06-18", "avgo": 411.35, "avgoChg": 4.70, "orcl": 184.29, "orclChg": 0.41, "soxl": 279.29, "soxlChg": 19.43, "soxs": 3.59, "soxsChg": -19.51 }
+  ]
+}

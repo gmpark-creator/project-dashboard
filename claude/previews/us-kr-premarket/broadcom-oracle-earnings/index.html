@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>브로드컴·오라클 실적 후 주가 + SOXL/SOXS · Polaris</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body{ background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
+  .tnum{ font-variant-numeric:tabular-nums; }
+  .up{ color:#fb7185; }     /* 상승 빨강(한국 관례) */
+  .down{ color:#60a5fa; }   /* 하락 파랑(한국 관례) */
+  .flat{ color:#94a3b8; }
+  table{ border-collapse:collapse; }
+  th,td{ white-space:nowrap; }
+  .mark-row{ background:rgba(56,189,248,.06); }
+  .crash-row{ background:rgba(96,165,250,.08); }
+</style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col">
+
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0B1120]">
+  <div class="max-w-[1100px] mx-auto px-6 py-7">
+    <a href="../" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-sky-400"><i class="fa-solid fa-arrow-left"></i> Polaris 카테고리</a>
+    <div class="mt-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-sky-400 uppercase flex-wrap">
+      <i class="fa-solid fa-bullhorn"></i><span>Project #6 · Polaris · Earnings Reaction</span>
+      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 ring-1 ring-slate-500/30 px-2.5 py-0.5 text-[10px] font-bold text-slate-300 normal-case tracking-normal"><i class="fa-solid fa-flask text-[9px]"></i> RESEARCH ONLY · 투자자문 아님</span>
+    </div>
+    <h1 class="mt-2 text-2xl md:text-3xl font-extrabold text-white">브로드컴·오라클 <span class="text-sky-400">실적 발표 후 주가</span> <span class="text-slate-400 text-xl">+ SOXL·SOXS 반응</span></h1>
+    <p class="mt-2 text-sm text-slate-400">2026년 6월 브로드컴(AVGO)·오라클(ORCL) 실적 발표 <b class="text-slate-300">당일·다음날·1주일</b> 본주 주가와, 반도체 3배 ETF <b class="text-slate-300">SOXL(불)·SOXS(베어)</b>의 반응을 실측 정리.</p>
+    <p class="mt-1 text-[11px] text-slate-500">기준일 <b class="text-slate-400">2026-06-18 정규장 종가</b> · 색상 <span class="up font-bold">상승 빨강</span>/<span class="down font-bold">하락 파랑</span>(한국 증시 관례) · % = 전 거래일 종가 대비. 연구·교육용, 투자자문/매매신호 아님.</p>
+  </div>
+</header>
+
+<main class="flex-1">
+  <div class="max-w-[1100px] mx-auto px-6 py-8 space-y-9">
+
+    <!-- 한눈 요약 -->
+    <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-5">
+      <div class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2"><i class="fa-solid fa-lightbulb mr-1"></i>한눈 요약</div>
+      <p class="text-[13px] leading-relaxed text-slate-300">두 빅테크 모두 <b>호실적(매출·EPS 컨센 상회)인데도 주가는 급락</b>했다. <b class="text-white">브로드컴</b>은 AI 칩 연간목표를 올리지 않아 6/4 <span class="down font-bold">-12.6%</span>, 그 약한 AI 가이던스가 <b class="text-white">6/5 반도체 섹터 전체 급락</b>(보도 기준 반도체지수 -10%대)의 방아쇠가 되며 <b class="text-white">SOXL이 하루 -30.5%</b>, <b class="text-white">SOXS는 +31.5%</b>를 기록했다. <b class="text-white">오라클</b>은 막대한 AI 인프라 투자·차입 우려로 6/11 <span class="down font-bold">-8.5%</span>. 오라클은 반도체가 아니라 그날 SOXL은 오히려 반등(+24%)해 <b>디커플링</b>됐다.</p>
+    </section>
+
+    <!-- 이벤트 카드 -->
+    <section class="grid gap-6 lg:grid-cols-2" id="eventCards"></section>
+
+    <!-- SOXL/SOXS + 6/5 섹터 급락 -->
+    <section class="rounded-2xl bg-gradient-to-r from-blue-500/10 via-slate-900/70 to-rose-500/10 ring-1 ring-slate-700 p-6">
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <i class="fa-solid fa-bolt text-amber-400"></i>
+        <h2 class="text-lg font-bold text-white">SOXL·SOXS 반응 — 6/5 반도체 섹터 급락이 핵심</h2>
+        <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/15 ring-1 ring-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-300 uppercase tracking-widest">3X 레버리지</span>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3 mb-4">
+        <div class="rounded-xl bg-slate-950/50 ring-1 ring-slate-800 p-4">
+          <div class="text-[11px] text-slate-500">2026-06-05(금) 반도체지수 <span class="text-slate-400">(보도 기준)</span></div>
+          <div class="mt-1 text-2xl font-extrabold down tnum">약 -10%대</div>
+          <div class="text-[11px] text-slate-500 mt-1">2020년 이후 최대 단일 낙폭 · 칩株 시총 $1T+ 증발</div>
+        </div>
+        <div class="rounded-xl bg-slate-950/50 ring-1 ring-blue-500/30 p-4">
+          <div class="text-[11px] text-slate-500">SOXL (불 3X) 6/5</div>
+          <div class="mt-1 text-2xl font-extrabold down tnum">-30.51%</div>
+          <div class="text-[11px] text-slate-500 mt-1">$262.70 → $182.54</div>
+        </div>
+        <div class="rounded-xl bg-slate-950/50 ring-1 ring-rose-500/30 p-4">
+          <div class="text-[11px] text-slate-500">SOXS (베어 3X) 6/5</div>
+          <div class="mt-1 text-2xl font-extrabold up tnum">+31.54%</div>
+          <div class="text-[11px] text-slate-500 mt-1">$4.91 → $6.84</div>
+        </div>
+      </div>
+      <p class="text-[12px] leading-relaxed text-slate-400">방아쇠는 <b class="text-slate-300">브로드컴의 약한 AI 가이던스</b>(Q3 AI 매출 $16B로 컨센 $17.2B 하회·연간목표 미상향) + 메모리 위기 + IDC의 2026년 스마트폰 수요 -13% 전망(보도 기준). 엔비디아 -6%·마이크론 -11%·AMD -10.5%·마벨 -12%.</p>
+      <div class="mt-3 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/30 p-3 text-[12px] leading-relaxed text-amber-200/90">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i><b>레버리지 ETF 주의:</b> SOXL/SOXS는 <b>'일일' 목표 수익률(±3배)</b>이며 보유기간 누적은 지수 누적의 3배가 아니다(매일 리밸런싱·복리 경로 의존). 6/3~6/18 반도체가 등락 반복하며 순변동이 작아 <b>SOXL은 $280.54→$279.29(≈-0.4%, 거의 제자리)</b>인데 같은 구간 <b>SOXS는 $4.91→$3.59(-26.9%)</b>로 베어 ETF가 크게 깎였다 — 박스·고변동장의 <b>변동성 끌림(decay)</b> 전형. (SOXL 52주 범위 $22.57~$302) 추종지수는 ICE 반도체지수(SOXX 동일)로 PHLX SOX와 다른 지수지만 거의 같이 움직임.
+      </div>
+    </section>
+
+    <!-- 일별 데이터표 -->
+    <section>
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-table-list mr-1 text-sky-400"></i>일별 종가·등락률 (2026-06-01 ~ 06-18)</h2>
+        <span class="text-[11px] text-slate-500">실적일·반응일·급락일 강조 · 종가(USD) · %=전일 대비</span>
+      </div>
+      <div class="overflow-x-auto rounded-2xl ring-1 ring-slate-800">
+        <table class="w-full text-[12px]">
+          <thead class="bg-slate-900/80 text-slate-400">
+            <tr class="text-right">
+              <th class="px-3 py-2 text-left font-semibold">날짜</th>
+              <th class="px-3 py-2 font-semibold">AVGO 종가</th><th class="px-3 py-2 font-semibold">%</th>
+              <th class="px-3 py-2 font-semibold">ORCL 종가</th><th class="px-3 py-2 font-semibold">%</th>
+              <th class="px-3 py-2 font-semibold">SOXL 종가</th><th class="px-3 py-2 font-semibold">%</th>
+              <th class="px-3 py-2 font-semibold">SOXS 종가</th><th class="px-3 py-2 font-semibold">%</th>
+              <th class="px-3 py-2 text-left font-semibold">메모</th>
+            </tr>
+          </thead>
+          <tbody id="dailyBody" class="divide-y divide-slate-800/70"></tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-[10px] text-slate-500">SOXL/SOXS는 분배·리밸런싱으로 절대가가 시계열마다 다를 수 있음(여기서는 미조정 종가). 6/6·6/7·6/13·6/14는 주말 휴장.</p>
+    </section>
+
+    <!-- 출처 -->
+    <section class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-5">
+      <div class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2"><i class="fa-solid fa-book mr-1"></i>출처 · 검증</div>
+      <ul class="text-[12px] leading-relaxed text-slate-400 space-y-1 list-disc pl-5">
+        <li><b class="text-slate-300">일별 종가·등락률</b>: Yahoo Finance(차트 API 원시 JSON) + stockanalysis.com(history) <b>두 소스 교차검증 — 종가·등락률 일치</b>. 내부 검산(등락률=전일종가 대비) 통과. <span class="text-slate-500">(아래 외부 정성 주장은 보도 기준이며 본 표의 수치 검산과 별개)</span></li>
+        <li><b class="text-slate-300">실적 내용·반응 배경</b>: CNBC(AVGO Q2 2026·ORCL Q4 2026), Broadcom/Oracle IR 보도자료, PR Newswire, indmoney(ORCL -10%), intellectia·kavout(6/5 섹터 급락 $1.3T·SOX·IDC).</li>
+        <li><b class="text-slate-300">발표 시점</b>: AVGO 2026-06-03(수)·ORCL 2026-06-10(수) 모두 <b>장 마감 후(AMC)</b> 발표 → 발표 당일 종가는 반응 전, <b>다음 거래일이 반응일</b>.</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<footer class="border-t border-slate-800">
+  <div class="max-w-[1100px] mx-auto px-6 py-5 text-[11px] text-slate-500 flex items-center justify-between flex-wrap gap-2">
+    <span>Polaris Market Intelligence · Research only · 투자자문 아님 · 데이터 기준 2026-06-18</span>
+    <span class="font-semibold tracking-wider">G.M.PARK</span>
+  </div>
+</footer>
+
+<script>
+const DATA = {
+  events: [
+    { t:"AVGO", name:"브로드컴 (Broadcom)", fiscal:"Q2 FY2026", date:"2026-06-03", dow:"수", color:"sky",
+      results:"매출 $22.2B (+48% YoY·사상최대) · EPS $2.44 (컨센 $2.32 비트) · AI 반도체 $10.8B (+143%)",
+      why:"호실적인데도 급락 — AI 칩 연간 매출목표($1,000억) 미상향 + Q3 AI 가이던스 $16B(컨센 $17.2B 하회).",
+      d0:{l:"발표 당일 (6/3·장후)", v:"$479.23", s:"-0.49%", sc:-1, note:"발표 직전 종가(신고가권) · 시간외 약 -15%"},
+      d1:{l:"다음날 (6/4)", v:"$418.91", s:"-12.59%", sc:-1, note:"반응일 · 시가갭 -14.7% · 장중저 -15.9%"},
+      d7:{l:"1주일 후 (6/10·거래일5)", v:"$372.10", s:"-22.4% (6/3比)", sc:-1, note:"주간 저점"},
+      end:{l:"표본 종료 (6/18)", v:"$411.35", s:"-14.2% (6/3比)", sc:-1, note:"6/11부터 반등·일부 회복"},
+      ripple:"이 약한 AI 가이던스가 6/5 반도체 섹터 전체 급락의 방아쇠가 됨." },
+    { t:"ORCL", name:"오라클 (Oracle)", fiscal:"Q4 FY2026", date:"2026-06-10", dow:"수", color:"rose",
+      results:"매출 $19.2B (+21%) · 클라우드 $9.9B (+47%·IaaS +93%) · EPS $2.11 (컨센 $1.89 비트) · 대규모 수주잔고",
+      why:"호실적인데도 급락 — FY27 자금조달 $400억(기존 $200억의 2배)·FY26 잉여현금흐름 -$237억(AI capex)·차입 우려.",
+      d0:{l:"발표 당일 (6/10·장후)", v:"$201.26", s:"-2.21%", sc:-1, note:"발표 직전 종가(6/1 고점 약 $248서 조정 중) · 시간외 약 -10%"},
+      d1:{l:"다음날 (6/11)", v:"$184.10", s:"-8.53%", sc:-1, note:"반응일 · 시가갭 -10.8% · 장중저 -12.9%"},
+      d7:{l:"1주일 후 (6/17·거래일5)", v:"$183.53", s:"-8.8% (6/10比)", sc:-1, note:""},
+      end:{l:"표본 종료 (6/18)", v:"$184.29", s:"-8.4% (6/10比)", sc:-1, note:"$183~193 박스권 안착"},
+      ripple:"오라클은 반도체가 아니라 SOXL/SOXS 직접 구성요소 아님 — 반응일(6/11) 반도체는 6/5 급락 반등 국면이라 SOXL +24%로 디커플링." }
+  ],
+  daily: [
+    ["2026-06-01",459.97,2.95,248.15,9.91,227.03,1.20,6.26,-1.11,""],
+    ["2026-06-02",481.57,4.70,244.58,-1.44,266.32,17.31,5.17,-17.41,""],
+    ["2026-06-03",479.23,-0.49,230.33,-5.83,280.54,5.34,4.91,-5.03,"AVGO 실적발표(장후)"],
+    ["2026-06-04",418.91,-12.59,236.34,2.61,262.70,-6.36,5.20,5.91,"AVGO 반응일 -12.6%"],
+    ["2026-06-05",385.73,-7.92,213.68,-9.59,182.54,-30.51,6.84,31.54,"반도체 섹터 급락 · SOXL -30.5%"],
+    ["2026-06-08",396.60,2.82,211.82,-0.87,211.44,15.83,5.69,-16.81,""],
+    ["2026-06-09",392.16,-1.12,205.81,-2.84,201.68,-4.62,5.93,4.22,""],
+    ["2026-06-10",372.10,-5.12,201.26,-2.21,180.65,-10.43,6.57,10.79,"ORCL 실적발표(장후) · AVGO 주간저점"],
+    ["2026-06-11",385.57,3.62,184.10,-8.53,223.99,23.99,4.97,-24.35,"ORCL 반응일 -8.5%"],
+    ["2026-06-12",382.07,-0.91,184.13,0.02,234.68,4.77,4.72,-5.03,""],
+    ["2026-06-15",393.94,3.11,192.64,4.62,272.50,16.12,3.95,-16.31,""],
+    ["2026-06-16",376.71,-4.37,188.33,-2.24,226.19,-16.99,4.63,17.22,""],
+    ["2026-06-17",392.90,4.30,183.53,-2.55,233.86,3.39,4.46,-3.67,""],
+    ["2026-06-18",411.35,4.70,184.29,0.41,279.29,19.43,3.59,-19.51,""]
+  ]
+};
+const cls = v => v>0?'up':(v<0?'down':'flat');
+const pct = v => (v>0?'+':'')+v.toFixed(2)+'%';
+
+// 이벤트 카드
+document.getElementById('eventCards').innerHTML = DATA.events.map(e=>{
+  const ring = e.color==='sky'?'ring-sky-500/30':'ring-rose-500/30';
+  const accent = e.color==='sky'?'text-sky-400':'text-rose-300';
+  const tile = b => `<div class="rounded-xl bg-slate-950/50 ring-1 ring-slate-800 p-3">
+      <div class="text-[10px] text-slate-500">${b.l}</div>
+      <div class="mt-0.5 text-lg font-extrabold tnum text-white">${b.v}</div>
+      <div class="text-[12px] font-bold tnum ${cls(b.sc)}">${b.s}</div>
+      ${b.note?`<div class="text-[10px] text-slate-500 mt-0.5 leading-tight">${b.note}</div>`:''}
+    </div>`;
+  return `<div class="rounded-2xl bg-slate-900/70 ring-1 ${ring} p-6">
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xl font-extrabold ${accent}">${e.t}</span>
+      <span class="text-base font-bold text-white">${e.name}</span>
+      <span class="ml-auto text-[11px] text-slate-500">${e.fiscal} · ${e.date}(${e.dow}) 장후 발표</span>
+    </div>
+    <div class="mt-2 text-[12px] leading-relaxed"><span class="text-emerald-300 font-bold">실적</span> <span class="text-slate-300">${e.results}</span></div>
+    <div class="mt-1 text-[12px] leading-relaxed"><span class="${cls(-1)} font-bold">급락 이유</span> <span class="text-slate-300">${e.why}</span></div>
+    <div class="mt-4 grid grid-cols-2 gap-3">${tile(e.d0)}${tile(e.d1)}${tile(e.d7)}${tile(e.end)}</div>
+    <div class="mt-3 text-[11px] leading-relaxed text-slate-400"><i class="fa-solid fa-arrow-trend-down mr-1 ${accent}"></i>${e.ripple}</div>
+  </div>`;
+}).join('');
+
+// 일별표
+document.getElementById('dailyBody').innerHTML = DATA.daily.map(r=>{
+  const [d,ac,ach,oc,och,lc,lch,sc,sch,memo]=r;
+  let rowcls='';
+  if(memo.includes('섹터 급락')) rowcls='crash-row';
+  else if(memo) rowcls='mark-row';
+  const cell=(c,ch)=>`<td class="px-3 py-2 text-right tnum text-slate-200">${c.toFixed(2)}</td><td class="px-3 py-2 text-right tnum font-semibold ${cls(ch)}">${pct(ch)}</td>`;
+  return `<tr class="${rowcls}">
+    <td class="px-3 py-2 text-left tnum text-slate-300">${d.slice(5)}</td>
+    ${cell(ac,ach)}${cell(oc,och)}${cell(lc,lch)}${cell(sc,sch)}
+    <td class="px-3 py-2 text-left text-[11px] text-slate-400">${memo||''}</td>
+  </tr>`;
+}).join('');
+</script>
+</body>
+</html>
