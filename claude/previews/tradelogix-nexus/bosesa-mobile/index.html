@@ -89,6 +89,14 @@
   /* ===== 정답 해설 · 빠른회독 (모바일) ===== */
   .chip.ansk{ border-color:#0b8a3e; color:#0b8a3e; font-weight:800; }
   .chip.ansk.on{ background:#0b8a3e; border-color:#0b8a3e; color:#fff; }
+  /* 정답해설 연도 탭 (콘텐츠 내) */
+  .an-yeartabs{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
+  .an-yeartab{ font-size:14px; font-weight:800; color:#0b8a3e; background:#fff; border:1px solid #a7e0bd;
+    border-radius:10px; padding:8px 13px; cursor:pointer; line-height:1; }
+  .an-yeartab small{ font-size:10px; font-weight:600; opacity:.7; margin-left:5px; }
+  .an-yeartab.on{ background:#0b8a3e; border-color:#0b8a3e; color:#fff; box-shadow:0 2px 8px rgba(11,138,62,.28); }
+  .an-yeartab.off{ color:#9aa3ad; background:#f4f6f8; border-color:var(--line); cursor:not-allowed; }
+  .an-yeartab:active{ filter:brightness(.96); }
   /* ===== 희소 유형 (모바일) ===== */
   .chip.rare{ border-color:#db2777; color:#9d174d; font-weight:800; }
   .chip.rare.on{ background:#db2777; border-color:#db2777; color:#fff; }
@@ -344,31 +352,41 @@
     });
   }
 
+  // 연도별 분리 보기 (박사 지시 2026-06-24): 7개년 한 페이지 → 연도 탭으로 1개년씩
   function renderAnswerNotes(){
-    var s=state.subject, total=0;
-    var sections = YEARS.map(function(y){
-      var data=getData(s,y,'A');
-      if(!data || !data.questions) return '';
-      total += data.questions.length;
-      var cards = data.questions.map(function(q,idx){
-        var qno=qNoOf(q,idx), qtext=nn(q.text,q.stemText,q.question);
-        var ans=ansArr(q.answer);
-        var basis=nn(q.answerBasis,q.explanation);
-        var ca=correctAnalysis(q,ans);
-        return '<div class="qcard" id="an-'+y+'-'+qno+'">'
-          + '<div class="anhead"><span class="yrtag">'+y+'년 · '+esc(qno)+'번</span><span class="formtag">'+esc(data.answerForm||'A형')+'</span></div>'
-          + '<div class="qtext" style="margin-top:10px">'+esc(qtext)+'</div>'
-          + '<div class="seclabel">정답</div>'+answerChips(q,ans)
-          + (basis?'<div class="basis" style="margin-top:10px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
-          + (ca.length?'<div class="cbx cbx-key" style="margin-top:8px"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
-          + '</div>';
-      }).join('');
-      return '<div class="yearsep">'+y+'년 '+s+'과목<small>'+data.questions.length+'문항 · 정답·근거만</small></div>'+cards;
+    var s=state.subject;
+    var avail = YEARS.filter(function(y){ var d=getData(s,y,'A'); return d && d.questions && d.questions.length; });
+    var total = avail.reduce(function(sum,y){ var d=getData(s,y,'A'); return sum + ((d&&d.questions)?d.questions.length:0); }, 0);
+    var year = (YEARS.indexOf(state.year)>=0) ? state.year : (avail[0]||YEARS[0]);
+    if(avail.length && avail.indexOf(year)<0){ year=avail[0]; }
+    state.year = year;
+
+    var tabs = YEARS.map(function(y){
+      var has = avail.indexOf(y)>=0;
+      var cnt = has ? (getData(s,y,'A').questions.length) : 0;
+      return '<button class="an-yeartab'+(y===year?' on':'')+(has?'':' off')+'"'+(has?' data-anyear="'+y+'"':' disabled')+'>'+y+'<small>'+(has?cnt:'–')+'</small></button>';
     }).join('');
-    $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · 총 '+total+'문항';
-    var intro = '<div class="catbar"><div class="ct">⚡ 정답 해설 · 빠른회독</div>'
-      + '<div class="cd">2025→2019년 7개년. 오답 선지는 숨기고 <b>공식 정답 · 정답 근거 · 정답 선지 해설</b>만 빠르게 회독.</div></div>';
-    $('qlist').innerHTML = intro + sections;
+
+    var data=getData(s,year,'A');
+    var cards = (data && data.questions) ? data.questions.map(function(q,idx){
+      var qno=qNoOf(q,idx), qtext=nn(q.text,q.stemText,q.question);
+      var ans=ansArr(q.answer);
+      var basis=nn(q.answerBasis,q.explanation);
+      var ca=correctAnalysis(q,ans);
+      return '<div class="qcard" id="an-'+year+'-'+qno+'">'
+        + '<div class="anhead"><span class="yrtag">'+year+'년 · '+esc(qno)+'번</span><span class="formtag">'+esc(data.answerForm||'A형')+'</span></div>'
+        + '<div class="qtext" style="margin-top:10px">'+esc(qtext)+'</div>'
+        + '<div class="seclabel">정답</div>'+answerChips(q,ans)
+        + (basis?'<div class="basis" style="margin-top:10px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
+        + (ca.length?'<div class="cbx cbx-key" style="margin-top:8px"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+        + '</div>';
+    }).join('') : '';
+    $('meta').textContent = s+'과목 '+subjName(s)+' · 정답 해설 빠른회독 · '+year+'년 '+((data&&data.questions)?data.questions.length:0)+'문항';
+    var intro = '<div class="catbar"><div class="ct">⚡ 정답 해설 · 빠른회독 — 연도별</div>'
+      + '<div class="cd">7개년 누적 <b>'+total+'</b>문항. 아래 연도 탭으로 한 해씩 골라 보세요. 오답 선지는 숨기고 <b>공식 정답 · 정답 근거 · 정답 선지 해설</b>만 회독.</div></div>'
+      + '<div class="an-yeartabs">'+tabs+'</div>'
+      + '<div class="yearsep">'+year+'년 '+s+'과목<small>'+((data&&data.questions)?data.questions.length:0)+'문항 · 정답·근거만</small></div>';
+    $('qlist').innerHTML = intro + (cards || '<div class="srcref" style="padding:14px;text-align:center">'+year+'년 '+s+'과목 정답 해설은 아직 준비 중입니다.</div>');
     window.scrollTo(0,0);
   }
 
@@ -436,6 +454,7 @@
   });
   // 희소유형 → 원문 기출 이동
   $('qlist').addEventListener('click', function(e){
+    var yt=e.target.closest('.an-yeartab'); if(yt && yt.dataset.anyear){ state.year=+yt.dataset.anyear; renderAnswerNotes(); return; }
     var b=e.target.closest('.qnobtn'); if(!b)return;
     state.view='exam'; state.year=+b.dataset.goyear; state.form='A'; renderChips(); syncAnsToggle(); load();
   });
