@@ -31,6 +31,26 @@
 <main class="flex-1">
   <div class="max-w-[1100px] mx-auto px-6 py-10 space-y-10">
 
+    <!-- 비트코인 실시간 시세 (박사 지시 2026-06-24): 소개문구 바로 밑 · 해외 USD 다수 + 업비트·빗썸 KRW · 1초 갱신 -->
+    <section class="rounded-2xl bg-slate-900/70 ring-1 ring-slate-800 p-5">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+        <div class="flex items-center gap-2 flex-wrap">
+          <i class="fa-brands fa-bitcoin text-amber-400 text-xl"></i>
+          <h2 class="text-base font-bold text-white">비트코인 실시간 시세 <span class="text-[11px] font-normal text-slate-500">BTC</span></h2>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-widest"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live · 1s</span>
+        </div>
+        <div class="text-[11px] text-slate-500">마지막 업데이트 <span id="btc-live-ts" class="tabular-nums text-slate-400">—</span> KST</div>
+      </div>
+
+      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2"><i class="fa-solid fa-earth-americas mr-1"></i>해외 (USD · 현물/USDT)</div>
+      <div id="btc-usd-grid" class="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-4"></div>
+
+      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2"><i class="fa-solid fa-won-sign mr-1"></i>국내 (KRW · 원화)</div>
+      <div id="btc-krw-grid" class="grid gap-3 grid-cols-2"></div>
+
+      <p class="mt-3 text-[10px] text-slate-500 leading-relaxed">출처: Coinbase·Kraken·Gemini(현물 USD)·Binance(USDT) / Upbit·Bithumb(KRW). 각 거래소 공개 API를 1초 폴링해 직접 표시합니다 — 거래소별 유동성·수수료 차이로 호가가 다른 것은 정상(국내가 해외보다 높으면 흔히 '김치 프리미엄'). 색상 <span class="text-rose-400 font-bold">상승 빨강</span>/<span class="text-blue-400 font-bold">하락 파랑</span>(한국 증시 관례). 연구·교육용 · 투자자문 아님.</p>
+    </section>
+
     <!-- 섹션 0: 디렉터 코멘트 (신규 2026-06-19) -->
     <section>
       <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-solid fa-pen-nib"></i> 디렉터 코멘트 · 실전 복기</h2>
@@ -152,6 +172,81 @@
     <span class="font-semibold tracking-wider">G.M.PARK</span>
   </div>
 </footer>
+
+<!-- BTC 실시간 시세 폴링 (박사 지시 2026-06-24) — 6개 거래소 공개 API 1초 직접 호출, CORS 확인 완료 -->
+<script>
+(function(){
+  var fmtUSD = function(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var fmtKRW = function(n){ return '₩' + Math.round(n).toLocaleString('ko-KR'); };
+  var SOURCES = [
+    { id:'coinbase', label:'Coinbase', cur:'USD', kind:'usd', avg:true, url:'https://api.coinbase.com/v2/prices/BTC-USD/spot', parse:function(j){ return parseFloat(j.data.amount); } },
+    { id:'kraken', label:'Kraken', cur:'USD', kind:'usd', avg:true, url:'https://api.kraken.com/0/public/Ticker?pair=XBTUSD', parse:function(j){ var r=j.result[Object.keys(j.result)[0]]; return parseFloat(r.c[0]); } },
+    { id:'gemini', label:'Gemini', cur:'USD', kind:'usd', avg:true, url:'https://api.gemini.com/v1/pubticker/btcusd', parse:function(j){ return parseFloat(j.last); } },
+    { id:'binance', label:'Binance', cur:'USDT', kind:'usd', avg:false, url:'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', parse:function(j){ return parseFloat(j.price); } },
+    { id:'upbit', label:'업비트 Upbit', cur:'KRW', kind:'krw', url:'https://api.upbit.com/v1/ticker?markets=KRW-BTC', parse:function(j){ return j[0].trade_price; } },
+    { id:'bithumb', label:'빗썸 Bithumb', cur:'KRW', kind:'krw', url:'https://api.bithumb.com/public/ticker/BTC_KRW', parse:function(j){ return parseFloat(j.data.closing_price); } }
+  ];
+  var last = {};
+  function cell(s){
+    return '<div id="cell-'+s.id+'" class="rounded-xl bg-slate-950/50 ring-1 ring-slate-800 p-3">'
+      + '<div class="flex items-center justify-between gap-1"><span class="text-[11px] font-bold text-slate-300 truncate">'+s.label+'</span><span class="text-[9px] text-slate-600 uppercase shrink-0">'+s.cur+'</span></div>'
+      + '<div class="mt-1 text-base lg:text-lg font-extrabold tabular-nums text-white" data-price>—</div>'
+      + '<div class="text-[10px] tabular-nums text-slate-600 h-3.5" data-delta></div></div>';
+  }
+  var usdGrid = document.getElementById('btc-usd-grid');
+  var krwGrid = document.getElementById('btc-krw-grid');
+  if(usdGrid){
+    usdGrid.innerHTML = SOURCES.filter(function(s){return s.kind==='usd';}).map(cell).join('')
+      + '<div id="cell-usdavg" class="rounded-xl bg-amber-500/5 ring-1 ring-amber-500/30 p-3">'
+      + '<div class="flex items-center justify-between gap-1"><span class="text-[11px] font-bold text-amber-200 truncate">USD 평균</span><span class="text-[9px] text-amber-500/70 uppercase shrink-0">avg</span></div>'
+      + '<div class="mt-1 text-base lg:text-lg font-extrabold tabular-nums text-amber-300" data-price>—</div>'
+      + '<div class="text-[10px] tabular-nums text-amber-500/60 h-3.5" data-delta>코인베이스·크라켄·제미니</div></div>';
+  }
+  if(krwGrid) krwGrid.innerHTML = SOURCES.filter(function(s){return s.kind==='krw';}).map(cell).join('');
+
+  function paint(id, price, cur){
+    var box = document.getElementById('cell-'+id); if(!box) return;
+    var pEl = box.querySelector('[data-price]'); var dEl = box.querySelector('[data-delta]');
+    pEl.textContent = (cur==='KRW') ? fmtKRW(price) : fmtUSD(price);
+    var prev = last[id];
+    if(prev!=null && price!==prev){
+      var up = price>prev, diff = price-prev;
+      pEl.style.color = up ? '#f87171' : '#60a5fa';   // 한국 관례: 상승 빨강 / 하락 파랑
+      if(dEl && id!=='usdavg'){
+        dEl.textContent = (up?'▲ ':'▼ ') + (cur==='KRW' ? ('₩'+Math.round(Math.abs(diff)).toLocaleString('ko-KR')) : ('$'+Math.abs(diff).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})));
+        dEl.style.color = up?'#f87171':'#60a5fa';
+      }
+      box.style.transition='none'; box.style.background = up?'rgba(248,113,113,.10)':'rgba(96,165,250,.10)';
+      setTimeout(function(){ box.style.transition='background .6s ease'; box.style.background=''; }, 60);
+    }
+    last[id] = price;
+  }
+
+  function tick(){
+    SOURCES.forEach(function(s){
+      var ctrl = new AbortController(); var to = setTimeout(function(){ ctrl.abort(); }, 4000);
+      fetch(s.url, {signal:ctrl.signal, cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          clearTimeout(to);
+          var price = s.parse(j);
+          if(!isFinite(price) || price<=0) return;
+          paint(s.id, price, s.cur);
+          var box=document.getElementById('cell-'+s.id); if(box) box.style.opacity='';
+        })
+        .catch(function(){ clearTimeout(to); var box=document.getElementById('cell-'+s.id); if(box) box.style.opacity='.45'; });
+    });
+    setTimeout(function(){
+      var vals = SOURCES.filter(function(s){ return s.avg && last[s.id]!=null; }).map(function(s){ return last[s.id]; });
+      if(vals.length){ paint('usdavg', vals.reduce(function(a,b){return a+b;},0)/vals.length, 'USD'); }
+      var ts = document.getElementById('btc-live-ts');
+      if(ts){ try{ ts.textContent = new Date().toLocaleTimeString('ko-KR',{hour12:false,timeZone:'Asia/Seoul'}); }catch(e){ ts.textContent = new Date().toLocaleTimeString(); } }
+    }, 800);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
 
 </body>
 </html>
