@@ -436,6 +436,26 @@
     });
   }
 
+  // 전 선지 + 선지별(정답·오답) 해설 — 중빈도/희소 학습뷰 공용 (박사 지시 2026-06-25, 원본 choiceAnalysis 노출)
+  function covAllChoicesHTML(q){
+    if(!q || !Array.isArray(q.choices)) return '';
+    var ans=ansArr(q.answer);
+    var lis=q.choices.map(function(c,i){
+      var isC=ans.indexOf(i+1)>=0;
+      return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span><span class="ctext">'+esc(choiceText(c))+'</span></li>';
+    }).join('');
+    return '<div class="seclabel">모든 선지 (정답 강조)</div><ol class="choices">'+lis+'</ol>';
+  }
+  function covChoiceAnalysisHTML(q){
+    if(!q || !Array.isArray(q.choiceAnalysis)) return '';
+    var ans=ansArr(q.answer);
+    var rows=q.choiceAnalysis.map(function(a,i){
+      var isC=ans.indexOf(i+1)>=0, t=analysisText(a); if(!t) return '';
+      return '<div class="caitem '+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span>'+esc(t)+'</div>';
+    }).join('');
+    return rows ? '<div class="seclabel">선지별 분석 · 정답 근거 + 오답 이유</div>'+rows : '';
+  }
+
   function renderRareTypes(){
     var s=state.subject;
     var all=getRareTypes();
@@ -457,13 +477,13 @@
         + '<div class="srcref" style="margin-top:6px">근거 기출: <b style="color:#9d174d">'+item.year+'년 '+esc(item.questionNo)+'번 · '+esc(form)+'</b></div>'
         + '<div class="seclabel" style="color:#9d174d">대표문항</div>'
         + '<div class="qbody">'+esc(qtext)+'</div>'
-        + '<div class="seclabel">공식 정답</div>'+ansHTML
+        + covAllChoicesHTML(q)
         + (item.reason?'<div class="cbx cbx-trap"><b>희소성 판단</b>'+esc(item.reason)+'</div>':'')
         + (item.studyFocus?'<div class="cbx cbx-con"><b>공부 포인트</b>'+esc(item.studyFocus)+'</div>':'')
         + ((item.watch&&item.watch.length)?'<div class="cbx cbx-cau"><b>다시 나오면 볼 것</b>'+listOf(item.watch)+'</div>':'')
         + (item.ifReappears?'<div class="cbx cbx-memo"><b>재출제 대응</b>'+esc(item.ifReappears)+'</div>':'')
         + (basis?'<div class="basis" style="margin-top:8px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
-        + (ca.length?'<div class="cbx cbx-key"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+        + covChoiceAnalysisHTML(q)
         + '<button class="qnobtn" data-goyear="'+item.year+'">→ '+item.year+'년 원문 문제로 이동</button>'
         + '</div>';
     }).join('');
@@ -513,7 +533,7 @@
         + '<div class="srcref" style="margin-top:4px">대표 기출: <b style="color:#0369a1">'+ry+'년 '+esc(rn)+'번 · '+esc(form)+'</b></div>'
         + '<div class="seclabel" style="color:#0369a1">대표문항</div>'
         + '<div class="qbody">'+esc(qtext)+'</div>'
-        + '<div class="seclabel">공식 정답</div>'+ansHTML
+        + covAllChoicesHTML(q)
         + (item.clusterBasis?'<div class="cbx cbx-con"><b>묶음 근거</b>'+esc(item.clusterBasis)+'</div>':'')
         + (item.reason?'<div class="cbx cbx-memo"><b>중빈도 판단</b>'+esc(item.reason)+'</div>':'')
         + (item.studyFocus?'<div class="cbx cbx-key"><b>공부 포인트</b>'+esc(item.studyFocus)+'</div>':'')
@@ -521,7 +541,7 @@
         + (item.examTip?'<div class="cbx cbx-memo"><b>시험장 팁</b>'+esc(item.examTip)+'</div>':'')
         + (item.domainNote?'<div class="srcref" style="margin-top:6px;color:#0369a1">'+esc(item.domainNote)+'</div>':'')
         + (basis?'<div class="basis" style="margin-top:8px"><span class="k">정답 근거</span>'+esc(basis)+'</div>':'')
-        + (ca.length?'<div class="cbx cbx-key"><b>정답 선지 해설</b>'+ca.map(esc).join('<br>')+'</div>':'')
+        + covChoiceAnalysisHTML(q)
         + '<button class="qnobtn" data-goyear="'+ry+'">→ '+ry+'년 원문 문제로 이동</button>'
         + '</div>';
     }).join('');

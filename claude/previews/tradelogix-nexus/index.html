@@ -1672,6 +1672,36 @@ function findBosesaQuestion(subject, year, questionNo){
   return q ? { data, q } : null;
 }
 
+/* 전 선지 + 선지별(정답·오답) 해설 — 중빈도/희소 학습뷰 공용 (박사 지시 2026-06-25).
+   원본 기출 데이터의 choiceAnalysis(전 선지 분석, 06-14 재작성분)를 그대로 노출. 정답=초록·오답=장미. */
+function bosesaAllChoicesHTML(q){
+  if(!q || !Array.isArray(q.choices)) return '';
+  const answers = toAnswerArray(q.answer);
+  const items = q.choices.map((c,i)=>{
+    const num=i+1, isCorrect=answers.includes(num), text=choiceTextOf(c);
+    return `<div class="bq-choice${isCorrect?' bq-correct':''}" style="cursor:default">
+      <span class="font-bold flex-shrink-0">${CIRCLED[num]||num}</span>
+      <span>${esc(String(text).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
+    </div>`;
+  }).join('');
+  return `<div class="mt-3">
+    <div class="text-[11px] font-bold text-slate-300 mb-1"><i class="fa-solid fa-list-ol mr-1"></i>모든 선지 <span class="text-slate-500 font-normal">(정답 강조)</span></div>
+    ${items}
+  </div>`;
+}
+function bosesaChoiceAnalysisHTML(q){
+  if(!q || !Array.isArray(q.choiceAnalysis)) return '';
+  const answers = toAnswerArray(q.answer);
+  const rows = q.choiceAnalysis.map((a,i)=>{
+    const isCorrect=answers.includes(i+1), t=analysisTextOf(a);
+    return t?`<div class="mb-2 leading-relaxed"><b class="${isCorrect?'text-emerald-300':'text-rose-300'} flex-shrink-0">${CIRCLED[i+1]||(i+1)}</b> <span class="${isCorrect?'text-slate-200':'text-slate-400'}">${esc(t)}</span></div>`:'';
+  }).join('');
+  return rows?`<div class="bq-analysis mt-3">
+    <div class="text-[11px] font-bold text-slate-400 mb-2"><i class="fa-solid fa-list-check mr-1"></i>선지별 분석 · 정답 근거 + 오답 이유</div>
+    ${rows}
+  </div>`:'';
+}
+
 function renderBosesaRareTypes(){
   const root = $('bosesaRoot');
   const sub = S.bosesaSubject;
@@ -1710,16 +1740,13 @@ function renderBosesaRareTypes(){
         <span class="br-source"><i class="fa-solid fa-link"></i>${item.year}년 Q${item.questionNo} · ${esc(form)}</span>
       </div>
       <div class="bq-q mt-3"><span class="text-rose-300 font-bold mr-2">대표문항</span>${esc(qtext)}</div>
-      <div class="mt-3">
-        <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check mr-1"></i>공식 정답</div>
-        ${answerChips}
-      </div>
+      ${bosesaAllChoicesHTML(q)}
       <div class="bc-sec bc-trap"><span class="bc-h"><i class="fa-solid fa-fingerprint mr-1"></i>희소성 판단</span><div class="mt-1">${esc(item.reason||'')}</div></div>
       <div class="bc-sec bc-concept"><span class="bc-h"><i class="fa-solid fa-compass mr-1"></i>공부 포인트</span><div class="mt-1">${esc(item.studyFocus||'')}</div></div>
       ${(item.watch&&item.watch.length)?`<div class="bc-sec bc-caution"><span class="bc-h"><i class="fa-solid fa-eye mr-1"></i>다시 나오면 볼 것</span>${listOf(item.watch)}</div>`:''}
       ${item.ifReappears?`<div class="bc-sec bc-memo"><span class="bc-h"><i class="fa-solid fa-rotate mr-1"></i>재출제 대응</span><div class="mt-1">${esc(item.ifReappears)}</div></div>`:''}
       ${basis?`<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>`:''}
-      ${correctAnalysis.length?`<div class="ba-analysis"><span class="font-bold text-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>정답 선지 해설</span><div class="mt-1">${correctAnalysis.map(esc).join('<br>')}</div></div>`:''}
+      ${bosesaChoiceAnalysisHTML(q)}
       <div class="mt-3">
         <button class="text-[11px] font-bold text-slate-300 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 hover:bg-slate-700"
           onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:${sub},bosesaYear:${item.year}})">
@@ -1793,18 +1820,15 @@ function renderBosesaMidFreq(){
       </div>
       ${memberChips?`<div class="mt-2"><span class="text-[11px] font-bold text-sky-300 mr-1"><i class="fa-solid fa-layer-group mr-1"></i>출제 이력</span>${memberChips}</div>`:''}
       <div class="bq-q mt-3"><span class="text-sky-300 font-bold mr-2">대표문항</span>${esc(qtext)}</div>
-      <div class="mt-3">
-        <div class="text-[11px] font-bold text-emerald-300 mb-1"><i class="fa-solid fa-check mr-1"></i>공식 정답</div>
-        ${answerChips}
-      </div>
+      ${bosesaAllChoicesHTML(q)}
+      ${basis?`<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>`:''}
+      ${bosesaChoiceAnalysisHTML(q)}
       ${item.clusterBasis?`<div class="bc-sec bc-concept"><span class="bc-h"><i class="fa-solid fa-object-group mr-1"></i>묶음 근거</span><div class="mt-1">${esc(item.clusterBasis)}</div></div>`:''}
       ${item.reason?`<div class="bc-sec bc-memo"><span class="bc-h"><i class="fa-solid fa-chart-simple mr-1"></i>중빈도 판단</span><div class="mt-1">${esc(item.reason)}</div></div>`:''}
       ${item.studyFocus?`<div class="bc-sec bc-key"><span class="bc-h"><i class="fa-solid fa-compass mr-1"></i>공부 포인트</span><div class="mt-1">${esc(item.studyFocus)}</div></div>`:''}
       ${(item.watch&&item.watch.length)?`<div class="bc-sec bc-caution"><span class="bc-h"><i class="fa-solid fa-eye mr-1"></i>다시 나오면 볼 것</span>${listOf(item.watch)}</div>`:''}
       ${item.examTip?`<div class="bc-sec bc-memo"><span class="bc-h"><i class="fa-solid fa-lightbulb mr-1"></i>시험장 팁</span><div class="mt-1">${esc(item.examTip)}</div></div>`:''}
       ${item.domainNote?`<div class="bc-yr" style="display:block;margin-top:8px"><i class="fa-solid fa-circle-info mr-1"></i>${esc(item.domainNote)}</div>`:''}
-      ${basis?`<div class="ba-basis"><span class="font-bold text-slate-100"><i class="fa-solid fa-book-open mr-1"></i>정답 근거</span><div class="mt-1">${esc(basis)}</div></div>`:''}
-      ${correctAnalysis.length?`<div class="ba-analysis"><span class="font-bold text-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>정답 선지 해설</span><div class="mt-1">${correctAnalysis.map(esc).join('<br>')}</div></div>`:''}
       <div class="mt-3">
         <button class="text-[11px] font-bold text-slate-300 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 hover:bg-slate-700"
           onclick="setState({view:'bosesa',bosesaView:'quiz',bosesaSubject:${sub},bosesaYear:${ry}})">
