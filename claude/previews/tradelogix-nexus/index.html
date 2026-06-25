@@ -212,6 +212,9 @@
     <button class="sb-item" id="sb-bosesa-intro" onclick="setState({view:'bosesa',bosesaView:'intro'})">
       <i class="fa-solid fa-graduation-cap w-4 text-center text-violet-400"></i>업무 개요
     </button>
+    <button class="sb-item" id="sb-bosesa-coverage" onclick="setState({view:'bosesa',bosesaView:'coverage'})">
+      <i class="fa-solid fa-chart-pie w-4 text-center text-sky-400"></i>유형 분포 <span class="text-[9px] font-bold text-sky-400/80 ml-auto">개수 요약</span>
+    </button>
     <!-- 기출문제 토글 -->
     <button class="sb-item" id="sb-bosesa-quiz-toggle" onclick="toggleBosesaMenu()">
       <i class="fa-solid fa-file-alt w-4 text-center text-violet-400"></i>기출문제
@@ -864,6 +867,7 @@ try {
   if (q.get('answers')) { S.view='bosesa'; S.bosesaView='answerNotes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); const ay=q.get('answers'); S.bosesaAnswerYear = (/^\d{4}$/.test(ay) ? +ay : 'all'); }
   if (q.get('rare')) { S.view='bosesa'; S.bosesaView='rareTypes'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
   if (q.get('mid')) { S.view='bosesa'; S.bosesaView='midFreq'; if(q.get('subject')) S.bosesaSubject = +q.get('subject'); }
+  if (q.get('coverage')) { S.view='bosesa'; S.bosesaView='coverage'; }
   if ([...q.keys()].length) { saveState(); history.replaceState(null, '', location.pathname); }
 } catch(e){}
 
@@ -1094,6 +1098,8 @@ function renderSidebar(){
   // 보세사 active
   const biEl = $('sb-bosesa-intro');
   if(biEl) biEl.className = 'sb-item' + (S.view==='bosesa'&&S.bosesaView==='intro'?' sb-on-bosesa':'');
+  const covEl = $('sb-bosesa-coverage');
+  if(covEl) covEl.className = 'sb-item' + (S.view==='bosesa'&&S.bosesaView==='coverage'?' sb-on-bosesa':'');
   // 연도 active
   const y25 = $('sb-year-2025');
   if(y25) y25.className = 'sb-item sb-child2' + (S.view==='bosesa'&&S.bosesaView==='quiz'&&S.bosesaSubject===1&&S.bosesaYear===2025?' sb-on-year':'');
@@ -1461,10 +1467,76 @@ function closeModal(){ S.modalField=null; $('modalRoot').innerHTML=''; document.
 function escClose(e){ if(e.key==='Escape') closeModal(); }
 
 /* ================= 보세사 렌더 ================= */
+/* ===== 유형 분포 · 개수 요약 대시보드 (박사 지시 2026-06-25) =====
+   2026-06-24 큐레이션 4-tier 분류 기준으로 과목당 175문항의 중요개념/중빈도/희소/버림 개수를 한눈에.
+   중빈도·희소는 런타임 데이터(BOSESA_MID_FREQ·BOSESA_RARE_TYPES)에서 계산, 버림은 06-24 매니페스트 스냅샷.
+   중요개념(커버) = 175 − 중빈도 − 희소 − 버림. 칩 클릭 시 해당 학습 카테고리로 이동. */
+const BOSESA_COV_SUBJECTS = [1,2,3,4,5];
+const BOSESA_DISCARD_BY_SUBJECT = {1:1,2:0,3:1,4:13,5:0}; // internal/notes/2026-06-24-bosesa-discard-manifest.json (합 15)
+function bosesaMidFreqCount(sub){
+  const d=getBosesaMidFreqData(sub); if(!d||!Array.isArray(d.items)) return 0;
+  let n=0; for(const it of d.items){ n += Array.isArray(it.members)? it.members.length : 1; } return n;
+}
+function bosesaRareCount(sub){
+  const d=getBosesaRareTypesData(sub); return (d&&Array.isArray(d.items))? d.items.length : 0;
+}
+function bosesaUniverseCount(sub){
+  let n=0; for(const y of BOSESA_STUDY_YEARS){ const d=getBosesaData(sub,y); if(d&&Array.isArray(d.questions)) n+=d.questions.length; }
+  return n||175;
+}
+function computeBosesaCoverage(sub){
+  const tot=bosesaUniverseCount(sub);
+  const mid=bosesaMidFreqCount(sub), rare=bosesaRareCount(sub), discard=BOSESA_DISCARD_BY_SUBJECT[sub]||0;
+  return { tot, mid, rare, discard, concept: tot-mid-rare-discard };
+}
+function renderBosesaCoverage(){
+  const root=$('bosesaRoot'); if(!root) return;
+  const COL={
+    concept:{bd:'#f59e0b',fg:'#fcd34d',label:'중요개념',view:'concepts',sub:'꼭'},
+    mid:{bd:'#38bdf8',fg:'#7dd3fc',label:'중빈도',view:'midFreq',sub:'가능하면'},
+    rare:{bd:'#f43f5e',fg:'#fda4af',label:'희소',view:'rareTypes',sub:'여유되면'},
+    discard:{bd:'#64748b',fg:'#94a3b8',label:'버림',view:null,sub:'포기(1회성)'},
+  };
+  const ORDER=['concept','mid','rare','discard'];
+  const all=BOSESA_COV_SUBJECTS.map(s=>Object.assign({s,name:subjectNameForAnswerNotes(s)},computeBosesaCoverage(s)));
+  const sum=all.reduce((a,r)=>({tot:a.tot+r.tot,concept:a.concept+r.concept,mid:a.mid+r.mid,rare:a.rare+r.rare,discard:a.discard+r.discard}),{tot:0,concept:0,mid:0,rare:0,discard:0});
+  const pct=(n,t)=> t?Math.round(n/t*100):0;
+  const bar=(r)=>{ const t=r.tot||1;
+    const seg=(k)=> r[k]>0?`<div title="${COL[k].label} ${r[k]}문항" style="width:${r[k]/t*100}%;background:${COL[k].bd}"></div>`:'';
+    return `<div class="flex h-3 rounded-full overflow-hidden bg-slate-800 ring-1 ring-slate-700">${ORDER.map(seg).join('')}</div>`; };
+  const legend=(k,n,t)=>`<span class="inline-flex items-center gap-1.5 text-[11px] font-bold" style="color:${COL[k].fg}"><span style="width:10px;height:10px;border-radius:3px;background:${COL[k].bd};display:inline-block"></span>${COL[k].label} <b>${n}</b><span class="opacity-60 font-normal">${pct(n,t)}%</span></span>`;
+  const navBtn=(k,s,n)=> COL[k].view
+    ? `<button onclick="setState({view:'bosesa',bosesaView:'${COL[k].view}',bosesaSubject:${s}})" class="text-[11px] font-bold px-2.5 py-1 rounded-md border transition-colors hover:brightness-125" style="color:${COL[k].fg};border-color:${COL[k].bd}66;background:${COL[k].bd}1a"><i class="fa-solid fa-arrow-right-long mr-1 opacity-60"></i>${COL[k].label} ${n}개 보기</button>`
+    : `<span class="text-[11px] font-bold px-2.5 py-1 rounded-md border border-slate-700 text-slate-500" title="1회성 비전이 — 정답해설 전수뷰에는 존재">${COL[k].label} ${n}개</span>`;
+  const cardOf=(r)=>`<div class="rounded-xl bg-slate-900/60 ring-1 ring-slate-800 p-4">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div><span class="text-sm font-extrabold text-white">${r.s}과목</span> <span class="text-xs text-slate-400">${esc(r.name||'')}</span></div>
+        <div class="text-[11px] text-slate-500">총 <b class="text-slate-300">${r.tot}</b>문항</div>
+      </div>
+      <div class="mt-2">${bar(r)}</div>
+      <div class="flex gap-x-4 gap-y-1 flex-wrap mt-2">${ORDER.map(k=>legend(k,r[k],r.tot)).join('')}</div>
+      <div class="flex gap-2 flex-wrap mt-3 pt-3 border-t border-slate-800">${ORDER.map(k=>navBtn(k,r.s,r[k])).join('')}</div>
+    </div>`;
+  root.innerHTML=`
+    <div class="mb-4">
+      <div class="text-xs font-bold text-sky-400 tracking-widest uppercase"><i class="fa-solid fa-chart-pie mr-1"></i>유형 분포 · 개수 요약</div>
+      <h2 class="text-xl font-bold text-white">5과목 · 7개년(2019~2025) 출제 유형 4-tier 분류</h2>
+      <p class="text-xs text-slate-400 mt-1">과목당 7개년 × 25 = <b class="text-slate-200">175문항</b>을 <b style="color:${COL.concept.fg}">중요개념(꼭)</b> / <b style="color:${COL.mid.fg}">중빈도(가능하면)</b> / <b style="color:${COL.rare.fg}">희소(여유되면)</b> / <b style="color:${COL.discard.fg}">버림(포기)</b> 4계층으로 분류한 개수.</p>
+      <p class="text-[10px] text-slate-500 mt-1">2026-06-24 큐레이션 분류(중요개념 밖 남은 문항을 토픽 재검산→4-tier) 기준. 중빈도·희소는 학습 데이터에서 실시간 집계, 버림은 매니페스트 스냅샷. 중요개념 = 175 − 중빈도 − 희소 − 버림. 칩을 누르면 해당 학습 카테고리로 이동합니다.</p>
+    </div>
+    <div class="rounded-xl p-4 mb-4 ring-1 ring-sky-800/40" style="background:linear-gradient(135deg,#0c1322,#0a0f1c)">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-2"><span class="text-sm font-extrabold text-white"><i class="fa-solid fa-layer-group mr-1.5 text-sky-400"></i>전체 합계</span><span class="text-[11px] text-slate-400">5과목 누적 <b class="text-white">${sum.tot}</b>문항</span></div>
+      ${bar(sum)}
+      <div class="flex gap-x-4 gap-y-1 flex-wrap mt-2">${ORDER.map(k=>legend(k,sum[k],sum.tot)).join('')}</div>
+    </div>
+    <div class="space-y-3">${all.map(cardOf).join('')}</div>`;
+}
+
 function renderBosesa(){
   const root = $('bosesaRoot');
   if(!root) return;
   if(S.bosesaView==='intro'){ renderBosesaIntro(); return; }
+  if(S.bosesaView==='coverage'){ renderBosesaCoverage(); return; }
   if(S.bosesaView==='concepts'){ renderBosesaConcepts(); return; }
   if(S.bosesaView==='answerNotes'){ renderBosesaAnswerNotes(); return; }
   if(S.bosesaView==='rareTypes'){ renderBosesaRareTypes(); return; }

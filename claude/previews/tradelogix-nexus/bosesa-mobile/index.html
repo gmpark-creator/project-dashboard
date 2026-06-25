@@ -225,6 +225,7 @@
     yc += '<button class="chip sub ansk'+(v==='answerNotes'?' on':'')+'" data-view="answerNotes">⚡ 정답해설</button>';
     yc += '<button class="chip sub rare'+(v==='rareTypes'?' on':'')+'" data-view="rareTypes">💎 희소유형</button>';
     yc += '<button class="chip sub mid'+(v==='midFreq'?' on':'')+'" data-view="midFreq">📊 중빈도</button>';
+    yc += '<button class="chip sub cov'+(v==='coverage'?' on':'')+'" data-view="coverage">🗂 유형분포</button>';
     $('yearChips').innerHTML = yc;
     // 유형(A형/B형) 토글 — 기출 보기 + B형 보유 연도/과목에서만 노출
     var formRow=$('formRow');
@@ -244,12 +245,13 @@
     else if(state.view==='answerNotes') loadAnswerNotes();
     else if(state.view==='rareTypes') loadRareTypes();
     else if(state.view==='midFreq') loadMidFreq();
+    else if(state.view==='coverage') loadCoverage();
     else load();
   }
   function switchView(v){ state.view=v; renderChips(); syncAnsToggle(); reloadCurrent(); }
   function syncAnsToggle(){
-    // 정답해설/희소유형은 항상 해설 노출 → 토글 숨김
-    $('ansToggle').style.display = (state.view==='answerNotes'||state.view==='rareTypes'||state.view==='midFreq') ? 'none' : '';
+    // 정답해설/희소유형/중빈도/유형분포는 항상 해설 노출 → 토글 숨김
+    $('ansToggle').style.display = (state.view==='answerNotes'||state.view==='rareTypes'||state.view==='midFreq'||state.view==='coverage') ? 'none' : '';
   }
 
   // ===== 기출 보기 =====
@@ -530,6 +532,59 @@
     window.scrollTo(0,0);
   }
 
+  // ===== 유형 분포 · 개수 요약 대시보드 (박사 지시 2026-06-25) =====
+  // 2026-06-24 큐레이션 4-tier 기준. 중빈도·희소는 런타임 데이터에서 집계, 버림은 매니페스트 스냅샷. 데스크톱 뷰어와 동일.
+  var COV_DISCARD={1:1,2:0,3:1,4:13,5:0};
+  var COVC={ concept:{bd:'#f59e0b',fg:'#fcd34d',label:'중요개념',v:'concepts'},
+             mid:{bd:'#38bdf8',fg:'#7dd3fc',label:'중빈도',v:'midFreq'},
+             rare:{bd:'#f43f5e',fg:'#fda4af',label:'희소',v:'rareTypes'},
+             discard:{bd:'#64748b',fg:'#94a3b8',label:'버림',v:null} };
+  var COV_ORDER=['concept','mid','rare','discard'];
+  function covMidCount(s){ var mf=getMidFreq(); var d=mf&&mf.subjects&&(mf.subjects[s]||mf.subjects[String(s)]); if(!d||!d.items)return 0;
+    var n=0; for(var i=0;i<d.items.length;i++){ var m=d.items[i].members; n+=(m&&m.length)?m.length:1; } return n; }
+  function covRareCount(s){ var rt=getRareTypes(); var d=rt&&rt.subjects&&(rt.subjects[s]||rt.subjects[String(s)]); return (d&&d.items)?d.items.length:0; }
+  function covCompute(s){ var mid=covMidCount(s), rare=covRareCount(s), discard=COV_DISCARD[s]||0, tot=175;
+    return { tot:tot, mid:mid, rare:rare, discard:discard, concept:tot-mid-rare-discard }; }
+  function covAllLoaded(){ return getMidFreq()!=null && getRareTypes()!=null; }
+  function loadCoverage(){
+    $('empty').classList.add('hidden'); $('qlist').innerHTML=''; $('meta').textContent='유형 분포 · 개수 요약';
+    if(covAllLoaded()){ renderCoverage(); return; }
+    $('loading').classList.remove('hidden');
+    injectOnce('../bosesa-midfreq.js'); injectOnce('../bosesa-rare-types.js');
+    waitFor(covAllLoaded, function(){ $('loading').classList.add('hidden'); renderCoverage(); });
+  }
+  function covPct(n,t){ return t?Math.round(n/t*100):0; }
+  function covBar(r){ var t=r.tot||1, h='';
+    for(var i=0;i<COV_ORDER.length;i++){ var k=COV_ORDER[i]; if(r[k]>0) h+='<div style="width:'+(r[k]/t*100)+'%;background:'+COVC[k].bd+'"></div>'; }
+    return '<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;background:#1e293b;border:1px solid #334155">'+h+'</div>'; }
+  function covLegend(k,n,t){ return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:'+COVC[k].fg+'"><span style="width:10px;height:10px;border-radius:3px;background:'+COVC[k].bd+';display:inline-block"></span>'+COVC[k].label+' <b>'+n+'</b><span style="opacity:.6;font-weight:400">'+covPct(n,t)+'%</span></span>'; }
+  function covNav(k,s,n){
+    if(COVC[k].v) return '<button class="cov-nav" data-s="'+s+'" data-v="'+COVC[k].v+'" style="font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;border:1px solid '+COVC[k].bd+'66;background:'+COVC[k].bd+'1a;color:'+COVC[k].fg+'">'+COVC[k].label+' '+n+'개 →</button>';
+    return '<span style="font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;border:1px solid #334155;color:#64748b">'+COVC[k].label+' '+n+'개</span>';
+  }
+  function renderCoverage(){
+    var all=[], sum={tot:0,concept:0,mid:0,rare:0,discard:0};
+    for(var s=1;s<=5;s++){ var r=covCompute(s); r.s=s; r.name=subjName(s); all.push(r);
+      sum.tot+=r.tot; sum.concept+=r.concept; sum.mid+=r.mid; sum.rare+=r.rare; sum.discard+=r.discard; }
+    $('meta').textContent='유형 분포 · 5과목 누적 '+sum.tot+'문항';
+    var head='<div class="catbar"><div class="ct">🗂 유형 분포 · 개수 요약</div>'
+      + '<div class="cd">과목당 7개년×25 = <b>175문항</b>을 <b style="color:'+COVC.concept.fg+'">중요개념</b>/<b style="color:'+COVC.mid.fg+'">중빈도</b>/<b style="color:'+COVC.rare.fg+'">희소</b>/<b style="color:'+COVC.discard.fg+'">버림</b> 4계층으로 분류한 개수. (2026-06-24 큐레이션 기준 · 중요개념=175−중빈도−희소−버림) 칩을 누르면 해당 학습 카테고리로.</div></div>';
+    var lg=function(r){ var h=''; for(var i=0;i<COV_ORDER.length;i++) h+=covLegend(COV_ORDER[i],r[COV_ORDER[i]],r.tot); return h; };
+    var nv=function(r){ var h=''; for(var i=0;i<COV_ORDER.length;i++) h+=covNav(COV_ORDER[i],r.s,r[COV_ORDER[i]]); return h; };
+    var total='<div style="border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(135deg,#0c1322,#0a0f1c)">'
+      + '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><span style="font-size:13px;font-weight:800;color:#fff">📚 전체 합계</span><span style="font-size:11px;color:#94a3b8">5과목 누적 <b style="color:#fff">'+sum.tot+'</b>문항</span></div>'
+      + covBar(sum) + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">'+lg(sum)+'</div></div>';
+    var cards=all.map(function(r){
+      return '<div style="border-radius:12px;background:rgba(15,23,42,.6);border:1px solid #1e293b;padding:14px;margin-bottom:10px">'
+        + '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><b style="font-size:13px;color:#fff">'+r.s+'과목</b> <span style="font-size:12px;color:#94a3b8">'+esc(r.name||'')+'</span></div><div style="font-size:11px;color:#64748b">총 <b style="color:#cbd5e1">'+r.tot+'</b>문항</div></div>'
+        + '<div style="margin-top:8px">'+covBar(r)+'</div>'
+        + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">'+lg(r)+'</div>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;padding-top:11px;border-top:1px solid #1e293b">'+nv(r)+'</div></div>';
+    }).join('');
+    $('qlist').innerHTML = head + total + cards;
+    window.scrollTo(0,0);
+  }
+
   // ===== events =====
   $('subjectChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A'; renderChips(); reloadCurrent();
@@ -544,6 +599,7 @@
   });
   // 희소유형 → 원문 기출 이동
   $('qlist').addEventListener('click', function(e){
+    var cn=e.target.closest('.cov-nav'); if(cn){ state.subject=+cn.dataset.s; switchView(cn.dataset.v); return; }
     var yt=e.target.closest('.an-yeartab'); if(yt && yt.dataset.anyear){ state.answerYear=(yt.dataset.anyear==='all')?'all':+yt.dataset.anyear; renderAnswerNotes(); return; }
     var b=e.target.closest('.qnobtn'); if(!b)return;
     state.view='exam'; state.year=+b.dataset.goyear; state.form='A'; renderChips(); syncAnsToggle(); load();
@@ -566,9 +622,10 @@
     if(q.get('form')) state.form=(String(q.get('form')).toUpperCase()==='B'?'B':'A');
     if(!hasBForm(state.subject,state.year)) state.form='A';
     var vw=q.get('view');
-    if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes'||vw==='midFreq') state.view=vw;
+    if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes'||vw==='midFreq'||vw==='coverage') state.view=vw;
     if(q.get('rare')) state.view='rareTypes';
     if(q.get('mid')) state.view='midFreq';
+    if(q.get('coverage')) state.view='coverage';
   } catch(e){}
 
   renderChips();
