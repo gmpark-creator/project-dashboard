@@ -86,6 +86,18 @@
   .srcref{ font-size:11px; color:var(--sub); margin-top:8px; }
   .chip.cept{ border-color:#f59e0b; color:#b45309; font-weight:800; }
   .chip.cept.on{ background:#f59e0b; border-color:#f59e0b; color:#fff; }
+  /* 중요개념 — 연도별 출제 이력 (모바일) */
+  .cehist{ margin-top:12px; background:#fffaf0; border:1px solid #f3d28a; border-radius:12px; padding:11px 12px; }
+  .cehist-h{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; font-weight:900; color:#9a6700; }
+  .cehist-v{ font-size:10.5px; font-weight:800; color:#92400e; background:#fef3c7; border:1px solid #fbbf24; border-radius:999px; padding:2px 7px; }
+  .cehist-note{ font-size:11px; color:#795100; line-height:1.45; margin-top:5px; }
+  .cehist-row{ margin-top:8px; padding-top:8px; border-top:1px solid #f3d28a; }
+  .cehist-top{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .cehist-y{ font-size:11px; font-weight:900; color:#fff; background:#b45309; border-radius:6px; padding:2px 7px; }
+  .cehist-q{ font-size:11px; font-weight:800; color:#92400e; background:#fff; border:1px solid #f3d28a; border-radius:6px; padding:2px 7px; }
+  .cehist-a{ font-size:11px; font-weight:900; color:#0b8a3e; background:#e7f6ec; border:1px solid #a7e0bd; border-radius:6px; padding:2px 7px; }
+  .cehist-stem{ font-size:12px; line-height:1.5; color:#1f2937; margin-top:5px; overflow-wrap:anywhere; }
+  .cehist-ansx{ font-size:11.5px; line-height:1.45; color:#4b5563; margin-top:4px; overflow-wrap:anywhere; }
   /* ===== 정답 해설 · 빠른회독 (모바일) ===== */
   .chip.ansk{ border-color:#0b8a3e; color:#0b8a3e; font-weight:800; }
   .chip.ansk.on{ background:#0b8a3e; border-color:#0b8a3e; color:#fff; }
@@ -322,6 +334,37 @@
     var show = state.answersShown;
     function sec(cls,label,txt){ return txt? '<div class="cbx '+cls+'"><b>'+label+'</b>'+esc(txt)+'</div>':''; }
     function secList(cls,label,arr){ if(!Array.isArray(arr)||!arr.length) return ''; return '<div class="cbx '+cls+'"><b>'+label+'</b><ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'; }
+    var VLABEL = {
+      varied:'발문·선지 변형',
+      sameStemDiffChoices:'발문 동일·선지 교체',
+      verbatim:'거의 동일 반복',
+      single:'단일 출제'
+    };
+    function examHistory(c){
+      var ex = Array.isArray(c.examByYear) ? c.examByYear : [];
+      if(!ex.length) return '';
+      var vtag = c.variation && VLABEL[c.variation]
+        ? '<span class="cehist-v">'+VLABEL[c.variation]+'</span>' : '';
+      var rows = ex.map(function(e){
+        var a = ansArr(e.answer);
+        var aLbl = a.map(function(x){ return CN[x-1] || x; }).join('');
+        var at = Array.isArray(e.answerText) ? e.answerText : (e.answerText ? [e.answerText] : []);
+        var atHTML = at.length
+          ? '<div class="cehist-ansx">→ <b>정답 '+aLbl+'</b> · '+esc(at.join(' / '))+'</div>' : '';
+        return '<div class="cehist-row"><div class="cehist-top">'
+          + '<span class="cehist-y">'+esc(e.year)+'</span>'
+          + '<span class="cehist-q">Q'+esc(e.no)+'</span>'
+          + (aLbl?'<span class="cehist-a">정답 '+aLbl+'</span>':'')
+          + '</div>'
+          + (e.stem?'<div class="cehist-stem">'+esc(e.stem)+'</div>':'')
+          + atHTML
+          + '</div>';
+      }).join('');
+      return '<div class="cehist"><div class="cehist-h">↻ 연도별 출제 이력 '+vtag+'</div>'
+        + (c.variationNote?'<div class="cehist-note">'+esc(c.variationNote)+'</div>':'')
+        + rows
+        + '</div>';
+    }
     var html = data.concepts.map(function(c,idx){
       var n=idx+1;
       var ans = ansArr(c.answer);
@@ -345,7 +388,7 @@
       return '<div class="qcard"><div class="qhead"><span class="qno" style="background:#b45309;font-size:12px">★'+n+'</span>'
         + '<div class="qtext">'+esc(c.title||'')+'<div class="cmeta">'+badges+'</div></div></div>'
         + '<div class="qbody">'+esc(c.question||'')+'</div>'
-        + '<ol class="choices">'+choices+'</ol>' + box + '</div>';
+        + '<ol class="choices">'+choices+'</ol>' + examHistory(c) + box + '</div>';
     }).join('');
     $('qlist').innerHTML = html;
     window.scrollTo(0,0);
