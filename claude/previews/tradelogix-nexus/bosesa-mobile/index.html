@@ -98,6 +98,10 @@
   .cehist-a{ font-size:11px; font-weight:900; color:#0b8a3e; background:#e7f6ec; border:1px solid #a7e0bd; border-radius:6px; padding:2px 7px; }
   .cehist-stem{ font-size:12px; line-height:1.5; color:#1f2937; margin-top:5px; overflow-wrap:anywhere; }
   .cehist-ansx{ font-size:11.5px; line-height:1.45; color:#4b5563; margin-top:4px; overflow-wrap:anywhere; }
+  .cehist .seclabel{ color:#9a6700; margin-top:8px; }
+  .cehist ol.choices{ margin-top:5px; }
+  .cehist ol.choices li{ background:#fff; border-color:#f3d28a; padding:8px 10px; font-size:12px; line-height:1.45; }
+  .cehist ol.choices li.correct{ background:#e7f6ec; border-color:#a7e0bd; color:#065f46; font-weight:800; }
   /* ===== 정답 해설 · 빠른회독 (모바일) ===== */
   .chip.ansk{ border-color:#0b8a3e; color:#0b8a3e; font-weight:800; }
   .chip.ansk.on{ background:#0b8a3e; border-color:#0b8a3e; color:#fff; }
@@ -199,16 +203,30 @@
     if(form==='B' && hasBForm(s,y)) n+='B';   // 2023 1과목 B형 = BOSESA_DATA_1_2023B
     try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; }
   }
+  function findQuestion(s,y,no,form){
+    var src=getData(s,y,form||'A');
+    if(!src || !Array.isArray(src.questions)) return null;
+    for(var i=0;i<src.questions.length;i++){
+      if(qNoOf(src.questions[i],i)===no) return src.questions[i];
+    }
+    return null;
+  }
   function getConcepts(s){ var n='BOSESA_CONCEPTS_'+s; try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; } }
   function getRareTypes(){ try { return eval('typeof BOSESA_RARE_TYPES!=="undefined" ? BOSESA_RARE_TYPES : null'); } catch(e){ return null; } }
   function getMidFreq(){ try { return eval('typeof BOSESA_MID_FREQ!=="undefined" ? BOSESA_MID_FREQ : null'); } catch(e){ return null; } }
 
   // ===== 데이터 파일 주입 + 폴링 로더 (script const 재선언 충돌 방지: 1회만 주입) =====
+  var MOBILE_ASSET_VERSION = '20260626-concepts-history-choices';
   var injected = {};
+  function versionedSrc(src){
+    if(src.indexOf('../bosesa-concepts-')===0) return src + '?v=' + MOBILE_ASSET_VERSION;
+    return src;
+  }
   function injectOnce(src){
-    if(injected[src]) return;
-    injected[src]=true;
-    var sc=document.createElement('script'); sc.src=src; document.head.appendChild(sc);
+    var finalSrc = versionedSrc(src);
+    if(injected[finalSrc]) return;
+    injected[finalSrc]=true;
+    var sc=document.createElement('script'); sc.src=finalSrc; document.head.appendChild(sc);
   }
   function waitFor(pred, cb){ var t=0; (function w(){ if(pred()||t>80){ cb(); return; } t++; setTimeout(w,40); })(); }
 
@@ -346,11 +364,21 @@
       var vtag = c.variation && VLABEL[c.variation]
         ? '<span class="cehist-v">'+VLABEL[c.variation]+'</span>' : '';
       var rows = ex.map(function(e){
-        var a = ansArr(e.answer);
+        var q = (!Array.isArray(e.choices) || !e.choices.length) ? findQuestion(state.subject, Number(e.year), Number(e.no), e.form||'A') : null;
+        var a = q ? ansArr(q.answer) : ansArr(e.answer);
         var aLbl = a.map(function(x){ return CN[x-1] || x; }).join('');
         var at = Array.isArray(e.answerText) ? e.answerText : (e.answerText ? [e.answerText] : []);
         var atHTML = at.length
           ? '<div class="cehist-ansx">→ <b>정답 '+aLbl+'</b> · '+esc(at.join(' / '))+'</div>' : '';
+        var yChoices = (Array.isArray(e.choices) && e.choices.length)
+          ? e.choices
+          : (q && Array.isArray(q.choices) ? q.choices.map(choiceText) : []);
+        var choicesHTML = yChoices.length
+          ? '<div class="seclabel">선지</div><ol class="choices">'+yChoices.map(function(ch,i){
+              var isC = show && a.indexOf(i+1)>=0;
+              return '<li class="'+(isC?'correct':'')+'"><span class="cn">'+(CN[i]||(i+1))+'</span><span class="ctext">'+esc(String(ch).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))+'</span></li>';
+            }).join('')+'</ol>'
+          : '';
         return '<div class="cehist-row"><div class="cehist-top">'
           + '<span class="cehist-y">'+esc(e.year)+'</span>'
           + '<span class="cehist-q">Q'+esc(e.no)+'</span>'
@@ -358,6 +386,7 @@
           + '</div>'
           + (e.stem?'<div class="cehist-stem">'+esc(e.stem)+'</div>':'')
           + atHTML
+          + choicesHTML
           + '</div>';
       }).join('');
       return '<div class="cehist"><div class="cehist-h">↻ 연도별 출제 이력 '+vtag+'</div>'

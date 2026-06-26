@@ -29,7 +29,7 @@
 <script src="bosesa-data-1-2020.js"></script>
 <script src="bosesa-data-1-2019.js"></script>
 <!-- 중요 개념(7개년 빈출 정리) — 과목별. 박사 지시 2026-06-21, Claude·Codex 협업 -->
-<script src="bosesa-concepts-1.js"></script>
+<script src="bosesa-concepts-1.js?v=20260626-concepts-history-choices"></script>
 <script src="bosesa-data-2-2025.js"></script>
 <script src="bosesa-data-2-2024.js"></script>
 <script src="bosesa-data-2-2023.js"></script>
@@ -37,7 +37,7 @@
 <script src="bosesa-data-2-2021.js"></script>
 <script src="bosesa-data-2-2020.js"></script>
 <script src="bosesa-data-2-2019.js"></script>
-<script src="bosesa-concepts-2.js"></script>
+<script src="bosesa-concepts-2.js?v=20260626-concepts-history-choices"></script>
 <script src="bosesa-data-3-2025.js"></script>
 <script src="bosesa-data-3-2024.js"></script>
 <script src="bosesa-data-3-2023.js"></script>
@@ -47,7 +47,7 @@
 
 <script src="bosesa-data-3-2020.js"></script>
 <script src="bosesa-data-3-2019.js"></script>
-<script src="bosesa-concepts-3.js"></script>
+<script src="bosesa-concepts-3.js?v=20260626-concepts-history-choices"></script>
 <script src="bosesa-data-4-2025.js"></script>
 <script src="bosesa-data-4-2024.js"></script>
 <script src="bosesa-data-4-2023.js"></script>
@@ -55,7 +55,7 @@
 <script src="bosesa-data-4-2021.js"></script>
 <script src="bosesa-data-4-2020.js"></script>
 <script src="bosesa-data-4-2019.js"></script>
-<script src="bosesa-concepts-4.js"></script>
+<script src="bosesa-concepts-4.js?v=20260626-concepts-history-choices"></script>
 
 <script src="bosesa-data-5-2025.js"></script>
 <script src="bosesa-data-5-2024.js"></script>
@@ -64,7 +64,7 @@
 <script src="bosesa-data-5-2021.js"></script>
 <script src="bosesa-data-5-2020.js"></script>
 <script src="bosesa-data-5-2019.js"></script>
-<script src="bosesa-concepts-5.js"></script>
+<script src="bosesa-concepts-5.js?v=20260626-concepts-history-choices"></script>
 <script src="bosesa-rare-types.js"></script>
 <script src="bosesa-midfreq.js"></script>
 <script src="customs-practice-data.js"></script>
@@ -2112,11 +2112,28 @@ function renderBosesaConcepts(){
     const vtag = c.variation && VLABEL[c.variation]
       ? `<span class="bc-vtag bc-vtag-${c.variation}">${VLABEL[c.variation]}</span>` : '';
     const rows = ex.map(e=>{
+      const hasYearChoices = Array.isArray(e.choices) && e.choices.length;
+      const ref = hasYearChoices ? null : findBosesaQuestion(sub, Number(e.year), Number(e.no));
+      const q = ref ? ref.q : null;
       const a = Array.isArray(e.answer)?e.answer:(e.answer!=null?[e.answer]:[]);
       const aLbl = a.map(x=>CIRC[x]||x).join('');
       const at = Array.isArray(e.answerText)?e.answerText:(e.answerText?[e.answerText]:[]);
       const atHTML = at.length
         ? `<div class="bc-yrrow-ansx">→ <b>정답 ${aLbl}</b> · ${esc(at.join(' / '))}</div>` : '';
+      const yChoices = hasYearChoices
+        ? e.choices
+        : (q && Array.isArray(q.choices) ? q.choices.map(choiceTextOf) : []);
+      const yChoicesHTML = yChoices.length
+        ? `<div class="mt-2">
+            <div class="text-[10px] font-bold text-slate-400 mb-1"><i class="fa-solid fa-list-ol mr-1"></i>선지</div>
+            ${yChoices.map((ch,ci)=>{
+              const num = ci+1, isCorrect = a.includes(num);
+              return `<div class="bq-choice${reveal && isCorrect?' bq-correct':(reveal?' bq-wrong':'')}" style="cursor:default">
+                <span class="font-bold flex-shrink-0">${CIRC[num]||num}</span>
+                <span>${esc(String(ch).replace(/^[①②③④⑤⑥⑦⑧]\s*/,''))}</span>
+              </div>`;
+            }).join('')}
+          </div>` : '';
       return `<div class="bc-yrrow">
         <div class="bc-yrrow-top">
           <span class="bc-yr2">${e.year}</span>
@@ -2125,6 +2142,7 @@ function renderBosesaConcepts(){
         </div>
         ${e.stem?`<div class="bc-yrrow-stem">${esc(e.stem)}</div>`:''}
         ${atHTML}
+        ${yChoicesHTML}
       </div>`;
     }).join('');
     return `<aside class="bc-side"><div class="bc-side-box">
@@ -2191,7 +2209,7 @@ function renderBosesaConcepts(){
         <h2 class="text-xl font-bold text-white">${data.subjectNo ?? data.subject ?? sub}과목 — ${esc(data.subjectName||'')}</h2>
         <p class="text-xs text-slate-400 mt-1">${esc(data.years||'2019~2025')} 기출 교차분석 · 총 <b class="text-amber-300">${data.concepts.length}</b>개 핵심 유형 · 빈출/유사/중요 유형 총정리</p>
         <p class="text-[10px] text-slate-500 mt-1">Claude(Opus 4.8)·Codex 교차검증 정리 — 정답은 공식 정답표 기준 불변</p>
-        <a href="bosesa-mobile/?subject=${sub}&view=concepts" target="_blank" rel="noopener"
+        <a href="bosesa-mobile/?subject=${sub}&view=concepts&v=20260626-concepts-history-choices" target="_blank" rel="noopener"
            class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-300 bg-emerald-900/30 border border-emerald-700/50 rounded-lg px-3 py-1.5 hover:bg-emerald-900/50">
           <i class="fa-solid fa-mobile-screen-button"></i> 📱 모바일에서 중요 개념 보기
         </a>
