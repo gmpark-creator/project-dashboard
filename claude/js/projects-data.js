@@ -823,7 +823,8 @@ const PROJECTS = [
     progress: 90,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/',
     preview: { type:'embed', height:560, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/', label:'Export Runner UI — 레시피·파일 입력·내장 사용설명서 (데모 미리보기, 실제 변환은 로컬)' }
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/', label:'Export Runner UI — 레시피·파일 입력·내장 사용설명서 (데모 미리보기, 실제 변환은 로컬)' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/guide.html', label:'📖 사용설명서 A to Z (설치·사용·업로드·문제해결 전부)' }
     ]},
     summary: '내 영상을 유튜브용으로 다듬어 한 번에 내보내는 무료 100% 로컬 도구.\n'
            + '클로드·코덱스 변증법(설계 3R + 단계별 적대 검수)으로 "무료보다 신뢰성" 원칙 아래 설계.\n'
