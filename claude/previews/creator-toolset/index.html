@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>크리에이터 툴셋 · Export Runner</title>
+<style>
+  :root{
+    --bg:#0e1414; --panel:#152020; --panel2:#1b2a2a; --line:#273a3a;
+    --teal:#2dd4bf; --teal-dim:#14b8a6; --ink:#e7f2f0; --muted:#8aa6a2;
+    --warn:#fbbf24; --bad:#f87171; --good:#34d399; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Malgun Gothic","Segoe UI",system-ui,sans-serif;line-height:1.6;}
+  a{color:var(--teal)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 80px;}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+  header .logo{width:42px;height:42px;border-radius:11px;
+    background:linear-gradient(135deg,var(--teal),#0e7490);
+    display:grid;place-items:center;font-size:22px;}
+  header h1{font-size:20px;margin:0;}
+  header .sub{color:var(--muted);font-size:13px;margin-top:2px;}
+  .status{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;}
+  .status b{color:var(--good)}
+  .status .bad{color:var(--bad)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;margin:16px 0;}
+  .card h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  .card .desc{color:var(--muted);font-size:13px;margin:0 0 14px;}
+  .badge{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    color:var(--teal);font-size:11px;padding:1px 8px;border-radius:999px;}
+
+  /* 사용설명서 */
+  .manual{background:linear-gradient(180deg,#13201f,#101a1a);border:1px solid var(--teal-dim);}
+  .steps{display:grid;gap:10px;}
+  .step{display:flex;gap:12px;align-items:flex-start;}
+  .step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--teal);color:#04201c;
+    font-weight:700;display:grid;place-items:center;font-size:13px;margin-top:1px;}
+  .step .t{font-size:14px;}
+  .step .t b{color:#bdf3ec;}
+  details{border-top:1px dashed var(--line);margin-top:14px;padding-top:10px;}
+  details summary{cursor:pointer;color:var(--teal);font-size:13px;}
+  details .body{font-size:13px;color:var(--muted);margin-top:8px;}
+  details .body li{margin:4px 0;}
+
+  /* 레시피 카드 */
+  .recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .recipe{border:1.5px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;
+    background:var(--panel2);transition:.15s;}
+  .recipe:hover{border-color:var(--teal-dim);}
+  .recipe.sel{border-color:var(--teal);box-shadow:0 0 0 2px rgba(45,212,191,.18);}
+  .recipe .rn{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .recipe .rd{font-size:12px;color:var(--muted);}
+
+  label.field{display:block;margin:12px 0;}
+  label.field .lab{font-size:13px;font-weight:600;margin-bottom:4px;display:flex;gap:8px;align-items:center;}
+  label.field .hint{font-size:12px;color:var(--muted);font-weight:400;}
+  input[type=text],textarea,select{width:100%;background:#0f1818;border:1px solid var(--line);
+    color:var(--ink);border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit;}
+  textarea{min-height:70px;resize:vertical;}
+  .file{border:1.5px dashed var(--line);border-radius:10px;padding:12px;background:#0f1818;}
+  .file input{font-size:12px;color:var(--muted);}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .opt-hide{display:none;}
+
+  button.go{background:var(--teal);color:#04201c;border:none;font-weight:700;font-size:15px;
+    padding:13px 22px;border-radius:11px;cursor:pointer;width:100%;margin-top:8px;}
+  button.go:disabled{opacity:.5;cursor:default;}
+  button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    padding:9px 14px;border-radius:9px;cursor:pointer;font-size:13px;}
+
+  .prog{height:14px;background:#0f1818;border-radius:999px;overflow:hidden;border:1px solid var(--line);}
+  .prog .bar{height:100%;width:0;background:linear-gradient(90deg,var(--teal-dim),var(--teal));transition:.3s;}
+  .progmsg{font-size:13px;color:var(--muted);margin-top:8px;}
+  .result a.dl{display:inline-block;margin:6px 8px 0 0;}
+  .filelist{font-size:12px;color:var(--muted);background:#0f1818;border:1px solid var(--line);
+    border-radius:9px;padding:10px;margin-top:10px;}
+  .filelist code{color:#bdf3ec;}
+  .err{color:var(--bad);font-size:13px;margin-top:10px;}
+  .note{font-size:12px;color:var(--muted);}
+  .hidden{display:none;}
+
+  /* 후보 이미지 그리드 (Phase 2) */
+  .candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px;}
+  .cand{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0f1818;}
+  .cand img{width:100%;height:108px;object-fit:cover;display:block;background:#000;}
+  .cand .ctrl{display:flex;flex-wrap:wrap;gap:4px;padding:6px;}
+  .cand .ctrl button{flex:1;min-width:54px;font-size:11px;padding:5px 4px;border-radius:6px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;}
+  .cand .ctrl button:disabled{opacity:.4;cursor:default;}
+  .cand.busy .ctrl button{pointer-events:none;opacity:.45;}
+  .cand .ctrl button.up{border-color:var(--teal-dim);color:var(--teal);}
+  .cand .st{font-size:10px;color:var(--muted);padding:0 6px 6px;min-height:12px;}
+  .seg{font-size:12px;color:var(--muted);margin:8px 0 2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🎬</div>
+    <div>
+      <h1>크리에이터 툴셋 · Export Runner</h1>
+      <div class="sub">유튜브용으로 영상을 다듬어 한 번에 내보내는 무료 로컬 도구</div>
+    </div>
+    <div class="status" id="status">상태 확인 중…</div>
+  </header>
+
+  <!-- ░░░ 사용설명서 (요청 #2) ░░░ -->
+  <section class="card manual">
+    <h2>📖 처음이세요? — 1분 사용법</h2>
+    <p class="desc">초보자용 안내입니다. 위에서 아래로 ①②③④ 순서대로만 하면 됩니다.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">
+        <b>레시피를 고르세요.</b> 만들 영상 종류를 고르는 칸입니다.
+        말하는 긴 영상이면 <b>①토크형</b>, 세로 쇼츠면 <b>②쇼츠</b>,
+        이미 편집된 클립을 합치기만 하면 <b>③빠른컷</b>, 썸네일감만 뽑으려면 <b>④후보추출</b>.
+      </div></div>
+      <div class="step"><div class="n">2</div><div class="t">
+        <b>영상 파일을 넣으세요.</b> <b>본편</b>은 필수(여러 개 넣으면 순서대로 이어붙입니다).
+        인트로/아웃트로/자막은 있으면 넣고, 없으면 비워두세요.
+      </div></div>
+      <div class="step"><div class="n">3</div><div class="t">
+        <b>제목·설명·태그를 적으세요.</b> 나중에 유튜브에 붙여넣을 정보입니다.
+        지금 안 적어도 되고, 나중에 결과 폴더에서 수정해도 됩니다.
+      </div></div>
+      <div class="step"><div class="n">4</div><div class="t">
+        <b>「내보내기 시작」을 누르세요.</b> 진행 막대가 100%가 되면,
+        <b>결과 폴더</b>에 <code>final.mp4</code>(완성 영상)와 썸네일·설명·체크리스트가 함께 생깁니다.
+        그 <code>final.mp4</code>를 유튜브 스튜디오에 올리면 됩니다.
+        <span class="hint">(채널 자동 업로드는 3단계에서 추가 예정)</span>
+      </div></div>
+    </div>
+
+    <details>
+      <summary>이 도구가 자동으로 해주는 것 (안 보이지만 중요)</summary>
+      <div class="body"><ul>
+        <li><b>화면 규격 통일</b> — 서로 다른 해상도/프레임의 클립을 같은 규격으로 맞춰 깨끗하게 이어붙입니다.</li>
+        <li><b>음량 자동 정규화</b> — 유튜브 권장 기준(-14 LUFS)으로 소리 크기를 맞춰, 너무 작거나 큰 소리를 정리합니다.</li>
+        <li><b>자막 굽기</b> — SRT/ASS 자막을 영상에 직접 새겨 어디서 봐도 자막이 나오게 합니다(한글 폰트 자동).</li>
+        <li><b>유튜브용 내보내기</b> — H.264/AAC MP4 + 빠른 시작(faststart)으로, 업로드가 잘 되는 형식으로 저장합니다.</li>
+      </ul></div>
+    </details>
+
+    <details>
+      <summary>문제가 생기면 (자주 묻는 것)</summary>
+      <div class="body"><ul>
+        <li><b>“HDR 영상은 지원하지 않습니다” 라고 나와요</b> → 아이폰 HDR 등은 색이 틀어질 수 있어 일부러 막아뒀습니다. 촬영 설정에서 HDR을 끄거나, 일반(SDR)으로 변환 후 넣어주세요.</li>
+        <li><b>자막 글자가 안 보여요</b> → 자막 파일이 SRT/ASS 인지 확인하세요. 한글 폰트는 자동(맑은 고딕)입니다.</li>
+        <li><b>오래 걸려요</b> → 영상 길이·개수에 비례합니다. 진행 막대가 멈춘 게 아니라면 정상입니다.</li>
+        <li><b>결과가 이상해요</b> → 결과 폴더의 <code>run_manifest.json</code> 에 무엇을 어떻게 처리했는지 다 기록돼 있습니다(문제 추적용). 참고사항은 <code>WARNINGS.txt</code>.</li>
+      </ul></div>
+    </details>
+
+    <details>
+      <summary>서버 실행·결과 위치·여러 영상 순서 (조금 더 알고 싶다면)</summary>
+      <div class="body"><ul>
+        <li><b>서버 실행</b> — 이 화면이 안 열리면 프로젝트 폴더에서 <code>scripts\run_server.ps1</code> 를 실행하고 브라우저로 <code>http://127.0.0.1:8020</code> 에 접속하세요.</li>
+        <li><b>처음 한 번 설치</b> — <code>scripts\setup_windows_desktop.ps1</code> (파이썬 환경 + 의존성). 위 상태표시줄에 “ffmpeg 없음”이 보이면 ffmpeg 설치가 필요합니다.</li>
+        <li><b>결과 위치</b> — 완료 화면의 <b>「결과 폴더 열기」</b> 버튼, 또는 프로젝트의 <code>outputs/</code> 폴더에 있습니다.</li>
+        <li><b>여러 본편 순서</b> — 고른 순서대로 이어붙입니다. 순서가 중요하면 파일명을 1, 2, 3… 으로 정리한 뒤 선택하세요.</li>
+      </ul></div>
+    </details>
+  </section>
+
+  <!-- ① 레시피 -->
+  <section class="card">
+    <h2><span class="badge">①</span> 레시피 선택</h2>
+    <p class="desc">만들 영상 종류를 고르세요. 고르면 아래 입력칸이 그에 맞게 바뀝니다.</p>
+    <div class="recipes" id="recipes">불러오는 중…</div>
+  </section>
+
+  <!-- ② 파일 -->
+  <section class="card">
+    <h2><span class="badge">②</span> 영상 파일</h2>
+    <label class="field">
+      <span class="lab">본편 영상 <span class="hint">(필수 · 여러 개 선택하면 순서대로 이어붙입니다)</span></span>
+      <div class="file"><input type="file" id="mains" multiple accept="video/*"></div>
+    </label>
+    <div class="row" id="introOutroRow">
+      <label class="field">
+        <span class="lab">인트로 <span class="hint">(선택 · 맨 앞에 붙음)</span></span>
+        <div class="file"><input type="file" id="intro" accept="video/*"></div>
+      </label>
+      <label class="field">
+        <span class="lab">아웃트로 <span class="hint">(선택 · 맨 뒤에 붙음)</span></span>
+        <div class="file"><input type="file" id="outro" accept="video/*"></div>
+      </label>
+    </div>
+    <label class="field" id="subRow">
+      <span class="lab">자막 파일 <span class="hint">(선택 · SRT/ASS · 영상에 새겨집니다)</span></span>
+      <div class="file"><input type="file" id="subtitle" accept=".srt,.ass,.ssa,.vtt"></div>
+    </label>
+  </section>
+
+  <!-- ③ 정보 -->
+  <section class="card" id="metaCard">
+    <h2><span class="badge">③</span> 업로드 정보 <span class="hint" style="font-weight:400;font-size:12px;color:var(--muted)">(나중에 수정 가능)</span></h2>
+    <label class="field">
+      <span class="lab">제목</span>
+      <input type="text" id="title" placeholder="예: 부산 여행 브이로그 1편">
+    </label>
+    <label class="field">
+      <span class="lab">설명 <span class="hint">(유튜브 설명란에 들어갈 내용)</span></span>
+      <textarea id="description" placeholder="영상 설명, 링크 등"></textarea>
+    </label>
+    <div class="row">
+      <label class="field">
+        <span class="lab">태그 <span class="hint">(쉼표로 구분)</span></span>
+        <input type="text" id="tags" placeholder="여행, 부산, 브이로그">
+      </label>
+      <label class="field">
+        <span class="lab">카테고리</span>
+        <select id="category">
+          <option value="22">인물/블로그</option>
+          <option value="24">엔터테인먼트</option>
+          <option value="20">게임</option>
+          <option value="27">교육</option>
+          <option value="26">노하우/스타일</option>
+          <option value="10">음악</option>
+          <option value="28">과학기술</option>
+          <option value="19">여행/이벤트</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <!-- ④ 실행 -->
+  <section class="card">
+    <h2><span class="badge">④</span> 내보내기</h2>
+    <button class="go" id="go">내보내기 시작 ▶</button>
+    <div id="runArea" class="hidden" style="margin-top:16px;">
+      <div class="prog"><div class="bar" id="bar"></div></div>
+      <div class="progmsg" id="progmsg">준비 중…</div>
+    </div>
+    <div id="resultArea" class="result hidden" style="margin-top:16px;"></div>
+    <div id="errArea" class="err hidden"></div>
+  </section>
+
+  <p class="note">© 크리에이터 툴셋 · 100% 로컬 실행 · 인터넷 업로드는 3단계(업로더)에서 추가됩니다.
+    설계 원칙: <b>무료보다 신뢰성</b> — 같은 입력엔 항상 같은 결과.</p>
+</div>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+let RECIPES = [], SELECTED = null;
+
+async function init(){
+  // ── 대시보드 데모 모드: 백엔드 없이 UI 렌더(목 데이터) ──
+  $('#status').innerHTML = `<b>데모 미리보기</b><br>실제 변환은 로컬 설치 후`;
+  RECIPES = [
+    {id:'talk-longform',name:'① 토크형 롱폼 (가로 1080p)',description:'말하는 영상용. 인트로/아웃트로 결합 + 자막 굽기 + 음량 -14 LUFS + 1080p 내보내기.',kind:'assemble',subtitles:true,intro_outro:true,target:{}},
+    {id:'shorts-vertical',name:'② 쇼츠 세로 (9:16 1080×1920)',description:'가로 영상을 9:16로 가득 채워 자르고 큰 자막 + 음량 정규화.',kind:'assemble',subtitles:true,intro_outro:false,target:{}},
+    {id:'quickcut-nosub',name:'③ 무자막 빠른컷 (가로 1080p)',description:'손편집 클립을 빠르게 유튜브용으로 결합.',kind:'assemble',subtitles:false,intro_outro:true,target:{}},
+    {id:'thumbnail-candidates',name:'④ 썸네일 · 후보 이미지 추출',description:'씬 키프레임 + 간격 후보 + 업스케일/배경제거(휴먼인더루프).',kind:'candidates',subtitles:false,intro_outro:false,target:{}}
+  ];
+  renderRecipes();
+}
+
+function renderRecipes(){
+  const box = $('#recipes'); box.innerHTML='';
+  RECIPES.forEach(rc=>{
+    const d = document.createElement('div');
+    d.className='recipe'; d.dataset.id=rc.id;
+    d.innerHTML = `<div class="rn">${rc.name}</div><div class="rd">${rc.description||''}</div>`;
+    d.onclick = ()=>selectRecipe(rc.id);
+    box.appendChild(d);
+  });
+  if(RECIPES.length) selectRecipe(RECIPES[0].id);
+}
+
+function selectRecipe(id){
+  SELECTED = RECIPES.find(r=>r.id===id);
+  document.querySelectorAll('.recipe').forEach(e=>e.classList.toggle('sel', e.dataset.id===id));
+  // 레시피에 맞춰 입력칸 표시/숨김
+  const isCand = SELECTED.kind==='candidates';
+  $('#introOutroRow').style.display = (SELECTED.intro_outro && !isCand) ? '' : 'none';
+  $('#subRow').style.display = (SELECTED.subtitles && !isCand) ? '' : 'none';
+  $('#metaCard').style.display = isCand ? 'none' : '';
+  $('#go').textContent = isCand ? '후보 이미지 추출 ▶' : '내보내기 시작 ▶';
+}
+
+async function start(){
+  // 데모 미리보기 — 실제 처리는 로컬에서만
+  showErr('이 화면은 대시보드 미리보기(데모)입니다. 실제 변환·내보내기는 로컬에 설치해 http://127.0.0.1:8020 에서 동작합니다.');
+  return;
+}
+async function _startDisabledInDemo(){
+  const mains = $('#mains').files;
+  if(!mains.length){ showErr('본편 영상을 1개 이상 선택하세요.'); return; }
+  if(!SELECTED){ showErr('레시피를 선택하세요.'); return; }
+  hideErr();
+  const fd = new FormData();
+  fd.append('recipe_id', SELECTED.id);
+  for(const f of mains) fd.append('mains', f);
+  const intro=$('#intro').files[0], outro=$('#outro').files[0], sub=$('#subtitle').files[0];
+  if(intro && SELECTED.intro_outro) fd.append('intro', intro);
+  if(outro && SELECTED.intro_outro) fd.append('outro', outro);
+  if(sub && SELECTED.subtitles) fd.append('subtitle', sub);
+  fd.append('title', $('#title').value||'');
+  fd.append('description', $('#description').value||'');
+  fd.append('tags', $('#tags').value||'');
+  fd.append('category', $('#category').value||'22');
+
+  $('#go').disabled=true; $('#runArea').classList.remove('hidden');
+  $('#resultArea').classList.add('hidden'); setBar(0,'업로드 중…');
+  try{
+    const res = await fetch('/run',{method:'POST',body:fd});
+    if(!res.ok){ throw new Error((await res.json()).detail || '시작 실패'); }
+    const {jobId} = await res.json();
+    poll(jobId);
+  }catch(e){ $('#go').disabled=false; showErr(e.message); }
+}
+
+function setBar(p,msg){ $('#bar').style.width=p+'%'; if(msg) $('#progmsg').textContent=`${msg} (${p}%)`; }
+
+async function poll(jobId){
+  try{
+    const j = await (await fetch('/progress/'+jobId)).json();
+    setBar(j.percent||0, `${j.stage||''} — ${j.message||''}`);
+    if(j.status==='done'){ $('#go').disabled=false; showResult(jobId); return; }
+    if(j.status==='error'){ $('#go').disabled=false; showErr(j.error||'오류'); return; }
+    setTimeout(()=>poll(jobId), 1000);
+  }catch(e){ setTimeout(()=>poll(jobId), 1500); }
+}
+
+async function showResult(jobId){
+  $('#resultArea').classList.remove('hidden');
+  if(SELECTED.kind==='candidates'){ return showCandidates(jobId); }
+  const r = await (await fetch('/result/'+jobId)).json();
+  const files = (r.files||[]).map(f=>`<code>${f}</code>`).join(' · ');
+  $('#resultArea').innerHTML = `
+    <div style="font-size:15px;font-weight:700;color:var(--good)">✅ 완료되었습니다!</div>
+    <div class="note" style="margin:6px 0">결과 폴더: <code>${r.packageName}</code></div>
+    <a class="dl" href="/download/${jobId}/final"><button class="ghost">🎬 완성 영상 받기 (final.mp4)</button></a>
+    <a class="dl" href="/download/${jobId}/zip"><button class="ghost">📦 폴더 전체 받기(zip)</button></a>
+    <button class="ghost" onclick="reveal('${jobId}')">📂 결과 폴더 열기</button>
+    <div class="filelist">${files}</div>`;
+}
+
+async function showCandidates(jobId){
+  const r = await (await fetch('/candidates/'+jobId)).json();
+  const upOk = r.engines && r.engines.upscale && r.engines.upscale.available;
+  const bgOk = r.engines && r.engines.rembg && r.engines.rembg.available;
+  const cells = (r.candidates||[]).map(path=>{
+    const name = path.split('/').pop();
+    const up = `<button class="up" ${upOk?'':'disabled'} onclick="enhanceImg('${jobId}','${name}',true,false,this)">업스케일</button>`;
+    const bg = `<button ${bgOk?'':'disabled'} onclick="enhanceImg('${jobId}','${name}',false,true,this)">배경제거</button>`;
+    return `<div class="cand">
+      <a href="/image/${jobId}/${path}" target="_blank"><img src="/image/${jobId}/${path}" loading="lazy"></a>
+      <div class="ctrl">${up}${bg}<a href="/image/${jobId}/${path}" download><button>원본</button></a></div>
+      <div class="st"></div></div>`;
+  }).join('');
+  $('#resultArea').innerHTML = `
+    <div style="font-size:15px;font-weight:700;color:var(--good)">✅ 후보 ${(r.candidates||[]).length}장 추출 완료</div>
+    <div class="note" style="margin:6px 0">마음에 드는 컷을 고른 뒤 그 1장에만 업스케일/배경제거를 적용하세요(자동 최종산출 아님).
+      ${upOk?'':'<br>⚠ 업스케일 비활성 — Real-ESRGAN(ReMaster bin) 미탐지'}
+      ${bgOk?'':'<br>⚠ 배경제거 비활성 — <code>pip install rembg</code> 후 사용'}</div>
+    <a class="dl" href="/download/${jobId}/zip"><button class="ghost">📦 전체 받기(zip)</button></a>
+    <button class="ghost" onclick="reveal('${jobId}')">📂 결과 폴더 열기</button>
+    <div class="seg">후보 (씬 전환 + 균등 간격)</div>
+    <div class="candgrid">${cells}</div>`;
+}
+
+async function enhanceImg(jobId, name, upscale, rembg, btn){
+  const cell = btn.closest('.cand'); const st = cell.querySelector('.st');
+  cell.classList.add('busy');  // 처리 중 카드 전체 버튼 잠금(중복 제출 방지)
+  st.textContent = (upscale?'업스케일':'배경제거')+' 처리 중…';
+  try{
+    const fd = new FormData();
+    fd.append('jid', jobId); fd.append('name', name);
+    fd.append('upscale', upscale?'true':'false'); fd.append('rembg', rembg?'true':'false');
+    const res = await fetch('/enhance_image',{method:'POST',body:fd});
+    if(!res.ok){ throw new Error((await res.json()).detail||'실패'); }
+    const j = await res.json();
+    st.innerHTML = `✅ <a href="/image/${jobId}/${j.file}" download>결과 내려받기</a>`;
+  }catch(e){ st.textContent='⚠ '+e.message; }
+  finally{ cell.classList.remove('busy'); }
+}
+
+async function reveal(jobId){ try{ await fetch('/reveal/'+jobId,{method:'POST'}); }catch(e){} }
+function showErr(m){ const e=$('#errArea'); e.textContent='⚠ '+m; e.classList.remove('hidden'); }
+function hideErr(){ $('#errArea').classList.add('hidden'); }
+
+$('#go').onclick = start;
+init();
+</script>
+</body>
+</html>

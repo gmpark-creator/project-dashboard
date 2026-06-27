@@ -39,6 +39,7 @@ html[data-color="gold"]   { --ink-dark:#181206; --gray1-dark:#281e0b; --accent-d
 html[data-color="gray"]   { --ink-dark:#101216; --gray1-dark:#1c1f25; --accent-dark:#9fb0c7; --accent-light:#586273; }  /* 7 · Premarket — 그레이 */
 html[data-color="teal"]   { --ink-dark:#04181f; --gray1-dark:#0a2630; --accent-dark:#22d3ee; --accent-light:#0e7490; }  /* 10 · FitRx 헬스케어 — 시안/청록(임상 톤, blue·green·navy와 확실히 구분) */
 html[data-color="rose"]   { --ink-dark:#1c0a10; --gray1-dark:#2b1219; --accent-dark:#fb7185; --accent-light:#e11d48; }  /* 11 · Cutpilot AI 영상 — 로즈/핑크(neon 마젠타·red 코랄과 구분) */
+html[data-color="orange"] { --ink-dark:#1c1206; --gray1-dark:#2b1d0a; --accent-dark:#fb923c; --accent-light:#ea580c; }  /* 13 · 크리에이터 툴셋 — 오렌지(gold·rose·red와 구분) */
 
 /* ---- DARK 모드 (기본) ---- */
 html[data-mode="dark"] {

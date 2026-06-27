@@ -809,6 +809,41 @@ const PROJECTS = [
     milestones: [
       { date:'2026-06-15', title:'프로젝트 #12 신설 — 위험물산업기사 기출문제 뷰어', desc:'kinz.kr 기출 수집 → Claude 1차 오답검수 → 인터랙티브 뷰어 빌드(index.html). 2019년 3회·1회·2020년 2회 3개 회차 = 180문항 수록. Codex 교차검증 대기.' }
     ]
+  },
+  {
+    id: 'creator-toolset',
+    no: 13,
+    name: 'Creator Toolset · Export Runner',
+    subtitle: '유튜브용 영상 내보내기 + 이미지 추출 (무료 로컬 도구)',
+    icon: 'film',
+    platform: '로컬 데스크톱 · Python/FastAPI + ffmpeg',
+    status: 'in-progress',
+    start: '2026-06-28',
+    latest: '2026-06-28',
+    progress: 65,
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/',
+    preview: { type:'embed', height:560, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/creator-toolset/', label:'Export Runner UI — 레시피·파일 입력·내장 사용설명서 (데모 미리보기, 실제 변환은 로컬)' }
+    ]},
+    summary: '내 영상을 유튜브용으로 다듬어 한 번에 내보내는 무료 100% 로컬 도구.\n'
+           + '클로드·코덱스 변증법(설계 3R + 단계별 적대 검수)으로 "무료보다 신뢰성" 원칙 아래 설계.\n'
+           + 'Phase 1 = Export Runner(정규화→자막→음량→내보내기+업로드 패키지), Phase 2 = 이미지 후보추출/업스케일·배경제거. Phase 3(개인채널 업로더) 예정.',
+    method: 'ffprobe 진단 → 단일 정규형(CFR·BT.709·48k, 무음 보정) → concat → SRT/ASS 자막 번인(한글 폰트) → loudnorm 2-pass(-14 LUFS) → libx264 +faststart. '
+          + '제한형 JSON 레시피 4종 + 단일 HTML에 초보자용 사용설명서 내장. 최종물은 ffprobe로 자동 검증. ReMaster의 Real-ESRGAN·ffmpeg·서버 골격 재사용(중복 0).',
+    stack: ['Python', 'FastAPI', 'ffmpeg', 'Real-ESRGAN', 'Vanilla JS'],
+    stackDetail: [
+      { area: '영상 파이프라인', tech: 'ffmpeg (subprocess)', how: '정규화(CFR/스케일/색태깅)·concat·자막 번인·loudnorm 2-pass·libx264 인코딩을 명령으로 직접 제어. 결과물은 ffprobe로 규격(해상도·CFR·색·오디오·길이) 자동 검증.' },
+      { area: '서버 / UX', tech: 'FastAPI + Vanilla JS', how: '비동기 잡(POST → 진행률 폴링 → 결과 패키지). 단일 HTML에 초보자용 1분 사용설명서 내장. 포트 8020, GPU 불필요(libx264 CPU).' },
+      { area: '이미지 후처리', tech: 'Real-ESRGAN(ncnn-vulkan) + rembg', how: '씬 키프레임 + 균등 간격 후보 추출 후, 디렉터가 고른 1장만 업스케일/배경제거(휴먼인더루프). GPU/AI 엔진은 코어와 분리된 선택 모듈.' }
+    ],
+    issues: [
+      { type:'완료', title:'Phase 1 — YouTube Export Runner', desc:'레시피 4종·내장 사용설명서·최종 자동검증·HDR 거부·경로 안전화. 코덱스 3라운드 적대 검수 반영, 스모크 9/9 PASS.' },
+      { type:'완료', title:'Phase 2 — 이미지 후보추출 + 후처리', desc:'씬감지 + 간격 후보 + 연락처 시트, Real-ESRGAN 업스케일(ReMaster 바이너리 재사용)·rembg 배경제거(선택). 코덱스 2라운드 검수, 스모크 11/11 PASS.' },
+      { type:'예정', title:'Phase 3 — 개인 채널 업로더', desc:'비공개/예약 videos.insert. GCP 콘솔 1회 셋업 클릭 안내 포함.' }
+    ],
+    milestones: [
+      { date:'2026-06-28', title:'프로젝트 #13 신설 — 크리에이터 툴셋', desc:'클로드·코덱스 변증법으로 설계 합의 → Phase 1+2 빌드·검증 완료. ReMaster 자산 재사용(중복 0).', isCore:true }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
