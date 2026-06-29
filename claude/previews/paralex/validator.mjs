@@ -79,7 +79,7 @@ for(const s of sets){
         if(!c.ko) add(id, `문단 ${p.id} chunk ko(직독직해) 비어있음`);
         if(BANNED.test(c.en||'')||BANNED.test(c.ko||'')) add(id, `문단 ${p.id} chunk placeholder/금칙어`);
       }
-      if(!p.functionLabel) warn(id, `문단 ${p.id} functionLabel 없음`);
+      // functionLabel 제거됨(디렉터 지시: 구조 힌트 차단) — 검사 안 함
     }
   }
 
@@ -177,7 +177,7 @@ for(const vf of vdFiles){ const pth=join(__dir,'data',vf); if(!existsSync(pth)) 
 let vdList = vw.PARALEX_VOCAB_DAYS||[];
 const seenLemma = new Set(); let vCount=0;
 for(const d of vdList){ for(const c of (d.cards||[])){ vCount++;
-  for(const k of ['id','lemma','glossKo','collocation','example']) if(!c[k]) add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} ${k} 빈값`);
+  for(const k of ['id','lemma','glossKo','collocation','example','exampleKo']) if(!c[k]) add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} ${k} 빈값`);
   const lk = String(c.lemma||'').toLowerCase().trim(); if(lk && seenLemma.has(lk)) add('vocab-days', `중복 lemma: ${c.lemma}`); seenLemma.add(lk);
   if(BANNED.test(c.glossKo||'')||BANNED.test(c.example||'')) add('vocab-days', `카드 ${c.id} placeholder`);
 } }

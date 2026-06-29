@@ -1,0 +1,118 @@
+window.PARALEX_GLAB = window.PARALEX_GLAB || {};
+window.PARALEX_GLAB["glab-004"] = {
+  id:"glab-004", title:"Part 5 Core Grammar 04", partFocus:["Part5"], scoreBandTarget:"750-850",
+  targetTimeSec:480,
+  items:[
+    { no:1, part:"Part5", questionType:"blank",
+      sentence:"The board praised the regional manager for her _____ handling of the supply shortage last quarter.",
+      choices:[{label:"A",text:"decide"},{label:"B",text:"decisive"},{label:"C",text:"decision"},{label:"D",text:"decisively"}],
+      answer:["B"],
+      grammarPoint:"word_form",
+      contextEvidence:"소유격 'her'과 명사 'handling' 사이의 빈칸은 명사를 수식하는 형용사 자리다.",
+      explanation:"소유격 her와 명사 handling 사이에서 그 명사를 수식하므로 형용사 decisive가 맞다('단호한 대처').",
+      trapNote:"동사·명사·부사 어형을 섞어 품사 판단을 흐리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"decide는 동사로 명사 수식 자리에 부적합"},
+        {label:"C",type:"wrong_form",note:"decision은 명사로 또 다른 명사 handling을 수식할 수 없음"},
+        {label:"D",type:"wrong_form",note:"decisively는 부사로 명사 handling을 수식할 수 없음"} ] },
+
+    { no:2, part:"Part5", questionType:"blank",
+      sentence:"When the auditors arrived yesterday morning, the finance team _____ the quarterly reports for three straight days.",
+      choices:[{label:"A",text:"prepares"},{label:"B",text:"will prepare"},{label:"C",text:"had been preparing"},{label:"D",text:"prepare"}],
+      answer:["C"],
+      grammarPoint:"tense_aspect",
+      contextEvidence:"과거 시점(arrived) 이전부터 'for three straight days' 지속된 동작을 나타낸다.",
+      explanation:"과거의 기준 시점(arrived) 이전부터 그때까지 계속되던 동작이므로 과거완료진행 had been preparing이 맞다.",
+      trapNote:"단순현재·미래·현재형으로 과거 기준 시제를 흐트러뜨리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_tense",note:"단순현재는 과거 기준점 이전 지속을 표현하지 못함"},
+        {label:"B",type:"wrong_tense",note:"미래시제는 과거 사건 맥락과 충돌"},
+        {label:"D",type:"wrong_tense",note:"현재형 prepare는 과거완료진행 자리에 부적절"} ] },
+
+    { no:3, part:"Part5", questionType:"blank",
+      sentence:"The renovated conference center on Maplethorpe Avenue can accommodate up to four hundred guests _____ a single event.",
+      choices:[{label:"A",text:"during"},{label:"B",text:"among"},{label:"C",text:"between"},{label:"D",text:"toward"}],
+      answer:["A"],
+      grammarPoint:"preposition",
+      contextEvidence:"'a single event'라는 기간/행사 동안을 나타내는 시간 전치사가 필요하다.",
+      explanation:"하나의 행사가 진행되는 동안을 뜻하므로 '~동안'의 전치사 during이 맞다('during a single event').",
+      trapNote:"위치·방향·다수 대상 전치사를 섞어 의미 판단을 시험.",
+      distractorRationales:[
+        {label:"B",type:"wrong_preposition",note:"among은 셋 이상의 대상 '사이에'로 시간 맥락에 부적합"},
+        {label:"C",type:"wrong_preposition",note:"between은 둘 사이를 뜻해 단일 행사 기간과 어울리지 않음"},
+        {label:"D",type:"wrong_preposition",note:"toward는 방향·시점 접근을 뜻해 지속 기간에 부적합"} ] },
+
+    { no:4, part:"Part5", questionType:"blank",
+      sentence:"The new ticketing software is highly intuitive; _____, staff still received a full day of hands-on training.",
+      choices:[{label:"A",text:"therefore"},{label:"B",text:"nevertheless"},{label:"C",text:"moreover"},{label:"D",text:"otherwise"}],
+      answer:["B"],
+      grammarPoint:"conjunction_connector",
+      contextEvidence:"'직관적이다'라는 앞 내용과 '그래도 교육을 받았다'는 뒤 내용이 양보·대조 관계다.",
+      explanation:"앞의 긍정 사실에도 불구하고 예상과 다른 결과가 이어지므로 양보의 접속부사 nevertheless가 맞다('그럼에도 불구하고').",
+      trapNote:"인과·첨가·조건 접속부사를 섞어 논리 관계를 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_connector",note:"therefore는 인과 결론으로 대조 맥락에 부적합"},
+        {label:"C",type:"wrong_connector",note:"moreover는 첨가로 양보 관계를 나타내지 못함"},
+        {label:"D",type:"wrong_connector",note:"otherwise는 '그렇지 않으면'의 조건으로 문맥과 충돌"} ] },
+
+    { no:5, part:"Part5", questionType:"blank",
+      sentence:"Neither the warehouse supervisors nor the shift coordinator _____ aware of the revised loading schedule.",
+      choices:[{label:"A",text:"are"},{label:"B",text:"were"},{label:"C",text:"is"},{label:"D",text:"have been"}],
+      answer:["C"],
+      grammarPoint:"subject_verb_agreement",
+      contextEvidence:"'Neither A nor B' 구문은 동사를 B(가까운 주어, 단수 coordinator)에 일치시킨다.",
+      explanation:"'Neither A nor B'에서 동사는 가장 가까운 주어에 일치하며 coordinator가 단수이므로 단수 동사 is가 맞다.",
+      trapNote:"앞의 복수 명사 supervisors에 동사를 일치시키도록 유도.",
+      distractorRationales:[
+        {label:"A",type:"agreement_error",note:"복수 동사 are는 가까운 단수 주어 coordinator와 불일치"},
+        {label:"B",type:"agreement_error",note:"were는 복수·과거로 단수 현재 주어와 불일치"},
+        {label:"D",type:"agreement_error",note:"have been은 복수 일치형으로 단수 주어 coordinator에 부적합"} ] },
+
+    { no:6, part:"Part5", questionType:"blank",
+      sentence:"The logistics firm _____ contract was renewed last month plans to expand its fleet by twenty vehicles.",
+      choices:[{label:"A",text:"which"},{label:"B",text:"whose"},{label:"C",text:"who"},{label:"D",text:"where"}],
+      answer:["B"],
+      grammarPoint:"relative_clause",
+      contextEvidence:"선행사 'firm'과 뒤 명사 'contract'가 소유 관계이며 빈칸은 소유격 관계대명사 자리다.",
+      explanation:"선행사 firm이 뒤의 명사 contract를 소유하는 관계이므로 소유격 관계대명사 whose가 맞다('그 회사의 계약이').",
+      trapNote:"주격·인물용·장소용 관계사를 섞어 관계대명사 격을 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"which는 주격·목적격으로 뒤 명사 contract와 소유 관계를 표시하지 못함"},
+        {label:"C",type:"wrong_form",note:"who는 사람 선행사용 주격으로 사물 firm·소유 구조에 부적합"},
+        {label:"D",type:"wrong_form",note:"where는 장소 관계부사로 뒤에 완전한 절을 요구해 부적합"} ] },
+
+    { no:7, part:"Part5", questionType:"blank",
+      sentence:"Senior engineers are expected to _____ close attention to the safety protocols during every site inspection.",
+      choices:[{label:"A",text:"pay"},{label:"B",text:"give"},{label:"C",text:"put"},{label:"D",text:"set"}],
+      answer:["A"],
+      grammarPoint:"collocation",
+      contextEvidence:"'_____ attention'은 '주의를 기울이다'를 뜻하는 고정 연어를 요구한다.",
+      explanation:"'주의를 기울이다'를 뜻하는 고정 연어는 pay attention이므로 pay가 맞다.",
+      trapNote:"의미가 비슷해 보이는 일반동사를 섞어 연어 지식을 시험.",
+      distractorRationales:[
+        {label:"B",type:"close_meaning",note:"give attention은 표준 연어가 아니며 pay attention과 결합 불가"},
+        {label:"C",type:"close_meaning",note:"put attention은 영어 연어로 성립하지 않음"},
+        {label:"D",type:"close_meaning",note:"set attention은 '주의를 기울이다' 의미의 관용 연어가 아님"} ] },
+
+    { no:8, part:"Part5", questionType:"blank",
+      sentence:"_____ submitting your reimbursement form, please ensure that every receipt has been scanned and labeled.",
+      choices:[{label:"A",text:"Although"},{label:"B",text:"Before"},{label:"C",text:"Because"},{label:"D",text:"Unless"}],
+      answer:["B"],
+      grammarPoint:"conjunction_connector",
+      contextEvidence:"동명사구를 이끌며 '제출하기 전에 영수증을 확인하라'는 시간 순서 논리가 성립한다.",
+      explanation:"동명사를 목적어로 취하고 '~하기 전에'라는 시간 순서를 나타내므로 전치사형 접속사 Before가 맞다.",
+      trapNote:"양보·인과·조건 연결어를 섞어 논리 관계와 동명사 결합을 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_connector",note:"Although은 양보의 접속사로 시간 순서 맥락에 부적합"},
+        {label:"C",type:"wrong_connector",note:"Because는 인과를 뜻해 '확인하라'는 절차 지시와 논리 충돌"},
+        {label:"D",type:"wrong_connector",note:"Unless는 '~하지 않으면'의 조건으로 문맥과 어긋남"} ] }
+  ],
+  reviewGates:{
+    legal:{pass:true,reviewer:"Claude",note:"자체작성 original, 실존 기출·기사 비복제, 가공 도시·인물 사용"},
+    originality:{pass:true,reviewer:"Claude",note:"백지 작성, 외부 콘텐츠 미복제"},
+    answerability:{pass:true,reviewer:"Claude",note:"전 8문항 빈칸당 정답 보기 유일 성립"},
+    grammarAccuracy:{pass:true,reviewer:"Claude",note:"word_form/tense_aspect/preposition/conjunction_connector/subject_verb_agreement/relative_clause/collocation 규칙 정확"},
+    distractor:{pass:true,reviewer:"Claude",note:"모든 오답에 GDR 타입태그·근거 부여"},
+    human:{pass:false,reviewer:null,note:"박사 검수 전 — practice"} },
+  version:"2026-06-30"
+};

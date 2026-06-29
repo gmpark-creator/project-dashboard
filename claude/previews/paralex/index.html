@@ -25,7 +25,6 @@
 <!-- 단일 소스 + 앱 데이터(정적 로드) -->
 <script src="data/manifest.js"></script>
 <script src="data/guide.js"></script>
-<script src="data/listening.js"></script>
 <script src="data/strategy-seed.js"></script>
 <!-- 콘텐츠(reading/grammar/vocab)는 manifest.content[]를 읽어 아래 loader가 동적 주입 -->
 <style>
@@ -163,7 +162,7 @@
   .vg-pos{ font-size:10.5px; color:#64748b; margin-left:5px; font-weight:600; }
   .vg-mean{ font-size:12.5px; color:#5eead4; margin-top:6px; line-height:1.55; }
   .vg-ex{ font-size:11.5px; color:#94a3b8; margin-top:5px; font-style:italic; line-height:1.5; }
-  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex{ filter:blur(5px); user-select:none; }
+  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex, .vg-card.hide .vg-exko{ filter:blur(5px); user-select:none; }
   .seg-h{ font-size:11.5px; font-weight:800; color:#7dd3fc; letter-spacing:.04em; margin:16px 0 2px; }
   .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
   .field{ display:flex; flex-direction:column; gap:5px; margin-top:14px; }
@@ -172,6 +171,21 @@
   .seg{ display:inline-flex; border:1px solid #334155; border-radius:9px; overflow:hidden; }
   .seg button{ padding:8px 15px; background:#0d1424; color:#94a3b8; border:none; font-size:12.5px; font-weight:700; }
   .seg button.on{ background:#042f2a; color:#5eead4; }
+  /* 독해 단일 지문(구조 힌트 제거) */
+  .rd-passage{ font-size:15px; line-height:1.95; }
+  .rd-para{ display:block; }
+  .rd-para + .rd-para{ margin-top:13px; }
+  /* Vocab 왼쪽 세로 레일 + 범례 + 예문해석 */
+  .vlayout{ display:flex; gap:16px; align-items:flex-start; margin-top:14px; }
+  .vrail{ width:122px; min-width:122px; display:flex; flex-direction:column; gap:6px; position:sticky; top:18px; }
+  .vrail button{ text-align:left; padding:9px 12px; border-radius:9px; border:1px solid #243049; background:#0d1424; color:#94a3b8; line-height:1.2; }
+  .vrail button:hover{ border-color:#2dd4bf55; color:#e2e8f0; }
+  .vrail button.on{ background:#042f2a; color:#5eead4; border-color:#2dd4bf66; box-shadow:inset 3px 0 0 #2dd4bf; }
+  .vmain{ flex:1; min-width:0; }
+  .vlegend{ background:#0d1424; border:1px solid #243049; border-radius:10px; padding:11px 14px; margin-top:11px; font-size:11.5px; color:#94a3b8; }
+  .vlegend summary{ cursor:pointer; color:#7dd3fc; font-weight:700; }
+  .vg-exko{ font-size:11px; color:#8aa0c0; margin-top:3px; line-height:1.5; }
+  @media(max-width:680px){ .vlayout{ flex-direction:column } .vrail{ width:100%; flex-direction:row; flex-wrap:wrap; position:static } .vrail button{ flex:1; min-width:72px } }
 </style>
 </head>
 <body>
@@ -188,7 +202,6 @@
     <button class="sb-item" data-view="workbench" onclick="setState({view:'workbench',setId:null})"><i class="fa-solid fa-book-open w-4 text-center"></i>Reading Workbench</button>
     <button class="sb-item" data-view="grammar" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-spell-check w-4 text-center"></i>Grammar Lab <span style="font-size:9px;color:#64748b;margin-left:auto">P5·6</span></button>
     <button class="sb-item" data-view="vocab" onclick="setState({view:'vocab'})"><i class="fa-solid fa-layer-group w-4 text-center"></i>Vocab Deck</button>
-    <button class="sb-item" data-view="listening" onclick="setState({view:'listening'})"><i class="fa-solid fa-headphones w-4 text-center"></i>Listening</button>
     <button class="sb-item" data-view="strategy" onclick="setState({view:'strategy'})"><i class="fa-solid fa-chess-knight w-4 text-center"></i>Strategy &amp; Traps</button>
     <div class="sb-label">기록</div>
     <button class="sb-item" data-view="dashboard" onclick="setState({view:'dashboard'})"><i class="fa-solid fa-chart-line w-4 text-center"></i>Score Dashboard</button>
@@ -258,7 +271,6 @@ function render(){
   else if(S.view==='strategy') r.innerHTML = renderStrategy();
   else if(S.view==='grammar') r.innerHTML = S.glabId ? renderGrammar(S.glabId) : renderGrammarList();
   else if(S.view==='vocab') r.innerHTML = renderVocab();
-  else if(S.view==='listening') r.innerHTML = renderListening();
   else if(S.view==='control') r.innerHTML = renderControl();
   else r.innerHTML = renderToday();
   if(S.view==='workbench' && S.setId) startTimer();
@@ -277,8 +289,6 @@ function allVocabCards(){ var out=[]; (window.PARALEX_VOCAB_DAYS||[]).forEach(d=
 function vocabSeen(id){ var c=vLoad().cards[id]; return !!(c&&c.seen); }
 function vocabPlan(){ var pr=profileNow(); var all=allVocabCards(); var unseen=all.filter(x=>!vocabSeen(x.card.id)); var seen=all.filter(x=>vocabSeen(x.card.id));
   return { newCount:Math.min(pr.vocabNew||10, unseen.length), reviewCount:Math.min(pr.vocabReview||10, seen.length), newAvail:unseen.length, seenAvail:seen.length, day:(unseen[0]&&unseen[0].day)|| (all.length?all[all.length-1].day:null), total:all.length, seen:seen.length }; }
-function todayLC(){ var lc=window.PARALEX_LC; if(!lc||!lc.queue||!lc.queue.length) return null; var idx=pget('lcIdx',0)%lc.queue.length; return lc.queue[idx]; }
-function rotateLC(){ var lc=window.PARALEX_LC; if(!lc||!lc.queue) return; pset('lcIdx', (pget('lcIdx',0)+1)%lc.queue.length); render(); }
 
 function taskCard(ic,title,target,desc,min,goLabel,onclick,done){
   return `<div class="tk ${done?'done':''}">
@@ -302,23 +312,13 @@ function renderToday(){
   cards += taskCard('fa-layer-group','어휘', `신규 ${vp.newCount} + 복습 ${vp.reviewCount}${vp.day!=null?` <span style="color:#64748b;font-weight:600">(Day ${vp.day})</span>`:''}`, vp.newAvail? '예문을 소리 내어 2번. 복습은 가리고 인출.' : '신규 카드를 다 봤어요. 복습 위주로.', '8분', '시작', `setState({view:'vocab'${vp.day!=null?',vocabDay:'+vp.day:''}})`, vp.newAvail===0);
   if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 ON → 직독직해 → 패러프레이즈 확인.', '12분', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
   else cards += taskCard('fa-book-open','독해', '독해 세트 모두 완료 🎉', '새 세트가 추가되면 여기에 떠요.', '-', '목록', `setState({view:'workbench',setId:null})`, true);
-  if(s.lcEnabled){ var lc=todayLC(); if(lc) cards += `<div class="tk">
-      <div class="tk-ic" style="background:#082f49;color:#7dd3fc"><i class="fa-solid fa-headphones"></i></div>
-      <div class="tk-b"><div class="tk-t">듣기 <span class="tk-min">15분</span></div>
-      <div class="tk-target">${esc(lc.sourceRef)} · <span style="color:#94a3b8;font-weight:600">${esc(lc.level)}·${esc(lc.accent)}</span></div>
-      <div class="tk-desc">${esc(lc.task)}</div></div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <a class="tk-go" href="${esc(lc.url)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">열기 <i class="fa-solid fa-up-right-from-square"></i></a>
-        <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="rotateLC()">다른 추천 →</button>
-      </div></div>`;
-  }
   return `<div class="wrap">
     <div class="today-hero">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div><div class="h-title" style="font-size:24px">오늘의 학습</div>
         <div class="h-sub">위에서부터 순서대로. 보통 ${esc(String(s.dailyMinutes))}분이면 끝나요. 며칠 걸려도 괜찮습니다 — 항상 <b style="color:#5eead4">다음 할 것</b>을 띄워 드려요.</div></div>
         <div style="text-align:right">
-          <div style="font-size:11px;color:#64748b">목표 ${esc(s.targetBand)} · 하루 ${esc(String(s.dailyMinutes))}분 · 듣기 ${s.lcEnabled?'ON':'OFF'}</div>
+          <div style="font-size:11px;color:#64748b">목표 ${esc(s.targetBand)} · 하루 ${esc(String(s.dailyMinutes))}분</div>
           <button class="btn btn-ghost" style="margin-top:6px;padding:5px 12px;font-size:11px" onclick="setState({view:'control'})"><i class="fa-solid fa-sliders"></i> 설정</button>
         </div>
       </div>
@@ -395,20 +395,23 @@ function renderSet(id){
   const trackLabel = set.track==='news'?'Authentic News':'Business RC';
   const showG = !!S.showGloss;
   const docs = (set.passage&&set.passage.documents) || [{id:'d1',label:'',paragraphs:(set.passage&&set.passage.paragraphs)||[]}];
-  const renderPara = (p)=>{
-    const chunks = p.chunks || [];
-    let inner;
-    if(showG){
-      inner = chunks.map(c=>`<div class="ck-row"><div class="ck-en">${esc(c.en)} <span class="sl">/</span></div><div class="ck-ko">${esc(c.ko)}${c.note?`<span class="ck-note">${esc(c.note)}</span>`:''}</div></div>`).join('');
-    } else {
-      inner = chunks.map(c=>`<span class="ck-en-inline">${esc(c.en)}</span>`).join(' ');
-    }
-    return `<div class="para-p" id="span-${esc(p.id)}"><span class="fn-tag">${esc(p.functionLabel||'')}</span>${inner}</div>`;
-  };
-  const paras = docs.map(d=>{
+  /* 디렉터 지시: functionLabel(주제제시/부연/유보) 제거 → 단일 지문으로(구조 힌트 차단). 문단 id는 근거 span용으로 유지. */
+  const renderDoc = (d)=>{
     const head = (docs.length>1 && d.label) ? `<div class="doc-head"><i class="fa-solid fa-file-lines"></i> ${esc(d.label)}</div>` : '';
-    return head + (d.paragraphs||[]).map(renderPara).join('');
-  }).join('');
+    if(showG){
+      const body = (d.paragraphs||[]).map(p=>{
+        const rows = (p.chunks||[]).map(c=>`<div class="ck-row"><div class="ck-en">${esc(c.en)} <span class="sl">/</span></div><div class="ck-ko">${esc(c.ko)}${c.note?`<span class="ck-note">${esc(c.note)}</span>`:''}</div></div>`).join('');
+        return `<div id="span-${esc(p.id)}">${rows}</div>`;
+      }).join('');
+      return head + `<div class="para-p">${body}</div>`;
+    }
+    const body = (d.paragraphs||[]).map(p=>{
+      const text = (p.chunks||[]).map(c=>esc(c.en)).join(' ');
+      return `<span class="rd-para" id="span-${esc(p.id)}">${text}</span>`;
+    }).join('');
+    return head + `<div class="para-p rd-passage">${body}</div>`;
+  };
+  const paras = docs.map(renderDoc).join('');
   const keyS = (set.keyStructures||[]).map(k=>`<div class="kv"><div class="en">${esc(k.span)}</div><div class="ko">${esc(k.note)}</div></div>`).join('');
   const vocab = (set.vocabulary||[]).map(v=>`<div class="kv"><div class="en">${esc(v.lemma)} <span style="color:#64748b;font-size:11px">${esc(v.pos||'')}</span><span class="vtag">${esc(v.listTag||'')}</span></div><div class="ko">${esc(v.glossKo)}</div>${v.collocation?`<div class="meta">▪ ${esc(v.collocation)}</div>`:''}</div>`).join('');
   const pps = (set.paraphrases||[]).map(p=>`<div class="pp ${S.ppHide?'hide':''}"><div class="orig">${esc(p.original)}</div><div class="arr"><i class="fa-solid fa-arrow-right-arrow-left"></i></div><div class="par">${esc(p.paraphrase)}</div></div>`).join('');
@@ -590,6 +593,7 @@ function vMarkSeen(id){ var p=vLoad(); var c=p.cards[id]; if(!c){ c=p.cards[id]=
 function vStatus(id){ const c=vLoad().cards[id]; if(!c||!c.seen) return 'new'; if(c.box>=4) return 'mastered'; return 'learning'; }
 function vRevealCard(day,id){ S.vocabReveal[id]=!S.vocabReveal[id]; if(S.vocabReveal[id]) vMarkSeen(id); render(); }
 function vRevealAll(day){ S.vocabRevealAll=!S.vocabRevealAll; if(S.vocabRevealAll){ var d=(window.PARALEX_VOCAB_DAYS||[]).find(x=>x.day===day); (d&&d.cards||[]).forEach(c=>vMarkSeen(c.id)); } render(); }
+function tagFull(t){ return ({NGSL:'New General Service List · 일상 고빈도어',NGSL2k:'NGSL 상위 2천 · 일상 고빈도어',TSL:'TOEIC Service List · 토익 빈출어',BSL:'Business Service List · 비즈니스 빈출어',NAWL:'New Academic Word List · 학술 빈출어'}[t]||t); }
 function renderVocab(){
   const days = window.PARALEX_VOCAB_DAYS || [];
   if(!days.length) return `<div class="wrap"><div class="h-title">Vocab Deck</div><div class="kv" style="color:#64748b">어휘 Day 데이터 준비 중.</div></div>`;
@@ -597,56 +601,47 @@ function renderVocab(){
   const d = days.find(x=>x.day===S.vocabDay) || days[0];
   const cards = d.cards||[];
   let nw=0,lr=0,ms=0; cards.forEach(c=>{ const s=vStatus(c.id); if(s==='new')nw++; else if(s==='mastered')ms++; else lr++; });
-  const dayTabs = days.map(x=>`<button class="pill ${x.day===d.day?'pill-band':'pill-orig'}" style="cursor:pointer" onclick="setState({vocabDay:${x.day}})">Day ${x.day}</button>`).join(' ');
   const showAll = S.vocabRevealAll;
+  // 왼쪽 세로 레일 (Day 폭증 대비: 위→아래)
+  const rail = days.slice().sort((a,b)=>(a.day||0)-(b.day||0)).map(x=>{ const xc=x.cards||[]; let seen=0; xc.forEach(c=>{ if(vocabSeen(c.id)) seen++; });
+    return `<button class="${x.day===d.day?'on':''}" onclick="setState({vocabDay:${x.day}})"><div style="font-weight:800">Day ${x.day}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${seen}/${xc.length}</div></button>`;
+  }).join('');
   const seg = (label,from,to)=>{
     const slice = cards.slice(from,to);
     if(!slice.length) return '';
     return `<div class="seg-h">구간 ${label} (${from+1}–${Math.min(to,cards.length)})</div><div class="vg">`+ slice.map(c=>{
       const open = showAll || S.vocabReveal[c.id];
       return `<div class="vg-card ${open?'':'hide'}" onclick="vRevealCard(${d.day},'${c.id}')">
-        <div><span class="vg-lem">${esc(c.lemma)}</span><span class="vg-pos">${esc(c.pos||'')}</span><span class="vtag">${esc(c.listTag||'')}</span></div>
+        <div><span class="vg-lem">${esc(c.lemma)}</span><span class="vg-pos">${esc(c.pos||'')}</span><span class="vtag" title="${esc(tagFull(c.listTag))}">${esc(c.listTag||'')}</span></div>
         <div class="vg-mean">${esc(c.glossKo)}</div>
-        ${c.example?`<div class="vg-ex">"${esc(c.example)}"</div>`:(c.collocation?`<div class="vg-ex">▪ ${esc(c.collocation)}</div>`:'')}
+        ${c.example?`<div class="vg-ex">"${esc(c.example)}"</div>`:''}
+        ${c.exampleKo?`<div class="vg-exko">${esc(c.exampleKo)}</div>`:''}
+        ${!c.example&&c.collocation?`<div class="vg-ex">▪ ${esc(c.collocation)}</div>`:''}
       </div>`;
     }).join('')+`</div>`;
   };
   return `<div class="wrap">
-    <div class="h-title">Vocab Deck — Day ${d.day}</div>
-    <div class="h-sub">${esc(d.title||'')} · ${cards.length}단어를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻이 열립니다(열면 '학습'으로 기록). <span style="color:#7dd3fc">new ${nw}</span> · learning ${lr} · <span style="color:#6ee7b7">mastered ${ms}</span></div>
-    <div class="toolbar">
-      ${dayTabs}
-      <button class="btn" style="margin-left:auto" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button>
+    <div class="h-title">Vocab Deck</div>
+    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·해석이 열립니다(열면 '학습'으로 기록). 왼쪽에서 Day를 고르세요.</div>
+    <details class="vlegend"><summary><i class="fa-solid fa-circle-info"></i> 리스트 태그(NGSL·TSL·BSL·NAWL)란?</summary>
+      <div style="margin-top:7px;line-height:1.75">빈도 연구 기반 영어 단어 목록입니다 — 이 단어가 어떤 목록에 속하는지 보여줘요.<br>
+      • <b style="color:#a5b4fc">NGSL</b> (New General Service List): 일상·범용 고빈도어. 일반 영어의 ~90%를 덮는 핵심 약 2,800단어.<br>
+      • <b style="color:#a5b4fc">TSL</b> (TOEIC Service List): 토익에 특히 자주 나오는 단어(약 1,200).<br>
+      • <b style="color:#a5b4fc">BSL</b> (Business Service List): 비즈니스 영어 빈출어.<br>
+      • <b style="color:#a5b4fc">NAWL</b> (New Academic Word List): 학술 영어 빈출어.</div>
+    </details>
+    <div class="vlayout">
+      <div class="vrail">${rail}</div>
+      <div class="vmain">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div><span style="color:#f1f5f9;font-size:16px;font-weight:800">Day ${d.day}</span> <span style="color:#94a3b8;font-size:12.5px">${esc(d.title||'')}</span>
+          <div style="font-size:11.5px;margin-top:3px"><span style="color:#7dd3fc">new ${nw}</span> · <span style="color:#94a3b8">learning ${lr}</span> · <span style="color:#6ee7b7">mastered ${ms}</span></div></div>
+          <button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button>
+        </div>
+        ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
+        <div class="disc">셀프테스트: '전체 뜻 가리기' 상태에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 평가는 브라우저(localStorage)에 저장됩니다.</div>
+      </div>
     </div>
-    ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
-    <div class="disc">셀프테스트: '전체 뜻 가리기' 상태에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 평가는 브라우저(localStorage)에 저장됩니다.</div>
-  </div>`;
-}
-
-/* ===================== Listening ===================== */
-function renderListening(){
-  const lc=window.PARALEX_LC;
-  if(!lc) return `<div class="wrap"><div class="h-title">Listening</div><div class="kv" style="color:#64748b">듣기 데이터 준비 중.</div></div>`;
-  const s=loadSettings();
-  const stages=(lc.protocol&&lc.protocol.stages||[]).map(st=>`<div class="lc-stage"><div class="t">Stage ${esc(st.id)} · ${esc(st.title)}</div><ol>${(st.steps||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`).join('');
-  const today=todayLC();
-  const todayCard = today?`<div class="lc-rec" style="border-color:#2dd4bf55">
-      <div class="set-ic news"><i class="fa-solid fa-circle-play"></i></div>
-      <div class="b"><div class="nm">오늘의 LC — ${esc(today.sourceRef)}</div><div class="mt">${esc(today.level)} · ${esc(today.accent)} · 약 ${esc(String(today.durationMinutes))}분</div><div class="mt" style="color:#cbd5e1;margin-top:4px">${esc(today.task)}</div></div>
-      <div style="display:flex;flex-direction:column;gap:6px"><a class="tk-go" href="${esc(today.url)}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">열기 <i class="fa-solid fa-up-right-from-square"></i></a><button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="rotateLC()">다른 추천 →</button></div>
-    </div>`:'';
-  const recs=(lc.recommendations||[]).map(r=>`<a class="lc-rec" href="${esc(r.url)}" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="set-ic biz"><i class="fa-solid fa-circle-play"></i></div>
-      <div class="b"><div class="nm">${esc(r.title)}</div><div class="mt">${esc(r.level)} · ${esc(r.accent)} · ${esc(r.forPart)} — ${esc(r.why)}</div></div>
-      <i class="fa-solid fa-up-right-from-square" style="color:#64748b"></i></a>`).join('');
-  return `<div class="wrap">
-    <div class="h-title">Listening — 듣기 훈련</div>
-    <div class="h-sub">★합법성: 외부 링크만 연결합니다(오디오·전문 비내장). 핵심은 '무엇'보다 <b style="color:#2dd4bf">'어떻게'</b> — 아래 3단계 프로토콜을 지키세요. ${s.lcEnabled?'':'<span style="color:#fcd34d">(Today에 듣기를 띄우려면 Control Panel에서 LC를 켜세요.)</span>'}</div>
-    ${today?`<div class="sec-h"><i class="fa-solid fa-bullseye"></i>오늘의 한 편</div>${todayCard}`:''}
-    <div class="sec-h"><i class="fa-solid fa-list-ol"></i>3단계 프로토콜</div>${stages}
-    ${lc.protocol&&lc.protocol.rule?`<div class="g-note" style="margin-top:12px">💡 ${esc(lc.protocol.rule)}</div>`:''}
-    <div class="sec-h"><i class="fa-solid fa-star"></i>추천 소스 (레벨·용도별)</div>${recs}
-    <div class="disc">섀도잉은 30~60초 '구간' 단위 5회 반복이 핵심입니다(영상 전체 반복 X). 자세한 방법은 학습 가이드 4장 참고.</div>
   </div>`;
 }
 
@@ -662,9 +657,6 @@ function renderControl(){
       <select onchange="updateSetting('targetBand',this.value)">${bandOpts}</select></div>
     <div class="field"><label>하루 가용 시간 (Today 분량 자동 조절)</label>
       <div class="seg">${minSeg}</div></div>
-    <div class="field"><label>듣기(LC) 포함</label>
-      <div class="seg"><button class="${s.lcEnabled?'on':''}" onclick="updateSetting('lcEnabled',true)">ON</button><button class="${!s.lcEnabled?'on':''}" onclick="updateSetting('lcEnabled',false)">OFF</button></div>
-      <div style="font-size:11px;color:#64748b">ON이면 Today에 '오늘의 LC 1편'이 추가됩니다.</div></div>
     <div class="field" style="max-width:340px"><label>시험일 (선택)</label>
       <input type="date" value="${esc(s.examDate||'')}" onchange="updateSetting('examDate',this.value)"></div>
     <div style="margin-top:22px"><button class="btn btn-ghost" onclick="if(confirm('학습 진행도(완료기록·어휘)를 모두 초기화할까요?')){localStorage.removeItem('paralex:v1:progress');localStorage.removeItem('paralex-vocab-progress-v1');render();}">진행도 초기화</button></div>
@@ -676,7 +668,7 @@ function updateSetting(k,v){ var s=loadSettings(); s[k]=v; saveSettings(s); rend
 function boot(){
   try{
     const q=new URLSearchParams(location.search);
-    const v=q.get('view'); if(['today','guide','workbench','dashboard','strategy','vocab','grammar','listening','control'].includes(v)) S.view=v;
+    const v=q.get('view'); if(['today','guide','workbench','dashboard','strategy','vocab','grammar','control'].includes(v)) S.view=v;
     const sid=q.get('set'); if(sid && getSet(sid)){ S.view='workbench'; S.setId=sid; }
   }catch(e){}
   // 방어적 정렬: 콘텐츠 실행 순서와 무관하게 Day 오름차순 보장
