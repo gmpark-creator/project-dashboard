@@ -1,0 +1,118 @@
+window.PARALEX_GLAB = window.PARALEX_GLAB || {};
+window.PARALEX_GLAB["glab-003"] = {
+  id:"glab-003", title:"Part 5 Core Grammar 03", partFocus:["Part5"], scoreBandTarget:"700-800",
+  targetTimeSec:480,
+  items:[
+    { no:1, part:"Part5", questionType:"blank",
+      sentence:"All visitors must obtain a temporary _____ from the front desk before entering the research wing.",
+      choices:[{label:"A",text:"authorize"},{label:"B",text:"authorized"},{label:"C",text:"authorization"},{label:"D",text:"authorizing"}],
+      answer:["C"],
+      grammarPoint:"word_form",
+      contextEvidence:"관사+형용사 'a temporary' 뒤, 동사 obtain의 목적어 자리이므로 명사가 필요하다.",
+      explanation:"형용사 temporary의 수식을 받고 obtain의 목적어가 되는 빈칸은 명사 자리이므로 명사형 authorization이 맞다.",
+      trapNote:"동사·분사·과거분사 어형을 섞어 품사 판단을 흐리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"authorize는 동사로 명사 자리에 부적합"},
+        {label:"B",type:"wrong_form",note:"authorized는 과거분사/형용사로 명사 자리에 부적합"},
+        {label:"D",type:"wrong_form",note:"authorizing은 동명사/분사로 'a temporary' 수식 대상이 될 수 없음"} ] },
+
+    { no:2, part:"Part5", questionType:"blank",
+      sentence:"By the time the new terminal opens next spring, Velmoor Airport _____ over forty additional gates.",
+      choices:[{label:"A",text:"added"},{label:"B",text:"has added"},{label:"C",text:"will have added"},{label:"D",text:"adds"}],
+      answer:["C"],
+      grammarPoint:"tense_aspect",
+      contextEvidence:"'By the time + 현재시제(미래 의미)' 구문은 미래 기준점 이전 완료를 요구한다.",
+      explanation:"'By the time'이 미래 기준점을 제시하고 그 이전에 완료될 동작이므로 미래완료 will have added가 맞다.",
+      trapNote:"단순과거·현재완료로 시제 기준점을 흐트러뜨리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_tense",note:"단순과거는 미래 기준점 이전 완료를 표현하지 못함"},
+        {label:"B",type:"wrong_tense",note:"현재완료는 미래완료 자리에 부적절"},
+        {label:"D",type:"wrong_tense",note:"단순현재는 완료 의미를 담지 못함"} ] },
+
+    { no:3, part:"Part5", questionType:"blank",
+      sentence:"The keynote address by Ms. Harlowe will begin _____ 9 A.M. sharp in the main auditorium.",
+      choices:[{label:"A",text:"in"},{label:"B",text:"on"},{label:"C",text:"at"},{label:"D",text:"by"}],
+      answer:["C"],
+      grammarPoint:"preposition",
+      contextEvidence:"구체적 시각 '9 A.M. sharp' 앞에는 시점 전치사 at이 온다.",
+      explanation:"정확한 시각을 나타내는 '9 A.M.' 앞에서 '~에'를 뜻하는 시점 전치사는 at이다('at 9 A.M.').",
+      trapNote:"월·요일·마감 전치사와 혼동하도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_preposition",note:"in은 월·연도·계절 앞에 쓰임"},
+        {label:"B",type:"wrong_preposition",note:"on은 요일·특정 날짜 앞에 쓰임"},
+        {label:"D",type:"wrong_preposition",note:"by는 '~까지(마감)'로 '시작하다'의 시각과 의미 충돌"} ] },
+
+    { no:4, part:"Part5", questionType:"blank",
+      sentence:"_____ the supplier missed the agreed deadline, Brindlewood Manufacturing switched to a local vendor.",
+      choices:[{label:"A",text:"Because"},{label:"B",text:"Despite"},{label:"C",text:"During"},{label:"D",text:"Whether"}],
+      answer:["A"],
+      grammarPoint:"conjunction_connector",
+      contextEvidence:"뒤에 '주어(the supplier)+동사(missed)' 절이 오고 원인→결과 논리가 성립한다.",
+      explanation:"절을 이끌면서 원인을 나타내는 종속접속사는 Because다(공급사가 마감을 놓쳤기 '때문에').",
+      trapNote:"전치사·명사절 접속사를 섞어 연결어 기능과 논리를 시험.",
+      distractorRationales:[
+        {label:"B",type:"wrong_connector",note:"Despite는 전치사로 절을 연결하지 못함"},
+        {label:"C",type:"wrong_connector",note:"During은 전치사로 절을 이끌 수 없음"},
+        {label:"D",type:"wrong_connector",note:"Whether는 '~인지'의 명사절 접속사로 인과 부사절에 부적합"} ] },
+
+    { no:5, part:"Part5", questionType:"blank",
+      sentence:"The collection of antique timepieces _____ displayed in the east wing of the Caldera Museum.",
+      choices:[{label:"A",text:"is"},{label:"B",text:"are"},{label:"C",text:"were"},{label:"D",text:"being"}],
+      answer:["A"],
+      grammarPoint:"subject_verb_agreement",
+      contextEvidence:"주어의 핵은 단수 'The collection'이고 'of antique timepieces'는 수식어구다.",
+      explanation:"주어의 핵이 단수 명사 collection이므로 단수 동사 is가 맞다('of ~ timepieces'는 수식구).",
+      trapNote:"바로 앞 복수 명사 timepieces에 동사를 일치시키도록 유도.",
+      distractorRationales:[
+        {label:"B",type:"agreement_error",note:"복수 동사 are는 단수 주어 collection과 불일치"},
+        {label:"C",type:"agreement_error",note:"were는 복수·과거로 단수 주어와 불일치"},
+        {label:"D",type:"wrong_form",note:"being은 단독으로 본동사가 될 수 없음"} ] },
+
+    { no:6, part:"Part5", questionType:"blank",
+      sentence:"Industry analysts expect the proposed merger to _____ place early next year.",
+      choices:[{label:"A",text:"take"},{label:"B",text:"make"},{label:"C",text:"do"},{label:"D",text:"have"}],
+      answer:["A"],
+      grammarPoint:"collocation",
+      contextEvidence:"'_____ place'는 '발생하다'를 뜻하는 고정 연어를 요구한다.",
+      explanation:"'발생하다/일어나다'를 뜻하는 고정 연어는 take place이므로 take가 맞다.",
+      trapNote:"의미가 비슷해 보이는 일반동사를 섞어 연어 지식을 시험.",
+      distractorRationales:[
+        {label:"B",type:"close_meaning",note:"make place는 표준 연어가 아니며 take place와 결합 불가"},
+        {label:"C",type:"close_meaning",note:"do place는 영어 연어로 성립하지 않음"},
+        {label:"D",type:"close_meaning",note:"have place는 '일어나다' 의미의 관용 연어가 아님"} ] },
+
+    { no:7, part:"Part5", questionType:"blank",
+      sentence:"The updated turbine runs far _____ than the previous model, lowering monthly energy costs.",
+      choices:[{label:"A",text:"efficient"},{label:"B",text:"efficiently"},{label:"C",text:"more efficiently"},{label:"D",text:"most efficiently"}],
+      answer:["C"],
+      grammarPoint:"comparison",
+      contextEvidence:"동사 runs를 수식하고 뒤에 비교 기준 than이 있으므로 비교급 부사가 필요하다.",
+      explanation:"동사 runs를 수식하는 부사이면서 than 비교 구문을 이루므로 비교급 부사 more efficiently가 맞고, far는 비교급 강조어다.",
+      trapNote:"형용사·원급 부사·최상급을 섞어 비교 구조와 품사를 동시에 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"efficient는 형용사로 동사 runs를 수식할 수 없음"},
+        {label:"B",type:"wrong_form",note:"efficiently는 원급 부사로 than 비교 구문에 부적합"},
+        {label:"D",type:"wrong_form",note:"most efficiently는 최상급으로 than 비교 구문에 맞지 않음"} ] },
+
+    { no:8, part:"Part5", questionType:"blank",
+      sentence:"The internship trains participants to research new markets, analyze sales data, and _____ findings to clients.",
+      choices:[{label:"A",text:"deliver"},{label:"B",text:"delivering"},{label:"C",text:"delivered"},{label:"D",text:"to deliver"}],
+      answer:["A"],
+      grammarPoint:"parallelism",
+      contextEvidence:"'to research, analyze, and ____'로 하나의 to에 묶인 동사 원형 병렬 구조다.",
+      explanation:"to 뒤 research, analyze와 등위로 연결되어 하나의 to를 공유하므로 동사 원형 deliver가 병렬을 이룬다.",
+      trapNote:"동명사·과거형·중복 to부정사로 병렬 형태를 깨도록 유도.",
+      distractorRationales:[
+        {label:"B",type:"wrong_form",note:"delivering은 동명사로 앞 원형 동사들과 형태 불일치"},
+        {label:"C",type:"wrong_form",note:"delivered는 과거형으로 병렬 원형 자리에 부적합"},
+        {label:"D",type:"wrong_form",note:"to deliver는 to를 중복시켜 병렬 구조를 깨뜨림"} ] }
+  ],
+  reviewGates:{
+    legal:{pass:true,reviewer:"Claude",note:"자체작성 original, 실존 기출·기사 비복제, 가공 도시·인물 사용"},
+    originality:{pass:true,reviewer:"Claude",note:"백지 작성, 외부 콘텐츠 미복제"},
+    answerability:{pass:true,reviewer:"Claude",note:"전 8문항 빈칸당 정답 보기 유일 성립"},
+    grammarAccuracy:{pass:true,reviewer:"Claude",note:"word_form/tense_aspect/preposition/conjunction_connector/subject_verb_agreement/collocation/comparison/parallelism 규칙 정확"},
+    distractor:{pass:true,reviewer:"Claude",note:"모든 오답에 GDR 타입태그·근거 부여"},
+    human:{pass:false,reviewer:null,note:"박사 검수 전 — practice"} },
+  version:"2026-06-29"
+};

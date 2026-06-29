@@ -171,9 +171,10 @@ for(const g of Object.values(glabReg)){
 console.log(`로드된 Grammar Lab: ${Object.values(glabReg).length}개`);
 
 // --- Vocab Day 검사 ---
-const vdPath = join(__dir,'data','vocab-days.js');
-let vdList = [];
-if(existsSync(vdPath)){ try { const w={}; new Function('window', readFileSync(vdPath,'utf8'))(w); vdList = w.PARALEX_VOCAB_DAYS||[]; } catch(e){ add('vocab-days', `파싱 실패: ${e.message}`); } }
+const vw = { PARALEX_VOCAB_DAYS: [], PARALEX_SETS: {} };
+const vdFiles = ['vocab-days.js'].concat(readdirSync(join(__dir,'data')).filter(n=>/^vocab-day-.*\.js$/.test(n)));
+for(const vf of vdFiles){ const pth=join(__dir,'data',vf); if(!existsSync(pth)) continue; try { new Function('window', readFileSync(pth,'utf8'))(vw); } catch(e){ add(vf, `파싱 실패: ${e.message}`); } }
+let vdList = vw.PARALEX_VOCAB_DAYS||[];
 const seenLemma = new Set(); let vCount=0;
 for(const d of vdList){ for(const c of (d.cards||[])){ vCount++;
   for(const k of ['id','lemma','glossKo','collocation','example']) if(!c[k]) add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} ${k} 빈값`);
@@ -181,6 +182,47 @@ for(const d of vdList){ for(const c of (d.cards||[])){ vCount++;
   if(BANNED.test(c.glossKo||'')||BANNED.test(c.example||'')) add('vocab-days', `카드 ${c.id} placeholder`);
 } }
 console.log(`로드된 Vocab Day: ${vdList.length}일 / ${vCount}카드`);
+
+// --- manifest + listening 검사 (Codex R3 락: 단일 소스·역참조·합법성·coverage) ---
+const mfPath = join(__dir,'data','manifest.js');
+if(existsSync(mfPath)){
+  const mw={};
+  try{ new Function('window', readFileSync(mfPath,'utf8'))(mw); }catch(e){ add('manifest', `파싱 실패: ${e.message}`); }
+  const M=mw.PARALEX_MANIFEST;
+  if(!M){ add('manifest','PARALEX_MANIFEST 전역 없음'); }
+  else {
+    const ids=new Set();
+    for(const c of (M.content||[])){
+      if(!c.id||!c.kind||!c.file){ add('manifest', `content 필드 누락: ${JSON.stringify(c)}`); continue; }
+      if(ids.has(c.id)) add('manifest', `content id 중복: ${c.id}`);
+      ids.add(c.id);
+      if(!existsSync(join(__dir, c.file))) add('manifest', `content.file 없음: ${c.file}`);
+      if(c.kind==='reading' && !reg[c.id]) add('manifest', `reading '${c.id}' 레지스트리 미등록(키 불일치?)`);
+      if(c.kind==='grammar' && !glabReg[c.id]) add('manifest', `grammar '${c.id}' 레지스트리 미등록`);
+    }
+    for(const sid of Object.keys(reg)) if(!ids.has(sid)) warn('manifest', `세트 '${sid}' manifest.content 누락 → 로더가 안 띄움`);
+    for(const gid of Object.keys(glabReg)) if(!ids.has(gid)) warn('manifest', `glab '${gid}' manifest.content 누락`);
+    const sb=M.standardBatch, prof=(M.today&&M.today.minutesProfiles&&M.today.minutesProfiles['35'])||{grammar:6,vocabNew:10};
+    if(sb){
+      const covR=sb.readingSets||0, covG=(sb.grammarLabs*sb.grammarQuestionsPerLab)/(prof.grammar||6), covV=(sb.vocabDays*sb.vocabWordsPerDay)/(prof.vocabNew||10);
+      console.log(`standardBatch coverageDays ≈ reading ${covR.toFixed(1)} / grammar ${covG.toFixed(1)} / vocab ${covV.toFixed(1)}`);
+      const imb=Math.max(covR,covG,covV)-Math.min(covR,covG,covV);
+      if(imb>2.5) warn('manifest', `standardBatch coverage 불균형(${imb.toFixed(1)}일차) — 공급 비율 조정 권장`);
+    }
+  }
+} else { warn('manifest','data/manifest.js 없음'); }
+// listening 합법성/분량
+const lcPath = join(__dir,'data','listening.js');
+if(existsSync(lcPath)){
+  const lcw={}; try{ new Function('window', readFileSync(lcPath,'utf8'))(lcw); }catch(e){ add('listening', `파싱 실패: ${e.message}`); }
+  const LC=lcw.PARALEX_LC;
+  for(const q of ((LC&&LC.queue)||[])){
+    if(!q.url) add('listening', `LC '${q.id}' url 없음`);
+    if(q.embedAllowed!==false) add('listening', `LC '${q.id}' embedAllowed!==false (합법성: 외부 링크만 허용)`);
+    if(q.license && q.license!=='link-only') warn('listening', `LC '${q.id}' license≠link-only`);
+    if(q.durationMinutes>15) warn('listening', `LC '${q.id}' duration>15분(분량 경고)`);
+  }
+}
 
 console.log('');
 if(warns.length){ console.log(`⚠️  경고 ${warns.length}건:`); warns.forEach(w=>console.log('  '+w)); console.log(''); }
