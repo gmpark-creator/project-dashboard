@@ -9,20 +9,13 @@
   tailwind.config = {
     darkMode: 'class',
     theme: { extend: {
-      colors: {
-        base:  '#0b1020',
-        para:  '#2dd4bf',   // paraphrase = teal
-        lex:   '#818cf8',   // lexis = indigo
-        news:  '#38bdf8',   // news track = sky
-        biz:   '#f59e0b',   // business track = amber
-      },
+      colors: { base:'#0b1020', para:'#2dd4bf', lex:'#818cf8', news:'#38bdf8', biz:'#f59e0b' },
       fontFamily: { sans: ['Pretendard','-apple-system','Segoe UI','Malgun Gothic','sans-serif'] }
     }}
   };
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <!-- ★Codex R3 락: file:// 지원 위해 ES module/fetch 금지. classic script 전역만. -->
-<!-- 단일 소스 + 앱 데이터(정적 로드) -->
 <script src="data/manifest.js"></script>
 <script src="data/guide.js"></script>
 <script src="data/strategy-seed.js"></script>
@@ -30,14 +23,11 @@
 <style>
   :root{ color-scheme: dark; }
   html,body{ margin:0; }
-  body{ background:#0b1020; color:#e2e8f0;
-    font-family:'Pretendard',-apple-system,'Segoe UI','Malgun Gothic',sans-serif; line-height:1.6; word-break:keep-all; }
+  body{ background:#0b1020; color:#e2e8f0; font-family:'Pretendard',-apple-system,'Segoe UI','Malgun Gothic',sans-serif; line-height:1.6; word-break:keep-all; }
   a{ color:#38bdf8; }
   button{ cursor:pointer; font-family:inherit; color:inherit; }
-  /* layout */
   #appLayout{ display:flex; min-height:100vh; }
-  #sidebar{ width:236px; min-width:236px; background:#070b18; border-right:1px solid #1e293b;
-    position:sticky; top:0; height:100vh; overflow-y:auto; flex-shrink:0; display:flex; flex-direction:column; }
+  #sidebar{ width:236px; min-width:236px; background:#070b18; border-right:1px solid #1e293b; position:sticky; top:0; height:100vh; overflow-y:auto; flex-shrink:0; display:flex; flex-direction:column; }
   #root{ flex:1; min-width:0; overflow-x:hidden; padding:26px 30px 80px; }
   .wrap{ max-width:920px; margin:0 auto; }
   .sb-logo{ padding:18px 16px 12px; border-bottom:1px solid #1e293b; }
@@ -45,12 +35,10 @@
   .sb-brand .x{ color:#2dd4bf; }
   .sb-tag{ font-size:10px; color:#64748b; margin-top:3px; letter-spacing:.04em; }
   .sb-label{ font-size:10px; font-weight:700; color:#475569; letter-spacing:.1em; text-transform:uppercase; padding:14px 14px 5px; }
-  .sb-item{ width:100%; text-align:left; padding:9px 14px; border:none; background:transparent; color:#94a3b8;
-    font-size:13.5px; display:flex; align-items:center; gap:9px; line-height:1.3; transition:background .12s,color .12s; }
+  .sb-item{ width:100%; text-align:left; padding:9px 14px; border:none; background:transparent; color:#94a3b8; font-size:13.5px; display:flex; align-items:center; gap:9px; line-height:1.3; transition:background .12s,color .12s; }
   .sb-item:hover{ background:#111a2e; color:#e2e8f0; }
   .sb-item.on{ background:#111a2e; color:#2dd4bf; box-shadow:inset 3px 0 0 #2dd4bf; }
   .sb-foot{ margin-top:auto; padding:14px; border-top:1px solid #1e293b; font-size:9.5px; color:#475569; line-height:1.5; }
-  /* cards */
   .card{ background:#111a2e; border:1px solid #243049; border-radius:16px; padding:22px; }
   .h-title{ font-size:22px; font-weight:800; color:#f1f5f9; }
   .h-sub{ font-size:13px; color:#94a3b8; margin-top:6px; }
@@ -58,29 +46,21 @@
   .pill-news{ color:#7dd3fc; background:#082f49; border:1px solid #0ea5e955; }
   .pill-biz{ color:#fcd34d; background:#2a1a04; border:1px solid #f59e0b66; }
   .pill-orig{ color:#cbd5e1; background:#1e293b; border:1px solid #475569; }
-  .pill-para{ color:#5eead4; background:#042f2a; border:1px solid #2dd4bf55; }
   .pill-band{ color:#fcd34d; background:#2a1a04; border:1px solid #f59e0b66; }
   .pill-cap{ color:#c4b5fd; background:#1e1b4b; border:1px solid #6d28d966; }
   .doc-head{ font-size:11.5px; font-weight:800; color:#7dd3fc; margin:16px 0 5px; display:flex; align-items:center; gap:6px; }
-  /* set list */
-  .set-row{ display:flex; align-items:center; gap:14px; padding:16px 18px; background:#111a2e; border:1px solid #243049;
-    border-radius:14px; margin-bottom:11px; text-align:left; width:100%; transition:border-color .12s, transform .08s; }
+  .set-row{ display:flex; align-items:center; gap:14px; padding:16px 18px; background:#111a2e; border:1px solid #243049; border-radius:14px; margin-bottom:11px; text-align:left; width:100%; transition:border-color .12s, transform .08s; }
   .set-row:hover{ border-color:#2dd4bf66; transform:translateY(-1px); }
   .set-ic{ width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
   .set-ic.news{ background:#082f49; color:#7dd3fc; }
   .set-ic.biz{ background:#2a1a04; color:#fcd34d; }
-  /* passage */
   .para-p{ background:#0d1424; border:1px solid #243049; border-radius:11px; padding:13px 16px; margin-top:10px; line-height:1.85; font-size:14.5px; color:#dbe4f0; }
-  .fn-tag{ font-size:9.5px; font-weight:800; color:#94a3b8; background:#1e293b; border:1px solid #334155; border-radius:5px; padding:1px 7px; margin-right:8px; vertical-align:middle; }
-  .ev-hi{ background:#042f2a; box-shadow:0 0 0 2px #2dd4bf55; border-radius:4px; padding:0 2px; }
-  /* 직독직해 */
   .ck-en-inline{ color:#dbe4f0; }
   .sl{ color:#2dd4bf; font-weight:800; margin:0 3px; }
   .ck-row{ border-left:2px solid #2dd4bf44; padding:5px 0 5px 13px; margin:9px 0; }
   .ck-en{ color:#f1f5f9; font-size:14px; font-weight:600; line-height:1.5; }
   .ck-ko{ color:#5eead4; font-size:13px; margin-top:3px; line-height:1.55; }
   .ck-note{ color:#94a3b8; font-size:11px; margin-left:8px; background:#0b1020; border:1px solid #334155; border-radius:5px; padding:1px 7px; white-space:nowrap; }
-  /* sections */
   .sec-h{ font-size:13px; font-weight:800; color:#e2e8f0; display:flex; align-items:center; gap:7px; margin:24px 0 8px; }
   .sec-h i{ color:#2dd4bf; }
   .kv{ background:#0d1424; border:1px solid #243049; border-radius:9px; padding:10px 13px; font-size:13px; margin-top:7px; }
@@ -88,17 +68,14 @@
   .kv .ko{ color:#94a3b8; font-size:12px; margin-top:2px; }
   .kv .meta{ color:#64748b; font-size:11px; margin-top:3px; }
   .vtag{ font-size:9px; font-weight:800; padding:1px 6px; border-radius:5px; color:#a5b4fc; background:#1e1b4b; border:1px solid #4338ca66; margin-left:6px; }
-  /* paraphrase */
   .pp{ display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; background:#0d1424; border:1px solid #243049; border-radius:9px; padding:11px 13px; margin-top:7px; }
   .pp .orig{ color:#cbd5e1; font-size:13px; }
   .pp .arr{ color:#2dd4bf; font-size:13px; }
   .pp .par{ color:#5eead4; font-size:13px; font-weight:600; }
   .pp.hide .par{ filter:blur(5px); user-select:none; }
-  /* questions */
   .q-card{ background:#0d1424; border:1px solid #243049; border-radius:13px; padding:18px; margin-top:12px; }
   .q-stem{ font-size:14px; font-weight:700; color:#f1f5f9; line-height:1.6; }
-  .q-choice{ width:100%; text-align:left; padding:10px 14px; border-radius:9px; font-size:13px; color:#cbd5e1;
-    border:1px solid #243049; background:#0b1020; display:flex; gap:9px; line-height:1.5; margin-top:7px; transition:border-color .12s,background .12s; }
+  .q-choice{ width:100%; text-align:left; padding:10px 14px; border-radius:9px; font-size:13px; color:#cbd5e1; border:1px solid #243049; background:#0b1020; display:flex; gap:9px; line-height:1.5; margin-top:7px; transition:border-color .12s,background .12s; }
   .q-choice:hover{ border-color:#475569; }
   .q-choice.correct{ border-color:#10b981; background:#052e1a; color:#6ee7b7; font-weight:700; }
   .q-choice.wrong{ border-color:#f43f5e; background:#2a0e12; color:#fda4af; }
@@ -106,7 +83,6 @@
   .q-exp{ background:#0a1f16; border:1px solid #10b98144; border-radius:9px; padding:11px 14px; font-size:12.5px; color:#86efac; line-height:1.65; margin-top:9px; }
   .q-dr{ background:#1a1206; border:1px solid #f59e0b33; border-radius:9px; padding:10px 13px; font-size:12px; color:#fcd34d; line-height:1.6; margin-top:7px; }
   .q-dr b{ color:#fde68a; }
-  /* misc */
   .btn{ padding:8px 16px; border-radius:9px; font-size:12.5px; font-weight:700; border:1px solid #2dd4bf55; background:#042f2a; color:#5eead4; transition:background .12s; }
   .btn:hover{ background:#063f38; }
   .btn-ghost{ border-color:#334155; background:#111a2e; color:#94a3b8; }
@@ -117,7 +93,6 @@
   .stat-n{ font-size:26px; font-weight:800; color:#2dd4bf; }
   .stat-l{ font-size:11px; color:#94a3b8; margin-top:3px; }
   .disc{ font-size:10px; color:#475569; margin-top:18px; line-height:1.6; border-top:1px solid #1e293b; padding-top:12px; }
-  /* Today cockpit */
   .tk{ display:flex; align-items:center; gap:15px; padding:16px 18px; background:#0d1424; border:1px solid #243049; border-radius:14px; margin-top:11px; }
   .tk.done{ opacity:.55; }
   .tk-ic{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; background:#042f2a; color:#5eead4; }
@@ -127,9 +102,7 @@
   .tk-desc{ font-size:11.5px; color:#94a3b8; margin-top:3px; line-height:1.5; }
   .tk-go{ padding:9px 17px; border-radius:10px; font-size:13px; font-weight:800; border:1px solid #2dd4bf66; background:#042f2a; color:#5eead4; white-space:nowrap; }
   .tk-go:hover{ background:#063f38; }
-  .tk-min{ font-size:10px; color:#64748b; background:#0b1020; border:1px solid #334155; border-radius:5px; padding:1px 7px; }
   .today-hero{ background:linear-gradient(135deg,#0d1f1c,#111a2e); border:1px solid #2dd4bf33; border-radius:16px; padding:20px 22px; }
-  /* Guide */
   .g-sec{ background:#0d1424; border:1px solid #243049; border-radius:14px; padding:18px 20px; margin-top:14px; }
   .g-h{ font-size:15.5px; font-weight:800; color:#f1f5f9; display:flex; align-items:center; gap:9px; }
   .g-h i{ color:#2dd4bf; }
@@ -145,37 +118,9 @@
   .g-kv .row{ display:grid; grid-template-columns:150px 1fr; gap:10px; background:#0b1020; border:1px solid #243049; border-radius:8px; padding:9px 12px; }
   .g-kv .k{ font-size:12.5px; font-weight:800; color:#5eead4; }
   .g-kv .v{ font-size:12.5px; color:#cbd5e1; line-height:1.6; }
-  /* Listening */
-  .lc-stage{ background:#0d1424; border:1px solid #243049; border-radius:12px; padding:14px 16px; margin-top:10px; }
-  .lc-stage .t{ font-size:13.5px; font-weight:800; color:#7dd3fc; }
-  .lc-stage ol{ margin:7px 0 0; padding-left:20px; }
-  .lc-stage li{ font-size:12.5px; color:#cbd5e1; line-height:1.7; margin-top:4px; }
-  .lc-rec{ display:flex; align-items:center; gap:12px; background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; margin-top:9px; }
-  .lc-rec .b{ flex:1; min-width:0; }
-  .lc-rec .nm{ font-size:13.5px; font-weight:800; color:#f1f5f9; }
-  .lc-rec .mt{ font-size:11px; color:#94a3b8; margin-top:2px; }
-  /* Vocab grid (요구8: 30 한눈에) */
-  .vg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:10px; margin-top:10px; }
-  .vg-card{ background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; text-align:left; transition:border-color .12s; }
-  .vg-card:hover{ border-color:#2dd4bf55; }
-  .vg-lem{ font-size:15px; font-weight:800; color:#f1f5f9; }
-  .vg-pos{ font-size:10.5px; color:#64748b; margin-left:5px; font-weight:600; }
-  .vg-mean{ font-size:12.5px; color:#5eead4; margin-top:6px; line-height:1.55; }
-  .vg-ex{ font-size:11.5px; color:#94a3b8; margin-top:5px; font-style:italic; line-height:1.5; }
-  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex, .vg-card.hide .vg-exko{ filter:blur(5px); user-select:none; }
-  .seg-h{ font-size:11.5px; font-weight:800; color:#7dd3fc; letter-spacing:.04em; margin:16px 0 2px; }
-  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
-  .field{ display:flex; flex-direction:column; gap:5px; margin-top:14px; }
-  .field label{ font-size:12px; font-weight:700; color:#94a3b8; }
-  .field select, .field input{ background:#0d1424; border:1px solid #334155; border-radius:9px; color:#e2e8f0; padding:9px 12px; font-size:13px; font-family:inherit; }
-  .seg{ display:inline-flex; border:1px solid #334155; border-radius:9px; overflow:hidden; }
-  .seg button{ padding:8px 15px; background:#0d1424; color:#94a3b8; border:none; font-size:12.5px; font-weight:700; }
-  .seg button.on{ background:#042f2a; color:#5eead4; }
-  /* 독해 단일 지문(구조 힌트 제거) */
   .rd-passage{ font-size:15px; line-height:1.95; }
   .rd-para{ display:block; }
   .rd-para + .rd-para{ margin-top:13px; }
-  /* Vocab 왼쪽 세로 레일 + 범례 + 예문해석 */
   .vlayout{ display:flex; gap:16px; align-items:flex-start; margin-top:14px; }
   .vrail{ width:122px; min-width:122px; display:flex; flex-direction:column; gap:6px; position:sticky; top:18px; }
   .vrail button{ text-align:left; padding:9px 12px; border-radius:9px; border:1px solid #243049; background:#0d1424; color:#94a3b8; line-height:1.2; }
@@ -184,8 +129,27 @@
   .vmain{ flex:1; min-width:0; }
   .vlegend{ background:#0d1424; border:1px solid #243049; border-radius:10px; padding:11px 14px; margin-top:11px; font-size:11.5px; color:#94a3b8; }
   .vlegend summary{ cursor:pointer; color:#7dd3fc; font-weight:700; }
+  .vg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:10px; margin-top:10px; }
+  .vg-card{ background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; text-align:left; transition:border-color .12s; }
+  .vg-card:hover{ border-color:#2dd4bf55; }
+  .vg-lem{ font-size:15px; font-weight:800; color:#f1f5f9; }
+  .vg-pos{ font-size:10.5px; color:#64748b; margin-left:5px; font-weight:600; }
+  .vg-mean{ font-size:12.5px; color:#5eead4; margin-top:6px; line-height:1.55; }
+  .vg-ex{ font-size:11.5px; color:#94a3b8; margin-top:5px; font-style:italic; line-height:1.5; }
   .vg-exko{ font-size:11px; color:#8aa0c0; margin-top:3px; line-height:1.5; }
+  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex, .vg-card.hide .vg-exko{ filter:blur(5px); user-select:none; }
+  .seg-h{ font-size:11.5px; font-weight:800; color:#7dd3fc; letter-spacing:.04em; margin:16px 0 2px; }
   @media(max-width:680px){ .vlayout{ flex-direction:column } .vrail{ width:100%; flex-direction:row; flex-wrap:wrap; position:static } .vrail button{ flex:1; min-width:72px } }
+  /* 반응형: 좁은 화면(폰)에서 사이드바를 가로 스크롤 바로 — 모바일 단일 앱 */
+  @media(max-width:760px){
+    #appLayout{ flex-direction:column; }
+    #sidebar{ width:100%; min-width:0; height:auto; position:static; flex-direction:row; flex-wrap:nowrap; overflow-x:auto; border-right:none; border-bottom:1px solid #1e293b; align-items:center; }
+    #sidebar .sb-logo{ border-bottom:none; border-right:1px solid #1e293b; padding:10px 13px; flex-shrink:0; }
+    #sidebar .sb-label, #sidebar .sb-foot{ display:none; }
+    #sidebar .sb-item{ width:auto; white-space:nowrap; box-shadow:none !important; flex-shrink:0; }
+    #sidebar .sb-item span{ display:none; }
+    #root{ padding:18px 16px 64px; }
+  }
 </style>
 </head>
 <body>
@@ -203,12 +167,8 @@
     <button class="sb-item" data-view="grammar" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-spell-check w-4 text-center"></i>Grammar Lab <span style="font-size:9px;color:#64748b;margin-left:auto">P5·6</span></button>
     <button class="sb-item" data-view="vocab" onclick="setState({view:'vocab'})"><i class="fa-solid fa-layer-group w-4 text-center"></i>Vocab Deck</button>
     <button class="sb-item" data-view="strategy" onclick="setState({view:'strategy'})"><i class="fa-solid fa-chess-knight w-4 text-center"></i>Strategy &amp; Traps</button>
-    <div class="sb-label">기록</div>
-    <button class="sb-item" data-view="dashboard" onclick="setState({view:'dashboard'})"><i class="fa-solid fa-chart-line w-4 text-center"></i>Score Dashboard</button>
-    <button class="sb-item" data-view="control" onclick="setState({view:'control'})"><i class="fa-solid fa-sliders w-4 text-center"></i>Control Panel</button>
     <div class="sb-foot">
-      <a href="mobile/" style="color:#2dd4bf;font-size:11px;font-weight:700"><i class="fa-solid fa-mobile-screen"></i> 모바일로 열기</a>
-      <div style="margin:10px 0;padding:9px 10px;background:#0d1424;border:1px solid #243049;border-radius:8px;color:#94a3b8;font-size:9.5px;line-height:1.55">⚠️ 기본기·전략·어휘 <b style="color:#cbd5e1">보조 트레이너</b>입니다. 고득점은 <b style="color:#cbd5e1">공식 합법 기출 실전서 + LC 훈련 + 시간제 모의고사</b> 병행이 필요합니다.</div>
+      <div style="margin:0 0 10px;padding:9px 10px;background:#0d1424;border:1px solid #243049;border-radius:8px;color:#94a3b8;font-size:9.5px;line-height:1.55">⚠️ 기본기·전략·어휘 <b style="color:#cbd5e1">보조 트레이너</b>입니다. 고득점은 <b style="color:#cbd5e1">공식 합법 기출 실전서 + LC 훈련 + 시간제 모의고사</b> 병행이 필요합니다.</div>
       TOEIC is a registered trademark of ETS.<br>This product is not endorsed or approved by ETS.
     </div>
   </aside>
@@ -218,41 +178,26 @@
 <script>
 /* ===== Paralex viewer engine (무빌드 단일HTML · self-register registry · localStorage) ===== */
 window.PARALEX_SETS = window.PARALEX_SETS || {};
-
-/* --- helpers --- */
 const $ = (id)=>document.getElementById(id);
 const esc = (s)=> String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const LAB = ['A','B','C','D','E'];
-const BANDS = ['750-800','800-850','850-900','900-950','950+'];
-function emptyBucket(){ return {attempts:0,correct:0,wrong:0,tags:{},skills:{}}; }
 
-/* --- stable-id progress (Codex R3 락: paralex:v1:*) --- */
+/* --- 수동 1회독 체크 저장소 (성능·정답 자동기록 폐지 → 디렉터 지시). paralex:v1:read = {reading:{},grammar:{},vocab:{}} --- */
 const PKEY='paralex:v1:';
 function pget(k,def){ try{ var v=localStorage.getItem(PKEY+k); return v==null?def:JSON.parse(v); }catch(e){ return def; } }
 function pset(k,val){ try{ localStorage.setItem(PKEY+k, JSON.stringify(val)); }catch(e){} }
-function loadProg(){ return pget('progress', {reading:{}, grammar:{}}); }
-function saveProg(p){ pset('progress', p); }
-function loadSettings(){ var d=(window.PARALEX_MANIFEST&&PARALEX_MANIFEST.defaults)||{}; return Object.assign({targetBand:'800-850',dailyMinutes:35,lcEnabled:false}, d, pget('settings',{})); }
-function saveSettings(s){ pset('settings', s); }
+function loadRead(){ return pget('read', {reading:{}, grammar:{}, vocab:{}}); }
+function saveRead(r){ pset('read', r); }
+function isRead(kind,id){ var r=loadRead(); return !!(r[kind] && r[kind][id]); }
+function toggleRead(kind,id){ var r=loadRead(); if(!r[kind]) r[kind]={}; if(r[kind][id]) delete r[kind][id]; else r[kind][id]=true; saveRead(r); render(); }
+function readCount(kind){ var r=loadRead(); return Object.keys(r[kind]||{}).length; }
+function readToggleBtn(kind,id){ var on=isRead(kind,id); return `<button class="btn ${on?'':'btn-ghost'}" onclick="toggleRead('${kind}','${id}')">${on?'<i class="fa-solid fa-circle-check"></i> 1회독 완료됨 · 해제':'<i class="fa-regular fa-circle"></i> 1회독 완료로 표시'}</button>`; }
 
 /* --- state --- */
 const S = Object.assign({ view:'today', setId:null, reveal:{}, ppHide:true, showGloss:false, glabId:null, greveal:{}, vocabDay:null, vocabRevealAll:false, vocabReveal:{} }, loadState());
 function loadState(){ try{ return JSON.parse(localStorage.getItem('paralex-state'))||{}; }catch(e){ return {}; } }
 function saveState(){ try{ localStorage.setItem('paralex-state', JSON.stringify({view:S.view,setId:S.setId,vocabDay:S.vocabDay})); }catch(e){} }
 function setState(patch){ Object.assign(S, patch); if(patch.setId!==undefined){ S.reveal={}; S.ppHide=true; } if(patch.glabId!==undefined){ S.greveal={}; } if(patch.vocabDay!==undefined){ S.vocabReveal={}; S.vocabRevealAll=false; } saveState(); render(); }
-
-/* --- stats (오답통계) --- */
-function loadStats(){ try{ const s=JSON.parse(localStorage.getItem('paralex-stats')); if(!s||!s.official) return {official:emptyBucket(),practice:emptyBucket(),bySet:{}}; return s; }catch(e){ return {official:emptyBucket(),practice:emptyBucket(),bySet:{}}; } }
-function saveStats(st){ try{ localStorage.setItem('paralex-stats', JSON.stringify(st)); }catch(e){} }
-function recordAnswer(setId, qno, picked, correct, drType, skillFocus){
-  const set=getSet(setId);
-  const bucket=(set&&set.reviewGates&&set.reviewGates.human&&set.reviewGates.human.pass===true)?'official':'practice';
-  const st=loadStats(); const b=st[bucket]||(st[bucket]=emptyBucket());
-  b.attempts++; if(correct){ b.correct++; } else { b.wrong++; if(drType){ b.tags[drType]=(b.tags[drType]||0)+1; } }
-  (skillFocus||[]).forEach(sk=>{ b.skills[sk]=b.skills[sk]||{a:0,c:0}; b.skills[sk].a++; if(correct)b.skills[sk].c++; });
-  st.bySet[setId]=st.bySet[setId]||{a:0,c:0}; st.bySet[setId].a++; if(correct)st.bySet[setId].c++;
-  saveStats(st);
-}
 
 /* --- registry access --- */
 function allSets(){ return Object.values(window.PARALEX_SETS); }
@@ -267,34 +212,22 @@ function render(){
   if(S.view==='today') r.innerHTML = renderToday();
   else if(S.view==='guide') r.innerHTML = renderGuide();
   else if(S.view==='workbench') r.innerHTML = S.setId ? renderSet(S.setId) : renderWorkbenchList();
-  else if(S.view==='dashboard') r.innerHTML = renderDashboard();
   else if(S.view==='strategy') r.innerHTML = renderStrategy();
   else if(S.view==='grammar') r.innerHTML = S.glabId ? renderGrammar(S.glabId) : renderGrammarList();
   else if(S.view==='vocab') r.innerHTML = renderVocab();
-  else if(S.view==='control') r.innerHTML = renderControl();
   else r.innerHTML = renderToday();
   if(S.view==='workbench' && S.setId) startTimer();
 }
 
-/* ===================== TODAY COCKPIT ===================== */
-function profileNow(){ var s=loadSettings(); var t=(window.PARALEX_MANIFEST&&PARALEX_MANIFEST.today)||{}; var p=(t.minutesProfiles&&t.minutesProfiles[String(s.dailyMinutes)])||{grammar:6,vocabNew:10,vocabReview:10,reading:1}; return p; }
-function readingDone(setId){ var set=getSet(setId); if(!set) return false; var p=loadProg(); var r=p.reading[setId]; var total=(set.questions||[]).length; return !!(r&&r.answered&&total&&r.answered.length>=total); }
-function nextReading(){ var list=manifestContent('reading'); for(var i=0;i<list.length;i++){ if(getSet(list[i].id) && !readingDone(list[i].id)) return list[i].id; } return null; }
-function readingProgress(){ var list=manifestContent('reading'); var done=0; list.forEach(c=>{ if(readingDone(c.id)) done++; }); return {done:done, total:list.length}; }
-function glabItemKeys(g){ if(g.items) return g.items.map(it=>'g'+it.no); var arr=[]; (g.passages||[]).forEach(p=>(p.items||[]).forEach(it=>arr.push((p.pid?p.pid+'-':'')+it.no))); return arr; }
-function grammarDoneKeys(glabId){ var p=loadProg(); return (p.grammar[glabId]&&p.grammar[glabId].answered)||[]; }
-function nextGrammar(n){ var list=manifestContent('grammar'); for(var i=0;i<list.length;i++){ var g=(window.PARALEX_GLAB||{})[list[i].id]; if(!g) continue; var keys=glabItemKeys(g); var done=grammarDoneKeys(g.id); var undone=keys.filter(k=>done.indexOf(k)<0); if(undone.length) return {glabId:g.id, title:g.title||g.id, remaining:undone.length, take:Math.min(n,undone.length)}; } return null; }
-function grammarProgress(){ var list=manifestContent('grammar'); var done=0,total=0; list.forEach(c=>{ var g=(window.PARALEX_GLAB||{})[c.id]; if(!g) return; var keys=glabItemKeys(g); total+=keys.length; done+=grammarDoneKeys(c.id).filter(k=>keys.indexOf(k)>=0).length; }); return {done:done,total:total}; }
-function allVocabCards(){ var out=[]; (window.PARALEX_VOCAB_DAYS||[]).forEach(d=>(d.cards||[]).forEach(c=>out.push({day:d.day,card:c}))); return out; }
-function vocabSeen(id){ var c=vLoad().cards[id]; return !!(c&&c.seen); }
-function vocabPlan(){ var pr=profileNow(); var all=allVocabCards(); var unseen=all.filter(x=>!vocabSeen(x.card.id)); var seen=all.filter(x=>vocabSeen(x.card.id));
-  return { newCount:Math.min(pr.vocabNew||10, unseen.length), reviewCount:Math.min(pr.vocabReview||10, seen.length), newAvail:unseen.length, seenAvail:seen.length, day:(unseen[0]&&unseen[0].day)|| (all.length?all[all.length-1].day:null), total:all.length, seen:seen.length }; }
-
-function taskCard(ic,title,target,desc,min,goLabel,onclick,done){
+/* ===================== TODAY (수동 1회독 기반) ===================== */
+function nextReading(){ var list=manifestContent('reading'); for(var i=0;i<list.length;i++){ if(getSet(list[i].id) && !isRead('reading',list[i].id)) return list[i].id; } return null; }
+function nextGrammar(){ var list=manifestContent('grammar'); for(var i=0;i<list.length;i++){ if((window.PARALEX_GLAB||{})[list[i].id] && !isRead('grammar',list[i].id)) return list[i].id; } return null; }
+function nextVocabDay(){ var days=(window.PARALEX_VOCAB_DAYS||[]).slice().sort((a,b)=>(a.day||0)-(b.day||0)); for(var i=0;i<days.length;i++){ if(!isRead('vocab',days[i].day)) return days[i].day; } return null; }
+function taskCard(ic,title,target,desc,goLabel,onclick,done){
   return `<div class="tk ${done?'done':''}">
     <div class="tk-ic"><i class="fa-solid ${ic}"></i></div>
     <div class="tk-b">
-      <div class="tk-t">${esc(title)} ${done?'<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:13px"></i>':''} <span class="tk-min">${esc(min)}</span></div>
+      <div class="tk-t">${esc(title)} ${done?'<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:13px"></i>':''}</div>
       <div class="tk-target">${target}</div>
       <div class="tk-desc">${esc(desc)}</div>
     </div>
@@ -302,34 +235,27 @@ function taskCard(ic,title,target,desc,min,goLabel,onclick,done){
   </div>`;
 }
 function renderToday(){
-  var s=loadSettings(); var pr=profileNow();
-  var rp=readingProgress(), gp=grammarProgress(), vp=vocabPlan();
-  var ng=nextGrammar(pr.grammar||6), nr=nextReading();
+  var ng=nextGrammar(), nv=nextVocabDay(), nr=nextReading();
+  var rTot=manifestContent('reading').length, gTot=manifestContent('grammar').length, vTot=(window.PARALEX_VOCAB_DAYS||[]).length;
   var cards='';
-  cards += taskCard('fa-fire-flame-curved','복습 워밍업', `직전에 본 어휘 ${Math.min(pr.vocabReview||10, vp.seen)}개 인출`, '뜻을 가리고 떠올려 보세요. 막히면 별표.', '3분', '시작', `setState({view:'vocab'${vp.day!=null?',vocabDay:'+vp.day:''}})`, false);
-  if(ng) cards += taskCard('fa-spell-check','문법', `${esc(ng.glabId)} · ${ng.take}문항 <span style="color:#64748b;font-weight:600">(남은 ${ng.remaining})</span>`, '풀고 해설 정독, 틀린 함정은 한 줄 메모.', (pr.grammar||6)+'문항', '시작', `setState({view:'grammar',glabId:'${ng.glabId}'})`, false);
-  else cards += taskCard('fa-spell-check','문법', '문법 세트 모두 완료 🎉', '새 세트가 추가되면 여기에 떠요.', '-', '복습', `setState({view:'grammar'})`, true);
-  cards += taskCard('fa-layer-group','어휘', `신규 ${vp.newCount} + 복습 ${vp.reviewCount}${vp.day!=null?` <span style="color:#64748b;font-weight:600">(Day ${vp.day})</span>`:''}`, vp.newAvail? '예문을 소리 내어 2번. 복습은 가리고 인출.' : '신규 카드를 다 봤어요. 복습 위주로.', '8분', '시작', `setState({view:'vocab'${vp.day!=null?',vocabDay:'+vp.day:''}})`, vp.newAvail===0);
-  if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 ON → 직독직해 → 패러프레이즈 확인.', '12분', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
-  else cards += taskCard('fa-book-open','독해', '독해 세트 모두 완료 🎉', '새 세트가 추가되면 여기에 떠요.', '-', '목록', `setState({view:'workbench',setId:null})`, true);
+  if(ng) cards += taskCard('fa-spell-check','문법', `${esc(ng)}`, '풀어 보고 해설을 확인하세요. 점수·정답은 기록하지 않습니다.', '시작', `setState({view:'grammar',glabId:'${ng}'})`, false);
+  else cards += taskCard('fa-spell-check','문법', '문법 세트 모두 1회독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'grammar'})`, true);
+  if(nv!=null) cards += taskCard('fa-layer-group','어휘', `Day ${nv}`, '뜻·예문 해석을 보며 익히고, 다 봤으면 1회독을 체크하세요.', '시작', `setState({view:'vocab',vocabDay:${nv}})`, false);
+  else cards += taskCard('fa-layer-group','어휘', '어휘 Day 모두 1회독 🎉', '복습하려면 왼쪽에서 Day를 고르세요.', '어휘', `setState({view:'vocab'})`, true);
+  if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 켜고 읽은 뒤 1회독을 체크하세요.', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
+  else cards += taskCard('fa-book-open','독해', '독해 세트 모두 1회독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'workbench',setId:null})`, true);
   return `<div class="wrap">
     <div class="today-hero">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div><div class="h-title" style="font-size:24px">오늘의 학습</div>
-        <div class="h-sub">위에서부터 순서대로. 보통 ${esc(String(s.dailyMinutes))}분이면 끝나요. 며칠 걸려도 괜찮습니다 — 항상 <b style="color:#5eead4">다음 할 것</b>을 띄워 드려요.</div></div>
-        <div style="text-align:right">
-          <div style="font-size:11px;color:#64748b">목표 ${esc(s.targetBand)} · 하루 ${esc(String(s.dailyMinutes))}분</div>
-          <button class="btn btn-ghost" style="margin-top:6px;padding:5px 12px;font-size:11px" onclick="setState({view:'control'})"><i class="fa-solid fa-sliders"></i> 설정</button>
-        </div>
-      </div>
+      <div class="h-title" style="font-size:24px">오늘의 학습</div>
+      <div class="h-sub">위에서부터 순서대로. <b style="color:#5eead4">아직 1회독 안 한 다음 것</b>을 띄워 드려요. 점수·정답은 기록하지 않으니, 다 본 것만 직접 <b style="color:#5eead4">'1회독 완료'</b>로 체크하세요.</div>
     </div>
     ${cards}
     <div class="stat-grid" style="margin-top:18px">
-      <div class="stat-box"><div class="stat-n">${rp.done}/${rp.total}</div><div class="stat-l">독해 세트 완료</div></div>
-      <div class="stat-box"><div class="stat-n">${gp.done}/${gp.total}</div><div class="stat-l">문법 문항 완료</div></div>
-      <div class="stat-box"><div class="stat-n">${vp.seen}/${vp.total}</div><div class="stat-l">어휘 학습</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('reading')}/${rTot}</div><div class="stat-l">독해 1회독</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('grammar')}/${gTot}</div><div class="stat-l">문법 1회독</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('vocab')}/${vTot}</div><div class="stat-l">어휘 Day 1회독</div></div>
     </div>
-    <div class="disc">처음이라면 <b>학습 가이드</b>를 먼저 읽어 보세요 — 공부법·듣기 매뉴얼·주간 리듬이 모두 정리돼 있습니다. <button class="btn" style="padding:3px 11px;font-size:11px;margin-left:6px" onclick="setState({view:'guide'})">가이드 열기</button></div>
+    <div class="disc">처음이라면 <b>학습 가이드</b>를 먼저 읽어 보세요 — 공부법·듣기 매뉴얼·주간 리듬이 정리돼 있습니다. <button class="btn" style="padding:3px 11px;font-size:11px;margin-left:6px" onclick="setState({view:'guide'})">가이드 열기</button></div>
   </div>`;
 }
 
@@ -350,7 +276,7 @@ function renderGuide(){
     <div class="h-title">학습 가이드</div>
     <div class="h-sub">${esc(G.intro)}</div>
     ${(G.sections||[]).map(sec=>`<div class="g-sec"><div class="g-h"><i class="fa-solid ${esc(sec.icon||'fa-circle')}"></i>${esc(sec.title)}</div>${(sec.blocks||[]).map(gBlock).join('')}</div>`).join('')}
-    <div class="disc">이 루틴은 Claude↔Codex 3라운드 변증법으로 확정했습니다 (updated ${esc(G.updated||'')}).</div>
+    <div class="disc">이 루틴은 Claude↔Codex 변증법으로 확정했습니다 (updated ${esc(G.updated||'')}).</div>
   </div>`;
 }
 
@@ -360,14 +286,12 @@ function trackBlock(track, title, icon, cls){
   let h = `<div class="sec-h"><i class="fa-solid ${icon}"></i>${title} <span class="pill pill-${cls}" style="margin-left:6px">${sets.length}세트</span></div>`;
   if(!sets.length){ h += `<div class="kv" style="color:#64748b">아직 세트가 없습니다.</div>`; return h; }
   h += sets.map(s=>{
-    const st = loadStats().bySet[s.id];
-    const prog = st ? ` · 정답 ${st.c}/${st.a}` : '';
-    const done = readingDone(s.id) ? ` <i class="fa-solid fa-circle-check" style="color:#10b981"></i>` : '';
+    const done = isRead('reading', s.id) ? ` <i class="fa-solid fa-circle-check" style="color:#10b981"></i>` : '';
     return `<button class="set-row" onclick="setState({view:'workbench',setId:'${s.id}'})">
       <div class="set-ic ${cls}"><i class="fa-solid ${icon}"></i></div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(s.title)}${done}</div>
-        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${esc(s.genre)} · ${s.wordCount||'?'}단어 · 목표 ${Math.round((s.targetTimeSec||0)/60)}분${prog}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${esc(s.genre)} · ${s.wordCount||'?'}단어 · 목표 ${Math.round((s.targetTimeSec||0)/60)}분</div>
       </div>
       <div class="pill pill-orig">${esc(s.license)}</div>
     </button>`;
@@ -384,7 +308,6 @@ function renderWorkbenchList(){
   </div>`;
 }
 
-/* --- Reading Workbench: single set --- */
 let _timerInt=null, _timerSec=0;
 function startTimer(){ clearInterval(_timerInt); _timerSec=0; _timerInt=setInterval(()=>{ _timerSec++; const el=$('pxTimer'); if(!el){clearInterval(_timerInt);return;} const m=String(Math.floor(_timerSec/60)).padStart(2,'0'),s=String(_timerSec%60).padStart(2,'0'); el.textContent=`${m}:${s}`; },1000); }
 
@@ -395,7 +318,7 @@ function renderSet(id){
   const trackLabel = set.track==='news'?'Authentic News':'Business RC';
   const showG = !!S.showGloss;
   const docs = (set.passage&&set.passage.documents) || [{id:'d1',label:'',paragraphs:(set.passage&&set.passage.paragraphs)||[]}];
-  /* 디렉터 지시: functionLabel(주제제시/부연/유보) 제거 → 단일 지문으로(구조 힌트 차단). 문단 id는 근거 span용으로 유지. */
+  /* 디렉터 지시: functionLabel(주제제시/부연/유보) 제거 → 단일 지문(구조 힌트 차단). 문단 id는 근거 span용으로 유지. */
   const renderDoc = (d)=>{
     const head = (docs.length>1 && d.label) ? `<div class="doc-head"><i class="fa-solid fa-file-lines"></i> ${esc(d.label)}</div>` : '';
     if(showG){
@@ -419,7 +342,10 @@ function renderSet(id){
   const refl = (set.reflectionPrompts||[]).map(r=>`<div class="kv" style="color:#cbd5e1">🤔 ${esc(r)}</div>`).join('');
 
   return `<div class="wrap">
-    <button class="btn btn-ghost" onclick="setState({view:'workbench',setId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-ghost" onclick="setState({view:'workbench',setId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>
+      ${readToggleBtn('reading', set.id)}
+    </div>
     <div class="card" style="margin-top:14px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span class="pill pill-${trackCls}">${trackLabel}</span>
@@ -439,7 +365,8 @@ function renderSet(id){
     ${pps?`<div class="sec-h"><i class="fa-solid fa-arrow-right-arrow-left"></i>패러프레이즈 훈련 <button class="btn" style="margin-left:auto;padding:4px 12px" onclick="setState({ppHide:!S.ppHide})">${S.ppHide?'정답 보기':'가리기'}</button></div>${pps}`:''}
     ${qs?`<div class="sec-h"><i class="fa-solid fa-circle-question"></i>이해 문항 (근거 span 기반)</div>${qs}`:''}
     ${refl?`<div class="sec-h"><i class="fa-solid fa-pen-to-square"></i>회고</div>${refl}`:''}
-    <div class="disc">이 세트의 정답·해설은 자체 작성이며, 6게이트 검수 기록은 validator 산출물에 남습니다.</div>
+    <div style="margin-top:18px;text-align:center">${readToggleBtn('reading', set.id)}</div>
+    <div class="disc">정답·해설은 자체 작성입니다. 점수는 기록하지 않으니, 다 읽었으면 위 버튼으로 1회독만 체크하세요.</div>
   </div>`;
 }
 
@@ -449,10 +376,7 @@ function renderQuestion(set,q,qi){
   const choices = (q.choices||[]).map((c,ci)=>{
     const lab = c.label || LAB[ci];
     let cls='q-choice';
-    if(revealed){
-      if(ans.includes(lab)) cls+=' correct';
-      else if(revealed===lab) cls+=' wrong';
-    }
+    if(revealed){ if(ans.includes(lab)) cls+=' correct'; else if(revealed===lab) cls+=' wrong'; }
     return `<button class="${cls}" onclick="answerQ('${set.id}','${q.no}','${lab}')"><span class="q-lab">${esc(lab)}</span><span>${esc(c.text)}</span></button>`;
   }).join('');
   let exp='';
@@ -465,66 +389,20 @@ function renderQuestion(set,q,qi){
   }
   return `<div class="q-card"><div class="q-stem">${q.no}. ${esc(q.stem)}</div>${choices}${exp}</div>`;
 }
-
+/* 자기확인용 정답 표시만 — 점수/정답 기록하지 않음 */
 function answerQ(setId,qno,lab){
   const set=getSet(setId); const q=(set.questions||[]).find(x=>String(x.no)===String(qno));
-  const ans=(q.answer||[]).map(a=> typeof a==='number'?LAB[a-1]:a);
-  const correct=ans.includes(lab);
   if(S.reveal[qno]) return;
   S.reveal[qno]=lab;
-  const dr=(q.distractorRationales||[]).find(d=>d.label===lab);
-  recordAnswer(setId,qno,lab,correct, correct?null:(dr?dr.type:'unknown'), q.skillFocus);
-  var p=loadProg(); var r=p.reading[setId]||(p.reading[setId]={answered:[]}); if(r.answered.indexOf(qno)<0) r.answered.push(qno); saveProg(p);
   render();
   (q.evidenceSpanIds||[]).forEach(sid=>{ const el=$('span-'+sid); if(el) el.style.boxShadow='0 0 0 2px #2dd4bf55'; });
 }
-
-/* ===================== Score Dashboard ===================== */
-function renderDashboard(){
-  const st=loadStats();
-  const off=st.official||emptyBucket(), pr=st.practice||emptyBucket();
-  const offAcc=off.attempts?Math.round(off.correct/off.attempts*100):0;
-  const prAcc=pr.attempts?Math.round(pr.correct/pr.attempts*100):0;
-  const band=localStorage.getItem('paralex-band')||loadSettings().targetBand||'';
-  const bandSel=BANDS.map(b=>`<button class="pill ${band===b?'pill-band':'pill-orig'}" style="cursor:pointer" onclick="setBand('${b}')">${esc(b)}</button>`).join(' ');
-  let recH;
-  if(off.attempts<5){
-    recH=`<div class="kv" style="color:#fcd34d"><b>insufficient_data</b> — 공식(검수완료) 표본 부족 (${off.attempts}/5). 현재 세트는 모두 practice 버킷이라 진단·추천에 반영되지 않습니다. 박사 검수로 human 게이트를 통과시키면 official 승격되어 약점 진단이 활성화됩니다.</div>`;
-  } else {
-    const weak=Object.entries(off.skills).map(([k,v])=>[k,v.a?v.c/v.a:1]).sort((a,b)=>a[1]-b[1])[0];
-    const wk=weak?weak[0]:null;
-    const cand=allSets().filter(s=>(s.skillFocus||[]).includes(wk)).slice(0,3);
-    recH=`<div class="kv">가장 약한 스킬: <b style="color:#5eead4">${esc(wk||'-')}</b> (정답률 ${weak?Math.round(weak[1]*100):0}%) — 이 스킬 집중 세트 추천</div>`
-      + cand.map(s=>`<button class="set-row" onclick="setState({view:'workbench',setId:'${s.id}'})"><div class="set-ic ${s.track==='news'?'news':'biz'}"><i class="fa-solid ${s.track==='news'?'fa-newspaper':'fa-briefcase'}"></i></div><div style="flex:1"><div style="font-weight:700;color:#f1f5f9">${esc(s.title)}</div><div style="font-size:11px;color:#94a3b8">${esc(s.scoreBandTarget||'')} · ${(s.skillFocus||[]).join(', ')}</div></div></button>`).join('');
-  }
-  const allSk={}; [off,pr].forEach(bk=>Object.entries(bk.skills||{}).forEach(([k,v])=>{allSk[k]=allSk[k]||{a:0,c:0}; allSk[k].a+=v.a; allSk[k].c+=v.c;}));
-  const skillH=Object.entries(allSk).sort((a,b)=>(a[1].c/a[1].a)-(b[1].c/b[1].a)).map(([k,v])=>`<div class="kv"><div class="en">${esc(k)}</div><div class="ko">정답률 ${v.a?Math.round(v.c/v.a*100):0}% (${v.c}/${v.a})</div></div>`).join('')||`<div class="kv" style="color:#64748b">스킬 데이터 없음 — 문항을 풀면 집계됩니다.</div>`;
-  const prTags=Object.entries(pr.tags).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="kv"><div class="en">${esc(k)} <span style="color:#f43f5e;font-weight:800">×${v}</span></div><div class="ko">${drDesc(k)}</div></div>`).join('')||`<div class="kv" style="color:#64748b">연습 오답 데이터 없음</div>`;
-  return `<div class="wrap">
-    <div class="h-title">Score Dashboard</div>
-    <div class="h-sub">official(검수완료) 버킷만 진단·추천에 반영. 현재 세트는 모두 practice → 연습 버킷에 별도 집계됩니다.</div>
-    <div class="sec-h"><i class="fa-solid fa-crosshairs"></i>목표 밴드 (자가선택 · 진단 근거 아님)</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">${bandSel}</div>
-    <div class="stat-grid" style="margin-top:16px">
-      <div class="stat-box"><div class="stat-n">${off.attempts}</div><div class="stat-l">공식 시도</div></div>
-      <div class="stat-box"><div class="stat-n">${offAcc}%</div><div class="stat-l">공식 정답률</div></div>
-      <div class="stat-box"><div class="stat-n">${pr.attempts}</div><div class="stat-l">연습 시도</div></div>
-      <div class="stat-box"><div class="stat-n">${prAcc}%</div><div class="stat-l">연습 정답률</div></div>
-    </div>
-    <div class="sec-h"><i class="fa-solid fa-wand-magic-sparkles"></i>진단·추천</div>${recH}
-    <div class="sec-h"><i class="fa-solid fa-chart-simple"></i>스킬별 정답률</div>${skillH}
-    <div class="sec-h"><i class="fa-solid fa-triangle-exclamation"></i>오답 유형 (연습)</div>${prTags}
-    <div style="margin-top:18px"><button class="btn btn-ghost" onclick="if(confirm('학습 통계를 초기화할까요?')){localStorage.removeItem('paralex-stats');render();}">통계 초기화</button></div>
-  </div>`;
-}
-function setBand(b){ localStorage.setItem('paralex-band',b); render(); }
-function drDesc(t){ return ({too_broad:'너무 포괄적 — 지문 범위를 넘어선 일반화',opposite:'반대 진술 — 지문과 역방향',not_mentioned:'미언급 — 지문에 근거 없음',wrong_referent:'지시대상 오류 — 가리키는 대상이 다름',chronology:'시점/순서 오류 — 시간 관계 뒤바뀜',partial_truth:'부분적 사실 — 일부만 맞고 나머지가 틀림',extreme_word:'극단어 함정 — always/never/only 등 단정',same_word:'동일어 함정 — 지문 단어를 그대로 쓴 매력 오답',unknown:'기타'}[t]||t); }
 
 /* ===================== Strategy & Traps ===================== */
 function renderStrategy(){
   const trends = (window.PARALEX_STRATEGY&&window.PARALEX_STRATEGY.trends)||[];
   const traps = (window.PARALEX_STRATEGY&&window.PARALEX_STRATEGY.traps)||[];
-  const tH = trends.length? trends.map(t=>`<div class="kv"><div class="en">${esc(t.title)}</div><div class="ko">${esc(t.desc)}</div></div>`).join('') : seedNote();
+  const tH = trends.length? trends.map(t=>`<div class="kv"><div class="en">${esc(t.title)}</div><div class="ko">${esc(t.desc)}</div></div>`).join('') : `<div class="kv" style="color:#64748b">전략 데이터 준비 중.</div>`;
   const pH = traps.length? traps.map(t=>`<div class="kv"><div class="en">${esc(t.part)} · ${esc(t.title)}</div><div class="ko">${esc(t.why)} → <b style="color:#5eead4">${esc(t.avoid)}</b></div></div>`).join('') : '';
   return `<div class="wrap"><div class="h-title">Strategy &amp; Traps</div>
     <div class="h-sub">900→950 구간 전략과 파트별 함정 카탈로그. (경량 참조 — 본 학습은 Today/Workbench)</div>
@@ -532,7 +410,6 @@ function renderStrategy(){
     ${pH?`<div class="sec-h"><i class="fa-solid fa-bomb"></i>함정 카탈로그</div>${pH}`:''}
   </div>`;
 }
-function seedNote(){ return `<div class="kv" style="color:#64748b">전략 데이터는 다음 슬라이스에서 채워집니다.</div>`; }
 
 /* ===================== Grammar Lab ===================== */
 function glabCount(g){ return g.items ? g.items.length : (g.passages||[]).reduce((n,p)=>n+(p.items||[]).length,0); }
@@ -542,14 +419,14 @@ function renderGrammarList(){
   let h = `<div class="wrap"><div class="h-title">Grammar Lab</div>
     <div class="h-sub">Part 5(단문 빈칸)·Part 6(장문 빈칸)의 문법·어법·어휘 문제. 독해(Workbench)와 별도 트랙.</div>`;
   if(!all.length){ h += `<div class="kv" style="color:#64748b">문법 세트 준비 중.</div></div>`; return h; }
-  h += all.map(g=>{ var done=grammarDoneKeys(g.id).length, tot=glabCount(g);
+  h += all.map(g=>{ var tot=glabCount(g), done=isRead('grammar',g.id);
     return `<button class="set-row" onclick="setState({view:'grammar',glabId:'${g.id}'})">
       <div class="set-ic biz"><i class="fa-solid fa-spell-check"></i></div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(g.title)}${done>=tot&&tot?' <i class="fa-solid fa-circle-check" style="color:#10b981"></i>':''}</div>
-      <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${(g.partFocus||[]).join('·')} · ${tot}문항 · 완료 ${done}/${tot}</div></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(g.title)}${done?' <i class="fa-solid fa-circle-check" style="color:#10b981"></i>':''}</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${(g.partFocus||[]).join('·')} · ${tot}문항</div></div>
       <div class="pill pill-orig">${esc(g.scoreBandTarget||'')}</div></button>`;
   }).join('');
-  h += `<div class="disc">⚠️ 자체작성 연습문제(practice). 정답 유일성·문법 정확성은 박사 검수(human 게이트) 후 확정됩니다.</div></div>`;
+  h += `<div class="disc">⚠️ 자체작성 연습문제(practice). 정답 유일성·문법 정확성은 박사 검수 후 확정됩니다.</div></div>`;
   return h;
 }
 function renderGItem(glabId, it, pid){
@@ -577,34 +454,26 @@ function renderGrammar(id){
   if(g.items){ body = g.items.map(it=>renderGItem(id,it,null)).join(''); }
   else if(g.passages){ body = g.passages.map(p=>`<div class="sec-h"><i class="fa-solid fa-file-lines"></i>${esc(p.label||'')}</div><div class="para-p">${esc(p.text||'')}</div>${(p.items||[]).map(it=>renderGItem(id,it,p.pid)).join('')}`).join(''); }
   else body='';
-  return `<div class="wrap"><button class="btn btn-ghost" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>
+  return `<div class="wrap"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-ghost" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>${readToggleBtn('grammar', g.id)}</div>
     <div class="card" style="margin-top:14px"><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill pill-biz">${(g.partFocus||[]).join('·')}</span><span class="pill pill-orig">${esc(g.scoreBandTarget||'')}</span></div>
     <div class="h-title" style="margin-top:10px;font-size:19px">${esc(g.title)}</div></div>
-    ${body}<div class="disc">자체작성 연습문제(practice) — 정답·문법은 박사 검수 후 확정.</div></div>`;
+    ${body}<div style="margin-top:18px;text-align:center">${readToggleBtn('grammar', g.id)}</div><div class="disc">자체작성 연습문제 — 점수는 기록하지 않습니다. 다 풀었으면 1회독을 체크하세요.</div></div>`;
 }
-function answerGrammar(glabId,key,lab){ if(S.greveal[key]) return; S.greveal[key]=lab;
-  var p=loadProg(); var r=p.grammar[glabId]||(p.grammar[glabId]={answered:[]}); if(r.answered.indexOf(key)<0) r.answered.push(key); saveProg(p);
-  render(); }
+function answerGrammar(glabId,key,lab){ if(S.greveal[key]) return; S.greveal[key]=lab; render(); }
 
-/* ===================== Vocab Deck — 30 한눈에 그리드 (요구8) ===================== */
-function vLoad(){ try{ return JSON.parse(localStorage.getItem('paralex-vocab-progress-v1'))||{cards:{},days:{}}; }catch(e){ return {cards:{},days:{}}; } }
-function vSave(p){ try{ localStorage.setItem('paralex-vocab-progress-v1', JSON.stringify(p)); }catch(e){} }
-function vMarkSeen(id){ var p=vLoad(); var c=p.cards[id]; if(!c){ c=p.cards[id]={box:0,seen:0,correct:0,wrong:0,lastRating:null}; } if(!c.seen){ c.seen=1; vSave(p); } }
-function vStatus(id){ const c=vLoad().cards[id]; if(!c||!c.seen) return 'new'; if(c.box>=4) return 'mastered'; return 'learning'; }
-function vRevealCard(day,id){ S.vocabReveal[id]=!S.vocabReveal[id]; if(S.vocabReveal[id]) vMarkSeen(id); render(); }
-function vRevealAll(day){ S.vocabRevealAll=!S.vocabRevealAll; if(S.vocabRevealAll){ var d=(window.PARALEX_VOCAB_DAYS||[]).find(x=>x.day===day); (d&&d.cards||[]).forEach(c=>vMarkSeen(c.id)); } render(); }
+/* ===================== Vocab Deck — 30 한눈에 그리드 + 왼쪽 세로 레일 ===================== */
 function tagFull(t){ return ({NGSL:'New General Service List · 일상 고빈도어',NGSL2k:'NGSL 상위 2천 · 일상 고빈도어',TSL:'TOEIC Service List · 토익 빈출어',BSL:'Business Service List · 비즈니스 빈출어',NAWL:'New Academic Word List · 학술 빈출어'}[t]||t); }
+function vRevealCard(day,id){ S.vocabReveal[id]=!S.vocabReveal[id]; render(); }
+function vRevealAll(day){ S.vocabRevealAll=!S.vocabRevealAll; render(); }
 function renderVocab(){
   const days = window.PARALEX_VOCAB_DAYS || [];
   if(!days.length) return `<div class="wrap"><div class="h-title">Vocab Deck</div><div class="kv" style="color:#64748b">어휘 Day 데이터 준비 중.</div></div>`;
   if(S.vocabDay==null){ S.vocabDay = days[0].day; }
   const d = days.find(x=>x.day===S.vocabDay) || days[0];
   const cards = d.cards||[];
-  let nw=0,lr=0,ms=0; cards.forEach(c=>{ const s=vStatus(c.id); if(s==='new')nw++; else if(s==='mastered')ms++; else lr++; });
   const showAll = S.vocabRevealAll;
-  // 왼쪽 세로 레일 (Day 폭증 대비: 위→아래)
-  const rail = days.slice().sort((a,b)=>(a.day||0)-(b.day||0)).map(x=>{ const xc=x.cards||[]; let seen=0; xc.forEach(c=>{ if(vocabSeen(c.id)) seen++; });
-    return `<button class="${x.day===d.day?'on':''}" onclick="setState({vocabDay:${x.day}})"><div style="font-weight:800">Day ${x.day}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${seen}/${xc.length}</div></button>`;
+  const rail = days.slice().sort((a,b)=>(a.day||0)-(b.day||0)).map(x=>{ var rd=isRead('vocab',x.day);
+    return `<button class="${x.day===d.day?'on':''}" onclick="setState({vocabDay:${x.day}})"><div style="font-weight:800">Day ${x.day} ${rd?'<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:11px"></i>':''}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${(x.cards||[]).length}단어</div></button>`;
   }).join('');
   const seg = (label,from,to)=>{
     const slice = cards.slice(from,to);
@@ -622,7 +491,7 @@ function renderVocab(){
   };
   return `<div class="wrap">
     <div class="h-title">Vocab Deck</div>
-    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·해석이 열립니다(열면 '학습'으로 기록). 왼쪽에서 Day를 고르세요.</div>
+    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·해석이 열립니다. 왼쪽에서 Day를 고르세요.</div>
     <details class="vlegend"><summary><i class="fa-solid fa-circle-info"></i> 리스트 태그(NGSL·TSL·BSL·NAWL)란?</summary>
       <div style="margin-top:7px;line-height:1.75">빈도 연구 기반 영어 단어 목록입니다 — 이 단어가 어떤 목록에 속하는지 보여줘요.<br>
       • <b style="color:#a5b4fc">NGSL</b> (New General Service List): 일상·범용 고빈도어. 일반 영어의 ~90%를 덮는 핵심 약 2,800단어.<br>
@@ -634,48 +503,27 @@ function renderVocab(){
       <div class="vrail">${rail}</div>
       <div class="vmain">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div><span style="color:#f1f5f9;font-size:16px;font-weight:800">Day ${d.day}</span> <span style="color:#94a3b8;font-size:12.5px">${esc(d.title||'')}</span>
-          <div style="font-size:11.5px;margin-top:3px"><span style="color:#7dd3fc">new ${nw}</span> · <span style="color:#94a3b8">learning ${lr}</span> · <span style="color:#6ee7b7">mastered ${ms}</span></div></div>
-          <button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button>
+          <div><span style="color:#f1f5f9;font-size:16px;font-weight:800">Day ${d.day}</span> <span style="color:#94a3b8;font-size:12.5px">${esc(d.title||'')}</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${readToggleBtn('vocab', d.day)}<button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button></div>
         </div>
         ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
-        <div class="disc">셀프테스트: '전체 뜻 가리기' 상태에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 평가는 브라우저(localStorage)에 저장됩니다.</div>
+        <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 다 익혔으면 '1회독 완료'를 체크하세요.</div>
       </div>
     </div>
   </div>`;
 }
 
-/* ===================== Control Panel ===================== */
-function renderControl(){
-  const s=loadSettings();
-  const bandOpts=['700-800','800-850','850-900','900-950','950+'].map(b=>`<option value="${b}" ${s.targetBand===b?'selected':''}>${b}</option>`).join('');
-  const minSeg=[25,35,50].map(m=>`<button class="${s.dailyMinutes===m?'on':''}" onclick="updateSetting('dailyMinutes',${m})">${m}분</button>`).join('');
-  return `<div class="wrap">
-    <div class="h-title">Control Panel</div>
-    <div class="h-sub">설정은 최소한입니다. 학습 비중·순서·복습 간격은 앱이 진행 기록으로 자동 조정합니다 — 당신은 아래 몇 가지만 정하면 됩니다.</div>
-    <div class="field" style="max-width:340px"><label>목표 점수대 (band)</label>
-      <select onchange="updateSetting('targetBand',this.value)">${bandOpts}</select></div>
-    <div class="field"><label>하루 가용 시간 (Today 분량 자동 조절)</label>
-      <div class="seg">${minSeg}</div></div>
-    <div class="field" style="max-width:340px"><label>시험일 (선택)</label>
-      <input type="date" value="${esc(s.examDate||'')}" onchange="updateSetting('examDate',this.value)"></div>
-    <div style="margin-top:22px"><button class="btn btn-ghost" onclick="if(confirm('학습 진행도(완료기록·어휘)를 모두 초기화할까요?')){localStorage.removeItem('paralex:v1:progress');localStorage.removeItem('paralex-vocab-progress-v1');render();}">진행도 초기화</button></div>
-  </div>`;
-}
-function updateSetting(k,v){ var s=loadSettings(); s[k]=v; saveSettings(s); render(); }
-
 /* ===================== boot + dynamic loader ===================== */
 function boot(){
   try{
     const q=new URLSearchParams(location.search);
-    const v=q.get('view'); if(['today','guide','workbench','dashboard','strategy','vocab','grammar','control'].includes(v)) S.view=v;
+    const v=q.get('view'); if(['today','guide','workbench','strategy','vocab','grammar'].includes(v)) S.view=v;
     const sid=q.get('set'); if(sid && getSet(sid)){ S.view='workbench'; S.setId=sid; }
   }catch(e){}
-  // 방어적 정렬: 콘텐츠 실행 순서와 무관하게 Day 오름차순 보장
   if(window.PARALEX_VOCAB_DAYS&&window.PARALEX_VOCAB_DAYS.sort) window.PARALEX_VOCAB_DAYS.sort((a,b)=>(a.day||0)-(b.day||0));
   render();
 }
-/* ★Codex R3 락: classic <script> 주입(ES module/fetch 금지 → file:// 호환). 자가등록 콘텐츠는 상호 독립이라 병렬 주입 후 전부 정착되면 boot. */
+/* ★Codex R3 락: classic <script> 주입(ES module/fetch 금지 → file:// 호환). async=false로 실행 순서 보장. */
 (function loadContent(){
   var m=window.PARALEX_MANIFEST;
   var files=(m&&m.content)? m.content.map(c=>c.file) : [];
@@ -683,7 +531,7 @@ function boot(){
   if(!total){ boot(); return; }
   function done(){ settled++; if(settled>=total) boot(); }
   files.forEach(function(f){
-    var sc=document.createElement('script'); sc.src=f; sc.async=false; // ★실행 순서 보장(병렬 다운로드+삽입순 실행)
+    var sc=document.createElement('script'); sc.src=f; sc.async=false;
     sc.onload=done; sc.onerror=function(){ console.warn('[Paralex] content load 실패:', f); done(); };
     document.head.appendChild(sc);
   });

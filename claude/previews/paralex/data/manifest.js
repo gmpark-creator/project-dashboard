@@ -44,11 +44,13 @@ window.PARALEX_MANIFEST = {
     { id:"glab-003", kind:"grammar", file:"data/grammar/glab-003.js", order:11, planDay:2, band:"700-800" },
     { id:"glab-002", kind:"grammar", file:"data/grammar/glab-002.js", order:12, planDay:4, band:"800-850" },
     { id:"glab-004", kind:"grammar", file:"data/grammar/glab-004.js", order:13, planDay:5, band:"750-850" },
+    { id:"glab-005", kind:"grammar", file:"data/grammar/glab-005.js", order:14, planDay:6, band:"750-850" },
 
     /* ── Vocab (PARALEX_VOCAB_DAYS 로 self-register) ── */
     { id:"vocab-days",    kind:"vocab", file:"data/vocab-days.js",    order:20, planDay:1 },
     { id:"vocab-day-003", kind:"vocab", file:"data/vocab-day-003.js", order:21, planDay:3 },
     { id:"vocab-day-004", kind:"vocab", file:"data/vocab-day-004.js", order:22, planDay:5 },
+    { id:"vocab-day-005", kind:"vocab", file:"data/vocab-day-005.js", order:23, planDay:6 },
 
     /* ── Reading: Business (쉬운 밴드부터) ── */
     { id:"biz-009", kind:"reading", file:"data/sets/set-biz-009.js", order:100, planDay:1, band:"750-800" },
@@ -63,6 +65,8 @@ window.PARALEX_MANIFEST = {
     { id:"biz-008", kind:"reading", file:"data/sets/set-biz-008.js", order:109, planDay:5, band:"800-850" },
     { id:"biz-011", kind:"reading", file:"data/sets/set-biz-011.js", order:110, planDay:6, band:"750-800" },
     { id:"biz-012", kind:"reading", file:"data/sets/set-biz-012.js", order:111, planDay:6, band:"800-850" },
+    { id:"biz-013", kind:"reading", file:"data/sets/set-biz-013.js", order:112, planDay:6, band:"750-800" },
+    { id:"biz-014", kind:"reading", file:"data/sets/set-biz-014.js", order:113, planDay:7, band:"800-850" },
 
     /* ── Reading: News ── */
     { id:"news-007", kind:"reading", file:"data/sets/set-news-007.js", order:120, planDay:3, band:"750-850" },
@@ -75,6 +79,8 @@ window.PARALEX_MANIFEST = {
     { id:"news-008", kind:"reading", file:"data/sets/set-news-008.js", order:127, planDay:7, band:"800-850" },
     { id:"news-009", kind:"reading", file:"data/sets/set-news-009.js", order:128, planDay:7, band:"750-850" },
     { id:"news-010", kind:"reading", file:"data/sets/set-news-010.js", order:129, planDay:8, band:"800-850" },
+    { id:"news-011", kind:"reading", file:"data/sets/set-news-011.js", order:130, planDay:8, band:"750-850" },
+    { id:"news-012", kind:"reading", file:"data/sets/set-news-012.js", order:131, planDay:8, band:"800-850" },
 
     /* ── Reading: Ladder Capsule (750→950+) ── */
     { id:"cap-750-01", kind:"reading", file:"data/sets/set-cap-750-01.js", order:140, planDay:6,  band:"750-800" },

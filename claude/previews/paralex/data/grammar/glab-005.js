@@ -1,0 +1,118 @@
+window.PARALEX_GLAB = window.PARALEX_GLAB || {};
+window.PARALEX_GLAB["glab-005"] = {
+  id:"glab-005", title:"Part 5 Core Grammar 05", partFocus:["Part5"], scoreBandTarget:"750-850",
+  targetTimeSec:480,
+  items:[
+    { no:1, part:"Part5", questionType:"blank",
+      sentence:"The newly appointed director delivered a remarkably _____ presentation to the visiting investors on Thursday.",
+      choices:[{label:"A",text:"persuade"},{label:"B",text:"persuasive"},{label:"C",text:"persuasion"},{label:"D",text:"persuasively"}],
+      answer:["B"],
+      grammarPoint:"word_form",
+      contextEvidence:"부사 'remarkably'의 수식을 받고 명사 'presentation'을 꾸미는 빈칸은 형용사 자리다.",
+      explanation:"부사 remarkably의 수식을 받으며 명사 presentation을 앞에서 수식하므로 형용사 persuasive가 맞다('설득력 있는 발표').",
+      trapNote:"동사·명사·부사 어형을 섞어 품사 판단을 흐리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"persuade는 동사로 명사 수식 자리에 부적합"},
+        {label:"C",type:"wrong_form",note:"persuasion은 명사로 또 다른 명사 presentation을 수식할 수 없음"},
+        {label:"D",type:"wrong_form",note:"persuasively는 부사로 명사 presentation을 수식할 수 없음"} ] },
+
+    { no:2, part:"Part5", questionType:"blank",
+      sentence:"By the time the merger is finalized next spring, the two firms _____ their operations for nearly a year.",
+      choices:[{label:"A",text:"integrate"},{label:"B",text:"will have been integrating"},{label:"C",text:"integrated"},{label:"D",text:"are integrating"}],
+      answer:["B"],
+      grammarPoint:"tense_aspect",
+      contextEvidence:"미래 기준 시점(next spring)까지 'for nearly a year' 지속될 동작을 나타낸다.",
+      explanation:"미래의 기준 시점까지 계속 이어질 동작을 'for nearly a year'와 함께 표현하므로 미래완료진행 will have been integrating이 맞다.",
+      trapNote:"단순현재·과거·현재진행으로 미래완료 기준 시제를 흐트러뜨리도록 배치.",
+      distractorRationales:[
+        {label:"A",type:"wrong_tense",note:"단순현재는 미래 기준점까지의 지속을 표현하지 못함"},
+        {label:"C",type:"wrong_tense",note:"과거시제는 미래 기준 시점 맥락과 충돌"},
+        {label:"D",type:"wrong_tense",note:"현재진행은 미래완료진행이 요구되는 자리에 부적합"} ] },
+
+    { no:3, part:"Part5", questionType:"blank",
+      sentence:"The prototype turbine _____ thoroughly before it was shipped to the testing facility in Vandermeer City.",
+      choices:[{label:"A",text:"inspected"},{label:"B",text:"was inspected"},{label:"C",text:"inspecting"},{label:"D",text:"inspects"}],
+      answer:["B"],
+      grammarPoint:"voice",
+      contextEvidence:"주어 turbine은 점검을 받는 대상이며 뒤 절 'was shipped'와 같은 과거 수동 시점이 필요하다.",
+      explanation:"주어 turbine이 점검의 대상이고 과거 사실이므로 수동태 was inspected가 맞다('점검을 받았다').",
+      trapNote:"능동형·분사·현재형을 섞어 태와 시제 판단을 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"능동 과거형은 주어가 직접 점검을 수행한다는 의미가 되어 부적합"},
+        {label:"C",type:"wrong_form",note:"inspecting은 분사 단독으로 본동사가 될 수 없음"},
+        {label:"D",type:"wrong_tense",note:"현재형 inspects는 과거 'was shipped'와 시제가 충돌"} ] },
+
+    { no:4, part:"Part5", questionType:"blank",
+      sentence:"The procurement office recommends _____ at least three competing bids before approving any large purchase.",
+      choices:[{label:"A",text:"to obtain"},{label:"B",text:"obtain"},{label:"C",text:"obtaining"},{label:"D",text:"obtained"}],
+      answer:["C"],
+      grammarPoint:"gerund_infinitive",
+      contextEvidence:"동사 recommend는 목적어로 동명사를 취한다.",
+      explanation:"recommend는 목적어로 동명사를 취하므로 obtaining이 맞다('입찰을 받을 것을 권장한다').",
+      trapNote:"to부정사·원형·과거분사를 섞어 동사+목적어 형태를 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"recommend는 to부정사 목적어를 직접 취하지 않음"},
+        {label:"B",type:"wrong_form",note:"원형 obtain은 목적어 자리에 단독으로 올 수 없음"},
+        {label:"D",type:"wrong_form",note:"과거분사 obtained는 동명사 목적어 자리에 부적합"} ] },
+
+    { no:5, part:"Part5", questionType:"blank",
+      sentence:"Employees may exchange their commuter vouchers _____ cash at the front desk until the end of the month.",
+      choices:[{label:"A",text:"for"},{label:"B",text:"with"},{label:"C",text:"into"},{label:"D",text:"by"}],
+      answer:["A"],
+      grammarPoint:"preposition",
+      contextEvidence:"'exchange A _____ B'는 교환 대상을 표시하는 전치사 for를 요구한다.",
+      explanation:"'A를 B로 교환하다'는 exchange A for B 구조이므로 전치사 for가 맞다.",
+      trapNote:"동반·전환·수단 전치사를 섞어 연어 전치사 선택을 시험.",
+      distractorRationales:[
+        {label:"B",type:"wrong_preposition",note:"with는 동반·수단을 뜻해 교환 대상 표시에 부적합"},
+        {label:"C",type:"wrong_preposition",note:"into는 변환을 뜻해 exchange의 표준 연어가 아님"},
+        {label:"D",type:"wrong_preposition",note:"by는 수단·정도를 뜻해 교환 대상과 어울리지 않음"} ] },
+
+    { no:6, part:"Part5", questionType:"blank",
+      sentence:"The shipment was delayed by a sudden storm; _____, the client agreed to extend the deadline by two business days.",
+      choices:[{label:"A",text:"consequently"},{label:"B",text:"nonetheless"},{label:"C",text:"likewise"},{label:"D",text:"instead"}],
+      answer:["A"],
+      grammarPoint:"conjunction_connector",
+      contextEvidence:"'폭풍으로 지연되었다'는 원인과 '기한을 연장했다'는 결과가 인과 관계다.",
+      explanation:"앞의 지연이라는 원인에 따른 결과가 이어지므로 인과의 접속부사 consequently가 맞다('그 결과').",
+      trapNote:"양보·유사·대체 접속부사를 섞어 논리 관계를 시험.",
+      distractorRationales:[
+        {label:"B",type:"wrong_connector",note:"nonetheless는 양보로 인과 결과 맥락에 부적합"},
+        {label:"C",type:"wrong_connector",note:"likewise는 유사·첨가로 인과 관계를 나타내지 못함"},
+        {label:"D",type:"wrong_connector",note:"instead는 '대신에'의 대체로 문맥과 충돌"} ] },
+
+    { no:7, part:"Part5", questionType:"blank",
+      sentence:"This year's training program proved far _____ than the one offered last spring, drawing twice as many applicants.",
+      choices:[{label:"A",text:"effective"},{label:"B",text:"more effective"},{label:"C",text:"most effective"},{label:"D",text:"effectively"}],
+      answer:["B"],
+      grammarPoint:"comparison",
+      contextEvidence:"강조 부사 'far'와 비교 표지 'than'은 비교급 형용사를 요구한다.",
+      explanation:"far의 수식을 받고 than과 짝을 이루는 비교 구문이므로 비교급 more effective가 맞다.",
+      trapNote:"원급·최상급·부사를 섞어 비교 구문 형태를 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"원급 effective는 than과 함께 비교급을 이루지 못함"},
+        {label:"C",type:"wrong_form",note:"최상급 most effective는 than과 결합할 수 없음"},
+        {label:"D",type:"wrong_form",note:"부사 effectively는 보어 자리의 비교 대상에 부적합"} ] },
+
+    { no:8, part:"Part5", questionType:"blank",
+      sentence:"The orientation session covered filing expense reports, scheduling client meetings, and _____ inventory records accurately.",
+      choices:[{label:"A",text:"update"},{label:"B",text:"to update"},{label:"C",text:"updating"},{label:"D",text:"updated"}],
+      answer:["C"],
+      grammarPoint:"parallelism",
+      contextEvidence:"등위 'and'로 연결된 앞의 동명사 filing·scheduling과 형태가 일치해야 한다.",
+      explanation:"and로 연결된 filing, scheduling과 병렬을 이루어야 하므로 같은 동명사 updating이 맞다.",
+      trapNote:"원형·to부정사·과거분사를 섞어 병렬 구조 일치를 시험.",
+      distractorRationales:[
+        {label:"A",type:"wrong_form",note:"원형 update는 앞의 동명사들과 병렬 형태가 어긋남"},
+        {label:"B",type:"wrong_form",note:"to부정사 to update는 동명사 병렬 구조와 일치하지 않음"},
+        {label:"D",type:"wrong_form",note:"과거분사 updated는 등위 동명사 병렬에 부적합"} ] }
+  ],
+  reviewGates:{
+    legal:{pass:true,reviewer:"Claude",note:"자체작성 original, 실존 기출·기사 비복제, 가공 도시·인물 사용"},
+    originality:{pass:true,reviewer:"Claude",note:"백지 작성, 외부 콘텐츠 미복제"},
+    answerability:{pass:true,reviewer:"Claude",note:"전 8문항 빈칸당 정답 보기 유일 성립"},
+    grammarAccuracy:{pass:true,reviewer:"Claude",note:"word_form/tense_aspect/voice/gerund_infinitive/preposition/conjunction_connector/comparison/parallelism 규칙 정확"},
+    distractor:{pass:true,reviewer:"Claude",note:"모든 오답에 GDR 타입태그·근거 부여"},
+    human:{pass:false,reviewer:null,note:"박사 검수 전 — practice"} },
+  version:"2026-06-30"
+};
