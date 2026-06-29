@@ -1,6 +1,6 @@
 /* Paralex 세트 검수 validator — 라우팅 계약 + 6게이트 + documents[]/multi-passage + official/practice.
    사용: node validator.mjs   (data/sets/*.js 전부 로드, issueCount 0 목표) */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -128,6 +128,59 @@ for(const s of sets){
   // legal 메타
   if(s.thirdPartyContentExcluded !== true) add(id, `thirdPartyContentExcluded false/누락(legal)`);
 }
+
+// --- Grammar Lab 검사 ---
+const GPOINTS = ['word_form','tense_aspect','voice','subject_verb_agreement','gerund_infinitive','participle','relative_clause','noun_clause','pronoun_reference','preposition','conjunction_connector','modifier_adverb','comparison','parallelism','determiner_quantifier','condition_subjunctive','collocation','vocabulary_in_context','part6_cohesion','part6_sentence_insertion'];
+const GDR = ['wrong_form','wrong_tense','wrong_preposition','wrong_connector','agreement_error','register_mismatch','close_meaning'];
+const glabReg = {};
+const glabDir = join(__dir,'data','grammar');
+if(existsSync(glabDir)){
+  for(const f of readdirSync(glabDir).filter(n=>n.endsWith('.js'))){
+    try { new Function('window', readFileSync(join(glabDir,f),'utf8'))({ PARALEX_GLAB: glabReg }); }
+    catch(e){ add(f, `파싱 실패: ${e.message}`); }
+  }
+}
+for(const g of Object.values(glabReg)){
+  const id = g.id || '(glab)';
+  for(const k of ['id','title','partFocus']) if(g[k]==null) add(id, `glab 필수 ${k} 누락`);
+  const items = g.items || (g.passages||[]).flatMap(p=>(p.items||[]).map(it=>({...it,_part6:true})));
+  if(!items.length) add(id, 'glab items 없음');
+  for(const it of items){
+    const q = `item${it.no}`;
+    const ch = it.choices||[]; if(ch.length<4) add(id, `${q} 선지<4`);
+    const labels = ch.map((c,i)=>c.label||LAB[i]);
+    const ans = (it.answer||[]).map(a=> typeof a==='number'?LAB[a-1]:a);
+    if(!ans.length) add(id, `${q} answer 없음`);
+    for(const a of ans) if(!labels.includes(a)) add(id, `${q} answer '${a}' 선지에 없음`);
+    if(it.part==='Part5' && it.questionType==='sentence_insertion') add(id, `${q} sentence_insertion은 Part6 전용`);
+    if(it.questionType!=='sentence_insertion' && it.sentence){ const b=(String(it.sentence).match(/_{2,}/g)||[]).length; if(b!==1) add(id, `${q} 빈칸 ${b}개(1개 필요)`); }
+    if(it.grammarPoint && !GPOINTS.includes(it.grammarPoint)) add(id, `${q} grammarPoint 무효: ${it.grammarPoint}`);
+    const wrongs = labels.filter(l=>!ans.includes(l));
+    const drMap = new Map((it.distractorRationales||[]).map(d=>[d.label,d]));
+    for(const w of wrongs){ const dr=drMap.get(w); if(!dr){ add(id, `${q} 오답 ${w} rationale 없음`); continue; } if(!GDR.includes(dr.type)) add(id, `${q} 오답 ${w} type 무효: ${dr.type}`); }
+    if(!it.explanation) add(id, `${q} explanation 없음`);
+    if(BANNED.test(it.explanation||'')||BANNED.test(it.sentence||'')) add(id, `${q} placeholder`);
+  }
+  const gg = g.reviewGates||{};
+  for(const nm of ['legal','originality','answerability','grammarAccuracy','distractor','human']){
+    const gt = gg[nm];
+    if(!gt){ add(id, `glab reviewGates.${nm} 누락`); continue; }
+    if(['legal','originality','answerability','grammarAccuracy','distractor'].includes(nm) && gt.pass!==true) add(id, `glab ${nm} pass 강제`);
+  }
+}
+console.log(`로드된 Grammar Lab: ${Object.values(glabReg).length}개`);
+
+// --- Vocab Day 검사 ---
+const vdPath = join(__dir,'data','vocab-days.js');
+let vdList = [];
+if(existsSync(vdPath)){ try { const w={}; new Function('window', readFileSync(vdPath,'utf8'))(w); vdList = w.PARALEX_VOCAB_DAYS||[]; } catch(e){ add('vocab-days', `파싱 실패: ${e.message}`); } }
+const seenLemma = new Set(); let vCount=0;
+for(const d of vdList){ for(const c of (d.cards||[])){ vCount++;
+  for(const k of ['id','lemma','glossKo','collocation','example']) if(!c[k]) add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} ${k} 빈값`);
+  const lk = String(c.lemma||'').toLowerCase().trim(); if(lk && seenLemma.has(lk)) add('vocab-days', `중복 lemma: ${c.lemma}`); seenLemma.add(lk);
+  if(BANNED.test(c.glossKo||'')||BANNED.test(c.example||'')) add('vocab-days', `카드 ${c.id} placeholder`);
+} }
+console.log(`로드된 Vocab Day: ${vdList.length}일 / ${vCount}카드`);
 
 console.log('');
 if(warns.length){ console.log(`⚠️  경고 ${warns.length}건:`); warns.forEach(w=>console.log('  '+w)); console.log(''); }
