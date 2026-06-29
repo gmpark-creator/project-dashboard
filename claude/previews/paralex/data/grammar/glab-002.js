@@ -87,7 +87,7 @@ window.PARALEX_GLAB["glab-002"] = {
     },
     {
       pid:"t2", label:"Notice",
-      text:"NOTICE TO ALL BUILDING TENANTS\n\nThe lobby elevators will undergo scheduled maintenance ____1____ Monday, beginning at 7:00 A.M. During this period, only the freight elevator at the rear of the building will be available. ____2____ We apologize for any inconvenience this may cause.\n\nTenants who require assistance moving large items ____3____ contact the facilities desk in advance. The maintenance crew expects the work ____4____ before noon, and normal service will resume immediately afterward.\n\nFacilities Management",
+      text:"NOTICE TO ALL BUILDING TENANTS\n\nThe lobby elevators will undergo scheduled maintenance ____1____ Monday, beginning at 7:00 A.M. During this period, only the freight elevator at the rear of the building will be available. ____2____ We apologize for any inconvenience this may cause.\n\nTenants who require assistance moving large items ____3____ contact the facilities desk in advance. The maintenance crew expects ____4____ the work before noon, and normal service will resume immediately afterward.\n\nFacilities Management",
       items:[
         {
           no:1, part:"Part6", questionType:"blank", blankId:1,
@@ -156,13 +156,13 @@ window.PARALEX_GLAB["glab-002"] = {
           ],
           answer:["B"],
           grammarPoint:"word_form",
-          contextEvidence:"'The maintenance crew expects the work ____ before noon' — expect + 목적어 + to부정사 구문.",
-          explanation:"동사 expect는 'expect + 목적어 + to부정사' 형태를 취한다. 'expects the work to complete before noon'으로 to부정사 to complete가 정답.",
-          trapNote:"expect는 동명사(completing)나 that절 없는 정동사(completes)를 목적격보어로 취하지 않는다. completed(과거분사)도 이 구문에서는 부적합하다.",
+          contextEvidence:"'The maintenance crew expects ____ the work before noon' — expect + to부정사 구문(주어 crew가 완료 주체).",
+          explanation:"동사 expect는 'expect + to부정사'(주어가 그 행위의 주체) 형태를 취한다. 정비팀이 작업을 완료하는 주체이므로 to부정사 to complete가 정답: 'expects to complete the work before noon'.",
+          trapNote:"동명사 completing은 expect의 목적어가 될 수 없고(expect to do / expect that~), 과거분사 completed·정동사 completes도 expect 바로 뒤 자리에 올 수 없다.",
           distractorRationales:[
-            {label:"A",type:"wrong_form",note:"expect는 동명사를 목적격보어로 취하지 않음."},
-            {label:"C",type:"wrong_form",note:"과거분사 — expect O to do 구문 형태 위반."},
-            {label:"D",type:"wrong_tense",note:"정동사 completes — 목적어 뒤 보어 자리에 올 수 없음."}
+            {label:"A",type:"wrong_form",note:"expect는 동명사를 목적어로 취하지 않음(expect to do)."},
+            {label:"C",type:"wrong_form",note:"과거분사 completed — expect 뒤 동사 자리에 부적합."},
+            {label:"D",type:"wrong_tense",note:"정동사 completes — expect 뒤에 정동사가 바로 올 수 없음."}
           ]
         }
       ]

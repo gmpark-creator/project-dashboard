@@ -97,7 +97,7 @@ window.PARALEX_SETS["cap-950-02"] = {
       answer: ["B"], evidenceSpanIds: ["d1p1", "d2p1", "d2p2"],
       skillFocus: ["multi_passage", "inference"], trapFocus: ["partial_truth", "wrong_referent"],
       distractorRationales: [
-        { label: "A", type: "chronology", note: "기사는 'over the coming year' 시행을 밝히지만(d1p1), 응답은 시행 시점을 다투지 않는다 — 시간 쟁점은 등장하지 않음." },
+        { label: "A", type: "not_mentioned", note: "기사는 'over the coming year' 시행을 밝히지만(d1p1), 응답은 시행 시점을 다투지 않는다 — 쟁점 아님(자매 세트 cap-950-01 Q1과 동일 분류)." },
         { label: "C", type: "partial_truth", note: "핵심 함정: 연구자는 오히려 '디지털 대출이 외출이 어려운 독자에게 도움 될 수 있다'는 데 동의한다(d2p1). homebound 독자에 대한 유용성은 '동의' 지점이지 불일치 지점이 아니다." },
         { label: "D", type: "wrong_referent", note: "대여 태블릿 제공은 기사(d1p2) 측 위원회의 약속일 뿐, 응답이 반박하는 대상이 아니다 — 화자/문서 혼동." }
       ],
@@ -137,7 +137,7 @@ window.PARALEX_SETS["cap-950-02"] = {
     legal: { pass: true, reviewer: "Claude", note: "100% 자체작성 original. 가공 도시(Riverton)·가공 화자(익명 문해력 연구자), 실존 기사/논평 비복제·제3자 콘텐츠 없음.", sourceEvidence: "original draft" },
     originality: { pass: true, reviewer: "Claude", note: "기존 문장 미사용·미변형. 기사+연구자 응답 2문서 백지 작성." },
     answerability: { pass: true, reviewer: "Claude", note: "전 문항 evidenceSpanIds가 d1·d2 실재 문단 id(d1p1/d1p2/d2p1/d2p2)와 매칭. 3문항 모두 교차참조(d1·d2 혼합)." },
-    distractor: { pass: true, reviewer: "Claude", note: "오답 전부 타입태그(partial_truth/wrong_referent/opposite/not_mentioned/chronology) 부여. 핵심 함정=한 문서만 맞는 partial_truth, 화자/문서 혼동 wrong_referent." },
+    distractor: { pass: true, reviewer: "Claude", note: "오답 전부 타입태그(partial_truth/wrong_referent/opposite/not_mentioned) 부여. 핵심 함정=한 문서만 맞는 partial_truth, 화자/문서 혼동 wrong_referent." },
     toeicLikeness: { pass: true, reviewer: "Claude", note: "Part7 multi-passage(2문서) 형식. 950+ 난도: 관점 구분·교차참조 추론 3문항, 표면일치 오답 배치." },
     human: { pass: false, reviewer: null, note: "박사 최종 검수 전 — practice/ladder 버킷 대기." }
   },

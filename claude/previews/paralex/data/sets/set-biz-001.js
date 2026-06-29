@@ -83,7 +83,7 @@ window.PARALEX_SETS["biz-001"] = {
       answer: ["A"], evidenceSpanIds: ["d1p1"],
       skillFocus: ["purpose"], trapFocus: ["wrong_referent", "not_mentioned"],
       distractorRationales: [
-        { label: "B", type: "wrong_referent", note: "주차는 d1p3에서 '변경 없음'으로만 언급 — 새 정책 도입 아님." },
+        { label: "B", type: "partial_truth", note: "주차가 d1p3에 언급되긴 하나 '변경 없음(unchanged)'일 뿐 — '새 정책 도입'은 일부 사실에 기댄 과장이며 메모의 목적도 아님." },
         { label: "C", type: "not_mentioned", note: "채용 언급 없음. design studio는 이전 목적의 맥락." },
         { label: "D", type: "not_mentioned", note: "고객 설문 결과는 지문에 없음." }
       ],

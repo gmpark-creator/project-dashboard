@@ -123,7 +123,7 @@ window.PARALEX_SETS["news-003"] = {
       answer: ["C"], evidenceSpanIds: ["d1p3"],
       skillFocus: ["inference"], trapFocus: ["not_mentioned", "wrong_referent"],
       distractorRationales: [
-        { label: "A", type: "chronology", note: "당국은 확대에 '신중'할 뿐(d1p3) — 전체망 승인은 아직 일어나지 않음." },
+        { label: "A", type: "not_mentioned", note: "당국은 확대에 '신중'할 뿐(d1p3) — 전체망 승인은 지문에 근거가 없다." },
         { label: "B", type: "partial_truth", note: "혼잡 완화는 본래 목표였으나 d1p2에서 대체로 실패 — '신속 해소'는 비약." },
         { label: "D", type: "not_mentioned", note: "승객 증가로 자체 충당된다는 언급 없음 — 오히려 수입 급증 우려." }
       ],

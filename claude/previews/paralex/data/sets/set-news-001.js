@@ -46,7 +46,7 @@ window.PARALEX_SETS["news-001"] = {
         { id: "d1p3", functionLabel: "유보/반론", chunks: [
           { en: "Critics caution, however,", ko: "그러나 비판자들은 경고한다,", note: "삽입 however" },
           { en: "that the results may not translate to every sector.", ko: "그 결과가 모든 부문에 적용되진 않을 수 있다고.", note: "translate to: ~로 적용되다" },
-          { en: "Roles that depend on continuous coverage,", ko: "지속적인 인력 충원에 의존하는 역할들은,", note: "주어+관계절" },
+          { en: "Roles that depend on continuous coverage,", ko: "끊김 없는 상시 근무가 필요한 역할들은,", note: "주어+관계절. continuous coverage=상시(24시간) 근무 공백 없음" },
           { en: "such as emergency dispatch,", ko: "응급 출동 같은,", note: "삽입 예시" },
           { en: "cannot simply be condensed,", ko: "단순히 압축될 수 없다,", note: "수동태" },
           { en: "and some managers worry", ko: "그리고 일부 관리자들은 우려한다", note: "" },
