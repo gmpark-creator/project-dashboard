@@ -9,7 +9,7 @@
   :root{
     --bg:#070b1e; --bg2:#0c1330; --panel:#121a3a; --line:#2a3566;
     --ink:#e7ecff; --muted:#94a0c8; --cyan:#22d3ee; --teal:#0e7490;
-    --science:#fbbf24; --industry:#6366f1; --fitness:#22d3ee; --future:#64748b;
+    --science:#fbbf24; --industry:#6366f1; --fitness:#22d3ee; --future:#64748b; --english:#34d399;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -71,6 +71,7 @@
   .cat[data-cat="industry"]{--accent:var(--industry)}
   .cat[data-cat="fitness"]{--accent:var(--fitness)}
   .cat[data-cat="future"]{--accent:var(--future)}
+  .cat[data-cat="english"]{--accent:var(--english)}
   /* 준비 중(추후) 카드 — 비활성 톤 */
   .cat.soon{cursor:default;opacity:.72;border-style:dashed}
   .cat.soon:hover{transform:none;box-shadow:none;border-color:var(--line)}
@@ -164,22 +165,21 @@
       <span class="open">열기 <span class="arr">→</span></span>
     </button>
 
-    <!-- 04 추후 추가될 정보 (준비 중) -->
-    <div class="cat soon" data-cat="future" aria-disabled="true"
-         data-title="추후 추가될 정보" data-sub="Coming Soon · 유니버스 확장 슬롯">
-      <span class="soon-badge">준비 중</span>
+    <!-- 04 영어 (토익) — Paralex -->
+    <button class="cat" data-cat="english" data-url="../paralex/"
+            data-title="영어 (토익)" data-sub="English · Paralex — 읽은 영어를 TOEIC® 950 훈련으로">
       <span class="num">CATEGORY 04</span>
       <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 6.5C10.5 5 7.5 4.5 4 5v13c3.5-.5 6.5 0 8 1.5 1.5-1.5 4.5-2 8-1.5V5c-3.5-.5-6.5 0-8 1.5z"/><path d="M12 6.5v13"/></svg>
       </span>
-      <h2>추후 추가될 정보</h2>
-      <div class="en">Coming Soon — 새 지식 영역 확장 슬롯</div>
-      <p>Knowledgeverse는 같은 틀 위에 새 지식 영역을 계속 얹어 확장합니다. 다음 카테고리가 이 자리에 들어갈 예정입니다.</p>
+      <h2>영어 (토익)</h2>
+      <div class="en">English — Paralex · 직독직해 리딩 cockpit</div>
+      <p>실제 영어(뉴스)와 비즈니스 지문을 직독직해(슬래시 끊어읽기)로 훈련하고, 750→950 점수대별 Ladder Capsule로 약점을 잡는 TOEIC® RC 학습 cockpit. 패러프레이즈·함정 카탈로그·근거 기반 문항 + 오답 유형 진단. 모바일 뷰어 포함.</p>
       <div class="meta">
-        <span class="chip">유니버스 확장</span><span class="chip">데이터 주도</span>
+        <span class="chip">직독직해</span><span class="chip">750→950 사다리</span><span class="chip">패러프레이즈</span><span class="chip">함정 진단</span>
       </div>
-      <span class="open">준비 중</span>
-    </div>
+      <span class="open">열기 <span class="arr">→</span></span>
+    </button>
 
   </div>
 
@@ -208,7 +208,7 @@
   var vsub     = document.getElementById('vsub');
   var vdot     = document.getElementById('vdot');
   var newtab   = document.getElementById('newtab');
-  var ACCENT   = { science:'#fbbf24', industry:'#6366f1', fitness:'#22d3ee', future:'#64748b' };
+  var ACCENT   = { science:'#fbbf24', industry:'#6366f1', fitness:'#22d3ee', future:'#64748b', english:'#34d399' };
 
   function openCat(cat, url, title, sub){
     if (!url) return;                       // 준비 중(추후) 카드는 무동작
@@ -241,7 +241,7 @@
   // 딥링크: #science / #industry / #fitness 로 진입 시 해당 카테고리 바로 열기
   (function(){
     var h = (location.hash || '').replace('#','');
-    if (h === 'science' || h === 'industry' || h === 'fitness') {
+    if (h === 'science' || h === 'industry' || h === 'fitness' || h === 'english') {
       var b = document.querySelector('.cat[data-cat="'+h+'"]');
       if (b && !b.classList.contains('soon')) openCat(b.dataset.cat, b.dataset.url, b.dataset.title, b.dataset.sub);
     }
