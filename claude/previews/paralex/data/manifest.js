@@ -39,6 +39,16 @@ window.PARALEX_MANIFEST = {
   /* 콘텐츠 레지스트리 — 동적 로더(file)·Today resolver(kind/band/order)·validator의 단일 소스.
      order 오름차순이 학습 궤도. reading은 쉬운 밴드부터. */
   content: [
+    /* ── 개념(Concept) 강의 — 문제 전에 체득 ── */
+    { id:"concept-001", kind:"concept", file:"data/concepts/concept-001.js", order:1, planDay:1, band:"core" },
+    { id:"concept-002", kind:"concept", file:"data/concepts/concept-002.js", order:2, planDay:1, band:"core" },
+    { id:"concept-003", kind:"concept", file:"data/concepts/concept-003.js", order:3, planDay:2, band:"core" },
+    { id:"concept-004", kind:"concept", file:"data/concepts/concept-004.js", order:4, planDay:2, band:"core" },
+    { id:"concept-005", kind:"concept", file:"data/concepts/concept-005.js", order:5, planDay:3, band:"core" },
+    { id:"concept-006", kind:"concept", file:"data/concepts/concept-006.js", order:6, planDay:3, band:"core" },
+    { id:"concept-007", kind:"concept", file:"data/concepts/concept-007.js", order:7, planDay:4, band:"core" },
+    { id:"concept-008", kind:"concept", file:"data/concepts/concept-008.js", order:8, planDay:4, band:"core" },
+
     /* ── Grammar Lab ── */
     { id:"glab-001", kind:"grammar", file:"data/grammar/glab-001.js", order:10, planDay:1, band:"700-800" },
     { id:"glab-003", kind:"grammar", file:"data/grammar/glab-003.js", order:11, planDay:2, band:"700-800" },

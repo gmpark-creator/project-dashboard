@@ -150,6 +150,32 @@
     #sidebar .sb-item span{ display:none; }
     #root{ padding:18px 16px 64px; }
   }
+  /* 회독 1~5 스탬프 */
+  .rstamps{ display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; }
+  .rstamp-l{ font-size:11px; color:#64748b; font-weight:700; margin-right:3px; }
+  .rstamp{ width:27px; height:27px; border-radius:50%; border:1px solid #334155; background:#0d1424; color:#64748b; font-size:11px; font-weight:800; }
+  .rstamp:hover{ border-color:#2dd4bf66; }
+  .rstamp.on{ background:#042f2a; color:#5eead4; border-color:#2dd4bf88; }
+  .rstamp-n{ font-size:11px; color:#5eead4; font-weight:800; margin-left:5px; }
+  /* 페이지네이션 */
+  .pgbar{ display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin:8px 0 4px; }
+  .pg{ min-width:30px; height:30px; padding:0 8px; border-radius:8px; border:1px solid #243049; background:#0d1424; color:#94a3b8; font-size:12px; font-weight:700; }
+  .pg:hover{ border-color:#2dd4bf66; color:#e2e8f0; }
+  .pg.on{ background:#042f2a; color:#5eead4; border-color:#2dd4bf66; }
+  .pg:disabled{ opacity:.4; cursor:default; }
+  /* 개념 강의 */
+  .cn-ul{ margin:8px 0 0 2px; padding:0; list-style:none; }
+  .cn-ul li{ font-size:13.5px; color:#dbe4f0; line-height:1.7; padding-left:18px; position:relative; margin-top:6px; }
+  .cn-ul li:before{ content:"▸"; color:#2dd4bf; position:absolute; left:0; }
+  .cn-trap li:before{ content:"⚠"; color:#f59e0b; }
+  .cn-ol{ margin:8px 0 0; padding-left:22px; }
+  .cn-ol li{ font-size:13.5px; color:#dbe4f0; line-height:1.7; margin-top:6px; }
+  .cn-ex{ background:#0d1424; border:1px solid #243049; border-radius:10px; padding:12px 15px; margin-top:9px; }
+  .cn-ex-en{ font-size:14.5px; color:#f1f5f9; font-weight:600; line-height:1.6; }
+  .cn-ex-ko{ font-size:12.5px; color:#94a3b8; margin-top:4px; }
+  .cn-ex-pt{ font-size:12px; color:#5eead4; margin-top:6px; background:#042f2a; border:1px solid #2dd4bf33; border-radius:7px; padding:6px 10px; }
+  .cn-pr{ background:#0d1424; border:1px dashed #334155; border-radius:10px; padding:12px 15px; margin-top:9px; }
+  .cn-pr-task{ font-size:12px; color:#fcd34d; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -163,6 +189,7 @@
     <button class="sb-item" data-view="today" onclick="setState({view:'today'})"><i class="fa-solid fa-bullseye w-4 text-center"></i>Today <span style="font-size:9px;color:#64748b;margin-left:auto">오늘 할 일</span></button>
     <button class="sb-item" data-view="guide" onclick="setState({view:'guide'})"><i class="fa-solid fa-compass w-4 text-center"></i>학습 가이드</button>
     <div class="sb-label">콘텐츠</div>
+    <button class="sb-item" data-view="concept" onclick="setState({view:'concept',conceptId:null})"><i class="fa-solid fa-graduation-cap w-4 text-center"></i>개념 <span style="font-size:9px;color:#64748b;margin-left:auto">강의</span></button>
     <button class="sb-item" data-view="workbench" onclick="setState({view:'workbench',setId:null})"><i class="fa-solid fa-book-open w-4 text-center"></i>Reading Workbench</button>
     <button class="sb-item" data-view="grammar" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-spell-check w-4 text-center"></i>Grammar Lab <span style="font-size:9px;color:#64748b;margin-left:auto">P5·6</span></button>
     <button class="sb-item" data-view="vocab" onclick="setState({view:'vocab'})"><i class="fa-solid fa-layer-group w-4 text-center"></i>Vocab Deck</button>
@@ -178,6 +205,7 @@
 <script>
 /* ===== Paralex viewer engine (무빌드 단일HTML · self-register registry · localStorage) ===== */
 window.PARALEX_SETS = window.PARALEX_SETS || {};
+window.PARALEX_CONCEPTS = window.PARALEX_CONCEPTS || [];
 const $ = (id)=>document.getElementById(id);
 const esc = (s)=> String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const LAB = ['A','B','C','D','E'];
@@ -186,15 +214,21 @@ const LAB = ['A','B','C','D','E'];
 const PKEY='paralex:v1:';
 function pget(k,def){ try{ var v=localStorage.getItem(PKEY+k); return v==null?def:JSON.parse(v); }catch(e){ return def; } }
 function pset(k,val){ try{ localStorage.setItem(PKEY+k, JSON.stringify(val)); }catch(e){} }
-function loadRead(){ return pget('read', {reading:{}, grammar:{}, vocab:{}}); }
+function loadRead(){ var r=pget('read', {}); ['reading','grammar','vocab','concept'].forEach(function(k){ if(!r[k]) r[k]={}; }); return r; }
 function saveRead(r){ pset('read', r); }
-function isRead(kind,id){ var r=loadRead(); return !!(r[kind] && r[kind][id]); }
-function toggleRead(kind,id){ var r=loadRead(); if(!r[kind]) r[kind]={}; if(r[kind][id]) delete r[kind][id]; else r[kind][id]=true; saveRead(r); render(); }
-function readCount(kind){ var r=loadRead(); return Object.keys(r[kind]||{}).length; }
-function readToggleBtn(kind,id){ var on=isRead(kind,id); return `<button class="btn ${on?'':'btn-ghost'}" onclick="toggleRead('${kind}','${id}')">${on?'<i class="fa-solid fa-circle-check"></i> 1회독 완료됨 · 해제':'<i class="fa-regular fa-circle"></i> 1회독 완료로 표시'}</button>`; }
+/* normalize: 기존 boolean(true)=1회독, 숫자는 0~5 clamp */
+function readGet(kind,id){ var r=loadRead(); var v=r[kind]&&r[kind][id]; if(v===true) return 1; return (typeof v==='number')?Math.max(0,Math.min(5,v)):0; }
+function readSet(kind,id,n){ var r=loadRead(); if(!r[kind]) r[kind]={}; n=Math.max(0,Math.min(5,n)); if(n<=0) delete r[kind][id]; else r[kind][id]=n; saveRead(r); render(); }
+function isRead(kind,id){ return readGet(kind,id)>0; }
+function readCount(kind){ var r=loadRead(); var o=r[kind]||{}, n=0; for(var k in o){ if(o[k]===true||o[k]>0) n++; } return n; }
+/* 1~5 회독 스탬프: 동그라미 i 클릭 → n=i(현재값 클릭 시 i-1로 감소) */
+function readStamps(kind,id){ var n=readGet(kind,id), dots='';
+  for(var i=1;i<=5;i++){ dots += `<button class="rstamp ${i<=n?'on':''}" title="${i}회독" onclick="readSet('${kind}','${id}',${i===n?i-1:i})">${i}</button>`; }
+  return `<div class="rstamps"><span class="rstamp-l"><i class="fa-solid fa-repeat"></i> 회독</span>${dots}<span class="rstamp-n">${n>0?n+'회독':'미독'}</span></div>`;
+}
 
 /* --- state --- */
-const S = Object.assign({ view:'today', setId:null, reveal:{}, ppHide:true, showGloss:false, glabId:null, greveal:{}, vocabDay:null, vocabRevealAll:false, vocabReveal:{} }, loadState());
+const S = Object.assign({ view:'today', setId:null, reveal:{}, ppHide:true, showGloss:false, glabId:null, greveal:{}, vocabDay:null, vocabRevealAll:false, vocabReveal:{}, conceptId:null, readPage:{} }, loadState());
 function loadState(){ try{ return JSON.parse(localStorage.getItem('paralex-state'))||{}; }catch(e){ return {}; } }
 function saveState(){ try{ localStorage.setItem('paralex-state', JSON.stringify({view:S.view,setId:S.setId,vocabDay:S.vocabDay})); }catch(e){} }
 function setState(patch){ Object.assign(S, patch); if(patch.setId!==undefined){ S.reveal={}; S.ppHide=true; } if(patch.glabId!==undefined){ S.greveal={}; } if(patch.vocabDay!==undefined){ S.vocabReveal={}; S.vocabRevealAll=false; } saveState(); render(); }
@@ -211,6 +245,7 @@ function render(){
   const r = $('root');
   if(S.view==='today') r.innerHTML = renderToday();
   else if(S.view==='guide') r.innerHTML = renderGuide();
+  else if(S.view==='concept') r.innerHTML = S.conceptId ? renderConcept(S.conceptId) : renderConceptList();
   else if(S.view==='workbench') r.innerHTML = S.setId ? renderSet(S.setId) : renderWorkbenchList();
   else if(S.view==='strategy') r.innerHTML = renderStrategy();
   else if(S.view==='grammar') r.innerHTML = S.glabId ? renderGrammar(S.glabId) : renderGrammarList();
@@ -234,28 +269,33 @@ function taskCard(ic,title,target,desc,goLabel,onclick,done){
     <button class="tk-go" onclick="${onclick}">${esc(goLabel)} <i class="fa-solid fa-arrow-right"></i></button>
   </div>`;
 }
+function conceptList(){ var mc=manifestContent('concept'); var arr=window.PARALEX_CONCEPTS||[]; if(mc.length){ var byId={}; arr.forEach(c=>byId[c.id]=c); var ordered=mc.map(m=>byId[m.id]).filter(Boolean); if(ordered.length) return ordered; } return arr.slice(); }
+function nextConcept(){ var list=conceptList(); for(var i=0;i<list.length;i++){ if(readGet('concept',list[i].id)===0) return list[i].id; } return null; }
 function renderToday(){
-  var ng=nextGrammar(), nv=nextVocabDay(), nr=nextReading();
-  var rTot=manifestContent('reading').length, gTot=manifestContent('grammar').length, vTot=(window.PARALEX_VOCAB_DAYS||[]).length;
+  var nc=nextConcept(), ng=nextGrammar(), nv=nextVocabDay(), nr=nextReading();
+  var cTot=conceptList().length, rTot=manifestContent('reading').length, gTot=manifestContent('grammar').length, vTot=(window.PARALEX_VOCAB_DAYS||[]).length;
   var cards='';
+  if(nc){ var cn=conceptList().find(x=>x.id===nc)||{}; cards += taskCard('fa-graduation-cap','개념', `${esc(cn.title||nc)}`, '먼저 개념을 읽어 체득하세요. 여러 번 읽고 회독을 올리면 좋아요.', '읽기', `setState({view:'concept',conceptId:'${nc}'})`, false); }
+  else cards += taskCard('fa-graduation-cap','개념', '개념 강의 모두 1독 완료 🎉', '여러 번 반복해 회독을 올려 보세요.', '목록', `setState({view:'concept',conceptId:null})`, true);
   if(ng) cards += taskCard('fa-spell-check','문법', `${esc(ng)}`, '풀어 보고 해설을 확인하세요. 점수·정답은 기록하지 않습니다.', '시작', `setState({view:'grammar',glabId:'${ng}'})`, false);
-  else cards += taskCard('fa-spell-check','문법', '문법 세트 모두 1회독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'grammar'})`, true);
-  if(nv!=null) cards += taskCard('fa-layer-group','어휘', `Day ${nv}`, '뜻·예문 해석을 보며 익히고, 다 봤으면 1회독을 체크하세요.', '시작', `setState({view:'vocab',vocabDay:${nv}})`, false);
-  else cards += taskCard('fa-layer-group','어휘', '어휘 Day 모두 1회독 🎉', '복습하려면 왼쪽에서 Day를 고르세요.', '어휘', `setState({view:'vocab'})`, true);
-  if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 켜고 읽은 뒤 1회독을 체크하세요.', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
-  else cards += taskCard('fa-book-open','독해', '독해 세트 모두 1회독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'workbench',setId:null})`, true);
+  else cards += taskCard('fa-spell-check','문법', '문법 세트 모두 1독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'grammar'})`, true);
+  if(nv!=null) cards += taskCard('fa-layer-group','어휘', `Day ${nv}`, '뜻·예문 해석을 보며 익히고, 다 봤으면 회독을 올리세요.', '시작', `setState({view:'vocab',vocabDay:${nv}})`, false);
+  else cards += taskCard('fa-layer-group','어휘', '어휘 Day 모두 1독 🎉', '복습하려면 왼쪽에서 Day를 고르세요.', '어휘', `setState({view:'vocab'})`, true);
+  if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 켜고 읽은 뒤 회독을 올리세요.', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
+  else cards += taskCard('fa-book-open','독해', '독해 세트 모두 1독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'workbench',setId:null})`, true);
   return `<div class="wrap">
     <div class="today-hero">
       <div class="h-title" style="font-size:24px">오늘의 학습</div>
-      <div class="h-sub">위에서부터 순서대로. <b style="color:#5eead4">아직 1회독 안 한 다음 것</b>을 띄워 드려요. 점수·정답은 기록하지 않으니, 다 본 것만 직접 <b style="color:#5eead4">'1회독 완료'</b>로 체크하세요.</div>
+      <div class="h-sub"><b style="color:#5eead4">개념 먼저</b>, 그다음 문법·어휘·독해. 아직 안 본 다음 것을 띄워 드려요. 점수·정답은 기록하지 않으니, 본 만큼 <b style="color:#5eead4">회독(1~5)</b>만 올리세요.</div>
     </div>
     ${cards}
     <div class="stat-grid" style="margin-top:18px">
-      <div class="stat-box"><div class="stat-n">${readCount('reading')}/${rTot}</div><div class="stat-l">독해 1회독</div></div>
-      <div class="stat-box"><div class="stat-n">${readCount('grammar')}/${gTot}</div><div class="stat-l">문법 1회독</div></div>
-      <div class="stat-box"><div class="stat-n">${readCount('vocab')}/${vTot}</div><div class="stat-l">어휘 Day 1회독</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('concept')}/${cTot}</div><div class="stat-l">개념 1독+</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('reading')}/${rTot}</div><div class="stat-l">독해 1독+</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('grammar')}/${gTot}</div><div class="stat-l">문법 1독+</div></div>
+      <div class="stat-box"><div class="stat-n">${readCount('vocab')}/${vTot}</div><div class="stat-l">어휘 1독+</div></div>
     </div>
-    <div class="disc">처음이라면 <b>학습 가이드</b>를 먼저 읽어 보세요 — 공부법·듣기 매뉴얼·주간 리듬이 정리돼 있습니다. <button class="btn" style="padding:3px 11px;font-size:11px;margin-left:6px" onclick="setState({view:'guide'})">가이드 열기</button></div>
+    <div class="disc">처음이라면 <b>학습 가이드</b>와 <b>개념</b>부터. <button class="btn" style="padding:3px 11px;font-size:11px;margin-left:6px" onclick="setState({view:'guide'})">가이드</button> <button class="btn" style="padding:3px 11px;font-size:11px" onclick="setState({view:'concept',conceptId:null})">개념</button></div>
   </div>`;
 }
 
@@ -281,12 +321,22 @@ function renderGuide(){
 }
 
 /* ===================== Reading Workbench ===================== */
-function trackBlock(track, title, icon, cls){
+function setReadPage(key,p){ if(!S.readPage) S.readPage={}; S.readPage[key]=p; render(); }
+function pageControls(key,page,pages){
+  if(pages<=1) return '';
+  var btns='';
+  for(var i=0;i<pages;i++){ btns += `<button class="pg ${i===page?'on':''}" onclick="setReadPage('${key}',${i})">${i+1}</button>`; }
+  return `<div class="pgbar"><button class="pg"${page<=0?' disabled':''} onclick="setReadPage('${key}',${Math.max(0,page-1)})">←</button>${btns}<button class="pg"${page>=pages-1?' disabled':''} onclick="setReadPage('${key}',${Math.min(pages-1,page+1)})">→</button></div>`;
+}
+function trackBlock(track, title, icon, cls, pageKey){
   const sets = setsByTrack(track);
   let h = `<div class="sec-h"><i class="fa-solid ${icon}"></i>${title} <span class="pill pill-${cls}" style="margin-left:6px">${sets.length}세트</span></div>`;
   if(!sets.length){ h += `<div class="kv" style="color:#64748b">아직 세트가 없습니다.</div>`; return h; }
-  h += sets.map(s=>{
-    const done = isRead('reading', s.id) ? ` <i class="fa-solid fa-circle-check" style="color:#10b981"></i>` : '';
+  const per=10, pages=Math.ceil(sets.length/per); var page=(S.readPage&&S.readPage[pageKey])||0; if(page>=pages)page=pages-1; if(page<0)page=0;
+  const slice=sets.slice(page*per, page*per+per);
+  h += slice.map(s=>{
+    var rn=readGet('reading', s.id);
+    const done = rn>0 ? ` <span style="color:#10b981;font-size:11px;font-weight:800">${rn}회독</span>` : '';
     return `<button class="set-row" onclick="setState({view:'workbench',setId:'${s.id}'})">
       <div class="set-ic ${cls}"><i class="fa-solid ${icon}"></i></div>
       <div style="flex:1;min-width:0">
@@ -296,14 +346,15 @@ function trackBlock(track, title, icon, cls){
       <div class="pill pill-orig">${esc(s.license)}</div>
     </button>`;
   }).join('');
+  h += pageControls(pageKey, page, pages);
   return h;
 }
 function renderWorkbenchList(){
   return `<div class="wrap">
     <div class="h-title">Reading Workbench</div>
-    <div class="h-sub">실제 영어를 <b style="color:#2dd4bf">정밀 독해 근육</b>으로, 비즈니스 지문을 <b style="color:#f59e0b">토익 전이</b>로 — 두 트랙을 분리해 훈련한다.</div>
-    ${trackBlock('news','Authentic News (독해 근육)','fa-newspaper','news')}
-    ${trackBlock('business','TOEIC-like Business RC (전이 장치)','fa-briefcase','biz')}
+    <div class="h-sub">실제 영어를 <b style="color:#2dd4bf">정밀 독해 근육</b>으로, 비즈니스 지문을 <b style="color:#f59e0b">토익 전이</b>로 — 두 카테고리로 나눠 훈련한다. <span style="color:#64748b">(한 페이지에 10개씩)</span></div>
+    ${trackBlock('news','독해 근육 (Authentic News)','fa-newspaper','news','news')}
+    ${trackBlock('business','TOEIC Business RC (전이 장치)','fa-briefcase','biz','biz')}
     <div class="disc">⚠️ 세트는 6게이트(Legal·Originality·Answerability·Distractor·TOEIC-likeness·Human) 검수 후 정식 반영됩니다. 현재는 모두 practice 버킷입니다.</div>
   </div>`;
 }
@@ -344,7 +395,7 @@ function renderSet(id){
   return `<div class="wrap">
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-ghost" onclick="setState({view:'workbench',setId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>
-      ${readToggleBtn('reading', set.id)}
+      ${readStamps('reading', set.id)}
     </div>
     <div class="card" style="margin-top:14px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -365,7 +416,7 @@ function renderSet(id){
     ${pps?`<div class="sec-h"><i class="fa-solid fa-arrow-right-arrow-left"></i>패러프레이즈 훈련 <button class="btn" style="margin-left:auto;padding:4px 12px" onclick="setState({ppHide:!S.ppHide})">${S.ppHide?'정답 보기':'가리기'}</button></div>${pps}`:''}
     ${qs?`<div class="sec-h"><i class="fa-solid fa-circle-question"></i>이해 문항 (근거 span 기반)</div>${qs}`:''}
     ${refl?`<div class="sec-h"><i class="fa-solid fa-pen-to-square"></i>회고</div>${refl}`:''}
-    <div style="margin-top:18px;text-align:center">${readToggleBtn('reading', set.id)}</div>
+    <div style="margin-top:18px;text-align:center">${readStamps('reading', set.id)}</div>
     <div class="disc">정답·해설은 자체 작성입니다. 점수는 기록하지 않으니, 다 읽었으면 위 버튼으로 1회독만 체크하세요.</div>
   </div>`;
 }
@@ -419,10 +470,10 @@ function renderGrammarList(){
   let h = `<div class="wrap"><div class="h-title">Grammar Lab</div>
     <div class="h-sub">Part 5(단문 빈칸)·Part 6(장문 빈칸)의 문법·어법·어휘 문제. 독해(Workbench)와 별도 트랙.</div>`;
   if(!all.length){ h += `<div class="kv" style="color:#64748b">문법 세트 준비 중.</div></div>`; return h; }
-  h += all.map(g=>{ var tot=glabCount(g), done=isRead('grammar',g.id);
+  h += all.map(g=>{ var tot=glabCount(g), rn=readGet('grammar',g.id);
     return `<button class="set-row" onclick="setState({view:'grammar',glabId:'${g.id}'})">
       <div class="set-ic biz"><i class="fa-solid fa-spell-check"></i></div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(g.title)}${done?' <i class="fa-solid fa-circle-check" style="color:#10b981"></i>':''}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(g.title)}${rn>0?` <span style="color:#10b981;font-size:11px;font-weight:800">${rn}회독</span>`:''}</div>
       <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${(g.partFocus||[]).join('·')} · ${tot}문항</div></div>
       <div class="pill pill-orig">${esc(g.scoreBandTarget||'')}</div></button>`;
   }).join('');
@@ -454,10 +505,10 @@ function renderGrammar(id){
   if(g.items){ body = g.items.map(it=>renderGItem(id,it,null)).join(''); }
   else if(g.passages){ body = g.passages.map(p=>`<div class="sec-h"><i class="fa-solid fa-file-lines"></i>${esc(p.label||'')}</div><div class="para-p">${esc(p.text||'')}</div>${(p.items||[]).map(it=>renderGItem(id,it,p.pid)).join('')}`).join(''); }
   else body='';
-  return `<div class="wrap"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-ghost" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>${readToggleBtn('grammar', g.id)}</div>
+  return `<div class="wrap"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-ghost" onclick="setState({view:'grammar',glabId:null})"><i class="fa-solid fa-arrow-left"></i> 목록</button>${readStamps('grammar', g.id)}</div>
     <div class="card" style="margin-top:14px"><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill pill-biz">${(g.partFocus||[]).join('·')}</span><span class="pill pill-orig">${esc(g.scoreBandTarget||'')}</span></div>
     <div class="h-title" style="margin-top:10px;font-size:19px">${esc(g.title)}</div></div>
-    ${body}<div style="margin-top:18px;text-align:center">${readToggleBtn('grammar', g.id)}</div><div class="disc">자체작성 연습문제 — 점수는 기록하지 않습니다. 다 풀었으면 1회독을 체크하세요.</div></div>`;
+    ${body}<div style="margin-top:18px;text-align:center">${readStamps('grammar', g.id)}</div><div class="disc">자체작성 연습문제 — 점수는 기록하지 않습니다. 다 풀었으면 1회독을 체크하세요.</div></div>`;
 }
 function answerGrammar(glabId,key,lab){ if(S.greveal[key]) return; S.greveal[key]=lab; render(); }
 
@@ -472,8 +523,8 @@ function renderVocab(){
   const d = days.find(x=>x.day===S.vocabDay) || days[0];
   const cards = d.cards||[];
   const showAll = S.vocabRevealAll;
-  const rail = days.slice().sort((a,b)=>(a.day||0)-(b.day||0)).map(x=>{ var rd=isRead('vocab',x.day);
-    return `<button class="${x.day===d.day?'on':''}" onclick="setState({vocabDay:${x.day}})"><div style="font-weight:800">Day ${x.day} ${rd?'<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:11px"></i>':''}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${(x.cards||[]).length}단어</div></button>`;
+  const rail = days.slice().sort((a,b)=>(a.day||0)-(b.day||0)).map(x=>{ var rn=readGet('vocab',x.day);
+    return `<button class="${x.day===d.day?'on':''}" onclick="setState({vocabDay:${x.day}})"><div style="font-weight:800">Day ${x.day} ${rn>0?`<span style="color:#10b981;font-size:10px">${rn}회</span>`:''}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${(x.cards||[]).length}단어</div></button>`;
   }).join('');
   const seg = (label,from,to)=>{
     const slice = cards.slice(from,to);
@@ -504,7 +555,7 @@ function renderVocab(){
       <div class="vmain">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
           <div><span style="color:#f1f5f9;font-size:16px;font-weight:800">Day ${d.day}</span> <span style="color:#94a3b8;font-size:12.5px">${esc(d.title||'')}</span></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">${readToggleBtn('vocab', d.day)}<button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${readStamps('vocab', d.day)}<button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button></div>
         </div>
         ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
         <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 다 익혔으면 '1회독 완료'를 체크하세요.</div>
@@ -513,11 +564,54 @@ function renderVocab(){
   </div>`;
 }
 
+/* ===================== 개념(Concept) ===================== */
+function renderConceptList(){
+  var list=conceptList();
+  if(!list.length) return `<div class="wrap"><div class="h-title">개념</div><div class="kv" style="color:#64748b">개념 강의 준비 중.</div></div>`;
+  var rows = list.map(function(c){ var rn=readGet('concept',c.id);
+    return `<button class="set-row" onclick="setState({view:'concept',conceptId:'${c.id}'})">
+      <div class="set-ic" style="background:#1e1b4b;color:#c4b5fd"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#f1f5f9;font-size:14.5px">${esc(c.title)}${rn>0?` <span style="color:#10b981;font-size:11px;font-weight:800">${rn}회독</span>`:''}</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-top:3px">${esc(c.summary||'')}</div></div>
+      <div class="pill pill-cap">${(c.partFocus||[]).join('·')}</div></button>`;
+  }).join('');
+  return `<div class="wrap"><div class="h-title">개념 — 토익 핵심 강의</div>
+    <div class="h-sub">문제 풀이 전에 <b style="color:#2dd4bf">개념을 먼저 체득</b>하는 파트입니다. 단계적으로 8개 핵심 개념을 여러 번 읽어 내 것으로 만드세요(회독 1~5).</div>
+    ${rows}
+    <div class="disc">개념은 반복 학습 대상입니다. 한 번 읽었다고 끝이 아니라 회독을 올리며 체득하세요. 각 강의 하단에 관련 문법·독해 세트 링크가 있습니다.</div></div>`;
+}
+function cnList(arr){ return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join(''); }
+function renderConcept(id){
+  var c=(conceptList().find(x=>x.id===id)) || (window.PARALEX_CONCEPTS||[]).find(x=>x.id===id);
+  if(!c) return `<div class="wrap"><div class="empty">강의를 찾을 수 없습니다.</div></div>`;
+  var ex=(c.examples||[]).map(e=>`<div class="cn-ex"><div class="cn-ex-en">${esc(e.en)}</div><div class="cn-ex-ko">${esc(e.ko)}</div>${e.point?`<div class="cn-ex-pt"><i class="fa-solid fa-lightbulb"></i> ${esc(e.point)}</div>`:''}</div>`).join('');
+  var pr=(c.practicePrompts||[]).map(p=>`<div class="cn-pr"><div class="cn-ex-en">${esc(p.en)}</div><div class="cn-pr-task">✍️ ${esc(p.task)}</div></div>`).join('');
+  var relG=(c.relatedGrammarIds||[]).filter(gid=>(window.PARALEX_GLAB||{})[gid]).map(gid=>`<button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="setState({view:'grammar',glabId:'${gid}'})">문법 ${esc(gid)} →</button>`).join(' ');
+  var relS=(c.relatedSetIds||[]).filter(sid=>getSet(sid)).map(sid=>`<button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="setState({view:'workbench',setId:'${sid}'})">독해 ${esc((getSet(sid)||{}).title||sid)} →</button>`).join(' ');
+  return `<div class="wrap">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-ghost" onclick="setState({view:'concept',conceptId:null})"><i class="fa-solid fa-arrow-left"></i> 개념 목록</button>${readStamps('concept', c.id)}</div>
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${(c.partFocus||[]).map(p=>`<span class="pill pill-cap">${esc(p)}</span>`).join('')}<span class="pill pill-orig">${esc(c.scoreBandTarget||'')}</span><span class="pill pill-orig">약 ${esc(String(c.estimatedMinutes||8))}분</span></div>
+      <div class="h-title" style="margin-top:10px;font-size:21px">${esc(c.title)}</div>
+      <div class="h-sub">${esc(c.summary||'')}</div>
+    </div>
+    <div class="sec-h"><i class="fa-solid fa-key"></i>핵심 규칙</div><ul class="cn-ul">${cnList(c.rules)}</ul>
+    ${(c.steps&&c.steps.length)?`<div class="sec-h"><i class="fa-solid fa-list-ol"></i>시험장에서 보는 순서</div><ol class="cn-ol">${cnList(c.steps)}</ol>`:''}
+    ${ex?`<div class="sec-h"><i class="fa-solid fa-book-open"></i>예시</div>${ex}`:''}
+    ${(c.toeicPattern&&c.toeicPattern.length)?`<div class="sec-h"><i class="fa-solid fa-bullseye"></i>토익에선 이렇게 나온다</div><ul class="cn-ul">${cnList(c.toeicPattern)}</ul>`:''}
+    ${(c.traps&&c.traps.length)?`<div class="sec-h"><i class="fa-solid fa-triangle-exclamation"></i>흔한 함정</div><ul class="cn-ul cn-trap">${cnList(c.traps)}</ul>`:''}
+    ${pr?`<div class="sec-h"><i class="fa-solid fa-pen-to-square"></i>미니 복습 (스스로 구조 표시 · 채점 없음)</div>${pr}`:''}
+    ${(relG||relS)?`<div class="sec-h"><i class="fa-solid fa-link"></i>이 개념을 쓰는 문제</div><div style="display:flex;gap:8px;flex-wrap:wrap">${relG} ${relS}</div>`:''}
+    <div style="margin-top:18px;text-align:center">${readStamps('concept', c.id)}</div>
+    <div class="disc">여러 번 읽고 회독을 올리세요. 개념이 몸에 배면 문제 풀이 속도·정확도가 올라갑니다.</div>
+  </div>`;
+}
+
 /* ===================== boot + dynamic loader ===================== */
 function boot(){
   try{
     const q=new URLSearchParams(location.search);
-    const v=q.get('view'); if(['today','guide','workbench','strategy','vocab','grammar'].includes(v)) S.view=v;
+    const v=q.get('view'); if(['today','guide','concept','workbench','strategy','vocab','grammar'].includes(v)) S.view=v;
     const sid=q.get('set'); if(sid && getSet(sid)){ S.view='workbench'; S.setId=sid; }
   }catch(e){}
   if(window.PARALEX_VOCAB_DAYS&&window.PARALEX_VOCAB_DAYS.sort) window.PARALEX_VOCAB_DAYS.sort((a,b)=>(a.day||0)-(b.day||0));
