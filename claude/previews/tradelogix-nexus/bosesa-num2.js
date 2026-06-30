@@ -13,8 +13,8 @@ window.BOSESA_NUM2 = {
       icon: "fa-certificate",
       items: [
         { label: "특허기간 — 보세창고·보세공장 등", correct: "10년 이내", variants: ["7년", "5년"], note: "보세전시장·보세건설장은 행사·공사 기간을 고려해 세관장이 정함.", basis: "관세법 제176조", years: [2019, 2022, 2024] },
-        { label: "특허기간 — 보세판매장", correct: "5년 이내", variants: ["10년(다른 보세구역과 묶어 출제)"], basis: "관세법 제176조의2", years: [2019, 2024] },
-        { label: "보세판매장 특허 갱신 횟수", correct: "두 차례(2회)에 한정", variants: ["3회"], basis: "관세법 제176조의2 제6항", years: [2019] },
+        { label: "특허기간 — 보세판매장", correct: "10년 이내 (2023.1.1 개정)", variants: ["5년(2023.1.1 개정 전 옛 정답)"], note: "⚠️ 2022.12.31 개정(2023.1.1 시행)으로 구 제176조의2 제5항(보세판매장 5년 특례)이 삭제 → 일반 제176조(10년 이내) 적용. 2019년엔 5년이 정답이었으나 2024 #14는 '보세판매장 5년'을 오답으로 출제. 갱신은 여전히 1회당 5년·2회.", basis: "관세법 제176조 (구 제176조의2 제5항 삭제, 2022.12.31 개정·2023.1.1 시행)", years: [2019, 2024] },
+        { label: "보세판매장 특허 갱신 횟수", correct: "두 차례(2회)에 한정", variants: ["3회"], note: "기업규모 무관(중소·중견기업도 2회 동일). 갱신기간 1회당 5년 이내. 특허기간 10년 전환(2023.1.1) 후에도 갱신구조는 유지.", basis: "관세법 제176조의2 제6항", years: [2019] },
         { label: "특허 갱신신청 기한", correct: "특허기간 만료 30일 전까지", variants: ["만료 3개월 전까지"], basis: "특허보세구역 운영에 관한 고시", years: [2024] }
       ]
     },
@@ -108,14 +108,14 @@ window.BOSESA_NUM2 = {
       topic: "보세구역 기간 종합 정리 (합산 암기)",
       icon: "fa-list-ol",
       items: [
-        { label: "기간 4종 합산(2021 기출)", correct: "화물관리인 5년 + 지정장치장 장치 6개월 + 특허보세구역 10년 + 보세판매장 5년", variants: ["합계 18 / 21 / 23 / 33 (정답 합 26)"], note: "각 기간을 정확히 알아야 합산형 문항 대응 가능.", basis: "관세법 제154조 이하", years: [2021] }
+        { label: "기간 4종 합산(2021 기출)", correct: "화물관리인 5년 + 지정장치장 장치 6개월 + 특허보세구역 10년 + 보세판매장 5년 = 26", variants: ["합계 18 / 21 / 23 / 33 (정답 합 26)"], note: "⚠️ 이 '숫자합'은 2021 기출 당시 기준(보세판매장 5년)이며 단위(년·개월) 무시한 숫자 더하기 관행이다. 2023.1.1 개정으로 보세판매장도 10년 → 같은 숫자합 방식이면 현행은 31.", basis: "관세법 제154조 이하", years: [2021] }
       ]
     }
   ],
 
   questions: [
     // ── 2019 ──
-    { year: 2019, no: 2, concept: "보세판매장 특허 갱신횟수 + 특허기간", correct: [{item:"보세판매장 특허 갱신 횟수", value:"두 차례(2회)"}, {item:"보세창고 특허기간", value:"10년 범위"}, {item:"보세판매장 특허기간", value:"5년 이내"}], distractors: [{item:"갱신 횟수", wrongValue:"3회"}], basis: "관세법 제176조의2", type: "틀린것고르기" },
+    { year: 2019, no: 2, concept: "보세판매장 특허 갱신횟수 + 특허기간", correct: [{item:"보세판매장 특허 갱신 횟수", value:"두 차례(2회)"}, {item:"보세창고 특허기간", value:"10년 범위"}, {item:"보세판매장 특허기간", value:"5년 이내"}], distractors: [{item:"갱신 횟수", wrongValue:"3회"}], basis: "관세법 제176조의2 (※2019 당시 보세판매장 특허기간 5년이 정답 — 2023.1.1 개정으로 현행 10년)", type: "틀린것고르기" },
     { year: 2019, no: 7, concept: "특수보세구역 면적·부지 요건", correct: [{item:"컨테이너전용 부지면적", value:"15,000㎡ 이상"}, {item:"야적전용 대지", value:"4,500㎡ 이상"}], distractors: [{item:"액체화물전용 고내면적(실제 ㎥ 기준)", wrongValue:"500㎡ 이상"}], basis: "특허보세구역 운영에 관한 고시", type: "틀린것고르기" },
     { year: 2019, no: 10, concept: "보세전시장 관람자 증여품 면세 기준금액", correct: [{item:"관람자 1인당 증여품 면세 기준", value:"미화 5달러 이하"}], distractors: [{item:"기준금액", wrongValue:"미화 10달러"}], basis: "보세전시장 운영에 관한 고시", type: "옳은것고르기" },
 
@@ -132,7 +132,7 @@ window.BOSESA_NUM2 = {
     { year: 2021, no: 7, concept: "출국 내국인 / 입국인 구매한도 조합", correct: [{item:"출국 내국인 구매한도", value:"미화 5,000달러 이하"}, {item:"입국인 구매한도", value:"미화 600달러 이하"}], distractors: [{item:"출국/입국 조합", wrongValue:"3,000 / 400"}, {item:"조합", wrongValue:"3,000 / 600"}, {item:"조합", wrongValue:"4,000 / 400"}, {item:"조합", wrongValue:"6,000 / 400"}], basis: "관세법 시행규칙 제69조의3·제69조의4", type: "빈칸채우기" },
     { year: 2021, no: 8, concept: "보세판매장 특허상실 시 재고처리 + 이고 후 양도·반출 기간", correct: [{item:"특허상실 후 재고처리", value:"6개월 이내"}, {item:"이고일부터 양도·반출", value:"6개월 이내"}], distractors: [{item:"처리/이고 조합", wrongValue:"2개월 / 3개월"}, {item:"조합", wrongValue:"3개월 / 3개월"}, {item:"조합", wrongValue:"3개월 / 6개월"}, {item:"조합", wrongValue:"6개월 / 3개월"}], basis: "보세판매장 운영에 관한 고시", type: "빈칸채우기" },
     { year: 2021, no: 12, concept: "종합보세구역 반입물품 장치기간", correct: [{item:"장치기간", value:"제한 없음(무제한)"}], distractors: [{item:"장치기간", wrongValue:"2년의 범위에서 관세청장이 정함"}], basis: "관세법 제197조 이하", type: "틀린것고르기" },
-    { year: 2021, no: 16, concept: "보세구역 기간 4종 합산", correct: [{item:"화물관리인 지정 유효기간", value:"5년"}, {item:"지정장치장 장치기간", value:"6개월"}, {item:"특허보세구역 특허기간", value:"10년"}, {item:"보세판매장 특허기간", value:"5년"}, {item:"합계", value:"26"}], distractors: [{item:"합계", wrongValue:"18"}, {item:"합계", wrongValue:"21"}, {item:"합계", wrongValue:"23"}, {item:"합계", wrongValue:"33"}], basis: "관세법 제154조 이하", type: "빈칸채우기" },
+    { year: 2021, no: 16, concept: "보세구역 기간 4종 합산", correct: [{item:"화물관리인 지정 유효기간", value:"5년"}, {item:"지정장치장 장치기간", value:"6개월"}, {item:"특허보세구역 특허기간", value:"10년"}, {item:"보세판매장 특허기간", value:"5년"}, {item:"합계", value:"26"}], distractors: [{item:"합계", wrongValue:"18"}, {item:"합계", wrongValue:"21"}, {item:"합계", wrongValue:"23"}, {item:"합계", wrongValue:"33"}], basis: "관세법 제154조 이하 (※2021 당시 보세판매장 5년 기준 합 26 — 2023.1.1 개정 후 보세판매장 10년)", type: "빈칸채우기" },
 
     // ── 2022 ──
     { year: 2022, no: 9, concept: "입국장면세점 면세 한도(개정 후, 술·담배·향수 별도)", correct: [{item:"입국장면세점 면세 한도", value:"미화 800달러"}], distractors: [{item:"한도(술·담배·향수 포함으로 오출제)", wrongValue:"미화 600달러"}], basis: "관세법 제196조의2 (개정 전 600달러)", type: "틀린것고르기" },
@@ -150,7 +150,7 @@ window.BOSESA_NUM2 = {
     // ── 2024 ──
     { year: 2024, no: 11, concept: "활어장치장 CCTV 녹화영상 보관기간", correct: [{item:"CCTV 녹화영상 보관기간", value:"30일 이상"}], distractors: [{item:"보관기간", wrongValue:"15일 이상"}, {item:"보세구역외 장치장 거리", wrongValue:"세관으로부터 최대 40km 범위"}], basis: "수입활어 관리에 관한 특례고시", type: "옳은것고르기" },
     { year: 2024, no: 13, concept: "특허보세구역 물품반입 정지기간·과징금·취소 요건", correct: [{item:"원자재소요량 관리 부적정 반입정지", value:"6개월의 범위"}], distractors: [{item:"반입정지 요건 기간", wrongValue:"최근 2년 이내"}, {item:"과징금 산정비율", wrongValue:"매출액의 6천분의 1 이하"}, {item:"과징금 감경 비율", wrongValue:"100분의 3의 범위"}, {item:"특허취소 반입정지 횟수", wrongValue:"1년 이내 3회 이상"}], basis: "관세법 — 물품반입 정지·특허취소", type: "옳은것고르기" },
-    { year: 2024, no: 14, concept: "특허 갱신신청 기한 + 특허기간", correct: [{item:"갱신신청 기한", value:"특허기간 만료 30일 전까지"}, {item:"특허기간", value:"보세판매장 5년·그 밖의 특허보세구역 10년 이내"}], distractors: [{item:"갱신신청 기한", wrongValue:"만료 3개월 전까지"}, {item:"특허기간", wrongValue:"보세창고·보세판매장 모두 5년 이내"}], basis: "특허보세구역 운영에 관한 고시", type: "옳은것고르기" },
+    { year: 2024, no: 14, concept: "특허 갱신신청 기한 + 특허기간(보세판매장 10년 전환 후)", correct: [{item:"갱신신청 기한(일반 특허보세구역)", value:"특허기간 만료 30일 전까지"}, {item:"특허기간", value:"보세판매장·그 밖 특허보세구역 모두 10년 이내 (2023.1.1 개정)"}], distractors: [{item:"특허기간(2024 실제 오답 선지)", wrongValue:"보세창고·보세판매장 모두 5년 이내"}, {item:"갱신신청 기한", wrongValue:"만료 3개월 전까지"}], basis: "관세법 제176조·특허보세구역 운영에 관한 고시", type: "옳은것고르기" },
     { year: 2024, no: 16, concept: "특허 효력상실 후 의제기간 + 승계신고 통보", correct: [{item:"효력상실 후 의제기간", value:"6개월 범위(세관장 지정)"}, {item:"승계신고 결과 통보기한", value:"신고일부터 5일 이내"}], distractors: [{item:"양수인 승계신고 기한", wrongValue:"양수일부터 30일 이내"}], basis: "관세법 — 특허 효력상실·승계", type: "틀린것고르기" },
     { year: 2024, no: 18, concept: "운영인 장부·서류 보관기간·초과장치 한도(오답 수치)", correct: [], distractors: [{item:"장치화물 장부·서류 보관기간", wrongValue:"5년"}, {item:"수용능력 임의 초과 장치 한도", wrongValue:"100분의 10의 범위"}], basis: "특허보세구역 운영에 관한 고시 (정답 수치 원문 미명시)", type: "옳은것고르기" },
     { year: 2024, no: 23, concept: "보세공장 혼용물품 관세 계산(외국원자재 비율 과세)", correct: [{item:"부과 관세(정답)", value:"600,000원 (제품 1,000만×관세율 10%×외국원자재 300만/총원자재 500만)"}], distractors: [{item:"부과 관세", wrongValue:"1,000,000원"}, {item:"부과 관세", wrongValue:"800,000원"}, {item:"부과 관세", wrongValue:"400,000원"}, {item:"부과 관세", wrongValue:"300,000원"}], basis: "관세법 — 보세공장 혼용물품 과세", type: "기타" },
