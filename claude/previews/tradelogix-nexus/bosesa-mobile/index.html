@@ -677,6 +677,29 @@
       return '<div class="qcard"><div class="qtext" style="color:#5b46b0;font-weight:800;font-size:15px;margin-bottom:4px">'+esc(t.topic)+'</div>'+items+'</div>';
     }).join('');
   }
+  // 숫자변형 문항 → 실제 기출 발문·선지·정답 원문 접이식 (원본 BOSESA_DATA 직접 조회)
+  function numOrigBlockM(D,q){
+    var head='<summary style="cursor:pointer;list-style:none;font-size:12px;font-weight:800;color:#5b46b0;padding:6px 0">📄 기출 원문 보기 <span style="font-size:10px;color:#8b8aa8;font-weight:600">발문·선지·정답 그대로</span></summary>';
+    var tgt=findQuestion(D.subject,q.year,q.no,'A');
+    if(!tgt || !Array.isArray(tgt.choices)){
+      return '<details style="margin-top:6px;border-top:1px dashed #d8dbe0">'+head+'<div style="font-size:11px;color:#94a3b8;padding:4px 0">'+q.year+'년 #'+q.no+' 원문을 불러오지 못했습니다.</div></details>';
+    }
+    var CIRC=['','①','②','③','④','⑤','⑥','⑦','⑧'];
+    var stem=nn(tgt.text,nn(tgt.stemText,tgt.question))||'';
+    var ans=ansArr(tgt.answer);
+    var ch=tgt.choices.map(function(c,i){
+      var n=i+1, isC=ans.indexOf(n)>=0;
+      return '<div style="display:flex;gap:6px;align-items:baseline;font-size:12px;line-height:1.5;padding:2px 0;'+(isC?'color:#0b8a3e;font-weight:700':'color:#374151')+'">'
+        + '<span style="flex-shrink:0;font-weight:800">'+(CIRC[n]||n)+'</span><span>'+esc(choiceText(c))+'</span>'
+        + (isC?' <span style="font-size:9px;font-weight:800;color:#fff;background:#0b8a3e;border-radius:4px;padding:0 5px;align-self:center">정답</span>':'')+'</div>';
+    }).join('');
+    var ansLabel=ans.map(function(n){return CIRC[n]||n;}).join('');
+    return '<details style="margin-top:6px;border-top:1px dashed #d8dbe0">'+head
+      + (stem?'<div style="font-size:12.5px;line-height:1.55;color:#15181d;font-weight:700;padding:2px 0 6px;white-space:pre-wrap">'+esc(stem)+'</div>':'')
+      + '<div>'+ch+'</div>'
+      + (ansLabel?'<div style="font-size:11px;font-weight:800;color:#0b8a3e;padding:3px 0 2px">✓ 정답 '+ansLabel+'</div>':'')
+      + '</details>';
+  }
   function renderNumQuestions(D){
     var qs=D.questions||[];
     if(!qs.length) return '<div class="qcard"><div class="qtext">기출 문항을 정리하는 중입니다.</div></div>';
@@ -691,7 +714,8 @@
           + (q.type?'<div style="font-size:10px;color:#64748b;margin-top:2px">'+esc(q.type)+'</div>':'')
           + '<div style="margin-top:7px"><div style="font-size:11px;color:#0b8a3e;font-weight:700;margin-bottom:3px">정답 수치</div><div>'+ok+'</div></div>'
           + (bad?'<div style="margin-top:5px"><div style="font-size:11px;color:#c81e3a;font-weight:700;margin-bottom:3px">바꿔 낸 오답</div><div>'+bad+'</div></div>':'')
-          + (q.basis?'<div class="srcref" style="margin-top:5px">⚖ '+esc(q.basis)+'</div>':'')+'</div>';
+          + (q.basis?'<div class="srcref" style="margin-top:5px">⚖ '+esc(q.basis)+'</div>':'')
+          + numOrigBlockM(D,q)+'</div>';
       }).join('');
       return '<div class="qcard"><div class="qtext" style="color:#5b46b0;font-weight:800;font-size:15px;margin-bottom:4px">'+y+'년 <span style="font-size:11px;color:#64748b;font-weight:500">'+byYear[y].length+'문항</span></div>'+cards+'</div>';
     }).join('');
