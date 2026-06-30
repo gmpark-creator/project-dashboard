@@ -214,7 +214,8 @@
   function getConcepts(s){ var n='BOSESA_CONCEPTS_'+s; try { return eval('typeof '+n+'!=="undefined" ? '+n+' : null'); } catch(e){ return null; } }
   function getRareTypes(){ try { return eval('typeof BOSESA_RARE_TYPES!=="undefined" ? BOSESA_RARE_TYPES : null'); } catch(e){ return null; } }
   function getMidFreq(){ try { return eval('typeof BOSESA_MID_FREQ!=="undefined" ? BOSESA_MID_FREQ : null'); } catch(e){ return null; } }
-  function getNum4(){ try { return (typeof window!=="undefined"&&window.BOSESA_NUM4)?window.BOSESA_NUM4:(eval('typeof BOSESA_NUM4!=="undefined" ? BOSESA_NUM4 : null')); } catch(e){ return null; } }
+  var NUM_SUBJECTS=[1,4];  // '숫자 정리' 데이터가 있는 과목(추가 시 갱신)
+  function getNum(s){ try { var w=(typeof window!=="undefined")?window['BOSESA_NUM'+s]:null; if(w)return w; return eval('typeof BOSESA_NUM'+s+'!=="undefined" ? BOSESA_NUM'+s+' : null'); } catch(e){ return null; } }
 
   // ===== 데이터 파일 주입 + 폴링 로더 (script const 재선언 충돌 방지: 1회만 주입) =====
   var MOBILE_ASSET_VERSION = '20260626-concepts-history-choices';
@@ -257,7 +258,7 @@
     yc += '<button class="chip sub rare'+(v==='rareTypes'?' on':'')+'" data-view="rareTypes">💎 희소유형</button>';
     yc += '<button class="chip sub mid'+(v==='midFreq'?' on':'')+'" data-view="midFreq">📊 중빈도</button>';
     yc += '<button class="chip sub cov'+(v==='coverage'?' on':'')+'" data-view="coverage">🗂 유형분포</button>';
-    if(state.subject===4) yc += '<button class="chip sub num4'+(v==='numbers'?' on':'')+'" data-view="numbers">#️⃣ 숫자정리</button>';
+    if(NUM_SUBJECTS.indexOf(state.subject)>=0) yc += '<button class="chip sub num4'+(v==='numbers'?' on':'')+'" data-view="numbers">#️⃣ 숫자정리</button>';
     $('yearChips').innerHTML = yc;
     // 유형(A형/B형) 토글 — 기출 보기 + B형 보유 연도/과목에서만 노출
     var formRow=$('formRow');
@@ -629,13 +630,14 @@
 
   // ===== 4과목 숫자 집중 정리 (박사 지시 2026-06-30) =====
   function loadNumbers(){
+    var s=state.subject;
     $('empty').classList.add('hidden'); $('qlist').innerHTML='';
-    if(getNum4()){ renderNumbers(); return; }
+    if(getNum(s)){ renderNumbers(); return; }
     $('loading').classList.remove('hidden');
-    injectOnce('../bosesa-num4.js');
-    waitFor(function(){ return getNum4()!=null; }, function(){
+    injectOnce('../bosesa-num'+s+'.js');
+    waitFor(function(){ return getNum(s)!=null; }, function(){
       $('loading').classList.add('hidden');
-      if(getNum4()) renderNumbers(); else { $('empty').classList.remove('hidden'); $('meta').textContent='4과목 숫자 정리'; }
+      if(getNum(s)) renderNumbers(); else { $('empty').classList.remove('hidden'); $('meta').textContent=s+'과목 숫자 정리'; }
     });
   }
   function numChip(txt, ok){
@@ -645,17 +647,17 @@
     return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;padding:3px 8px;border-radius:7px;margin:0 4px 4px 0;'+st+'">'+txt+'</span>';
   }
   function renderNumbers(){
-    var D=getNum4();
+    var D=getNum(state.subject);
     if(!D){ $('empty').classList.remove('hidden'); return; }
     var tab = (state.numbersTab==='questions')?'questions':'concepts';
     var cCount=(D.concepts||[]).reduce(function(n,t){return n+(t.items?t.items.length:0);},0);
     var qCount=(D.questions||[]).length;
-    $('meta').textContent='4과목 수출입안전관리 · 숫자 집중 정리 · 개념 '+cCount+' / 기출 '+qCount;
+    $('meta').textContent=state.subject+'과목 '+(D.subjectName||'')+' · 숫자 집중 정리 · 개념 '+cCount+' / 기출 '+qCount;
     var tabRow='<div style="display:flex;gap:8px;margin-bottom:12px">'
       + '<button data-ntab="concepts" class="chip'+(tab==='concepts'?' on':'')+'" style="font-weight:800">🔢 숫자 개념 '+cCount+'</button>'
       + '<button data-ntab="questions" class="chip'+(tab==='questions'?' on':'')+'" style="font-weight:800">📝 기출 문항 '+qCount+'</button></div>';
-    var intro='<div class="catbar"><div class="ct">#️⃣ 4과목 숫자 집중 정리</div>'
-      + '<div class="cd">기간·금액·점수·횟수 등 <b>숫자만 바꿔 오답을 만드는 문항</b>이 유독 많은 4과목. 2019~2025 7개년 기출에서 전수 추출. ⚠️법령 개정분 있으니 최신 원문 확인 필수.</div></div>';
+    var intro='<div class="catbar"><div class="ct">#️⃣ '+state.subject+'과목 숫자 집중 정리 · '+esc(D.subjectName||'')+'</div>'
+      + '<div class="cd">기간·금액·점수·횟수 등 <b>숫자만 바꿔 오답을 만드는 문항</b>을 2019~2025 7개년 기출에서 전수 추출. ⚠️법령·고시 개정분 있으니 최신 원문 확인 필수.</div></div>';
     var body = (tab==='concepts') ? renderNumConcepts(D) : renderNumQuestions(D);
     $('qlist').innerHTML = intro + tabRow + body;
     window.scrollTo(0,0);
@@ -751,7 +753,7 @@
   // ===== events =====
   $('subjectChips').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b)return; state.subject=+b.dataset.s; state.form='A';
-    if(state.view==='numbers' && state.subject!==4) state.view='exam';
+    if(state.view==='numbers' && NUM_SUBJECTS.indexOf(state.subject)<0) state.view='exam';
     renderChips(); syncAnsToggle(); reloadCurrent();
   });
   $('yearChips').addEventListener('click', function(e){
@@ -789,7 +791,7 @@
     if(!hasBForm(state.subject,state.year)) state.form='A';
     var vw=q.get('view');
     if(vw==='concepts'||vw==='answerNotes'||vw==='rareTypes'||vw==='midFreq'||vw==='coverage') state.view=vw;
-    if((vw==='numbers'||q.get('num')) && state.subject===4) state.view='numbers';
+    if((vw==='numbers'||q.get('num')) && NUM_SUBJECTS.indexOf(state.subject)>=0) state.view='numbers';
     if(q.get('ntab')) state.numbersTab=(q.get('ntab')==='questions'?'questions':'concepts');
     if(q.get('rare')) state.view='rareTypes';
     if(q.get('mid')) state.view='midFreq';
