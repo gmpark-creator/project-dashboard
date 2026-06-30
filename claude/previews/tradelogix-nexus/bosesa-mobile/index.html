@@ -640,8 +640,8 @@
   }
   function numChip(txt, ok){
     var st = ok
-      ? 'background:#064e3b;color:#6ee7b7;border:1px solid #10b98155;'
-      : 'background:#3f1d2e;color:#fda4af;border:1px solid #f43f5e44;text-decoration:line-through;text-decoration-color:#f43f5e88;';
+      ? 'background:#e7f6ec;color:#0b7a37;border:1px solid #a7e0bd;'
+      : 'background:#fdecef;color:#b3243c;border:1px solid #f3b8c2;text-decoration:line-through;text-decoration-color:#e09aa6;';
     return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;padding:3px 8px;border-radius:7px;margin:0 4px 4px 0;'+st+'">'+txt+'</span>';
   }
   function renderNumbers(){
@@ -666,13 +666,13 @@
         var yrs=(it.years||[]).map(function(y){return '<span class="mb-mem">'+y+'</span>';}).join('');
         var vars=(it.variants||[]).filter(Boolean);
         var varHTML=vars.length?'<div style="margin-top:5px"><span style="font-size:11px;color:#64748b;margin-right:4px">자주 바꿔 출제:</span>'+vars.map(function(v){return numChip(esc(v),false);}).join('')+'</div>':'';
-        var note=it.note?'<div style="font-size:12px;color:#94a3b8;margin-top:5px;line-height:1.5">'+esc(it.note)+'</div>':'';
+        var note=it.note?'<div style="font-size:12px;color:#6b7280;margin-top:5px;line-height:1.5">'+esc(it.note)+'</div>':'';
         var basis=it.basis?'<div class="srcref" style="margin-top:5px">⚖ '+esc(it.basis)+'</div>':'';
-        return '<div style="padding:10px 0;border-bottom:1px solid #1e293b">'
-          + '<div style="display:flex;justify-content:space-between;gap:8px"><div style="font-weight:800;color:#e2e8f0;font-size:13.5px">'+esc(it.label)+'</div><div style="flex-shrink:0">'+yrs+'</div></div>'
+        return '<div style="padding:10px 0;border-bottom:1px solid #e6e8eb">'
+          + '<div style="display:flex;justify-content:space-between;gap:8px"><div style="font-weight:800;color:#15181d;font-size:13.5px">'+esc(it.label)+'</div><div style="flex-shrink:0">'+yrs+'</div></div>'
           + '<div style="margin-top:5px">'+numChip('✓ '+esc(it.correct),true)+'</div>'+varHTML+note+basis+'</div>';
       }).join('');
-      return '<div class="qcard"><div class="qtext" style="color:#c4b5fd;font-weight:800;font-size:15px;margin-bottom:4px">'+esc(t.topic)+'</div>'+items+'</div>';
+      return '<div class="qcard"><div class="qtext" style="color:#5b46b0;font-weight:800;font-size:15px;margin-bottom:4px">'+esc(t.topic)+'</div>'+items+'</div>';
     }).join('');
   }
   function renderNumQuestions(D){
@@ -684,14 +684,14 @@
       var cards=byYear[y].sort(function(a,b){return a.no-b.no;}).map(function(q){
         var ok=(q.correct||[]).map(function(c){return numChip('<b style="opacity:.7">'+esc(c.item)+':</b> '+esc(c.value),true);}).join('');
         var bad=(q.distractors||[]).map(function(d){return numChip('<b style="opacity:.7;text-decoration:none">'+esc(d.item)+':</b> '+esc(d.wrongValue),false);}).join('');
-        return '<div style="padding:10px 0;border-bottom:1px solid #1e293b">'
-          + '<div style="display:flex;gap:6px;align-items:flex-start"><span class="mb-tier">'+y+' #'+q.no+'</span><span style="font-weight:800;color:#e2e8f0;font-size:13.5px">'+esc(q.concept)+'</span></div>'
+        return '<div style="padding:10px 0;border-bottom:1px solid #e6e8eb">'
+          + '<div style="display:flex;gap:6px;align-items:flex-start"><span class="mb-tier">'+y+' #'+q.no+'</span><span style="font-weight:800;color:#15181d;font-size:13.5px">'+esc(q.concept)+'</span></div>'
           + (q.type?'<div style="font-size:10px;color:#64748b;margin-top:2px">'+esc(q.type)+'</div>':'')
-          + '<div style="margin-top:7px"><div style="font-size:11px;color:#34d39988;font-weight:700;margin-bottom:3px">정답 수치</div><div>'+ok+'</div></div>'
-          + (bad?'<div style="margin-top:5px"><div style="font-size:11px;color:#f43f5e88;font-weight:700;margin-bottom:3px">바꿔 낸 오답</div><div>'+bad+'</div></div>':'')
+          + '<div style="margin-top:7px"><div style="font-size:11px;color:#0b8a3e;font-weight:700;margin-bottom:3px">정답 수치</div><div>'+ok+'</div></div>'
+          + (bad?'<div style="margin-top:5px"><div style="font-size:11px;color:#c81e3a;font-weight:700;margin-bottom:3px">바꿔 낸 오답</div><div>'+bad+'</div></div>':'')
           + (q.basis?'<div class="srcref" style="margin-top:5px">⚖ '+esc(q.basis)+'</div>':'')+'</div>';
       }).join('');
-      return '<div class="qcard"><div class="qtext" style="color:#c4b5fd;font-weight:800;font-size:15px;margin-bottom:4px">'+y+'년 <span style="font-size:11px;color:#64748b;font-weight:500">'+byYear[y].length+'문항</span></div>'+cards+'</div>';
+      return '<div class="qcard"><div class="qtext" style="color:#5b46b0;font-weight:800;font-size:15px;margin-bottom:4px">'+y+'년 <span style="font-size:11px;color:#64748b;font-weight:500">'+byYear[y].length+'문항</span></div>'+cards+'</div>';
     }).join('');
   }
 
