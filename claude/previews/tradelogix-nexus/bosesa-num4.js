@@ -17,6 +17,7 @@ window.BOSESA_NUM4 = {
       items: [
         { label: "공인 유효기간", correct: "5년", variants: ["3년"], note: "공인증서를 발급한 날부터 기산.", basis: "AEO 공인 및 운영에 관한 고시", years: [2023] },
         { label: "공인등급 상향조정 요건(연속 충족 분기)", correct: "4개 분기 연속 공인등급별 기준 충족", variants: ["3개 분기", "5개 분기"], note: "갱신이 아닌 때에 등급조정을 신청하려면 공인 유효기간이 '1년 이상' 남아 있어야 함(오답으로 '2년' 출제).", basis: "AEO 고시 — 공인등급 조정", years: [2025] },
+        { label: "AAA등급 상향 요건", correct: "4개 분기 연속 기준 충족 + AAA 추가요건(공인부문 모범사례 등)", variants: ["전분기 법규준수도 95점만으로 신청(불가·함정)"], note: "전분기 95점이라는 점수 하나만으로 곧바로 AAA 상향 신청 불가(2025 #12 함정).", basis: "AEO 고시 — 공인등급 조정(상향)", years: [2025] },
         { label: "공인등급 부여 기준점수(법규준수도)", correct: "A: 80점 이상~90점 미만 / AA: 90점 이상~95점 미만 / AAA: 95점 이상(+우수사례 등 추가요건)", variants: ["등급 경계 점수를 5점씩 올리거나 내려 출제"], note: "AAA는 점수 외에 우수사례·세관신뢰 등 추가요건 필요.", basis: "AEO 고시 — 공인등급 부여기준", years: [2024] },
         { label: "등급별 혜택 — 과태료 경감률", correct: "A 20% · AA 30% · AAA 50%", variants: ["A 15%", "A 10%"], note: "등급이 올라갈수록 경감률 상승.", basis: "AEO 고시 — 통관절차 등 혜택", years: [2023] },
         { label: "등급별 혜택 — 통고처분금액 경감률", correct: "A 15% · AA 30% · AAA 50%", variants: ["AA 20%"], note: "과태료 경감률(A 20%)과 통고처분 경감률(A 15%)을 서로 바꿔 함정 출제.", basis: "AEO 고시 — 통관절차 등 혜택", years: [2023] },
@@ -30,7 +31,8 @@ window.BOSESA_NUM4 = {
       items: [
         { label: "법규준수도 기준점수", correct: "80점 이상", variants: ["70점"], note: "중소 수출기업은 직전 2개 분기 연속 80점 이상도 인정.", basis: "AEO 고시 — 공인기준", years: [2022, 2024] },
         { label: "내부통제시스템 평가점수", correct: "80점 이상", variants: ["70점"], basis: "AEO 고시 — 공인기준", years: [2022, 2024] },
-        { label: "안전관리 권고기준 평가점수", correct: "70점 이상", variants: ["80점", "60점"], note: "법규준수·내부통제(80점)와 안전관리 권고(70점)의 기준점수를 서로 바꿔 출제.", basis: "AEO 고시 — 공인기준", years: [2022, 2024] },
+        { label: "안전관리 권고기준 평가점수", correct: "70점 이상", variants: ["80점", "60점"], note: "법규준수·내부통제(80점)와 안전관리 권고(70점)의 기준점수를 서로 바꿔 출제. ⚠️단 2024 #12는 '안전관리 권고기준은 점수와 무관하게 충족'으로 출제 — 발문이 '충족이 권고되는 기준'을 묻는 경우 점수 기준이 다르게 적용되니 발문 확인 필수.", basis: "AEO 고시 — 공인기준", years: [2022] },
+        { label: "공인신청 기각 — 법규준수도 하락 기준", correct: "70점 미만(중소 수출기업 60점 미만)으로 하락 시 기각사유", variants: ["80점 미만 하락(기각사유 아님·함정)"], note: "80점 미만 하락은 기각사유가 아니다(2023 #4 함정). 70/60점 미만 하락이 기각사유(2021 #3).", basis: "AEO 고시 — 공인심사 기각사유", years: [2021, 2023] },
         { label: "재무건전성 — 부채비율 한도", correct: "동종업종 평균 부채비율의 200% 이하", variants: ["300%", "150%"], note: "또는 투자적격 신용등급 보유 시 충족.", basis: "AEO 고시 — 재무건전성 기준", years: [2020, 2021, 2022, 2023] },
         { label: "결격 — 벌금형·통고처분 이행 후 경과기간", correct: "2년", variants: ["6개월", "1년"], note: "관세법 제268조의2·제276조 등 위반으로 벌금형 선고·통고처분 이행 후 2년 경과해야 공인 가능.", basis: "AEO 고시 — 공인기준(결격)", years: [2021, 2022, 2023] },
         { label: "결격 — 징역형 실형 집행종료·면제 후 경과기간", correct: "2년", variants: ["1년"], note: "집행이 끝나거나 면제된 후 2년 경과 시 공인 가능.", basis: "AEO 고시 — 공인기준(결격)", years: [2022] }
@@ -129,7 +131,7 @@ window.BOSESA_NUM4 = {
       icon: "fa-anchor",
       items: [
         { label: "항구 국제항 지정요건", correct: "5천톤급 이상 선박이 연간 50회 이상 입항", variants: ["3천톤급", "연 60회", "주 6회(공항 기준 혼동)"], basis: "관세법 시행령 — 국제항 지정요건", years: [2022, 2024] },
-        { label: "공항 국제항 지정요건(여객수)", correct: "⚠️ 연도별 상이: 2022 출제=연 4만명 이상 / 2024 출제=연 6만명 이상 (개정)", variants: ["주 5회", "연 5만명", "연 50회"], note: "정기여객기 운항 + 여객수 기준. 여객수 기준이 개정되었으니 최신 시행령 확인 필수.", basis: "관세법 시행령 — 국제항 지정요건", years: [2022, 2024] },
+        { label: "공항 국제항 지정요건(여객수)", correct: "⚠️ 연도별 상이: 2022 출제=연 4만명 이상 / 2024 출제=연 6만명 이상 (개정 추정)", variants: ["주 5회", "연 5만명", "연 50회"], note: "정기여객기 운항 + 여객수 기준. 두 기출의 여객수가 다른 것은 개정으로 추정되나 제공 기출만으로는 단정 불가 — 응시 시점 최신 시행령(관세법 시행령 국제항 지정요건)으로 반드시 확인.", basis: "관세법 시행령 — 국제항 지정요건", years: [2022, 2024] },
         { label: "출입허가수수료 총액 상한(비국제항)", correct: "50만원", variants: ["1만원 미달 시 면제로 단정(함정)"], basis: "관세법 시행규칙 제62조", years: [2024] },
         { label: "비국제항 출입허가 통지기한", correct: "10일", variants: ["7일"], basis: "관세법 — 국제무역선·기 입출항", years: [2024] }
       ]
@@ -154,8 +156,7 @@ window.BOSESA_NUM4 = {
         { label: "외국용품 용도외 처분보고서 제출기한", correct: "처분일부터 7일 이내", variants: ["10일"], basis: "항공기용품 등 관리에 관한 고시", years: [2023, 2025] },
         { label: "양도양수보고서 제출기한", correct: "보세운송 신고일부터 7일 이내", variants: [], basis: "항공기용품 등 관리에 관한 고시", years: [2023] },
         { label: "하선허가 후 보세구역 반입기한", correct: "7일", variants: ["10일"], basis: "선박용품 등 관리에 관한 고시", years: [2025] },
-        { label: "단기 항행 특례 기준 항행일수", correct: "1회 항행 7일", variants: ["10일"], basis: "선박용품 등 관리에 관한 고시", years: [2025] },
-        { label: "공급자 대행업체 지정 가능 금액기준", correct: "미화 5천달러(원화 500만원) 이하", variants: [], basis: "선박용품 등 관리에 관한 고시", years: [2021] }
+        { label: "단기 항행 특례 기준 항행일수", correct: "1회 항행 7일", variants: ["10일"], basis: "선박용품 등 관리에 관한 고시", years: [2025] }
       ]
     },
     {
@@ -163,7 +164,7 @@ window.BOSESA_NUM4 = {
       icon: "fa-award",
       items: [
         { label: "관세행정 개선·발전 공로 포상금 한도", correct: "200만원의 범위", variants: [], basis: "밀수 등 신고자 포상에 관한 훈령", years: [2024] },
-        { label: "마약류관리법 위반 사범 신고 포상금 최고액", correct: "3억원", variants: [], basis: "밀수 등 신고자 포상에 관한 훈령", years: [2024] }
+        { label: "마약류관리법 위반 사범 신고 포상금 최고액", correct: "3억원", variants: ["1억원(오답·2025 #17)"], note: "2025 #17에서 마약류 포상금 최고액 3억원이 정답(오답 선지 1억원). 2024 #9에서는 '관세행정 포상 200만원'의 대비 오답값으로 3억원이 등장 — 출제 맥락 구분 주의.", basis: "밀수 등 신고자 포상에 관한 훈령", years: [2025] }
       ]
     }
   ],
@@ -222,7 +223,7 @@ window.BOSESA_NUM4 = {
     { year: 2024, no: 1, concept: "국제항 지정요건(공항·항구)과 비국제항 출입허가수수료 한도", correct: [{item:"공항 정기여객기 수송인원", value:"연간 6만명 이상"}, {item:"항구 국제무역선 톤급", value:"5천톤급 이상"}, {item:"항구 입항 횟수", value:"연간 50회 이상"}, {item:"출입허가수수료 총액 상한", value:"50만원"}], distractors: [{item:"공항 입항 횟수", wrongValue:"연간 50회 이상"}, {item:"항구 톤급", wrongValue:"3천톤급 이상"}, {item:"항구 입항 횟수", wrongValue:"주 6회 이상"}, {item:"수수료 면제 기준", wrongValue:"1만원 미달 시 면제"}], basis: "관세법 제133·134조·시행령 제155조의2·시행규칙 제62조", type: "옳은것고르기" },
     { year: 2024, no: 2, concept: "국제무역선(기) 입출항절차의 통지·보고 기간기준", correct: [{item:"비국제항 출입허가 통지기한", value:"10일"}], distractors: [{item:"통지기한", wrongValue:"7일"}, {item:"입항보고 시기", wrongValue:"입항 후 4시간 이내"}, {item:"출항허가 시기", wrongValue:"출항하기 4시간 전"}], basis: "관세법 제134~136조·시행령", type: "빈칸채우기" },
     { year: 2024, no: 9, concept: "밀수 등 신고자 포상 한도액", correct: [{item:"관세행정 개선·발전 공로 포상", value:"200만원의 범위"}], distractors: [{item:"마약류 관리법 위반 사범 포상 최고액", wrongValue:"3억원"}], basis: "밀수 등 신고자 포상에 관한 훈령", type: "옳은것고르기" },
-    { year: 2024, no: 12, concept: "AEO 공인기준 충족 판정 기준점수·부채비율 한도", correct: [{item:"법규준수도 충족 기준", value:"80점 이상(85점=충족)"}, {item:"내부통제시스템 충족 기준", value:"80점 이상(75점=미충족)"}, {item:"부채비율 충족 한도", value:"동종업종 평균(70%)의 200%(=140%) 이내(120%=충족)"}], distractors: [], basis: "AEO 고시 — 공인기준 충족 판정", type: "빈칸채우기" },
+    { year: 2024, no: 12, concept: "AEO 공인기준 충족 판정 기준점수·부채비율 한도", correct: [{item:"법규준수도 충족 기준", value:"80점 이상(85점=충족)"}, {item:"내부통제시스템 충족 기준", value:"80점 이상(75점=미충족)"}, {item:"부채비율 충족 한도", value:"동종업종 평균(70%)의 200%(=140%) 이내(120%=충족)"}, {item:"안전관리 권고기준 충족", value:"점수 무관 충족(75점도 충족)"}], distractors: [], basis: "AEO 고시 — 공인기준 충족 판정 (안전관리 권고기준은 점수 무관 충족)", type: "빈칸채우기" },
     { year: 2024, no: 13, concept: "AEO 공인등급(A·AA·AAA) 부여 기준점수", correct: [{item:"A등급 법규준수도", value:"80점 이상~90점 미만"}, {item:"AA등급 법규준수도", value:"90점 이상~95점 미만"}, {item:"AAA등급 법규준수도", value:"95점 이상(+추가요건)"}], distractors: [], basis: "AEO 고시 — 공인등급 부여기준", type: "틀린것고르기" },
     { year: 2024, no: 16, concept: "AEO 정기 자율평가 체크리스트(보세구역운영인) 주기·기한", correct: [{item:"경영방침 세부목표 검토주기", value:"6개월"}, {item:"전산시스템 백업 주기", value:"30일"}, {item:"암호 변경주기", value:"90일"}, {item:"특이사항 발생 신고기한", value:"30일 이내"}], distractors: [{item:"세부목표 검토주기", wrongValue:"3개월"}, {item:"전산백업 주기", wrongValue:"60일"}, {item:"전산백업 주기", wrongValue:"90일"}, {item:"암호 변경주기", wrongValue:"30일"}, {item:"암호 변경주기", wrongValue:"60일"}, {item:"암호 변경주기", wrongValue:"120일"}, {item:"암호 변경주기", wrongValue:"150일"}, {item:"특이사항 신고기한", wrongValue:"15일"}, {item:"특이사항 신고기한", wrongValue:"20일"}, {item:"특이사항 신고기한", wrongValue:"60일"}], basis: "AEO 고시 제18조 — 정기 자율평가", type: "빈칸채우기" },
     { year: 2024, no: 18, concept: "AEO 공인절차(예비심사·서류보완·현장심사·직접방문) 처리기간", correct: [{item:"예비심사 완료기한", value:"40일"}, {item:"서류심사 보완요구 범위", value:"30일"}, {item:"현장심사 완료기한", value:"60일"}, {item:"사업장 직접방문 기간", value:"15일 이내"}], distractors: [{item:"예비심사 완료기한", wrongValue:"30일"}, {item:"서류심사 보완요구 범위", wrongValue:"60일"}, {item:"현장심사 완료기한", wrongValue:"30일"}, {item:"사업장 직접방문 기간", wrongValue:"30일"}], basis: "AEO 고시 — 공인절차 처리기간", type: "빈칸채우기" },
@@ -236,6 +237,15 @@ window.BOSESA_NUM4 = {
     { year: 2025, no: 13, concept: "AEO 갱신심사 등급하락 예상 시 개선계획·완료보고서 제출기한", correct: [{item:"개선계획 제출기한(개선요구일부터)", value:"30일"}, {item:"개선 완료보고서 제출기한(계획 제출일부터)", value:"90일"}, {item:"경미사항 완료보고서 제출기한(요구일부터)", value:"30일"}], distractors: [{item:"개선계획 제출기한", wrongValue:"20일"}, {item:"개선 완료보고서 제출기한", wrongValue:"60일"}, {item:"경미사항 완료보고서 제출기한", wrongValue:"60일"}], basis: "AEO 고시 — 갱신심사 결과 처리", type: "빈칸채우기" },
     { year: 2025, no: 14, concept: "선박용품 적재 관리 — 적재완료 보고시한 및 적재완료 기한", correct: [{item:"적재완료 후 완료보고 시한", value:"다음날 12시까지"}, {item:"적재허가 후 적재완료 기한", value:"7일 이내"}], distractors: [{item:"적재완료 기한(틀린 단정)", wrongValue:"15일 이내"}, {item:"조건부 하역 재적재 기한", wrongValue:"10일 이내"}, {item:"조건부 하역 적재기간 연장", wrongValue:"5월"}], basis: "선박용품 등 관리에 관한 고시", type: "옳은것고르기" },
     { year: 2025, no: 21, concept: "항공기용품 외국용품 용도외 처분보고서 제출기한", correct: [{item:"용도외 처분보고서 제출기한(처분일부터)", value:"7일 이내"}], distractors: [{item:"제출기한(틀린 단정)", wrongValue:"10일 이내"}], basis: "항공기용품 등 관리에 관한 고시", type: "틀린것고르기" },
-    { year: 2025, no: 22, concept: "선박용품 적재·환적·하선 절차의 기간요건(일수)", correct: [{item:"적재·환적 허가 후 적재완료 기한", value:"7일"}, {item:"단기 항행 특례 1회 항행일수", value:"7일"}, {item:"하선허가 후 보세구역 반입기한", value:"7일"}], distractors: [{item:"적재완료 기한", wrongValue:"10일"}, {item:"적재완료 기한", wrongValue:"15일"}, {item:"단기 항행 기준일수", wrongValue:"10일"}, {item:"하선 반입기한", wrongValue:"10일"}], basis: "선박용품 등 관리에 관한 고시", type: "빈칸채우기" }
+    { year: 2025, no: 22, concept: "선박용품 적재·환적·하선 절차의 기간요건(일수)", correct: [{item:"적재·환적 허가 후 적재완료 기한", value:"7일"}, {item:"단기 항행 특례 1회 항행일수", value:"7일"}, {item:"하선허가 후 보세구역 반입기한", value:"7일"}], distractors: [{item:"적재완료 기한", wrongValue:"10일"}, {item:"적재완료 기한", wrongValue:"15일"}, {item:"단기 항행 기준일수", wrongValue:"10일"}, {item:"하선 반입기한", wrongValue:"10일"}], basis: "선박용품 등 관리에 관한 고시", type: "빈칸채우기" },
+
+    // ── Codex EXEC 검수 보완(2026-06-30): 누락 7문항 ──
+    { year: 2021, no: 3, concept: "AEO 공인심사 기각사유 — 법규준수도 하락 기준", correct: [{item:"기각사유 법규준수도 하락", value:"70점 미만(중소 수출기업 60점 미만)"}], distractors: [], basis: "AEO 고시 — 공인심사 기각사유(②거짓자료·④법규준수도 70/60점 미만 하락)", type: "옳은것고르기" },
+    { year: 2023, no: 4, concept: "AEO 공인신청 기각사유가 아닌 것 — 법규준수도 하락 점수", correct: [{item:"실제 기각 기준 법규준수도", value:"70점 미만(중소 60점 미만)"}], distractors: [{item:"기각사유로 단정한 오답 선지", wrongValue:"80점 미만 하락"}], basis: "AEO 고시 — 기각사유(80점 미만 하락은 기각사유 아님)", type: "틀린것고르기" },
+    { year: 2024, no: 5, concept: "선박용품 하선허가 후 보세구역 반입기한", correct: [{item:"하선허가 후 반입기한", value:"7일"}], distractors: [{item:"하선허가 후 반입기한(오답 선지)", wrongValue:"허가일로부터 10일 이내"}], basis: "선박용품 등 관리에 관한 고시", type: "옳은것고르기" },
+    { year: 2025, no: 8, concept: "AEO 보세구역운영인 A등급 혜택 — 특허 갱신기간 연장", correct: [{item:"A등급 특허 갱신기간 연장", value:"6년"}], distractors: [{item:"반입정지 기간 하향조정 범위(오답 선지)", wrongValue:"50% 범위 내 하향"}], basis: "AEO 고시 별표 — 통관절차·관세행정 혜택", type: "옳은것고르기" },
+    { year: 2025, no: 12, concept: "AEO AAA등급 상향 요건 — 전분기 95점 단독 불가", correct: [{item:"AAA 상향 요건", value:"4개 분기 연속 기준 충족 + 추가요건(모범사례 등)"}], distractors: [{item:"AAA 상향 근거로 단정한 오답", wrongValue:"전분기 법규준수도 95점만으로 신청"}], basis: "AEO 고시 — 공인등급 조정(상향)", type: "틀린것고르기" },
+    { year: 2025, no: 17, concept: "마약류관리법 위반 사범 신고 포상금 최고액", correct: [{item:"마약류 포상금 최고액", value:"3억원"}], distractors: [{item:"마약류 포상금 최고액(오답 선지)", wrongValue:"1억원"}], basis: "밀수 등 신고자 포상에 관한 훈령", type: "옳은것고르기" },
+    { year: 2025, no: 25, concept: "선박·항공기용품 보세운송기간·도착보고(오답 수치 위주)", correct: [], distractors: [{item:"보세운송기간(오답 선지)", wrongValue:"선박 10일·항공 5일"}, {item:"도착보고 기한(오답 선지)", wrongValue:"인수 후 3일 이내"}], basis: "선박용품·항공기용품 보세운송 고시 (정답 선지=도착 전 적재허가 신청 가능·비수치, 정답 보세운송기간 수치는 원문 미명시)", type: "옳은것고르기" }
   ]
 };
