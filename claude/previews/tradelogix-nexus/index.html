@@ -67,6 +67,7 @@
 <script src="bosesa-concepts-5.js?v=20260626-concepts-history-choices"></script>
 <script src="bosesa-rare-types.js"></script>
 <script src="bosesa-midfreq.js"></script>
+<script src="bosesa-num4.js?v=20260630-num4"></script>
 <script src="customs-practice-data.js"></script>
 <style>
   /* ===== Fallback CSS — Tailwind Play CDN 로드 실패 시 레이아웃 붕괴 방지 ===== */
@@ -137,6 +138,11 @@
   .sb-rare-types.sb-on-rare-types{ background:#1e293b; color:#f9a8d4 !important; }
   .sb-mid-freq{ color:#38bdf8 !important; font-weight:700; }
   .sb-mid-freq.sb-on-mid-freq{ background:#1e293b; color:#7dd3fc !important; }
+  .sb-num4{ color:#a78bfa !important; font-weight:700; }
+  .sb-num4.sb-on-num4{ background:#1e293b; color:#c4b5fd !important; }
+  .num-chip{ display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:800; padding:3px 9px; border-radius:8px; margin:0 4px 4px 0; }
+  .num-ok{ background:#064e3b; color:#6ee7b7; border:1px solid #10b98155; }
+  .num-bad{ background:#3f1d2e; color:#fda4af; border:1px solid #f43f5e44; text-decoration:line-through; text-decoration-color:#f43f5e88; }
   .bc-badge{ display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; letter-spacing:.02em; }
   .bc-yr{ display:inline-block; font-size:10px; font-weight:700; color:#a5b4fc; background:#1e1b4b;
     border:1px solid #4338ca55; border-radius:6px; padding:1px 6px; margin:0 3px 3px 0; }
@@ -409,6 +415,9 @@
   </button>
   <button class="sb-item sb-child2 sb-mid-freq" id="sb-mid-freq-4" onclick="setState({view:'bosesa',bosesaView:'midFreq',bosesaSubject:4})">
   <i class="fa-solid fa-chart-column w-2 text-center text-sky-400"></i>중빈도 유형 <span class="text-[9px] font-bold text-sky-400/80 ml-1">남은문항</span>
+  </button>
+  <button class="sb-item sb-child2 sb-num4" id="sb-num4" onclick="setState({view:'bosesa',bosesaView:'numbers',bosesaSubject:4})">
+  <i class="fa-solid fa-hashtag w-2 text-center text-violet-400"></i>숫자 정리 <span class="text-[9px] font-bold text-violet-400/80 ml-1">4과목 집중</span>
   </button>
   </div>
 <button class="sb-item sb-child" onclick="toggleSubject5()">
@@ -1189,6 +1198,8 @@ function renderSidebar(){
     const el = $('sb-mid-freq-'+s);
     if(el) el.className = 'sb-item sb-child2 sb-mid-freq' + (S.view==='bosesa'&&S.bosesaView==='midFreq'&&S.bosesaSubject===s?' sb-on-mid-freq':'');
   }
+  { const el = $('sb-num4');
+    if(el) el.className = 'sb-item sb-child2 sb-num4' + (S.view==='bosesa'&&S.bosesaView==='numbers'?' sb-on-num4':''); }
 
 }
 
@@ -1562,7 +1573,106 @@ function renderBosesa(){
   if(S.bosesaView==='answerNotes'){ renderBosesaAnswerNotes(); return; }
   if(S.bosesaView==='rareTypes'){ renderBosesaRareTypes(); return; }
   if(S.bosesaView==='midFreq'){ renderBosesaMidFreq(); return; }
+  if(S.bosesaView==='numbers'){ renderBosesaNumbers(); return; }
   renderBosesaQuiz();
+}
+
+/* 4과목 '숫자' 집중 정리 (박사 지시 2026-06-30): ① 숫자 개념 정리 ② 기출 숫자변형 문항.
+   데이터=BOSESA_NUM4 (bosesa-num4.js). 4과목 전용 카테고리. */
+function renderBosesaNumbers(){
+  const root = $('bosesaRoot');
+  if(!root) return;
+  const D = (typeof BOSESA_NUM4 !== 'undefined') ? BOSESA_NUM4 : null;
+  if(!D){
+    root.innerHTML = `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400">
+      <i class="fa-solid fa-hashtag text-2xl mb-2 block text-violet-500/70"></i>4과목 숫자 정리 데이터를 불러오지 못했습니다.</div>`;
+    return;
+  }
+  const tab = (S.numbersTab === 'questions') ? 'questions' : 'concepts';
+  const conceptCount = (D.concepts||[]).reduce((n,t)=>n+(t.items?t.items.length:0),0);
+  const qCount = (D.questions||[]).length;
+
+  const tabBtn = (key,label,count,icon)=>{
+    const on = tab===key;
+    return `<button onclick="setState({numbersTab:'${key}'})"
+      class="px-4 py-2 rounded-lg text-sm font-bold transition ${on?'bg-violet-600 text-white':'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
+      <i class="fa-solid ${icon} mr-1.5"></i>${label} <span class="ml-1 text-[11px] opacity-80">${count}</span></button>`;
+  };
+
+  // ── 헤더 + 탭 ──
+  let h = `<div class="mb-4">
+    <h2 class="text-xl font-extrabold text-slate-100 flex items-center gap-2"><i class="fa-solid fa-hashtag text-violet-400"></i>4과목 · 숫자 집중 정리</h2>
+    <p class="text-xs text-slate-400 mt-1">수출입안전관리(4과목)는 기간·금액·점수·횟수 등 <b class="text-violet-300">숫자만 바꿔 오답을 만드는 문항</b>이 유독 많다. 2019~2025 7개년 기출에서 숫자 변별 문항을 전수 추출해 정리했다.</p>
+    <p class="text-[10px] text-amber-300/80 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>학습 보조용 — 법령·고시는 개정되므로 시험 직전 최신 원문 확인 필수. (특히 2019 형벌·국제항 여객수 기준은 개정분 있음)</p>
+  </div>
+  <div class="flex gap-2 mb-5">
+    ${tabBtn('concepts','숫자 개념 정리',conceptCount,'fa-list-ol')}
+    ${tabBtn('questions','기출 숫자변형 문항',qCount,'fa-file-circle-question')}
+  </div>`;
+
+  if(tab==='concepts'){
+    h += renderNum4Concepts(D);
+  } else {
+    h += renderNum4Questions(D);
+  }
+  root.innerHTML = h;
+}
+
+function renderNum4Concepts(D){
+  const topics = D.concepts || [];
+  if(!topics.length) return `<div class="text-slate-400 text-sm">개념 데이터가 없습니다.</div>`;
+  return topics.map(t=>{
+    const items = (t.items||[]).map(it=>{
+      const yrs = (it.years||[]).map(y=>`<span class="bc-yr">${y}</span>`).join('');
+      const variants = (it.variants||[]).filter(Boolean);
+      const varHtml = variants.length
+        ? `<div class="mt-1.5 flex flex-wrap items-center"><span class="text-[11px] text-slate-500 mr-1.5">자주 바꿔 출제:</span>${variants.map(v=>`<span class="num-chip num-bad">${esc(v)}</span>`).join('')}</div>`
+        : '';
+      const note = it.note ? `<div class="text-[12px] text-slate-400 mt-1.5 leading-relaxed">${esc(it.note)}</div>` : '';
+      return `<div class="py-3 border-b border-slate-800 last:border-0">
+        <div class="flex items-start justify-between gap-3">
+          <div class="font-bold text-slate-200 text-[13.5px]">${esc(it.label)}</div>
+          <div class="shrink-0">${yrs}</div>
+        </div>
+        <div class="mt-1.5"><span class="num-chip num-ok"><i class="fa-solid fa-circle-check text-[10px]"></i>${esc(it.correct)}</span></div>
+        ${varHtml}${note}
+        ${it.basis?`<div class="text-[11px] text-slate-500 mt-1.5"><i class="fa-solid fa-scale-balanced mr-1 opacity-70"></i>${esc(it.basis)}</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-5 mb-4">
+      <h3 class="text-[15px] font-extrabold text-violet-300 mb-2 flex items-center gap-2"><i class="fa-solid ${esc(t.icon||'fa-hashtag')}"></i>${esc(t.topic)}</h3>
+      <div>${items}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderNum4Questions(D){
+  const qs = D.questions || [];
+  if(!qs.length) return `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-6 text-center text-slate-400"><i class="fa-solid fa-file-circle-question text-2xl mb-2 block text-violet-500/60"></i>기출 숫자변형 문항을 정리하는 중입니다.</div>`;
+  // 연도 내림차순 그룹
+  const byYear = {};
+  qs.forEach(q=>{ (byYear[q.year]=byYear[q.year]||[]).push(q); });
+  const years = Object.keys(byYear).map(Number).sort((a,b)=>b-a);
+  return years.map(y=>{
+    const cards = byYear[y].sort((a,b)=>a.no-b.no).map(q=>{
+      const ok = (q.correct||[]).map(c=>`<span class="num-chip num-ok"><b class="opacity-70 font-bold">${esc(c.item)}:</b> ${esc(c.value)}</span>`).join('');
+      const bad = (q.distractors||[]).map(d=>`<span class="num-chip num-bad"><b class="opacity-70 font-bold no-underline">${esc(d.item)}:</b> ${esc(d.wrongValue)}</span>`).join('');
+      return `<div class="py-3 border-b border-slate-800 last:border-0">
+        <div class="flex items-start gap-2">
+          <span class="bc-badge bg-violet-900/60 text-violet-200 shrink-0">${y} #${q.no}</span>
+          <span class="font-bold text-slate-200 text-[13.5px]">${esc(q.concept)}</span>
+          ${q.type?`<span class="text-[10px] text-slate-500 ml-auto shrink-0 mt-0.5">${esc(q.type)}</span>`:''}
+        </div>
+        <div class="mt-2"><div class="text-[11px] text-emerald-400/70 font-bold mb-1">정답 수치</div><div class="flex flex-wrap">${ok}</div></div>
+        ${bad?`<div class="mt-1.5"><div class="text-[11px] text-rose-400/70 font-bold mb-1">바꿔 낸 오답</div><div class="flex flex-wrap">${bad}</div></div>`:''}
+        ${q.basis?`<div class="text-[11px] text-slate-500 mt-1.5"><i class="fa-solid fa-scale-balanced mr-1 opacity-70"></i>${esc(q.basis)}</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="rounded-2xl bg-slate-900/60 ring-1 ring-slate-800 p-5 mb-4">
+      <h3 class="text-[15px] font-extrabold text-violet-300 mb-2"><i class="fa-solid fa-calendar-day mr-1.5"></i>${y}년 <span class="text-[11px] text-slate-500 font-medium ml-1">${byYear[y].length}문항</span></h3>
+      <div>${cards}</div>
+    </div>`;
+  }).join('');
 }
 
 function toggleConceptsReveal(){ S.conceptsReveal = !S.conceptsReveal; saveState(); renderBosesaConcepts(); }
