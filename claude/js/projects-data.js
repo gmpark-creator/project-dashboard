@@ -500,12 +500,12 @@ const PROJECTS = [
     id: 'tradelogix',
     no: 8,
     name: 'TradeLogix Nexus',
-    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 + 2023년 1과목 B형 25문항 = 900문항, A·B형 토글 — 공식정답표 전수검증 + 중요 개념·7개년 빈출 1~5과목 완성 + 정답 해설·빠른회독 1~5과목 완성 + 희소 유형·낯선·저빈출 1~5과목 40선 완성)',
+    subtitle: '무역과 물류 — Part 1. 통관 마스터(Customs Clearance Core) · 부산항 북항/신항 통관 + Incoterms 2020 + 수입신고필증 / 선사 업무(판다 익스프레스 라인 + MAGE 프로젝트 supply DB + 선박 증서 31종 도해) / 보세사 기출문제 뷰어(1~5과목 2025~2019년 전연도 875문항 + 2023년 1과목 B형 25문항 = 900문항, A·B형 토글 — 공식정답표 전수검증 + 중요 개념·7개년 빈출 1~5과목 완성 + 정답 해설·빠른회독 1~5과목 완성 + 희소 유형·낯선·저빈출 1~5과목 40선 완성 + 숫자 정리 1~5과목) / 위험물산업기사 기출 뷰어(구 #12 편입, 3과목 180문항)',
     icon: 'trade-globe',
     platform: '웹 애플리케이션 (단일 HTML · Tailwind Play CDN · Vanilla JS)',
     status: 'in-progress',
     start: '2026-06-04',
-    latest: '2026-06-22',
+    latest: '2026-07-05',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/tradelogix-hub/',
     preview: { type:'embed', height:660, items:[
@@ -526,6 +526,7 @@ const PROJECTS = [
       { area: '디자인 시스템', tech: 'Tailwind CSS, FontAwesome', how: '다크 엔터프라이즈 SaaS(베이스 #0F172A, slate 컨테이너) + 재무/리스크 경계 그라데이션(비용 emerald·위험 rose·세액 violet). FontAwesome 아이콘.' },
     ],
     issues: [
+      { type:'완료', title:'위험물산업기사 기출 뷰어 편입 — 구 #12 통관파트 소속화 (2026-07-05)', desc:'디렉터 지시 — 소형 기출 뷰어가 대형 프로젝트 그리드 사이에 껴 있는 어색함 해소. 위험물산업기사 기출 뷰어(3과목 180문항, previews/hazmat-exam/)를 보세사 기출문제와 동급으로 tradelogix-nexus 사이드바 「위험물산업기사」 섹션에 편입(?view=hazmat 딥링크, iframe 임베드 + 새 탭 링크, 첫 진입 시 lazy 로드). 대시보드 #12 독립 슬롯은 hideFromGrid+mergedInto:tradelogix로 폐지(FitRx→Knowledgeverse 편입과 동일 패턴), 뷰어 데이터·검수 이력은 그대로 유지.' },
       { type:'완료', title:'보세사 「중빈도 유형」 신규 카테고리 + 희소 유형 재컷 (2026-06-24)', desc:'박사 지시 — 희소유형 8개 일괄고정을 해제하고 버려도 되는 1회성은 폐기, 남은 문항으로 「중빈도 유형」 신규 카테고리 제작(Codex 검수 병행). 중요개념 sourceRef를 전수 파싱해 5과목 875문항을 커버(615)/남음(260)으로 분리한 뒤, 남은 260문항을 멀티에이전트 워크플로(원문 토픽 재검산→토픽 클러스터링→자체감사)로 4-tier 재분류: 중요개념(꼭)·중빈도(가능하면)·희소(여유되면)·버림(포기). 결과 — 중빈도 41클러스터/100문항(sky 카테고리, bosesa-midfreq.js 신규), 희소 40→33개 재컷(이미 중요개념에 잡힌 19개+1회성 비전이 제외), 버림 15문항(학습 비노출·단 정답해설 전수뷰엔 존재, discard 매니페스트+dropReason 기록), alreadyCovered 112문항(sourceRef 누락분 토픽 복원). 데스크톱+모바일 양쪽 렌더러·사이드바·칩 배선(?mid=1 딥링크), 대표문항+출제이력 멤버칩+묶음근거/공부포인트/시험장팁 표시. Codex R1(설계)·R2(산출물) 2라운드 적대검수 반영: 4과목 과소커버 복원, 2019년 4·5과목 과목배치 스왑 처리, 선박용품 조건부하역 1개월(오답 "1년" 교정)·2021#18 승선신고 오분류 분리·버림 2건(체크리스트 기간·관리책임자 자격) 희소 환원 등 6건 정정. 완전성(남은 260 모두 정확히 1회 귀속·누락중복 0) + 헤드리스 렌더 PASS.' },
       { type:'완료', title:'보세사 placeholder 해설 25개 파일(625문항) 실해설 전면 재작성 (2026-06-14)', desc:'박사 지시 — "해설에 doc 파일과 교차검증해서 수정해놓았다 식 가짜 문구만 있어 공부가 불가능한 문항"을 실제 법령 해설로 교체. 전수 스캔 결과 25개 파일이 placeholder(①"DOCX 정답표 기준 정답…"=1과목 2019·2020, ②"공식 정답표에서 정답이 X로 제시…후속 검수 대상"=2·4·5과목 전연도+3과목 2019·2020)였음. 멀티에이전트 워크플로(파일별 생성→적대적 법령검증 2단계, 50에이전트)로 625문항 answerBasis·choiceAnalysis를 관세법/시행령·시행규칙/보세화물관리고시/AEO고시/자유무역지역법 등 근거 해설로 재작성. 정답(answer)은 공식 정답표 기준 전건 불변 보존(검증 통과), 선지별 정답/오답 사유 명시. 검증단계서 WebSearch로 조문·기간·금액 확정 + 1차 환각 교정(예: 4-2024 적하목록 제출시기 라/마 정정). 전수검증: 625문항·3,125 선지해설 실질·정합, 잔존 placeholder 0(2-2020 Q21은 전항정답 정당 해설), 문법 OK, Edge 헤드리스 렌더 확인. 보존(이미 실해설): 1과목 2021~2025·B형, 3과목 2021~2025. ※해설은 AI가 법령근거로 작성+적대검증한 학습용(공식 해설과 대조 권장).' },
       { type:'완료', title:'보세사 1과목 2023년 B형 추가 — A·B형 토글 + Codex 교차검증 (2026-06-14)', desc:'박사 지시 — 「2023년 보세사 기출문제(강의용)」 PDF(1과목 수출입통관절차 B형 1~25번) + 공식 정답표(B형)를 대시보드에 B형으로 추가. 분석 결과 B형은 A형과 동일한 시험(문항·선지·정답 동일)으로 출제 순서만 13칸 회전된 형태임을 확인 — 검증된 A형(bosesa-data-1-2023.js)을 B형 출제순서로 재배열하고 2023년 B형 공식 정답표로 25문항 정답을 전수 대조해 일치 확인(Q16 복수정답 ④⑤ 포함). PDF 문제·정답 이미지를 Claude 비전 정독 + Codex(codex exec, 이미지 첨부)로 교차검증해 원문 일치 확인. bosesa-data-1-2023b.js(BOSESA_DATA_1_2023B, answerForm "B형") 신규. 본 뷰어·모바일 뷰어 모두 2023 1과목에서 「A형/B형」 토글 제공(?form=B 딥링크), Edge 헤드리스로 A·B 전환·내용·정답 렌더 검증. 이로써 2023 1과목은 A형(기존)·B형(신규) 2개 유형 보유.' },
@@ -603,7 +604,8 @@ const PROJECTS = [
       { date:'2026-06-12', title:'판다 익스프레스 라인 카테고리 신설 — 카히제·핀인베스트 그룹 분석 인포그래픽', desc:'박사 직접 지시. TradeLogix Nexus 카테고리 선택 허브(tradelogix-hub)에 통관절차·선사업무와 동일 계층의 세 번째 카테고리 「판다 익스프레스 라인」(보라 액센트)을 순수 추가 — 기존 2카드·URL·라우팅 무수정. 신규 페이지 previews/panda-express-line/kakhidze-fininvest-intel/ — 러시아 물류기업 핀인베스트(ФинИнвест)/소유주 알렉산드르 카히제(Александр Кахидзе)의 지배구조·매출(2024 그룹합산 690억₽)·자금조달(국가·은행 레버리지 약 80%)·대외관계(CMA CGM 로고페르 50% €1 인수, 동명이사 주의 등) 분석. 9개 섹션, 조직도·자금플로우·관계맵을 인라인 SVG(텍스트 검색가능)로, 신뢰도 3등급 배지(확인·추정·미검증), 다크/라이트·A4 print·상단 고정 목차, 외부 네트워크 의존성 0. 헤드리스 QA 전체 PASS(콘솔에러 0·허브에서 판다→카히제 페이지 라우팅 진입 확인) + 데이터 정합성 적대감사(섹션별 에이전트 4개) 실결함 0건.' },
       { date:'2026-06-22', title:'보세사 중요 개념 · 7개년 빈출 — 1~5과목 전과목 완성 (Codex 작업 + Claude 검수)', desc:'Codex가 1~5과목 × 2019~2025년 기출 핵심 개념을 과목별로 정리한 bosesa-concepts-{1~5}.js 완성. renderBosesaConcepts() 렌더러 연동. 3과목은 토큰 한도 초과 이후 Codex 보충(fd54263). Claude 독립 검수: node --check 41파일 ALL PASS + 인라인 스크립트 파싱 OK.' },
       { date:'2026-06-22', title:'보세사 정답 해설 · 빠른회독 — 1~5과목 전과목 완성 + 5중 독립 검수 PASS (Codex 작업 + Claude 검수)', desc:'Codex가 1~5과목 전과목에 renderBosesaAnswerNotes() 기반 빠른회독 카테고리를 완성. 2019~2025년 875문항 전수 커버, 오답 선지 비표시 설계. Claude 5중 독립 검수: ①node --check 41파일 ALL PASS ②인라인 스크립트 파싱 OK ③875문항 상세 감사(answerBasis≥40자·정답선지해설≥20자·placeholder 0건) issueCount=0 ④Chrome headless DOM 감사(각 과목 cards=175·basis=175·analysis=175·wrong=0) 5과목 전부 PASS ⑤JS 파일 41개 syntax PASS. 전 게이트 PASS 확인 후 대시보드 반영.' },
-      { date:'2026-06-22', title:'보세사 희소 유형 · 낯선·저빈출 — 1~5과목 40선 완성 + 4중 독립 검수 PASS (Codex 작업 + Claude 검수)', desc:'Codex(369295c)가 보세사 학습 세 번째 카테고리 「희소 유형 · 낯선·저빈출」을 1~5과목 완성. 2019~2025년 기출 중 반복 빈도 낮은 절차형·예외형·기관/기간 매칭형·서식형 유형만 과목별 8선, 총 40선. bosesa-rare-types.js가 year+questionNo 참조로 기존 bosesa-data 원본에서 실문제·정답·근거·정답선지해설을 pull(데이터 중복 없음). Claude 4중 독립 검수: ①node --check 42파일 ALL PASS ②인라인 스크립트 파싱 OK ③source-ref 감사(필수 7필드·watch≥3·원본 Q 존재·정답·근거 확인) issueCount=0 ④Chrome headless DOM(cards/rareMeta/source/basis/analysis=8, wrong=0, sourceButtons=8) 5과목 PASS.' }
+      { date:'2026-06-22', title:'보세사 희소 유형 · 낯선·저빈출 — 1~5과목 40선 완성 + 4중 독립 검수 PASS (Codex 작업 + Claude 검수)', desc:'Codex(369295c)가 보세사 학습 세 번째 카테고리 「희소 유형 · 낯선·저빈출」을 1~5과목 완성. 2019~2025년 기출 중 반복 빈도 낮은 절차형·예외형·기관/기간 매칭형·서식형 유형만 과목별 8선, 총 40선. bosesa-rare-types.js가 year+questionNo 참조로 기존 bosesa-data 원본에서 실문제·정답·근거·정답선지해설을 pull(데이터 중복 없음). Claude 4중 독립 검수: ①node --check 42파일 ALL PASS ②인라인 스크립트 파싱 OK ③source-ref 감사(필수 7필드·watch≥3·원본 Q 존재·정답·근거 확인) issueCount=0 ④Chrome headless DOM(cards/rareMeta/source/basis/analysis=8, wrong=0, sourceButtons=8) 5과목 PASS.' },
+      { date:'2026-07-05', title:'위험물산업기사 기출 뷰어 편입 — 구 #12 통관파트 소속화', desc:'디렉터 지시 — 위험물산업기사 기출 뷰어(3과목 180문항)를 보세사 기출문제처럼 통관파트 안으로 편입. tradelogix-nexus 사이드바에 「위험물산업기사」 섹션 신설(?view=hazmat 딥링크), previews/hazmat-exam/ 뷰어를 iframe lazy 임베드 + 새 탭 링크 제공. 대시보드 #12 독립 슬롯 폐지(hideFromGrid+mergedInto:tradelogix).' }
     ]
   },
   {
@@ -782,9 +784,13 @@ const PROJECTS = [
     subtitle: '국가기술자격 위험물산업기사 필기 CBT 기출 인터랙티브 뷰어 — 3과목(일반화학·화재예방과 소화방법·위험물의 성질과 취급) × 복수 회차. kinz.kr 데이터 + Claude 1차 오답검수(kinz 오류 정정) + Codex 교차검증.',
     icon: 'fire',
     platform: '웹 (단일 HTML · Tailwind Play CDN · Vanilla JS · 과목 필터 + 정답 인터랙션)',
+    // 디렉터 지시 2026-07-05 — 독립 프로젝트 슬롯(#12)에서 내려 #8 TradeLogix 통관파트에
+    // 보세사 기출문제와 동급으로 편입(tradelogix-nexus 사이드바 「위험물산업기사」 섹션 임베드).
+    hideFromGrid: true,
+    mergedInto: 'tradelogix',
     status: 'in-progress',
     start: '2026-06-15',
-    latest: '2026-06-15',
+    latest: '2026-07-05',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/hazmat-exam/',
     preview: { type:'embed', height:640, items:[
@@ -807,7 +813,8 @@ const PROJECTS = [
       { type:'예정', title:'Codex 2차 교차검증', desc:'needsVerify 플래그 문항 전수 Codex 검증 예정. 2018년·2020년 1회·3회 등 추가 회차 수록 예정.' }
     ],
     milestones: [
-      { date:'2026-06-15', title:'프로젝트 #12 신설 — 위험물산업기사 기출문제 뷰어', desc:'kinz.kr 기출 수집 → Claude 1차 오답검수 → 인터랙티브 뷰어 빌드(index.html). 2019년 3회·1회·2020년 2회 3개 회차 = 180문항 수록. Codex 교차검증 대기.' }
+      { date:'2026-06-15', title:'프로젝트 #12 신설 — 위험물산업기사 기출문제 뷰어', desc:'kinz.kr 기출 수집 → Claude 1차 오답검수 → 인터랙티브 뷰어 빌드(index.html). 2019년 3회·1회·2020년 2회 3개 회차 = 180문항 수록. Codex 교차검증 대기.' },
+      { date:'2026-07-05', title:'#8 TradeLogix 통관파트 편입 — 독립 슬롯 폐지', desc:'디렉터 지시("대형 프로젝트들 사이에 껴있는 건 어색하다") — 보세사 기출 뷰어처럼 TradeLogix 통관파트 소속으로 이동. tradelogix-nexus 사이드바에 「위험물산업기사」 섹션 신설(?view=hazmat, hazmat-exam 뷰어 임베드 + 새 탭 링크). 대시보드 그리드에서 제외(hideFromGrid+mergedInto:tradelogix), 뷰어 자체(previews/hazmat-exam/)와 기존 데이터·검수 이력은 그대로 유지.' }
     ]
   },
   {

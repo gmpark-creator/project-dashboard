@@ -109,6 +109,7 @@
   .sb-item:hover{ background:#1e293b; color:#e2e8f0; }
   .sb-item.sb-on-customs{ background:#1e293b; color:#10b981; }
   .sb-item.sb-on-bosesa{ background:#1e293b; color:#8b5cf6; }
+  .sb-item.sb-on-hazmat{ background:#1e293b; color:#fb923c; }
   .sb-item.sb-on-year{ background:#1e293b; color:#38bdf8; }
   .sb-child{ padding-left:28px; font-size:12px; }
   .sb-child2{ padding-left:40px; font-size:12px; }
@@ -493,6 +494,16 @@
 </div>
     </div>
   </div>
+
+  <div class="sb-divider"></div>
+
+  <!-- 위험물산업기사 섹션 — 구 대시보드 #12 편입 (디렉터 지시 2026-07-05, 보세사 기출과 동급 배치) -->
+  <div class="sb-section">
+    <div class="sb-label">위험물산업기사</div>
+    <button class="sb-item" id="sb-hazmat" onclick="setState({view:'hazmat'})">
+      <i class="fa-solid fa-fire w-4 text-center text-orange-400"></i>기출문제 뷰어 <span class="text-[9px] font-bold text-orange-400/80 ml-auto">180문항</span>
+    </button>
+  </div>
 </aside>
 
 <!-- ====== APP CONTENT ====== -->
@@ -573,6 +584,9 @@
 
 <!-- ====== 보세사 뷰 (보세사 모드일 때 표시) ====== -->
 <div id="bosesaRoot" style="display:none;" class="px-4 py-6 max-w-[900px] mx-auto"></div>
+
+<!-- ====== 위험물산업기사 뷰 (previews/hazmat-exam 뷰어 임베드) ====== -->
+<div id="hazmatRoot" style="display:none;" class="px-4 py-6 max-w-[1100px] mx-auto"></div>
 
 <footer class="max-w-[1180px] mx-auto px-4 pb-10 pt-2 text-xs text-slate-500">
   <p>TradeLogix Nexus · Part 1 통관 마스터 — 교육용 인터랙티브. 수치·코드·업체명은 학습용 예시이며 실제 신고·세율·요건을 대체하지 않습니다.
@@ -903,7 +917,7 @@ DB.glossary = (window.CUSTOMS_PRACTICE && window.CUSTOMS_PRACTICE.glossary) || [
 
 /* ================= 상태머신 v2 ================= */
 const S = {
-  view: 'customs',           // 'customs' | 'bosesa'
+  view: 'customs',           // 'customs' | 'bosesa' | 'hazmat'
   customsType:'import', port:'new', incoterm:null, activeNode:null, modalField:null,
   bosesaView:'intro',        // 'intro' | 'quiz' | 'concepts' | 'answerNotes' | 'rareTypes'
   bosesaSubject:1,
@@ -1134,13 +1148,37 @@ function render(){
     // 통관 섹션 숨기기
     document.querySelectorAll('main section').forEach(s=>s.style.display='none');
     $('bosesaRoot').style.display='block';
+    $('hazmatRoot').style.display='none';
     $('portToggle').innerHTML='';
     renderBosesa();
+  } else if(S.view==='hazmat'){
+    document.querySelectorAll('main section').forEach(s=>s.style.display='none');
+    $('bosesaRoot').style.display='none';
+    $('hazmatRoot').style.display='block';
+    $('portToggle').innerHTML='';
+    renderHazmat();
   } else {
     document.querySelectorAll('main section').forEach(s=>s.style.display='');
     $('bosesaRoot').style.display='none';
+    $('hazmatRoot').style.display='none';
     renderHero(); renderFlow(); renderCallMap(); renderViewport(); renderIncoterm(); renderDoc(); renderGlossary();
   }
+}
+
+/* ── 위험물산업기사 기출 뷰어 — previews/hazmat-exam 임베드 (구 대시보드 #12, 첫 진입 시에만 iframe 로드) ── */
+function renderHazmat(){
+  const root = $('hazmatRoot');
+  if(!root || root.dataset.loaded) return;
+  root.dataset.loaded = '1';
+  root.innerHTML = `
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+      <div>
+        <h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-fire text-orange-400"></i> 위험물산업기사 기출문제 뷰어</h2>
+        <p class="mt-1 text-xs text-slate-400">국가기술자격 필기 CBT 기출 — 3과목(일반화학 · 화재예방과 소화방법 · 위험물의 성질과 취급) × 2019년 1·3회 + 2020년 2회 = 180문항. kinz.kr 데이터 + Claude 오답검수.</p>
+      </div>
+      <a href="../hazmat-exam/index.html" target="_blank" rel="noopener" class="text-xs font-bold text-sky-400 hover:text-sky-300 whitespace-nowrap"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>새 탭에서 크게 보기</a>
+    </div>
+    <iframe src="../hazmat-exam/index.html" title="위험물산업기사 기출문제 뷰어" style="width:100%;height:calc(100vh - 190px);min-height:560px;border:1px solid #1e293b;border-radius:16px;background:#0F172A"></iframe>`;
 }
 
 function renderSidebar(){
@@ -1157,6 +1195,9 @@ function renderSidebar(){
   // 포트 섹션 가시성
   const portSec = $('sb-portSection');
   if(portSec) portSec.style.display = S.view==='customs' ? '' : 'none';
+  // 위험물산업기사 active
+  const hzEl = $('sb-hazmat');
+  if(hzEl) hzEl.className = 'sb-item' + (S.view==='hazmat'?' sb-on-hazmat':'');
   // 보세사 active
   const biEl = $('sb-bosesa-intro');
   if(biEl) biEl.className = 'sb-item' + (S.view==='bosesa'&&S.bosesaView==='intro'?' sb-on-bosesa':'');
