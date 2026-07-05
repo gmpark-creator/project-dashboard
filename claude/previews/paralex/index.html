@@ -129,15 +129,25 @@
   .vmain{ flex:1; min-width:0; }
   .vlegend{ background:#0d1424; border:1px solid #243049; border-radius:10px; padding:11px 14px; margin-top:11px; font-size:11.5px; color:#94a3b8; }
   .vlegend summary{ cursor:pointer; color:#7dd3fc; font-weight:700; }
-  .vg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:10px; margin-top:10px; }
+  .vg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:10px; margin-top:10px; }
   .vg-card{ background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; text-align:left; transition:border-color .12s; }
   .vg-card:hover{ border-color:#2dd4bf55; }
   .vg-lem{ font-size:15px; font-weight:800; color:#f1f5f9; }
   .vg-pos{ font-size:10.5px; color:#64748b; margin-left:5px; font-weight:600; }
   .vg-mean{ font-size:12.5px; color:#5eead4; margin-top:6px; line-height:1.55; }
-  .vg-ex{ font-size:11.5px; color:#94a3b8; margin-top:5px; font-style:italic; line-height:1.5; }
-  .vg-exko{ font-size:11px; color:#8aa0c0; margin-top:3px; line-height:1.5; }
-  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex, .vg-card.hide .vg-exko{ filter:blur(5px); user-select:none; }
+  /* 예문 글자 확대 — 디렉터 지시 2026-07-05 (PC·모바일에서 눈에 잘 안 보임) */
+  .vg-ex{ font-size:14px; color:#d4deee; margin-top:7px; font-style:italic; line-height:1.65; }
+  .vg-exko{ font-size:13px; color:#a8bcd8; margin-top:4px; line-height:1.6; }
+  .vg-card.hide .vg-mean, .vg-card.hide .vg-ex, .vg-card.hide .vg-exko, .vg-card.hide .vg-gp{ filter:blur(5px); user-select:none; }
+  /* 문법 포인트(gp) — 예문 하나로 Part 5/6 어법까지 병행 학습 (디렉터 지시 2026-07-05) */
+  .vg-gp{ margin-top:9px; border-top:1px dashed #2a3a58; padding-top:8px; }
+  .vg-form{ display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; color:#fcd34d; background:#2a1a04; border:1px solid #f59e0b55; border-radius:6px; padding:2px 8px; }
+  .vg-pt{ display:flex; gap:7px; margin-top:6px; align-items:flex-start; }
+  .vg-pt-t{ flex-shrink:0; font-size:10px; font-weight:800; padding:1.5px 7px; border-radius:5px; margin-top:1.5px; }
+  .vg-pt-t.u{ color:#5eead4; background:#042f2a; border:1px solid #2dd4bf44; }
+  .vg-pt-t.g{ color:#a5b4fc; background:#1e1b4b; border:1px solid #4338ca66; }
+  .vg-pt-t.x{ color:#fda4af; background:#2a0e12; border:1px solid #f43f5e44; }
+  .vg-pt-d{ font-size:12.5px; color:#b9c8e0; line-height:1.6; }
   .seg-h{ font-size:11.5px; font-weight:800; color:#7dd3fc; letter-spacing:.04em; margin:16px 0 2px; }
   @media(max-width:680px){ .vlayout{ flex-direction:column } .vrail{ width:100%; flex-direction:row; flex-wrap:wrap; position:static } .vrail button{ flex:1; min-width:72px } }
   /* 반응형: 좁은 화면(폰)에서 사이드바를 가로 스크롤 바로 — 모바일 단일 앱 */
@@ -279,7 +289,7 @@ function renderToday(){
   else cards += taskCard('fa-graduation-cap','개념', '개념 강의 모두 1독 완료 🎉', '여러 번 반복해 회독을 올려 보세요.', '목록', `setState({view:'concept',conceptId:null})`, true);
   if(ng) cards += taskCard('fa-spell-check','문법', `${esc(ng)}`, '풀어 보고 해설을 확인하세요. 점수·정답은 기록하지 않습니다.', '시작', `setState({view:'grammar',glabId:'${ng}'})`, false);
   else cards += taskCard('fa-spell-check','문법', '문법 세트 모두 1독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'grammar'})`, true);
-  if(nv!=null) cards += taskCard('fa-layer-group','어휘', `Day ${nv}`, '뜻·예문 해석을 보며 익히고, 다 봤으면 회독을 올리세요.', '시작', `setState({view:'vocab',vocabDay:${nv}})`, false);
+  if(nv!=null) cards += taskCard('fa-layer-group','어휘', `Day ${nv}`, '뜻·예문 해석과 문법 포인트(용법·출제)까지 익히고, 다 봤으면 회독을 올리세요.', '시작', `setState({view:'vocab',vocabDay:${nv}})`, false);
   else cards += taskCard('fa-layer-group','어휘', '어휘 Day 모두 1독 🎉', '복습하려면 왼쪽에서 Day를 고르세요.', '어휘', `setState({view:'vocab'})`, true);
   if(nr){ var set=getSet(nr); var mc=(manifestContent('reading').find(c=>c.id===nr)||{}); cards += taskCard('fa-book-open','독해', `${esc(set.title)} <span class="pill pill-orig" style="margin-left:4px">${esc(mc.band||'')}</span>`, '타이머 켜고 읽은 뒤 회독을 올리세요.', '시작', `setState({view:'workbench',setId:'${nr}'})`, false); }
   else cards += taskCard('fa-book-open','독해', '독해 세트 모두 1독 🎉', '복습하려면 목록에서 고르세요.', '목록', `setState({view:'workbench',setId:null})`, true);
@@ -514,6 +524,7 @@ function answerGrammar(glabId,key,lab){ if(S.greveal[key]) return; S.greveal[key
 
 /* ===================== Vocab Deck — 30 한눈에 그리드 + 왼쪽 세로 레일 ===================== */
 function tagFull(t){ return ({NGSL:'New General Service List · 일상 고빈도어',NGSL2k:'NGSL 상위 2천 · 일상 고빈도어',TSL:'TOEIC Service List · 토익 빈출어',BSL:'Business Service List · 비즈니스 빈출어',NAWL:'New Academic Word List · 학술 빈출어'}[t]||t); }
+function ptCls(t){ return t==='용법'?'u':(t==='문법'?'g':'x'); }
 function vRevealCard(day,id){ S.vocabReveal[id]=!S.vocabReveal[id]; render(); }
 function vRevealAll(day){ S.vocabRevealAll=!S.vocabRevealAll; render(); }
 function renderVocab(){
@@ -537,12 +548,13 @@ function renderVocab(){
         ${c.example?`<div class="vg-ex">"${esc(c.example)}"</div>`:''}
         ${c.exampleKo?`<div class="vg-exko">${esc(c.exampleKo)}</div>`:''}
         ${!c.example&&c.collocation?`<div class="vg-ex">▪ ${esc(c.collocation)}</div>`:''}
+        ${c.gp?`<div class="vg-gp"><span class="vg-form"><i class="fa-solid fa-sitemap" style="font-size:9px"></i>${esc(c.gp.form)}</span>${(c.gp.points||[]).map(p=>`<div class="vg-pt"><span class="vg-pt-t ${ptCls(p.t)}">${esc(p.t)}</span><span class="vg-pt-d">${esc(p.d)}</span></div>`).join('')}</div>`:''}
       </div>`;
     }).join('')+`</div>`;
   };
   return `<div class="wrap">
     <div class="h-title">Vocab Deck</div>
-    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·해석이 열립니다. 왼쪽에서 Day를 고르세요.</div>
+    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·예문 해석에 더해 <b style="color:#fcd34d">문법 포인트(형식·용법·출제)</b>가 열립니다 — 예문 하나로 Part 5·6 어법까지 병행 학습. 왼쪽에서 Day를 고르세요.</div>
     <details class="vlegend"><summary><i class="fa-solid fa-circle-info"></i> 리스트 태그(NGSL·TSL·BSL·NAWL)란?</summary>
       <div style="margin-top:7px;line-height:1.75">빈도 연구 기반 영어 단어 목록입니다 — 이 단어가 어떤 목록에 속하는지 보여줘요.<br>
       • <b style="color:#a5b4fc">NGSL</b> (New General Service List): 일상·범용 고빈도어. 일반 영어의 ~90%를 덮는 핵심 약 2,800단어.<br>
@@ -558,7 +570,7 @@ function renderVocab(){
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${readStamps('vocab', d.day)}<button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button></div>
         </div>
         ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
-        <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 다 익혔으면 '1회독 완료'를 체크하세요.</div>
+        <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 예문 아래 <b>용법</b>(이 단어는 이렇게 쓴다)·<b>문법</b>(예문 속 구조)·<b>출제</b>(토익이 속이는 방식)까지 읽으면 어휘와 Part 5·6 어법이 같이 늘어요. 다 익혔으면 회독을 체크하세요.</div>
       </div>
     </div>
   </div>`;

@@ -23,7 +23,7 @@
 - [ ] 모든 id stable·unique, manifest ↔ 레지스트리 ↔ plan 역참조 일치
 - [ ] reading: 지문(documents/chunks en+ko 직독직해)·문항(answer·evidenceSpanIds 실재·distractorRationales 전 오답·explanation)·정답 유일
 - [ ] grammar: 8문항, 빈칸 1개, 정답 유일(빈칸에 한 보기만 성립), grammarPoint 유효
-- [ ] vocab: 정확히 30카드, 기존 Day와 lemma 중복 0, 글로스·예문 누락 없음
+- [ ] vocab: 정확히 30카드, 기존 Day와 lemma 중복 0, 글로스·예문 누락 없음, **gp(문법 포인트) 필수** — form(주절 기준 N형식)+points(용법·출제 필수, 문법 권장), 예문은 14~24단어 복문·토익 비즈니스 문맥(디렉터 지시 2026-07-05: 예문 하나로 Part5/6 어법 병행 학습)
 - [ ] LC: 외부 링크만(provider/license:link-only/embedAllowed:false/fallbackUrl/durationMinutes), 오디오·전문 비내장
 - [ ] reviewGates: 품질 게이트 pass:true(reviewer Claude·근거 note), human pass:false(practice)
 - [ ] 금칙어(TODO/placeholder/미작성/작성예정) 0, version 기입
@@ -31,7 +31,7 @@
 ## 스키마 요약 (필드는 기존 파일을 정본으로)
 - **reading**: `id,setKind,track(news|business),genre,scoreBandTarget(BANDS),difficultyRank(1-5),partFocus,skillFocus(SKILLS),trapFocus(TRAPS),vocabBand(VBANDS),targetTimeSec,title,source,license,attribution,storageAllowed,thirdPartyContentExcluded:true,wordCount,passage{documents[{id,label,paragraphs[{id,functionLabel,chunks[{en,ko,note}]}]}]},keyStructures,vocabulary,paraphrases,questions[{no,stem,choices,answer,evidenceSpanIds,skillFocus,trapFocus,distractorRationales[{label,type(DR_TYPES),note}],explanation}],reflectionPrompts,reviewGates,version`
 - **grammar**: `id,title,partFocus,scoreBandTarget,targetTimeSec,items[{no,part,questionType,sentence(빈칸 _____ 1개),choices,answer,grammarPoint(GPOINTS),contextEvidence,explanation,trapNote,distractorRationales[{label,type(GDR),note}]}],reviewGates(legal/originality/answerability/grammarAccuracy/distractor/human),version`
-- **vocab day**: `PARALEX_VOCAB_DAYS.push({day,title,cards[{id,lemma,pos,glossKo,collocation,example,listTag(VBANDS),tags}]})` — 30개
+- **vocab day**: `PARALEX_VOCAB_DAYS.push({day,title,cards[{id,lemma,pos,glossKo,collocation,example,exampleKo,gp{form,points[{t(용법|문법|출제),d}]},listTag(VBANDS),tags}]})` — 30개. `gp.form`=예문 주절 기준 문장 형식(예: "3형식 · S+V+O (수동태)"), `points`=용법(표제어 어법)·출제(Part5/6 함정 방식) 필수 + 문법(예문 속 구조) 권장, 각 d는 한국어 45~130자
 - **LC queue item**: `{id,sourceRef,provider,url,fallbackUrl,kind,durationMinutes,level,accent,task,license:"link-only",embedAllowed:false}`
 
 ## 공급 균형(validator 경고)

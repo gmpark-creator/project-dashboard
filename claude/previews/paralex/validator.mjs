@@ -176,10 +176,28 @@ const vdFiles = ['vocab-days.js'].concat(readdirSync(join(__dir,'data')).filter(
 for(const vf of vdFiles){ const pth=join(__dir,'data',vf); if(!existsSync(pth)) continue; try { new Function('window', readFileSync(pth,'utf8'))(vw); } catch(e){ add(vf, `파싱 실패: ${e.message}`); } }
 let vdList = vw.PARALEX_VOCAB_DAYS||[];
 const seenLemma = new Set(); let vCount=0;
+const GP_TYPES = ['용법','문법','출제'];
 for(const d of vdList){ for(const c of (d.cards||[])){ vCount++;
   for(const k of ['id','lemma','glossKo','collocation','example','exampleKo']) if(!c[k]) add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} ${k} 빈값`);
   const lk = String(c.lemma||'').toLowerCase().trim(); if(lk && seenLemma.has(lk)) add('vocab-days', `중복 lemma: ${c.lemma}`); seenLemma.add(lk);
   if(BANNED.test(c.glossKo||'')||BANNED.test(c.example||'')) add('vocab-days', `카드 ${c.id} placeholder`);
+  // gp(문법 포인트) — 디렉터 지시 2026-07-05: 예문 하나로 Part5/6 어법 병행 학습 (형식·용법·출제 필수)
+  const gp = c.gp;
+  if(!gp || typeof gp !== 'object'){ add('vocab-days', `Day${d.day} 카드 ${c.id||'?'} gp(문법 포인트) 누락`); }
+  else {
+    if(!gp.form || !/형식|구문/.test(gp.form)) add('vocab-days', `카드 ${c.id} gp.form 누락/형식 표기 아님: ${gp.form||'(빈값)'}`);
+    const pts = gp.points || [];
+    if(pts.length < 2) add('vocab-days', `카드 ${c.id} gp.points ${pts.length}개(<2)`);
+    const ts = pts.map(p=>p.t);
+    if(!ts.includes('용법')) add('vocab-days', `카드 ${c.id} gp '용법' 포인트 없음`);
+    if(!ts.includes('출제')) add('vocab-days', `카드 ${c.id} gp '출제' 포인트 없음`);
+    for(const p of pts){
+      if(!GP_TYPES.includes(p.t)) add('vocab-days', `카드 ${c.id} gp.t 무효: ${p.t}`);
+      if(!p.d || String(p.d).length < 15) add('vocab-days', `카드 ${c.id} gp[${p.t}] 해설 빈약(<15자)`);
+      if(BANNED.test(p.d||'')) add('vocab-days', `카드 ${c.id} gp[${p.t}] placeholder`);
+    }
+    if(BANNED.test(gp.form||'')) add('vocab-days', `카드 ${c.id} gp.form placeholder`);
+  }
 } }
 console.log(`로드된 Vocab Day: ${vdList.length}일 / ${vCount}카드`);
 
