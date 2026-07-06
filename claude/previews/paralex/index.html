@@ -130,8 +130,11 @@
   .vlegend{ background:#0d1424; border:1px solid #243049; border-radius:10px; padding:11px 14px; margin-top:11px; font-size:11.5px; color:#94a3b8; }
   .vlegend summary{ cursor:pointer; color:#7dd3fc; font-weight:700; }
   .vg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:10px; margin-top:10px; }
-  .vg-card{ background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; text-align:left; transition:border-color .12s; }
+  .vg-card{ position:relative; background:#0d1424; border:1px solid #243049; border-radius:11px; padding:12px 14px; text-align:left; transition:border-color .12s; }
   .vg-card:hover{ border-color:#2dd4bf55; }
+  .vg-eye{ position:absolute; top:8px; right:8px; width:28px; height:28px; padding:0; border:1px solid #243049; border-radius:8px; background:#111c30; color:#5eead4; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; line-height:1; z-index:2; transition:border-color .12s,background .12s; }
+  .vg-eye:hover{ border-color:#2dd4bf; background:#16233b; }
+  .vg-card.hide .vg-eye{ color:#64748b; }
   .vg-lem{ font-size:15px; font-weight:800; color:#f1f5f9; }
   .vg-pos{ font-size:10.5px; color:#64748b; margin-left:5px; font-weight:600; }
   .vg-mean{ font-size:12.5px; color:#5eead4; margin-top:6px; line-height:1.55; }
@@ -542,8 +545,9 @@ function renderVocab(){
     if(!slice.length) return '';
     return `<div class="seg-h">구간 ${label} (${from+1}–${Math.min(to,cards.length)})</div><div class="vg">`+ slice.map(c=>{
       const open = showAll || S.vocabReveal[c.id];
-      return `<div class="vg-card ${open?'':'hide'}" onclick="vRevealCard(${d.day},'${c.id}')">
-        <div><span class="vg-lem">${esc(c.lemma)}</span><span class="vg-pos">${esc(c.pos||'')}</span><span class="vtag" title="${esc(tagFull(c.listTag))}">${esc(c.listTag||'')}</span></div>
+      return `<div class="vg-card ${open?'':'hide'}">
+        <button class="vg-eye" title="${open?'뜻 가리기':'뜻 보기'}" onclick="vRevealCard(${d.day},'${c.id}')"><i class="fa-solid ${open?'fa-eye-slash':'fa-eye'}"></i></button>
+        <div style="padding-right:32px"><span class="vg-lem">${esc(c.lemma)}</span><span class="vg-pos">${esc(c.pos||'')}</span><span class="vtag" title="${esc(tagFull(c.listTag))}">${esc(c.listTag||'')}</span></div>
         <div class="vg-mean">${esc(c.glossKo)}</div>
         ${c.example?`<div class="vg-ex">"${esc(c.example)}"</div>`:''}
         ${c.exampleKo?`<div class="vg-exko">${esc(c.exampleKo)}</div>`:''}
@@ -554,7 +558,7 @@ function renderVocab(){
   };
   return `<div class="wrap">
     <div class="h-title">Vocab Deck</div>
-    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 카드를 누르면 뜻·예문 해석에 더해 <b style="color:#fcd34d">문법 포인트(형식·용법·출제)</b>가 열립니다 — 예문 하나로 Part 5·6 어법까지 병행 학습. 왼쪽에서 Day를 고르세요.</div>
+    <div class="h-sub">하루치 어휘를 <b style="color:#2dd4bf">한 화면에</b>. 각 카드 우상단 <i class="fa-solid fa-eye" style="color:#5eead4"></i> 버튼으로 뜻·예문 해석에 더해 <b style="color:#fcd34d">문법 포인트(형식·용법·출제)</b>를 열고 가립니다 — 예문 하나로 Part 5·6 어법까지 병행 학습(본문은 자유롭게 복사 가능). 왼쪽에서 Day를 고르세요.</div>
     <details class="vlegend"><summary><i class="fa-solid fa-circle-info"></i> 리스트 태그(NGSL·TSL·BSL·NAWL)란?</summary>
       <div style="margin-top:7px;line-height:1.75">빈도 연구 기반 영어 단어 목록입니다 — 이 단어가 어떤 목록에 속하는지 보여줘요.<br>
       • <b style="color:#a5b4fc">NGSL</b> (New General Service List): 일상·범용 고빈도어. 일반 영어의 ~90%를 덮는 핵심 약 2,800단어.<br>
@@ -570,7 +574,7 @@ function renderVocab(){
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${readStamps('vocab', d.day)}<button class="btn" onclick="vRevealAll(${d.day})">${showAll?'전체 뜻 가리기':'전체 뜻 보기'}</button></div>
         </div>
         ${seg('A',0,10)}${seg('B',10,20)}${seg('C',20,30)}
-        <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드를 눌러 확인하세요. 예문 아래 <b>용법</b>(이 단어는 이렇게 쓴다)·<b>문법</b>(예문 속 구조)·<b>출제</b>(토익이 속이는 방식)까지 읽으면 어휘와 Part 5·6 어법이 같이 늘어요. 다 익혔으면 회독을 체크하세요.</div>
+        <div class="disc">셀프테스트: '전체 뜻 가리기'에서 lemma만 보고 뜻을 떠올린 뒤 카드 우상단 <i class="fa-solid fa-eye"></i> 버튼으로 확인하세요. 예문 아래 <b>용법</b>(이 단어는 이렇게 쓴다)·<b>문법</b>(예문 속 구조)·<b>출제</b>(토익이 속이는 방식)까지 읽으면 어휘와 Part 5·6 어법이 같이 늘어요. 다 익혔으면 회독을 체크하세요.</div>
       </div>
     </div>
   </div>`;
