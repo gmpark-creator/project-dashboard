@@ -20,6 +20,14 @@
   .title{ font-size:16px; font-weight:800; letter-spacing:-.02em; display:flex; align-items:center; gap:6px; }
   .title .dot{ width:8px; height:8px; border-radius:3px; background:var(--green); }
   .title small{ font-size:11px; font-weight:600; color:var(--sub); }
+  .apptop{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .apptop .title{ flex:1; min-width:0; }
+  .toeicLink{ flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; text-decoration:none;
+    font-size:12px; font-weight:800; letter-spacing:-.01em; color:#047857;
+    background:#e7f7ef; border:1px solid #34d39966; border-radius:999px; padding:6px 11px; white-space:nowrap; }
+  .toeicLink .en{ font-size:9px; font-weight:800; color:#fff; background:#34d399; border-radius:4px; padding:1px 4px; letter-spacing:.02em; }
+  .toeicLink .arw{ font-size:13px; }
+  .toeicLink:active{ background:#d1f0e0; }
   .rowlabel{ font-size:10px; font-weight:700; color:var(--sub); margin:6px 2px 3px; }
   .chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
   .chips::-webkit-scrollbar{ display:none; }
@@ -146,7 +154,10 @@
 <body>
 
 <header>
-  <div class="title"><span class="dot"></span>보세사 기출문제 <small>모바일 뷰어 · 1~5과목 · 2019~2025</small></div>
+  <div class="apptop">
+    <div class="title"><span class="dot"></span>보세사 기출문제 <small>모바일 뷰어 · 1~5과목 · 2019~2025</small></div>
+    <a class="toeicLink" href="../../paralex/" title="토익 학습 뷰어(Paralex)로 이동"><span class="en">EN</span>토익 뷰어<span class="arw">→</span></a>
+  </div>
   <div class="rowlabel">과목</div>
   <div class="chips" id="subjectChips"></div>
   <div class="rowlabel">연도 · 학습 카테고리</div>
