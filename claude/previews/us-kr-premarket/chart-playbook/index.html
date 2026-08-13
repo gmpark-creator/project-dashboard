@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차트 교본 — Polaris Market Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body { background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
+  .tvchart { background:#131722; border-radius:12px; }
+  .sec-nav a { transition:color .12s ease, background .12s ease; }
+  .card { background:rgba(15,23,42,.7); border:1px solid #1e293b; border-radius:14px; }
+  .kv { font-variant-numeric:tabular-nums; }
+  mark { background:rgba(56,189,248,.25); color:#e2e8f0; border-radius:3px; padding:0 2px; }
+  .blk { border-left:3px solid #334155; padding-left:12px; }
+  input, textarea, select { background:#0f172a; border:1px solid #1e293b; border-radius:8px; color:#e2e8f0; padding:6px 8px; font-size:12px; width:100%; }
+  input:focus, textarea:focus, select:focus { outline:none; border-color:#38bdf8; }
+  table.grid td, table.grid th { border:1px solid #1e293b; padding:7px 10px; font-size:12.5px; vertical-align:top; }
+  .scrollx { overflow-x:auto; }
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+
+<!-- ══ 헤더 ══ -->
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0B1120]">
+  <div class="max-w-[1180px] mx-auto px-6 py-7">
+    <div class="flex items-center gap-2 text-xs font-semibold tracking-widest text-sky-400 uppercase flex-wrap">
+      <a href="../" class="hover:text-sky-300"><i class="fa-solid fa-compass"></i> Project #6 · Polaris</a>
+      <span class="text-slate-600">/</span><span class="text-slate-400">Chart Playbook</span>
+      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 ring-1 ring-slate-500/30 px-2.5 py-0.5 text-[10px] font-bold text-slate-300 normal-case tracking-normal">
+        <i class="fa-solid fa-flask text-[9px]"></i> RESEARCH ONLY
+      </span>
+    </div>
+    <h1 class="mt-2 text-3xl font-extrabold text-white">차트 교본 <span class="text-sky-400">Chart Playbook</span></h1>
+    <p class="mt-2 text-sm text-slate-400">단타와 스윙을 보유기간으로 나누고, 그에 맞는 봉·캔들·지표·용어를 정리한 <b class="text-slate-300">종목 중립</b> 차트 읽기 자료. 연구·교육 전용입니다.</p>
+
+    <!-- 범위·역할 경계 배너 (Codex R2 Q17) -->
+    <div class="mt-4 rounded-xl bg-amber-500/5 ring-1 ring-amber-500/25 p-4 text-[12.5px] leading-relaxed text-amber-200/90">
+      <b class="text-amber-300"><i class="fa-solid fa-circle-info"></i> 이 페이지의 범위 (2026-08-13 정정 이후)</b>
+      <p class="mt-1.5">이 페이지는 <b>종목 중립 차트·유동성 관측 프레임</b>입니다. 예시는 익명 심볼과 합성 데이터로만 만들며, 실존 종목명은 레버리지 예외 설명에서만 씁니다.</p>
+      <p class="mt-1.5">같은 프로젝트의 <b>desk · signal-engine · flip-replay · market-ledger</b>는 2026-06-15 반도체·SOXL 중심 <b>소표본 연구 기록</b>입니다. 그 통계(n=10 수준의 탐색 규칙)는 이 페이지의 판정 기준으로 상속되지 않습니다.</p>
+      <p class="mt-1.5"><b>역할 경계:</b> 밸류에이션(재무·적정가치·목표주가)은 이 자료가 다루지 않습니다. 여기서 다루는 것은 차트·거래량·변동성·체결 구조뿐입니다. 종목 추천·매매 의견·승률·자동주문을 제공하지 않습니다.</p>
+    </div>
+
+    <!-- 프리셋 토글 + 코어 버전 -->
+    <div class="mt-4 flex items-center gap-3 flex-wrap">
+      <div class="inline-flex rounded-lg ring-1 ring-slate-700 overflow-hidden text-[11px] font-bold">
+        <button id="preset-kr" class="px-3 py-1.5 bg-sky-500/20 text-sky-300">Polaris KR 프리셋</button>
+        <button id="preset-tv" class="px-3 py-1.5 text-slate-400 hover:text-slate-200">Polaris TradingView 프리셋</button>
+      </div>
+      <div id="legend" class="text-[11px] text-slate-400 flex items-center gap-3"></div>
+      <div class="ml-auto text-[10.5px] text-slate-500 kv">코어 <span id="core-ver">—</span> · asOf <span id="core-asof">—</span></div>
+    </div>
+  </div>
+
+  <nav class="sec-nav border-t border-slate-800 bg-[#0B1120]/90 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-[1180px] mx-auto px-6 py-2 flex gap-1 overflow-x-auto text-[11.5px] font-semibold whitespace-nowrap" id="secnav"></div>
+  </nav>
+</header>
+
+<main class="max-w-[1180px] mx-auto px-6 py-8 space-y-12" id="main"></main>
+
+<footer class="border-t border-slate-800 mt-8">
+  <div class="max-w-[1180px] mx-auto px-6 py-7 text-[11px] text-slate-500 leading-relaxed">
+    <p><b class="text-slate-400">연구·교육 전용.</b> 투자자문이 아니며 매매 결정과 그 결과의 책임은 이용자 본인에게 있습니다. 추천·목표가·승률을 제공하지 않고 자동주문을 사용하지 않습니다.</p>
+    <p class="mt-1">차트는 전부 합성 데이터입니다. 실제 시세가 아니며 성과의 증거가 아닙니다. 거래 전 원출처(거래소·증권사)에서 반드시 재확인하세요.</p>
+    <p class="mt-1">Polaris Market Intelligence · G.M.PARK</p>
+  </div>
+</footer>
+
+<script src="../data/core-data.js?v=20260813"></script>
+<script src="./data/scenarios.js?v=20260813"></script>
+<script src="./data/suitability.js?v=20260813"></script>
+<script>
+"use strict";
+(function () {
+  const CORE = window.POLARIS_CORE, SCN = window.POLARIS_SCENARIOS, SUIT = window.POLARIS_SUITABILITY;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+  /* ── fail-closed 코어 참조 ── */
+  function ref(id) {
+    const e = CORE && CORE.resolve ? CORE.resolve(id) : null;
+    return e || null;
+  }
+  function refText(id, field) {
+    const e = ref(id);
+    if (!e) return `<span class="text-rose-400">자료 연결 실패 · ${esc(id)} · 판정 불가</span>`;
+    return esc(field === 'label' ? e.label.ko : e[field]);
+  }
+  function limitList(ids) {
+    return ids.map(id => {
+      const e = ref(id);
+      if (!e) return `<li class="text-rose-400">자료 연결 실패 · ${esc(id)} · 판정 불가</li>`;
+      return `<li><b class="text-slate-200">${esc(e.label.ko)}</b> — ${esc(e.definition)}${(e.limitations||[]).length ? `<span class="block text-slate-500 mt-0.5">${e.limitations.map(esc).join(' ')}</span>` : ''}</li>`;
+    }).join('');
+  }
+
+  /* ── 색상 프리셋 ── */
+  const PRESETS = {
+    kr: { name:'Polaris KR 프리셋', up:'#F87171', down:'#60A5FA', upLabel:'상승 ▲ 적색(실선)', downLabel:'하락 ▼ 청색(점선)' },
+    tv: { name:'Polaris TradingView 프리셋', up:'#26A69A', down:'#EF5350', upLabel:'상승 ▲ 청록(실선)', downLabel:'하락 ▼ 적색(점선)' },
+  };
+  let preset = 'kr';
+  const CH = { bg:'#131722', grid:'#2A2E39', axis:'#787B86' };
+
+  function paintLegend() {
+    const p = PRESETS[preset];
+    $('#legend').innerHTML =
+      `<span class="inline-flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;background:${p.up};border-radius:2px"></span> ${esc(p.upLabel)}</span>` +
+      `<span class="inline-flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;background:${p.down};border-radius:2px;border:1px dashed #94a3b8"></span> ${esc(p.downLabel)}</span>` +
+      `<span class="text-slate-600">· 색 외에 ▲▼ 기호와 실선/점선으로 이중 표시합니다</span>`;
+  }
+
+  /* ══ SVG 캔들 렌더러 (외부 차트 라이브러리 없음) ══ */
+  function candleSVG(bars, o) {
+    o = o || {};
+    const W = o.w || 660, H = o.h || 260, padL = 8, padR = 46, padT = 14, padB = 22;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    const his = bars.map(b => b[1]), los = bars.map(b => b[2]);
+    let hi = Math.max.apply(null, his), lo = Math.min.apply(null, los);
+    const pad = (hi - lo) * 0.08 || 1; hi += pad; lo -= pad;
+    const x = i => padL + (i + 0.5) * (iw / bars.length);
+    const y = v => padT + (hi - v) / (hi - lo) * ih;
+    const cw = Math.max(2, (iw / bars.length) * 0.62);
+    const p = PRESETS[preset];
+
+    let g = '';
+    for (let k = 0; k <= 4; k++) {
+      const yy = padT + ih * k / 4, val = hi - (hi - lo) * k / 4;
+      g += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${padL+iw}" y2="${yy.toFixed(1)}" stroke="${CH.grid}" stroke-width="1"/>`;
+      g += `<text x="${padL+iw+6}" y="${(yy+3.5).toFixed(1)}" fill="${CH.axis}" font-size="9.5">${val.toFixed(1)}</text>`;
+    }
+    let c = '';
+    bars.forEach((b, i) => {
+      const [op, h, l, cl] = b;
+      const up = cl >= op, col = up ? p.up : p.down;
+      const yo = y(op), yc = y(cl), top = Math.min(yo, yc), hgt = Math.max(1.2, Math.abs(yc - yo));
+      c += `<line x1="${x(i).toFixed(1)}" y1="${y(h).toFixed(1)}" x2="${x(i).toFixed(1)}" y2="${y(l).toFixed(1)}" stroke="${col}" stroke-width="1.1"${up?'':' stroke-dasharray="2.2 1.6"'}/>`;
+      c += `<rect x="${(x(i)-cw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${cw.toFixed(1)}" height="${hgt.toFixed(1)}" fill="${up?col:'none'}" stroke="${col}" stroke-width="1.1"${up?'':' stroke-dasharray="2.2 1.6"'}/>`;
+    });
+    let mk = '';
+    if (o.cutoff != null && o.cutoff >= 0 && o.cutoff < bars.length) {
+      const cx = padL + (o.cutoff + 1) * (iw / bars.length);
+      mk += `<line x1="${cx.toFixed(1)}" y1="${padT}" x2="${cx.toFixed(1)}" y2="${padT+ih}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>`;
+      mk += `<text x="${(cx+4).toFixed(1)}" y="${padT+11}" fill="#cbd5e1" font-size="9.5">관측 컷오프</text>`;
+      mk += `<text x="${(cx-4).toFixed(1)}" y="${padT+11}" fill="#64748b" font-size="9.5" text-anchor="end">사전 관측 구간</text>`;
+    }
+    const badge = `<g><rect x="${W-padR-96}" y="6" width="92" height="15" rx="3" fill="#0f172a" fill-opacity="0.88" stroke="#334155"/><text x="${W-padR-50}" y="16.5" fill="#94a3b8" font-size="9" text-anchor="middle">합성 · 교육용</text></g>`;
+    const frame = `<rect x="0.5" y="0.5" width="${W-1}" height="${H-1}" rx="11" fill="${CH.bg}" stroke="#475569" stroke-width="1" stroke-dasharray="5 4"/>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="tvchart w-full" role="img" aria-label="${esc(o.alt||'합성 캔들 차트')}">${frame}${g}${c}${mk}${badge}</svg>`;
+  }
+
+  /* 소형 패턴 카드용 캔들 (봉 수 적음) */
+  function miniSVG(bars, alt) { return candleSVG(bars, { w:180, h:120, alt:alt }); }
+
+  /* ══ 섹션 정의 ══ */
+  const SECTIONS = [
+    { id:'s1', nav:'① 스타일 정의', render: secStyles },
+    { id:'s2', nav:'② 데이터 계약', render: secData },
+    { id:'s3', nav:'③ 타임프레임', render: secTF },
+    { id:'s4', nav:'④ 지표 계층', render: secIndicators },
+    { id:'s5', nav:'⑤ 캔들·꼬리', render: secCandles },
+    { id:'s6', nav:'⑥ 셋업 복기', render: secSetups },
+    { id:'s7', nav:'⑦ 구조적 마찰', render: secSuitability },
+    { id:'s8', nav:'⑧ 용어집', render: secGlossary },
+    { id:'s9', nav:'⑨ 방법론·면책', render: secMethod },
+  ];
+  function h2(t, sub) {
+    return `<h2 class="text-xl font-extrabold text-white">${esc(t)}</h2>${sub?`<p class="mt-1 text-[12.5px] text-slate-400">${sub}</p>`:''}`;
+  }
+
+  /* ── ① 스타일 정의 ── */
+  function secStyles() {
+    const rows = [
+      ['스캘핑', '수초 ~ 15분', '0회', '당일', '1분·3분', '체결 마찰이 목표 변동폭을 좌우한다'],
+      ['인트라데이', '15분 초과 ~ 당일 청산', '0회', '당일', '5분·15분', '당일 변동폭과 체결 가능 규모'],
+      ['오버나이트 초단기', '정규장 종가 1회 통과', '1회', '1~2거래일', '15분·60분·일봉', '갭이 처음 개입하는 구간'],
+      ['숏스윙', '2~5거래일', '1~4회', '2~5거래일', '일봉·60분', '갭 분포와 구조 지속성'],
+      ['코어스윙', '6~10거래일', '5~9회', '6~10거래일', '일봉(주봉 배경)', '구조 지속성과 상대강도'],
+      ['롱스윙', '11~20거래일', '10~19회', '11~20거래일', '주봉·일봉', '추세·펀더멘털 영향이 커지는 경계'],
+    ];
+    return `
+    ${h2('① 스타일 정의 — 단타와 스윙은 며칠인가', '보유기간을 단일 축으로 쓰지 않고 <b class="text-slate-300">보유기간 × 정규장 종가 통과 횟수 × 셋업 의도 × 상품군</b>의 다축 태그로 구분합니다.')}
+    <div class="mt-4 scrollx"><table class="grid w-full min-w-[760px] text-slate-300">
+      <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider">
+        <th class="text-left">스타일</th><th class="text-left">보유기간</th><th class="text-left">정규장 종가 통과</th><th class="text-left">거래일</th><th class="text-left">주 사용 봉</th><th class="text-left">지배적 관측 축</th>
+      </tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="font-bold text-white">${esc(r[0])}</td><td class="kv">${esc(r[1])}</td><td class="kv">${esc(r[2])}</td><td class="kv">${esc(r[3])}</td><td class="kv">${esc(r[4])}</td><td class="text-slate-400">${esc(r[5])}</td></tr>`).join('')}
+      </tbody></table></div>
+
+    <div class="mt-5 grid gap-4 md:grid-cols-2">
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[15px]">Polaris 운영 정의</h3>
+        <p class="mt-2 text-[13px] text-slate-300"><b class="text-sky-300">단타</b> = 스캘핑 + 인트라데이. <b>정규장 종가를 넘기지 않습니다.</b></p>
+        <p class="mt-1 text-[13px] text-slate-300"><b class="text-sky-300">스윙</b> = <b class="text-white">2 ~ 20 거래일</b> (숏 2~5 · 코어 6~10 · 롱 11~20).</p>
+        <p class="mt-1 text-[13px] text-slate-300"><b class="text-sky-300">오버나이트 초단기</b> = 종가를 한 번만 통과하는 별도 구간. 단타의 하위가 아닙니다.</p>
+        <p class="mt-2 text-[11.5px] text-amber-400/85">20거래일을 상한으로 둔 이유는 그 이상에서는 차트 형태보다 실적·거시 요인의 영향이 커진다고 보기 때문이며, 이는 Polaris의 운영상 구분입니다.</p>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[15px]">업계에는 통일된 정의가 없습니다</h3>
+        <table class="grid w-full mt-2 text-slate-300">
+          <tr><td class="font-semibold text-slate-200">Polaris(이 자료)</td><td class="kv">2 ~ 20 거래일</td></tr>
+          <tr><td class="font-semibold text-slate-200">Fidelity</td><td>최소 1일부터 수 주</td></tr>
+          <tr><td class="font-semibold text-slate-200">Charles Schwab</td><td>일 ~ 수 주</td></tr>
+        </table>
+        <p class="mt-2 text-[11.5px] text-slate-500">출처별로 하한과 상한이 다릅니다. 이 자료의 숫자는 표준이 아니라 <b class="text-slate-400">이 페이지 안에서 일관되게 쓰기 위한 운영 정의</b>입니다.</p>
+      </div>
+    </div>`;
+  }
+
+  /* ── ② 데이터 계약 ── */
+  function secData() {
+    const gate = [
+      ['시세 신선도', 'asOf가 관측기간 종료 거래일과 일치하는가', '전체 산출 불가'],
+      ['수정주가', '분할·역분할·배당이 반영된 가격인가', '전체 산출 불가'],
+      ['기업행사', '관측기간 내 분할·병합·특별배당이 없음으로 확인되는가 (「모름」도 차단)', '전체 산출 불가'],
+      ['거래정지', '관측기간 내 정지일이 없는가', '전체 산출 불가'],
+      ['세션 구분', '정규장만인지 시간외 포함인지 표기되었는가', '전체 산출 불가'],
+      ['창 확보', '각 축이 요구하는 거래일 수를 채웠는가', '해당 축만 산출 불가 → 전체는 부분 산출'],
+      ['호가 데이터', '호가 스냅샷이 있는가', 'A2·A9만 산출 불가 → 전체는 부분 산출'],
+    ];
+    return `
+    ${h2('② 데이터 계약 — 무엇이 갖춰져야 계산하는가', '숫자를 내기 전에 통과해야 하는 조건입니다. 하나라도 확인되지 않으면 <b class="text-slate-300">추정치로 채우지 않고</b> 산출하지 않습니다.')}
+    <div class="mt-4 scrollx"><table class="grid w-full min-w-[720px] text-slate-300">
+      <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">게이트</th><th class="text-left">확인 내용</th><th class="text-left">실패 시</th></tr></thead>
+      <tbody>${gate.map(g=>`<tr><td class="font-bold text-white">${esc(g[0])}</td><td>${esc(g[1])}</td><td class="${/전체/.test(g[2])?'text-rose-300':'text-amber-300'}">${esc(g[2])}</td></tr>`).join('')}</tbody>
+    </table></div>
+    <div class="mt-5 grid gap-4 md:grid-cols-3">
+      <div class="card p-4"><h4 class="font-bold text-white text-[13.5px]">세션 구분</h4><p class="mt-1.5 text-[12px] text-slate-400">${refText('term.pre-market','definition')} 정규장·프리·애프터의 봉과 거래량을 섞으면 갭·ATR·RVOL이 모두 다른 값이 됩니다. 국내는 시간외 단일가와 KRX·NXT 복수시장도 함께 확인해야 합니다.</p></div>
+      <div class="card p-4"><h4 class="font-bold text-white text-[13.5px]">갭의 기준</h4><p class="mt-1.5 text-[12px] text-slate-400">이 자료의 갭은 <b class="text-slate-300">전일 정규장 종가</b> 대비 당일 시가입니다. 시간외 마지막 체결가를 기준으로 잡으면 다른 값이 나오므로 기준을 반드시 함께 적습니다.</p></div>
+      <div class="card p-4"><h4 class="font-bold text-white text-[13.5px]">수정주가·미완성 봉</h4><p class="mt-1.5 text-[12px] text-slate-400">${refText('term.adjusted-price','definition')} 아직 마감되지 않은 봉으로 계산한 값은 봉이 닫히면 바뀌므로 확정값으로 기록하지 않습니다.</p></div>
+    </div>`;
+  }
+
+  /* ── ③ 타임프레임 ── */
+  function secTF() {
+    const rows = [
+      ['스캘핑', '15분', '3분', '1분'],
+      ['인트라데이', '60분 (일봉 레벨은 참고 오버레이)', '15분', '5분'],
+      ['오버나이트 초단기', '일봉', '60분', '15분'],
+      ['숏스윙 (2~5일)', '일봉 (주봉은 선택 참고)', '60분', '15분'],
+      ['코어·롱스윙 (6~20일)', '주봉', '일봉', '60분 또는 일봉 종가 확인'],
+    ];
+    return `
+    ${h2('③ 타임프레임 — 세 가지 역할', '봉을 「몇 배 차이」로 고르는 규칙은 두지 않습니다. 대신 <b class="text-slate-300">시장 구조 / 셋업 / 체결</b> 세 역할을 나눠 쓰는 것만 유지합니다.')}
+    <div class="mt-4 scrollx"><table class="grid w-full min-w-[720px] text-slate-300">
+      <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">스타일</th><th class="text-left">시장 구조</th><th class="text-left">셋업</th><th class="text-left">체결</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td class="font-bold text-white">${esc(r[0])}</td><td class="kv">${esc(r[1])}</td><td class="kv">${esc(r[2])}</td><td class="kv">${esc(r[3])}</td></tr>`).join('')}</tbody>
+    </table></div>
+    <p class="mt-3 text-[12px] text-amber-400/85"><i class="fa-solid fa-triangle-exclamation"></i> 세 역할이 반드시 서로 다른 봉일 필요는 없습니다. 초안에 있던 「인접 화면 배율 1:4~1:6 고정」 규칙은 스스로를 위반해(3분→1분은 3배, 일봉→15분은 약 26배) 폐기했습니다.</p>`;
+  }
+
+  /* ── ④ 지표 계층 ── */
+  function secIndicators() {
+    const tiers = [
+      { t:'원자료 (지표가 아님)', color:'sky', items:['가격 OHLC', '거래량', '호가·체결'], note:'모든 지표는 이 둘의 가공물입니다. 차트 위 최상위 정보는 가격 구조와 거래량이며, 가격 구조는 원자료에 대한 해석입니다.' },
+      { t:'Polaris가 하나만 덧붙인다면', color:'amber', items:['ATR(14, 사용 봉·세션 병기)'], note:'방향 예측력이 있어서가 아니라, 종목·봉·상품별 변동성을 같은 단위로 비교해 고정 손절폭 착시를 막기 때문입니다. 업계 보편의 「가장 중요한 지표」라는 뜻이 아니라, 이 페이지의 종목 간 변동성 비교 목적에 맞춘 설계 선택입니다.' },
+      { t:'스타일 전용', color:'slate', items:['세션 VWAP (당일)','앵커드 VWAP (다일)','피벗·전일 고저','볼린저밴드','MACD','RSI','RVOL'], note:'세션 VWAP은 세션이 바뀌면 초기화되므로 다일 구간에 그대로 쓰지 않습니다. 다일 구간에는 앵커드 VWAP이 따로 있습니다.' },
+      { t:'보조', color:'slate', items:['일목균형표','OBV','스토캐스틱','피보나치 되돌림','매물대'], note:'가격에서 파생된 지표끼리는 정보가 겹치기 쉽습니다. 같은 차원을 여러 개 겹치면 서로를 확인해 주는 것처럼 보입니다.' },
+    ];
+    const maRows = [
+      ['SMA 단순', '모든 봉에 같은 가중치', '기관 레벨 인식·장기 구조'],
+      ['EMA 지수', '최근 봉에 큰 가중치', '반응이 빠른 대신 잘못된 방향으로도 빠름'],
+      ['WMA 가중', '최근일수록 선형 가중', 'SMA와 EMA의 중간'],
+      ['VWMA 거래량가중', '거래량을 가중치로', '거래량 결측 구간에서 왜곡'],
+    ];
+    return `
+    ${h2('④ 가격·거래량·지표 계층', '「가장 중요한 지표가 무엇인가」에 대한 이 자료의 답은 <b class="text-slate-300">단일 지표가 아니라 계층</b>입니다.')}
+    <div class="mt-4 grid gap-3 md:grid-cols-2">
+      ${tiers.map(t=>`<div class="card p-4 ${t.color==='amber'?'ring-1 ring-amber-500/30':''}">
+        <h3 class="font-bold text-white text-[14px]">${esc(t.t)}</h3>
+        <div class="mt-2 flex flex-wrap gap-1.5">${t.items.map(i=>`<span class="rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${t.color==='amber'?'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30':t.color==='sky'?'bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30':'bg-slate-700/40 text-slate-300'}">${esc(i)}</span>`).join('')}</div>
+        <p class="mt-2 text-[12px] text-slate-400 leading-relaxed">${esc(t.note)}</p></div>`).join('')}
+    </div>
+
+    <div class="mt-5 card p-5">
+      <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-chart-line text-sky-400"></i> 이동평균선 — 종류 · 기간 · 색</h3>
+      <div class="mt-3 scrollx"><table class="grid w-full min-w-[620px] text-slate-300">
+        <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">종류</th><th class="text-left">가중 방식</th><th class="text-left">특징</th></tr></thead>
+        <tbody>${maRows.map(r=>`<tr><td class="font-bold text-white">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="text-slate-400">${esc(r[2])}</td></tr>`).join('')}</tbody>
+      </table></div>
+      <div class="mt-4 grid gap-3 md:grid-cols-2">
+        <div class="blk"><h4 class="font-bold text-slate-200 text-[13px]">기간 관례</h4>
+          <p class="mt-1 text-[12px] text-slate-400">한국 HTS에서 흔한 묶음은 <b class="text-slate-300">5 · 20 · 60 · 120일</b>(삼성증권 POP 매뉴얼이 이 값을 기본으로 명시). 미국에서 흔히 쓰이는 묶음은 <b class="text-slate-300">9 · 21 · 50 · 200</b>입니다.</p>
+          <p class="mt-1 text-[11.5px] text-amber-400/85">다만 <b>9·21·50·200은 TradingView의 기본값이 아닙니다.</b> TradingView 내장 이동평균의 공식 기본은 길이 <b>9</b>·종가·오프셋 0 하나입니다. 「미국 표준」이 아니라 사용자 관례입니다.</p></div>
+        <div class="blk"><h4 class="font-bold text-slate-200 text-[13px]">색 — 시장 표준이 없습니다</h4>
+          <p class="mt-1 text-[12px] text-slate-400">이동평균선별 색에는 표준이 없습니다. 키움 영웅문4는 초기 차트가 「가격차트 + 가격이동평균선 5개 + 거래량」이라는 것까지만 공개 도움말에서 확인되고, <b class="text-slate-300">그 5개의 정확한 기간과 색은 공개 문서에서 확인되지 않아 이 자료는 단정하지 않습니다.</b></p>
+          <p class="mt-1 text-[11.5px] text-slate-500">아래 색은 이 페이지에서만 쓰는 Polaris 표기이며 어떤 플랫폼의 기본값도 아닙니다.</p>
+          <div class="mt-2 flex flex-wrap gap-2 text-[11px]">
+            ${[['5','#f472b6'],['20','#38bdf8'],['60','#4ade80'],['120','#a78bfa']].map(([n,c])=>`<span class="inline-flex items-center gap-1.5 rounded bg-slate-800/60 px-2 py-1"><span style="display:inline-block;width:14px;height:2.5px;background:${c}"></span>${n}일</span>`).join('')}
+          </div></div>
+      </div>
+    </div>`;
+  }
+
+  /* ── ⑤ 캔들·꼬리 ── */
+  const PATTERNS = [
+    { id:'term.hammer', bars:[[100,101,99.6,100.4],[100.4,100.7,97.2,100.2],[100.2,101.4,99.9,101.1]] },
+    { id:'term.hanging-man', bars:[[100,101.6,99.8,101.3],[101.3,101.6,98.4,101.1],[101.1,101.3,99.6,99.9]] },
+    { id:'term.inverted-hammer', bars:[[101,101.2,99.8,100.1],[100.1,103.1,99.9,100.4],[100.4,101.6,100.2,101.4]] },
+    { id:'term.shooting-star', bars:[[100,101.4,99.8,101.2],[101.2,104.2,101,101.5],[101.5,101.6,99.9,100.1]] },
+    { id:'term.doji', bars:[[100,100.9,99.2,100.05],[100.05,101.6,98.5,100.06],[100.06,100.8,99.4,99.7]] },
+    { id:'term.dragonfly-doji', bars:[[100,100.2,99.4,99.98],[99.98,100.1,97.4,100.02],[100.02,101,99.8,100.8]] },
+    { id:'term.gravestone-doji', bars:[[100,100.6,99.8,100.02],[100.02,102.6,99.9,99.98],[99.98,100.2,98.9,99.1]] },
+    { id:'term.spinning-top', bars:[[100,100.8,99.4,100.3],[100.3,101.8,98.9,100.6],[100.6,101.2,99.9,100.2]] },
+    { id:'term.marubozu', bars:[[99.5,100.2,99.4,100.1],[100.1,103.1,100.1,103.0],[103.0,103.6,102.4,103.2]] },
+    { id:'term.bullish-engulfing', bars:[[101.5,101.7,100.4,100.6],[100.4,102.4,100.2,102.2],[102.2,102.9,101.8,102.6]] },
+    { id:'term.bearish-engulfing', bars:[[100.6,101.9,100.4,101.7],[101.9,102.1,100.2,100.4],[100.4,100.6,99.4,99.7]] },
+    { id:'term.piercing-line', bars:[[102,102.2,100.2,100.4],[99.8,101.7,99.6,101.5],[101.5,102.2,101.2,101.9]] },
+    { id:'term.dark-cloud-cover', bars:[[100.4,102.3,100.2,102.1],[102.7,102.9,100.7,100.9],[100.9,101.1,99.8,100.1]] },
+    { id:'term.morning-star', bars:[[102.4,102.6,100.2,100.4],[100.1,100.4,99.6,100.0],[100.2,102.3,100.1,102.1]] },
+    { id:'term.evening-star', bars:[[100.2,102.4,100.1,102.2],[102.5,102.9,102.1,102.4],[102.3,102.4,100.2,100.4]] },
+    { id:'term.three-white-soldiers', bars:[[100,100.9,99.8,100.7],[100.7,101.7,100.6,101.5],[101.5,102.5,101.4,102.3]] },
+    { id:'term.three-black-crows', bars:[[102.3,102.4,101.4,101.6],[101.6,101.7,100.6,100.8],[100.8,100.9,99.8,100.0]] },
+    { id:'term.harami', bars:[[102.4,102.6,100.1,100.3],[100.8,101.4,100.6,101.1],[101.1,101.6,100.7,100.9]] },
+  ];
+  function secCandles() {
+    const anat = [
+      ['term.candle-body','몸통(실체)'],['term.upper-wick','위꼬리'],['term.lower-wick','아래꼬리'],['indicator.body-ratio','몸통 비율'],
+    ];
+    const limitIds = ['limit.pattern-definition-varies','limit.candle-not-a-signal','limit.confirmation-no-guarantee','limit.synthetic-not-evidence','limit.context-dependent','limit.balanced-examples','limit.validate-before-capital'];
+    return `
+    ${h2('⑤ 캔들과 꼬리', '봉 하나가 담고 있는 것과 담고 있지 않은 것을 먼저 구분합니다.')}
+
+    <div class="mt-4 rounded-xl bg-rose-500/5 ring-1 ring-rose-500/25 p-4">
+      <h3 class="font-bold text-rose-300 text-[14px]"><i class="fa-solid fa-triangle-exclamation"></i> 캔들 도감을 보기 전에 — 한계 7가지</h3>
+      <ul class="mt-2 space-y-1.5 text-[12px] text-slate-300 list-disc pl-5">${limitList(limitIds)}</ul>
+    </div>
+
+    <div class="mt-5 grid gap-4 md:grid-cols-2">
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[15px]">해부</h3>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div>${miniSVG([[100,103.4,97.2,101.8]],'캔들 해부 예시')}</div>
+          <ul class="text-[12px] text-slate-400 space-y-1.5">
+            ${anat.map(([id,l])=>{const e=ref(id);return `<li><b class="text-slate-200">${esc(l)}</b> — ${e?esc(e.definition):'<span class="text-rose-400">자료 연결 실패</span>'}</li>`;}).join('')}
+          </ul>
+        </div>
+        <p class="mt-3 text-[11.5px] text-amber-400/85"><b>꼬리에 대한 흔한 오해:</b> 긴 아래꼬리를 「매수 유입의 증거」로 읽는 설명이 많지만, 꼬리는 체결된 가격 경로일 뿐 원인을 증명하지 않습니다. 유동성이 얕거나 단일가 체결·시간외 이상체결·뉴스 급변으로도 길어집니다.</p>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[15px]">색상 프리셋과 접근성</h3>
+        <table class="grid w-full mt-2 text-slate-300">
+          <tr><td class="font-semibold text-slate-200">한국·일본·중국·대만 관례</td><td>상승 <b style="color:#F87171">적색</b> / 하락 <b style="color:#60A5FA">청색</b></td></tr>
+          <tr><td class="font-semibold text-slate-200">미국·유럽 관례</td><td>상승 <b style="color:#26A69A">초록</b> / 하락 <b style="color:#EF5350">적색</b></td></tr>
+        </table>
+        <p class="mt-2 text-[12px] text-rose-300"><b>같은 붉은색이 한국에서는 상승, 미국에서는 하락을 뜻합니다.</b> 두 시장을 함께 보는 경우 이것이 가장 흔한 착시입니다.</p>
+        <p class="mt-2 text-[11.5px] text-slate-500">${(ref('limit.color-convention-varies')||{limitations:[]}).limitations.map(esc).join(' ')}</p>
+        <p class="mt-2 text-[11.5px] text-slate-400">이 페이지는 색만으로 방향을 표시하지 않습니다. 상승은 <b>▲ 실선·채움</b>, 하락은 <b>▼ 점선·비움</b>으로 이중 표시하며, 프리셋을 바꿔도 종목 시장에 따라 자동으로 바뀌지 않습니다.</p>
+      </div>
+    </div>
+
+    <h3 class="mt-6 font-bold text-white text-[15px]">도감 — 형태 ${PATTERNS.length}종</h3>
+    <p class="text-[11.5px] text-slate-500 mt-1">각 카드의 라벨은 <b class="text-slate-400">형태 일치</b>까지만 뜻합니다. 맥락 일치와 확인은 별개이며, 확인 미완료 상태에서 결과를 예단하지 않습니다.</p>
+    <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      ${PATTERNS.map(p=>{
+        const e = ref(p.id);
+        if (!e) return `<div class="card p-4 text-rose-400 text-[12px]">자료 연결 실패 · ${esc(p.id)} · 판정 불가</div>`;
+        return `<div class="card p-4">
+          <div class="flex items-start justify-between gap-2">
+            <h4 class="font-bold text-white text-[13.5px]">${esc(e.label.ko)} <span class="text-[10.5px] font-normal text-slate-500">${esc(e.label.en)}</span></h4>
+            <span class="shrink-0 rounded px-1.5 py-0.5 text-[9.5px] font-bold bg-slate-700/50 text-slate-300">형태 일치</span>
+          </div>
+          <div class="mt-2">${miniSVG(p.bars, e.label.ko)}</div>
+          <p class="mt-2 text-[11.5px] text-slate-400 leading-relaxed">${esc(e.definition)}</p>
+          <p class="mt-1.5 text-[10.5px] text-amber-400/80">${(e.limitations||[]).map(esc).join(' ')}</p>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  /* ── ⑥ 셋업 복기 ── */
+  function secSetups() {
+    if (!SCN || !SCN.scenarios) return `${h2('⑥ 셋업 복기')}<p class="mt-3 text-rose-400 text-[13px]">시나리오 자료 연결 실패 · 판정 불가</p>`;
+    const keys = ['setup.ma-pullback','setup.range-breakout','setup.breakout-retest','setup.opening-range'];
+    return `
+    ${h2('⑥ 셋업 복기 — 어떤 때에 무엇이 관측되는가', '박사 지시의 「어떤 때에 진입해야 하는지」를 <b class="text-slate-300">처방문이 아니라 관측문</b>으로 씁니다. 진입·손절 가격을 지시하지 않고, 무엇이 보이는지·무엇을 더 확인한다고들 하는지·언제 이 해석이 깨지는지·어떻게 실패하는지를 나눠 적습니다.')}
+    <p class="mt-2 text-[11.5px] text-slate-500">이 블록에는 운영 숫자를 넣지 않습니다. 원출처를 특정하지 못한 관행 수치(상대거래량 배수 기준, VWAP 접촉 횟수 기준, 되돌림 비율 경계, ATR 배수 손절폭, R 배수 분할 정책 등)는 라벨을 붙여 남기지 않고 <b class="text-slate-400">삭제했습니다.</b></p>
+    <div class="mt-5 space-y-6">
+      ${keys.map(k=>{
+        const e = ref(k);
+        if (!e || !e.observationBlocks) return `<div class="card p-4 text-rose-400 text-[12px]">자료 연결 실패 · ${esc(k)} · 판정 불가</div>`;
+        const b = e.observationBlocks;
+        const short = k.split('.')[1];
+        const follow = SCN.scenarios.find(s=>s.id===`scn.${short}.follow`);
+        const fail = SCN.scenarios.find(s=>s.id===`scn.${short}.fail`);
+        return `<div class="card p-5">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="font-bold text-white text-[16px]">${esc(e.label.ko)}</h3>
+            <span class="text-[11px] text-slate-500">${esc(e.label.en)}</span>
+            <span class="rounded-full bg-slate-700/40 px-2 py-0.5 text-[10px] font-bold text-slate-300">${esc(e.category)}</span>
+          </div>
+          <p class="mt-1.5 text-[13px] text-slate-300">${esc(e.definition)}</p>
+          <div class="mt-3 grid gap-2.5 md:grid-cols-2">
+            <div class="blk" style="border-color:#0ea5e9"><div class="text-[10.5px] font-bold uppercase tracking-widest text-sky-400">① 관측 조건</div><p class="mt-1 text-[12.5px] text-slate-300">${esc(b.observed)}</p></div>
+            <div class="blk" style="border-color:#22c55e"><div class="text-[10.5px] font-bold uppercase tracking-widest text-emerald-400">② 확인 조건</div><p class="mt-1 text-[12.5px] text-slate-300">${esc(b.confirmation)}</p></div>
+            <div class="blk" style="border-color:#f43f5e"><div class="text-[10.5px] font-bold uppercase tracking-widest text-rose-400">③ 무효화 조건</div><p class="mt-1 text-[12.5px] text-slate-300">${esc(b.invalidation)}</p></div>
+            <div class="blk" style="border-color:#f59e0b"><div class="text-[10.5px] font-bold uppercase tracking-widest text-amber-400">④ 실패는 이렇게 온다</div><p class="mt-1 text-[12.5px] text-slate-300">${esc(b.failureNote)}</p></div>
+          </div>
+          <div class="mt-4 grid gap-3 md:grid-cols-2">
+            ${[follow,fail].map(s=>{
+              if (!s) return `<div class="text-rose-400 text-[12px]">시나리오 연결 실패 · 판정 불가</div>`;
+              const isF = s.outcomeRole==='followThrough';
+              return `<div>
+                <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                  <span class="text-[12px] font-bold ${isF?'text-emerald-300':'text-rose-300'}">${isF?'이어진 경우':'이어지지 않은 경우'}</span>
+                  <span class="text-[10px] text-slate-500 kv">합성 · ${esc(s.timeframe)} · ${esc(s.session)} · ${esc(s.timezone)}</span>
+                </div>
+                ${candleSVG(s.ohlc, { cutoff:s.cutoffIndex, alt:s.label })}
+                <p class="mt-1.5 text-[10px] text-slate-600 kv">규칙 ${esc(s.generationRuleId)} · 사전조건 ${esc(s.preconditionSpecId)} · 해시 ${esc(String(s.preconditionHash).slice(0,16))}…</p>
+              </div>`;
+            }).join('')}
+          </div>
+          <p class="mt-2 text-[10.5px] text-slate-500">두 차트는 <b class="text-slate-400">같은 생성 규칙·같은 시드</b>로 만들어 관측 컷오프 이전 봉이 완전히 동일합니다. 컷오프 이후에만 갈라지므로 결과를 보고 좋은 예시만 고른 것이 아닙니다.</p>
+          <p class="mt-1 text-[10.5px] text-amber-400/80">${(e.limitations||[]).map(esc).join(' ')}</p>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  /* ── ⑦ 구조적 마찰 ── */
+  function secSuitability() {
+    const axes = SUIT.AXES.concat([{ id:'A8', label:'상품 구조', unit:'플래그', desc:'개별주 / ETF / 레버리지·인버스. 점수 축이 아니라 하드 플래그로 처리합니다.' }]);
+    return `
+    ${h2('⑦ 종목-스타일 구조적 마찰', '박사가 밸류에이션으로 고른 후보에 대해, <b class="text-slate-300">차트·체결 데이터만으로</b> 그 종목을 어떤 스타일로 다룰 때 어떤 구조적 마찰이 생기는지 계산합니다.')}
+    <div class="mt-3 rounded-xl bg-sky-500/5 ring-1 ring-sky-500/25 p-4 text-[12px] text-slate-300 leading-relaxed">
+      <b class="text-sky-300">이 도구가 하지 않는 것</b> — 종목을 추천하지 않습니다. 「적합 / 부적합」이나 「낮음 / 높음」 같은 범주 판정을 하지 않습니다. 임계값을 두지 않기로 했기 때문에, 임계값 없이 낼 수 있는 것은 <b class="text-white">관측값과 그 산출 상태(산출 완료 / 부분 산출 / 산출 불가)</b>까지입니다. 판단은 그 숫자를 보고 이용자가 합니다.
+      <br><b class="text-sky-300 mt-1 inline-block">손절도 정해 주지 않습니다</b> — 계획 손실거리는 직접 입력하는 값입니다. 앱이 ATR을 손실거리로 자동 대입하지 않습니다.
+    </div>
+
+    <div class="mt-4 scrollx"><table class="grid w-full min-w-[720px] text-slate-300">
+      <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">축</th><th class="text-left">무엇을 보는가</th><th class="text-left">단위</th></tr></thead>
+      <tbody>${axes.map(a=>`<tr><td class="font-bold text-white">${esc(a.id)} ${esc(a.label)}</td><td class="text-slate-400">${esc(a.desc)}</td><td class="kv">${esc(a.unit)}</td></tr>`).join('')}</tbody>
+    </table></div>
+
+    <div class="mt-4 grid gap-3 md:grid-cols-3">
+      ${SUIT.STYLE_CONTEXT.map(s=>`<div class="card p-4">
+        <h4 class="font-bold text-white text-[13px]">${esc(s.style)}</h4>
+        <div class="mt-1.5 flex flex-wrap gap-1">${s.dominant.map(d=>`<span class="rounded bg-sky-500/15 ring-1 ring-sky-500/25 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">${esc(d)}</span>`).join('')}</div>
+        <p class="mt-1.5 text-[11.5px] text-slate-400">${esc(s.note)}</p></div>`).join('')}
+    </div>
+    <p class="mt-2 text-[11px] text-slate-500">위 표시는 「그 스타일에서 어떤 축이 지배적인가」를 설명하는 문맥이며 스타일별 판정 라벨이 아닙니다.</p>
+
+    <div class="mt-6 card p-5">
+      <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-calculator text-sky-400"></i> 관측값 입력 <span class="text-[11px] font-normal text-slate-500">— 값은 브라우저 안에서만 계산되며 어디로도 전송되지 않습니다</span></h3>
+      <div class="mt-3 grid gap-3 md:grid-cols-3 text-[11.5px]">
+        <label class="block"><span class="text-slate-400">관측기간 종료 거래일</span><input id="i-periodEnd" value="2026-08-12"></label>
+        <label class="block"><span class="text-slate-400">입력 asOf (같아야 통과)</span><input id="i-asOf" value="2026-08-12"></label>
+        <label class="block"><span class="text-slate-400">사용 봉</span><input id="i-tf" value="1d"></label>
+        <label class="block"><span class="text-slate-400">상품 구조 (A8)</span><select id="i-instr"><option value="equity">개별주</option><option value="etf">일반 ETF</option><option value="leveragedEtf">레버리지·인버스 ETF</option></select></label>
+        <label class="block"><span class="text-slate-400">세션</span><select id="i-session"><option value="regular">정규장만</option><option value="regular+ext">정규장+시간외</option></select></label>
+        <label class="block"><span class="text-slate-400">주문 방향</span><select id="i-side"><option value="buy">매수</option><option value="sell">매도</option></select></label>
+        <label class="block"><span class="text-slate-400">수정주가 적용</span><select id="i-adj"><option value="true">예</option><option value="false">아니오/모름</option></select></label>
+        <label class="block"><span class="text-slate-400">기간 내 기업행사</span><select id="i-ca"><option value="false">없음</option><option value="unknown">모름</option><option value="true">있음</option></select></label>
+        <label class="block"><span class="text-slate-400">기간 내 거래정지</span><select id="i-halt"><option value="false">없음</option><option value="true">있음</option></select></label>
+        <label class="block"><span class="text-slate-400">일평균 거래대금 (A1)</span><input id="i-turnover" value="42000000000"></label>
+        <label class="block"><span class="text-slate-400">ATR(14, 사용 봉) (A3)</span><input id="i-atr" value="2.4"></label>
+        <label class="block"><span class="text-slate-400">최근 종가</span><input id="i-close" value="100.09"></label>
+        <label class="block"><span class="text-slate-400">기준 주문금액 (A9)</span><input id="i-notional" value="400000"></label>
+        <label class="block"><span class="text-slate-400">계획 손실거리 (직접 입력)</span><input id="i-plan" value="3.0"></label>
+        <label class="block"><span class="text-slate-400">1회 감내 손실 금액</span><input id="i-budget" value="300000"></label>
+      </div>
+      <div class="mt-3 grid gap-3 md:grid-cols-2 text-[11.5px]">
+        <label class="block"><span class="text-slate-400">매도호가 5레벨 <span class="text-slate-600">가격:수량, …</span></span><textarea id="i-asks" rows="2">100.10:900, 100.11:1200, 100.12:1500, 100.13:1800, 100.14:2200</textarea></label>
+        <label class="block"><span class="text-slate-400">매수호가 5레벨</span><textarea id="i-bids" rows="2">100.08:1000, 100.07:1300, 100.06:1600, 100.05:1900, 100.04:2400</textarea></label>
+        <label class="block"><span class="text-slate-400">일별 거래량 20+ (A4)</span><textarea id="i-vols" rows="2"></textarea></label>
+        <label class="block"><span class="text-slate-400">일별 갭% 20+ (A5)</span><textarea id="i-gaps" rows="2"></textarea></label>
+        <label class="block md:col-span-2"><span class="text-slate-400">일봉 종가 120+ (A6)</span><textarea id="i-closes" rows="2"></textarea></label>
+        <label class="block"><span class="text-slate-400">종목 종가 21+ (A7)</span><textarea id="i-rs-stock" rows="2"></textarea></label>
+        <label class="block"><span class="text-slate-400">섹터 프록시 / 광역지수 종가 21+</span><textarea id="i-rs-sector" rows="1" placeholder="섹터"></textarea><textarea id="i-rs-broad" rows="1" placeholder="광역지수" class="mt-1"></textarea></label>
+        <label class="inline-flex items-center gap-2 text-slate-400"><input type="checkbox" id="i-cal" style="width:auto" checked> 세 시계열의 거래일 캘린더가 완전히 일치함</label>
+        <label class="inline-flex items-center gap-2 text-slate-400"><input type="checkbox" id="i-same" style="width:auto" checked> 동일 시장·동일 통화 내 비교임</label>
+      </div>
+      <div class="mt-3 flex gap-2 flex-wrap">
+        <button id="btn-demo" class="rounded-lg bg-slate-700/60 hover:bg-slate-700 px-3 py-1.5 text-[12px] font-bold text-slate-200">합성 예시 채우기 (L1)</button>
+        <button id="btn-calc" class="rounded-lg bg-sky-500/20 ring-1 ring-sky-500/40 hover:bg-sky-500/30 px-4 py-1.5 text-[12px] font-bold text-sky-300">관측값 산출</button>
+      </div>
+      <div id="suit-out" class="mt-4"></div>
+    </div>`;
+  }
+
+  /* ── ⑧ 용어집 ── */
+  function secGlossary() {
+    const ents = (CORE.entities||[]).filter(e => ['term','indicator'].includes(e.kind) && e.status==='active');
+    const cats = [...new Set(ents.map(e=>e.category))];
+    const claims = (CORE.entities||[]).filter(e=>e.kind==='claim');
+    return `
+    ${h2('⑧ 용어집', `주식 차트를 읽을 때 쓰는 말 <b class="text-slate-300">${ents.length}개</b>. 각 항목은 정의와 함께 <b class="text-slate-300">그 말이 담지 못하는 것</b>을 같이 적습니다.`)}
+    <div class="mt-3 flex gap-2 flex-wrap items-center">
+      <input id="gsearch" placeholder="용어 검색 (예: 눌림목, ATR, 스프레드)" class="max-w-[320px]">
+      <select id="gcat" class="max-w-[220px]"><option value="">전체 분류</option>${cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>
+      <span id="gcount" class="text-[11px] text-slate-500"></span>
+    </div>
+    <div id="glist" class="mt-4 grid gap-2.5 md:grid-cols-2"></div>
+
+    <div class="mt-6 card p-5">
+      <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-scale-unbalanced text-amber-400"></i> 관행 주장 레지스트리</h3>
+      <p class="mt-1.5 text-[12px] text-slate-400">시장에서 흔히 인용되지만 원출처·표본·계산식을 특정할 수 있어야만 여기에 실립니다. 등재된 값도 <code class="text-[11px] text-sky-300">operational: false</code>로 표시되어 차트 마커·산출·기본 입력값에 <b>쓰이지 않습니다.</b></p>
+      ${claims.length ? `<ul class="mt-2 text-[12px] text-slate-300 space-y-1">${claims.map(c=>`<li><b>${esc(c.label.ko)}</b> — ${esc(c.definition)}</li>`).join('')}</ul>`
+        : `<div class="mt-3 rounded-lg bg-slate-800/40 p-3 text-[12px] text-slate-400">
+             <b class="text-slate-200">현재 등재 0건.</b> 이 페이지를 만들며 후보로 올렸던 관행 수치들은 원출처를 특정하지 못해 <b class="text-slate-300">라벨을 붙여 남기지 않고 삭제</b>했습니다.
+             「업계에서 흔히 인용된다」는 문장 자체가 출처를 필요로 하는 사실 주장이기 때문입니다. 관측 조건과 확인 조건은 숫자 없이 서술로만 적혀 있습니다.
+           </div>` }
+    </div>`;
+  }
+
+  /* ── ⑨ 방법론·면책 ── */
+  function secMethod() {
+    const limitIds = ['limit.pattern-definition-varies','limit.candle-not-a-signal','limit.confirmation-no-guarantee','limit.synthetic-not-evidence','limit.context-dependent','limit.balanced-examples','limit.validate-before-capital','limit.color-convention-varies','limit.lookahead-bias'];
+    const reg = CORE.sourceRegistry || [];
+    return `
+    ${h2('⑨ 방법론 · 출처 · 면책', '이 페이지가 무엇을 근거로 만들어졌고 어디까지만 말할 수 있는지를 한곳에 모읍니다.')}
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[14px]">만든 방법</h3>
+        <ul class="mt-2 text-[12px] text-slate-400 space-y-1.5 list-disc pl-5">
+          <li>Claude(Opus 5) 제안 + Codex(gpt-5.6-sol, read-only, xhigh) 적대 검토 <b class="text-slate-300">5라운드</b> 후 구현. 라운드 기록은 <code class="text-[11px]">_lab/chart-playbook/</code>에 보존.</li>
+          <li>용어·한계·셋업은 전부 <b class="text-slate-300">POLARIS_CORE 단일 원천</b>에서 ID로 참조합니다. 같은 문장을 두 곳에 저장하지 않습니다.</li>
+          <li>차트는 외부 차트 라이브러리 없이 <b class="text-slate-300">인라인 SVG</b>로 직접 그립니다. 합성 OHLC는 시드 고정 난수로 생성해 <b class="text-slate-300">재생성해도 바이트가 같습니다.</b></li>
+          <li>성공·실패 예시는 같은 생성 규칙·같은 시드로 만들어 관측 컷오프 이전 봉이 동일합니다. 사전 조건은 정규화(RFC 8785 JCS) 후 SHA-256으로 해시해 검증기가 원본에서 재계산해 대조합니다.</li>
+          <li>빌드 게이트가 중복 ID·깨진 참조·출처 없는 수치·명령형 문구를 차단합니다.</li>
+        </ul>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold text-white text-[14px]">비용과 편향</h3>
+        <p class="mt-2 text-[12px] text-slate-400">${refText('term.trading-cost','definition')}</p>
+        <p class="mt-1.5 text-[12px] text-slate-400">${(ref('term.trading-cost')||{limitations:[]}).limitations.map(esc).join(' ')}</p>
+        <p class="mt-2 text-[12px] text-slate-400">${refText('limit.lookahead-bias','definition')}</p>
+        <p class="mt-1.5 text-[12px] text-slate-400">${refText('term.survivorship-bias','definition')}</p>
+      </div>
+    </div>
+
+    <h3 class="mt-6 font-bold text-white text-[15px]">한계 — 전체</h3>
+    <ul class="mt-2 grid gap-2 md:grid-cols-2 text-[12px] text-slate-300 list-disc pl-5">${limitList(limitIds)}</ul>
+
+    <h3 class="mt-6 font-bold text-white text-[15px]">출처 <span class="text-[11px] font-normal text-slate-500">${reg.length}건</span></h3>
+    <div class="mt-2 scrollx"><table class="grid w-full min-w-[720px] text-slate-300">
+      <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">발행</th><th class="text-left">제목</th><th class="text-left">확인 내용</th><th class="text-left">확인일</th></tr></thead>
+      <tbody>${reg.map(s=>`<tr>
+        <td class="font-semibold text-slate-200">${esc(s.publisher)}</td>
+        <td>${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener" class="text-sky-400 hover:underline">${esc(s.title)} <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>`:esc(s.title)}</td>
+        <td class="text-slate-400">${esc(s.locator)}</td><td class="kv">${esc(s.accessedAt)}</td></tr>`).join('')}</tbody>
+    </table></div>
+    <p class="mt-2 text-[11px] text-slate-500">웹 확인분은 Codex(gpt-5.6-sol) 검토 라운드에서 원문 대조한 것입니다. 플랫폼 기본값은 시간이 지나면 바뀔 수 있으므로, 정확한 확인이 필요하면 새 프로필에서 직접 캡처해 확인일과 함께 기록하는 편이 안전합니다.</p>`;
+  }
+
+  /* ══ 용어집 필터 ══ */
+  function paintGlossary() {
+    const q = ($('#gsearch')?.value || '').trim().toLowerCase();
+    const cat = $('#gcat')?.value || '';
+    const ents = (CORE.entities||[]).filter(e => ['term','indicator'].includes(e.kind) && e.status==='active')
+      .filter(e => !cat || e.category === cat)
+      .filter(e => !q || (e.label.ko + ' ' + e.label.en + ' ' + e.aliases.join(' ') + ' ' + e.definition).toLowerCase().includes(q));
+    const hl = t => q ? esc(t).replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'), '<mark>$1</mark>') : esc(t);
+    $('#gcount').textContent = `${ents.length}개 표시`;
+    $('#glist').innerHTML = ents.map(e => `<div class="card p-4">
+      <div class="flex items-start justify-between gap-2">
+        <h4 class="font-bold text-white text-[13.5px]">${hl(e.label.ko)} <span class="text-[10.5px] font-normal text-slate-500">${esc(e.label.en)}</span></h4>
+        <span class="shrink-0 rounded px-1.5 py-0.5 text-[9.5px] font-bold bg-slate-700/40 text-slate-400">${esc(e.category)}</span>
+      </div>
+      <p class="mt-1.5 text-[12px] text-slate-300 leading-relaxed">${hl(e.definition)}</p>
+      ${e.observationSpec ? `<div class="mt-1.5 rounded bg-slate-800/60 px-2.5 py-1.5 text-[11px] font-mono text-sky-300 break-all">${esc(e.observationSpec.formula)}</div>` : ''}
+      ${(e.limitations||[]).length ? `<p class="mt-1.5 text-[10.5px] text-amber-400/80"><i class="fa-solid fa-circle-exclamation"></i> ${e.limitations.map(esc).join(' ')}</p>` : ''}
+    </div>`).join('') || `<p class="text-[12px] text-slate-500">일치하는 용어가 없습니다.</p>`;
+  }
+
+  /* ══ 적합성 계산 UI ══ */
+  function parseNums(s) { return (s||'').split(/[\s,]+/).filter(Boolean).map(Number).filter(x=>isFinite(x)); }
+  function parseLevels(s) {
+    return (s||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>{ const [p,q]=t.split(':').map(Number); return [p,q]; }).filter(a=>isFinite(a[0])&&isFinite(a[1]));
+  }
+  function fillDemo() {
+    const cl = [], vo = [], gp = [], st = [], se = [], br = [];
+    for (let i=0;i<130;i++) cl.push(+(100+i*0.35+Math.sin(i/4)*1.2).toFixed(2));
+    for (let i=0;i<30;i++) { vo.push(100000+(i%7)*8000); gp.push(+(((i%5)-2)*0.7).toFixed(2)); st.push(+(50+i*0.4).toFixed(2)); se.push(+(80+i*0.3).toFixed(2)); br.push(3000+i*9); }
+    $('#i-closes').value = cl.join(', '); $('#i-vols').value = vo.join(', '); $('#i-gaps').value = gp.join(', ');
+    $('#i-rs-stock').value = st.join(', '); $('#i-rs-sector').value = se.join(', '); $('#i-rs-broad').value = br.join(', ');
+  }
+  function runCalc() {
+    const asks = parseLevels($('#i-asks').value), bids = parseLevels($('#i-bids').value);
+    const input = {
+      meta: {
+        asOf: $('#i-asOf').value.trim(), periodEnd: $('#i-periodEnd').value.trim(),
+        adjusted: $('#i-adj').value === 'true',
+        corporateActionInPeriod: $('#i-ca').value === 'false' ? false : ($('#i-ca').value === 'true' ? true : null),
+        tradingHaltInPeriod: $('#i-halt').value === 'true',
+        session: $('#i-session').value, timeframe: $('#i-tf').value.trim(),
+        instrumentType: $('#i-instr').value, side: $('#i-side').value,
+      },
+      data: {
+        dailyTurnover: Number($('#i-turnover').value), atr: Number($('#i-atr').value), lastClose: Number($('#i-close').value),
+        orderNotional: Number($('#i-notional').value),
+        quote: (asks.length && bids.length) ? { asks, bids } : undefined,
+        volumes: parseNums($('#i-vols').value), gaps: parseNums($('#i-gaps').value), closes120: parseNums($('#i-closes').value),
+        rsSeries: { stock: parseNums($('#i-rs-stock').value), sector: parseNums($('#i-rs-sector').value), broad: parseNums($('#i-rs-broad').value),
+          calendarAligned: $('#i-cal').checked, sameMarket: $('#i-same').checked },
+      },
+      risk: { plannedLossDistance: Number($('#i-plan').value), lossBudget: Number($('#i-budget').value) },
+    };
+    const res = SUIT.compute(input);
+    const badge = s => s===SUIT.STATUS.DONE ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+      : s===SUIT.STATUS.PARTIAL ? 'bg-amber-500/15 text-amber-300 ring-amber-500/30' : 'bg-rose-500/15 text-rose-300 ring-rose-500/30';
+    const axBadge = s => s===SUIT.AXIS_STATUS.OK ? 'text-emerald-300' : s===SUIT.AXIS_STATUS.OFF ? 'text-slate-500' : 'text-rose-300';
+    $('#suit-out').innerHTML = `
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="rounded-full ring-1 px-3 py-1 text-[12px] font-extrabold ${badge(res.status)}">${esc(res.status)}</span>
+        <span class="rounded px-2 py-0.5 text-[10px] font-bold bg-slate-700/50 text-slate-300">사용자 입력</span>
+        <span class="text-[10.5px] text-slate-500">출처: 사용자 직접 입력 · asOf ${esc(input.meta.asOf || '미기입')}</span>
+      </div>
+      ${res.gate.some(g=>!g.pass) ? `<div class="mt-3 rounded-lg bg-rose-500/5 ring-1 ring-rose-500/25 p-3">
+        <div class="text-[12px] font-bold text-rose-300">데이터 품질 게이트 미통과</div>
+        <ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">${res.gate.filter(g=>!g.pass).map(g=>`<li><b>${esc(g.label)}</b> — ${esc(g.why)}</li>`).join('')}</ul></div>` : ''}
+      ${res.axes.length ? `<div class="mt-3 grid gap-2 md:grid-cols-2">${res.axes.map(a=>`
+        <div class="rounded-lg bg-slate-800/40 p-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[12.5px] font-bold text-white">${esc(a.id)} ${esc(a.label)}</span>
+            <span class="text-[11px] font-bold ${axBadge(a.status)}">${esc(a.status)}${a.code?` · ${esc(a.code)}`:''}</span>
+          </div>
+          ${a.status===SUIT.AXIS_STATUS.OK ? `<div class="mt-1 text-[15px] font-extrabold text-sky-300 kv">${esc(a.value)}<span class="text-[11px] font-normal text-slate-500 ml-1">${esc(a.unit)}</span></div>
+            <div class="mt-1 text-[10.5px] font-mono text-slate-500 break-all">${esc(a.formula||'')}</div>
+            ${a.detail?`<div class="mt-1 text-[10.5px] text-slate-500 kv">${Object.entries(a.detail).map(([k,v])=>`${esc(k)} ${esc(v)}`).join(' · ')}</div>`:''}
+            ${a.note?`<div class="mt-1 text-[10.5px] text-amber-400/80">${esc(a.note)}</div>`:''}`
+            : `<div class="mt-1 text-[11.5px] text-slate-400">${esc(a.reason||'')}</div>`}
+        </div>`).join('')}</div>` : ''}
+      ${res.derived.length ? `<div class="mt-3">
+        <div class="text-[12px] font-bold text-white mb-1.5">축 간 산술 <span class="font-normal text-slate-500 text-[11px]">— 입력값들 사이의 관계일 뿐 예측이 아닙니다</span></div>
+        <div class="grid gap-2 md:grid-cols-2">${res.derived.map(d=>`<div class="rounded-lg bg-slate-800/40 p-3">
+          <div class="text-[12px] font-bold text-slate-200">${esc(d.label)}</div>
+          <div class="mt-0.5 text-[15px] font-extrabold text-amber-300 kv">${esc(d.value)}<span class="text-[11px] font-normal text-slate-500 ml-1">${esc(d.unit)}</span></div>
+          <div class="mt-1 text-[10.5px] font-mono text-slate-500 break-all">${esc(d.formula)}</div>
+          ${d.detail && d.detail.note?`<div class="mt-1 text-[10.5px] text-amber-400/80">${esc(d.detail.note)}</div>`:''}
+        </div>`).join('')}</div></div>` : ''}
+      ${res.missing.length ? `<div class="mt-3 rounded-lg bg-amber-500/5 ring-1 ring-amber-500/25 p-3">
+        <div class="text-[12px] font-bold text-amber-300">더 관측해야 하는 것</div>
+        <ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">${res.missing.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
+      ${res.notices.length ? `<ul class="mt-3 text-[10.5px] text-slate-500 space-y-1 list-disc pl-5">${res.notices.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : ''}`;
+  }
+
+  /* ══ 부팅 ══ */
+  function paint() {
+    $('#core-ver').textContent = (CORE && CORE.meta && CORE.meta.version) || '—';
+    $('#core-asof').textContent = (CORE && CORE.meta && CORE.meta.asOf) || '—';
+    $('#secnav').innerHTML = SECTIONS.map(s=>`<a href="#${s.id}" class="px-2.5 py-1 rounded text-slate-400 hover:text-sky-300 hover:bg-slate-800/60">${esc(s.nav)}</a>`).join('');
+    $('#main').innerHTML = SECTIONS.map(s=>`<section id="${s.id}" class="scroll-mt-16">${s.render()}</section>`).join('');
+    paintLegend(); paintGlossary();
+    $('#gsearch').addEventListener('input', paintGlossary);
+    $('#gcat').addEventListener('change', paintGlossary);
+    $('#btn-demo').addEventListener('click', fillDemo);
+    $('#btn-calc').addEventListener('click', runCalc);
+  }
+
+  function setPreset(p) {
+    preset = p;
+    $('#preset-kr').className = 'px-3 py-1.5 ' + (p==='kr' ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:text-slate-200');
+    $('#preset-tv').className = 'px-3 py-1.5 ' + (p==='tv' ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:text-slate-200');
+    paint();
+  }
+
+  if (!CORE || !CORE.entities) {
+    document.getElementById('main').innerHTML = '<p class="text-rose-400 text-[13px]">코어 자료 연결 실패 — 설명과 판정을 비활성화합니다. (로컬 정의로 대체하지 않습니다)</p>';
+  } else {
+    paint();
+    document.getElementById('preset-kr').addEventListener('click', () => setPreset('kr'));
+    document.getElementById('preset-tv').addEventListener('click', () => setPreset('tv'));
+  }
+})();
+</script>
+</body>
+</html>
