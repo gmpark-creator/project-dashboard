@@ -29,7 +29,7 @@ const okMeta = {
   asOf: '2026-08-12', periodEnd: '2026-08-12', adjusted: true,
   corporateActionInPeriod: false, tradingHaltInPeriod: false,
   session: 'regular', timeframe: '1d', instrumentType: 'equity', side: 'buy',
-  quoteSnapshotAt: '2026-08-12',
+  quoteSnapshotAt: '2026-08-12T15:30:00+09:00',
 };
 const okData = { dailyTurnover: 4.2e10, quote, atr: 2.4, lastClose: 100.09, volumes, gaps, closes120, rsSeries: rsBase, orderNotional: 4.0e5, tickSize: 0.01 };
 const okRisk = { plannedLossDistance: 3.0, lossBudget: 300000 };
@@ -122,6 +122,9 @@ console.log('── 11) 입력 검증 — 잘못된 값이 산출 완료로 통�
  ['0 주문금액', i => { i.data.orderNotional = 0; }, 'A9'],
  ['틱 배수 아님', i => { i.data.tickSize = 0.07; }, 'A9'],
  ['호가 스냅샷 시각 없음', i => { i.meta.quoteSnapshotAt = ''; }, 'A9'],
+ ['스냅샷이 날짜만(시각·시간대 없음)', i => { i.meta.quoteSnapshotAt = '2026-08-12'; }, 'A9'],
+ ['스냅샷 뒤 임의 문자열', i => { i.meta.quoteSnapshotAt = '2026-08-12T15:30:00+09:00 그리고아무말'; }, 'A9'],
+ ['극값 종가(비유한 파생)', i => { i.data.lastClose = 5e-324; i.data.atr = 1e308; }, 'A3'],
  ['0 거래량 전량', i => { i.data.volumes = seq(30, () => 0); }, 'A4'],
  ['음수 종가 배열', i => { i.data.closes120 = closes120.map((v, k) => k === 5 ? -v : v); }, 'A6'],
  ['RS 분모 −100%', i => { i.data.rsSeries = { ...rsBase, sector: rsBase.sector.map((v, k) => k === rsBase.sector.length - 1 ? 1e-18 : v) }; }, 'A7'],

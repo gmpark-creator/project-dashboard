@@ -31,6 +31,16 @@
     var p = s.split('-').map(Number), d = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
     return d.getUTCFullYear() === p[0] && d.getUTCMonth() === p[1] - 1 && d.getUTCDate() === p[2];
   }
+  /* 호가 스냅샷은 「시각」이므로 시간대가 포함된 완전한 ISO datetime만 받는다.
+   * 날짜만 있거나 뒤에 임의 문자열이 붙으면 거부한다(사후검수 지적 8). */
+  function isIsoDateTimeTz(s) {
+    if (typeof s !== 'string') return false;
+    var m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/.exec(s);
+    if (!m) return false;
+    if (!isIsoDate(m[1])) return false;
+    var hh = Number(m[2]), mm = Number(m[3]), ss = m[4] === undefined ? 0 : Number(m[4]);
+    return hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59 && ss >= 0 && ss <= 59;
+  }
   function allPos(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isPos); }
   function allNum(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isNum); }
   function nearMultiple(v, step) {
@@ -86,7 +96,7 @@
 
   /* ── A9 정적 표시호가 소진 모델 ── */
   function priceImpact(quote, side, notional, tickSize, snapshotAt) {
-    if (!isIsoDate(String(snapshotAt || '').slice(0, 10))) return { status: AX.NONE, reason: '호가 스냅샷 시각이 입력되지 않았거나 형식이 올바르지 않다.' };
+    if (!isIsoDateTimeTz(snapshotAt)) return { status: AX.NONE, reason: '호가 스냅샷 시각이 시간대를 포함한 ISO datetime(예: 2026-08-12T14:30:00+09:00)이 아니다.' };
     if (!isPos(tickSize)) return { status: AX.NONE, reason: '틱 크기가 양수로 입력되지 않았다.' };
     if (!isPos(notional)) return { status: AX.NONE, reason: '기준 주문금액이 양수가 아니다.' };
     var askErr = validSide(quote.asks, true), bidErr = validSide(quote.bids, false);
@@ -259,22 +269,83 @@
       out.notices.push('계획 손실거리와 1회 감내 손실 금액이 모두 입력되어야 축 간 산술을 낼 수 있다. 앱은 ATR을 손실거리로 자동 대입하지 않는다.');
     }
 
-    /* 5) 상태 판정 */
+    /* 5) 비유한값 방어를 「먼저」 적용한 뒤 상태·결손을 재계산한다.
+     * (사후검수 지적 8: 방어를 상태 판정 뒤에 두면 축은 산출 불가인데 전체는 산출 완료로 남는다) */
     AXES.forEach(function (a) {
-      var v = res[a.id];
-      out.axes.push(Object.assign({ id: a.id, label: a.label, unit: a.unit, desc: a.desc }, v));
-      if (v.status === AX.NONE) out.missing.push(a.id + ' ' + a.label + ' — ' + (v.reason || ''));
+      var v = Object.assign({ id: a.id, label: a.label, unit: a.unit, desc: a.desc }, res[a.id]);
+      if (v.value !== undefined && !isNum(v.value)) { v.status = AX.NONE; v.reason = '계산 결과가 유한수가 아니어서 산출하지 않는다.'; delete v.value; }
+      out.axes.push(v);
     });
+    out.derived = out.derived.filter(function (x) { return isNum(x.value); });
+    out.missing = out.missing.concat(out.axes.filter(function (a) { return a.status === AX.NONE; })
+      .map(function (a) { return a.id + ' ' + a.label + ' — ' + (a.reason || ''); }));
     var applicable = out.axes.filter(function (a) { return a.status !== AX.OFF; });
     var computed = applicable.filter(function (a) { return a.status === AX.OK; });
     out.status = computed.length === applicable.length ? STATUS.DONE : (computed.length === 0 ? STATUS.NONE : STATUS.PARTIAL);
 
-    /* NaN 방어 — 어떤 경로로도 NaN이 새어나가지 않는다 */
-    out.axes.forEach(function (a) { if (a.value !== undefined && !isNum(a.value)) { a.status = AX.NONE; a.reason = '계산 결과가 유한수가 아니어서 산출하지 않는다.'; delete a.value; } });
-    out.derived = out.derived.filter(function (x) { return isNum(x.value); });
-
     out.notices.push('출력은 관측값과 산출 상태까지다. 이 페이지는 임계값을 두지 않으므로 「낮음/높음」 같은 범주 판정이나 스타일 종합판정을 하지 않는다.');
     return out;
+  }
+
+  /* ── 입력 파서 — 잘못된 토큰을 조용히 버리지 않고 그대로 보고한다(사후검수 지적 8) ── */
+  function parseNumsStrict(s) {
+    var toks = String(s == null ? '' : s).split(/[\s,]+/).filter(function (t) { return t !== ''; });
+    var vals = [], bad = [];
+    toks.forEach(function (t) { var v = Number(t); if (t !== '' && isFinite(v) && /^[-+]?[\d.eE+-]+$/.test(t)) vals.push(v); else bad.push(t); });
+    return { values: vals, bad: bad };
+  }
+  function parseLevelsStrict(s) {
+    var toks = String(s == null ? '' : s).split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+    var vals = [], bad = [];
+    toks.forEach(function (t) {
+      var parts = t.split(':');
+      if (parts.length !== 2) { bad.push(t); return; }
+      var p = Number(parts[0]), q = Number(parts[1]);
+      if (isFinite(p) && isFinite(q)) vals.push([p, q]); else bad.push(t);
+    });
+    return { values: vals, bad: bad };
+  }
+
+  /* ── 결과 렌더러 — DOM 없이도 시험할 수 있도록 순수 문자열 함수로 분리(사후검수 지적 9) ── */
+  function renderResultHTML(res, escFn) {
+    var esc = escFn || function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
+    var badge = res.status === STATUS.DONE ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+      : res.status === STATUS.PARTIAL ? 'bg-amber-500/15 text-amber-300 ring-amber-500/30' : 'bg-rose-500/15 text-rose-300 ring-rose-500/30';
+    var kindCls = res.dataKind === 'synthetic' ? 'bg-slate-700/50 text-slate-300'
+      : res.dataKind === 'measuredHistorical' ? 'bg-violet-500/15 text-violet-300' : 'bg-sky-500/15 text-sky-300';
+    var prov = res.dataKind === 'synthetic' ? '출처: 앱이 넣은 합성 예시 · 실제 종목 판정 아님'
+      : res.dataKind === 'measuredHistorical' ? ('출처: ' + ((res.sourceRefs || []).join(', ') || '(미기입)') + ' · asOf ' + (res.asOf || '(미기입)'))
+      : ('출처: 사용자 직접 입력 · 입력 시각 ' + (res.enteredAt || '(미기록)') + ' · asOf ' + (res.asOf || '(미기입)'));
+    var axCls = function (s) { return s === AX.OK ? 'text-emerald-300' : s === AX.OFF ? 'text-slate-500' : 'text-rose-300'; };
+    var h = '<div class="flex items-center gap-2 flex-wrap">'
+      + '<span class="rounded-full ring-1 px-3 py-1 text-[12px] font-extrabold ' + badge + '">' + esc(res.status) + '</span>'
+      + '<span class="rounded-full ring-1 ring-slate-600 px-2.5 py-1 text-[11px] font-bold text-slate-300">' + esc(res.level) + '</span>'
+      + '<span class="rounded px-2 py-0.5 text-[10px] font-bold ' + kindCls + '">' + esc(res.dataKindLabel) + '</span>'
+      + '<span class="text-[10.5px] text-slate-500">' + esc(prov) + '</span></div>';
+    if ((res.inputErrors || []).length) h += '<div class="mt-3 rounded-lg bg-rose-500/5 ring-1 ring-rose-500/25 p-3"><div class="text-[12px] font-bold text-rose-300">입력 오류</div><ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">' + res.inputErrors.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    var gfail = (res.gate || []).filter(function (g) { return !g.pass; });
+    if (gfail.length) h += '<div class="mt-3 rounded-lg bg-rose-500/5 ring-1 ring-rose-500/25 p-3"><div class="text-[12px] font-bold text-rose-300">데이터 품질 게이트 미통과</div><ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">' + gfail.map(function (g) { return '<li><b>' + esc(g.label) + '</b> — ' + esc(g.why) + '</li>'; }).join('') + '</ul></div>';
+    if ((res.axes || []).length) h += '<div class="mt-3 grid gap-2 md:grid-cols-2">' + res.axes.map(function (a) {
+      var body = a.status === AX.OK
+        ? '<div class="mt-1 text-[15px] font-extrabold text-sky-300 kv">' + esc(a.value) + '<span class="text-[11px] font-normal text-slate-500 ml-1">' + esc(a.unit) + '</span></div>'
+          + '<div class="mt-1 text-[10.5px] font-mono text-slate-500 break-all">' + esc(a.formula || '') + '</div>'
+          + (a.detail ? '<div class="mt-1 text-[10.5px] text-slate-500 kv">' + Object.keys(a.detail).map(function (k) { return esc(k) + ' ' + esc(a.detail[k]); }).join(' · ') + '</div>' : '')
+          + (a.note ? '<div class="mt-1 text-[10.5px] text-amber-400/80">' + esc(a.note) + '</div>' : '')
+        : '<div class="mt-1 text-[11.5px] text-slate-400">' + esc(a.reason || '') + '</div>';
+      return '<div class="rounded-lg bg-slate-800/40 p-3"><div class="flex items-center justify-between gap-2">'
+        + '<span class="text-[12.5px] font-bold text-white">' + esc(a.id) + ' ' + esc(a.label) + '</span>'
+        + '<span class="text-[11px] font-bold ' + axCls(a.status) + '">' + esc(a.status) + (a.code ? ' · ' + esc(a.code) : '') + '</span></div>' + body + '</div>';
+    }).join('') + '</div>';
+    if ((res.derived || []).length) h += '<div class="mt-3"><div class="text-[12px] font-bold text-white mb-1.5">축 간 산술 <span class="font-normal text-slate-500 text-[11px]">— 입력값들 사이의 관계일 뿐 예측이 아닙니다</span></div><div class="grid gap-2 md:grid-cols-2">'
+      + res.derived.map(function (d) {
+        return '<div class="rounded-lg bg-slate-800/40 p-3"><div class="text-[12px] font-bold text-slate-200">' + esc(d.label) + '</div>'
+          + '<div class="mt-0.5 text-[15px] font-extrabold text-amber-300 kv">' + esc(d.value) + '<span class="text-[11px] font-normal text-slate-500 ml-1">' + esc(d.unit) + '</span></div>'
+          + '<div class="mt-1 text-[10.5px] font-mono text-slate-500 break-all">' + esc(d.formula) + '</div>'
+          + (d.detail && d.detail.note ? '<div class="mt-1 text-[10.5px] text-amber-400/80">' + esc(d.detail.note) + '</div>' : '') + '</div>';
+      }).join('') + '</div></div>';
+    if ((res.missing || []).length) h += '<div class="mt-3 rounded-lg bg-amber-500/5 ring-1 ring-amber-500/25 p-3"><div class="text-[12px] font-bold text-amber-300">더 관측해야 하는 것</div><ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">' + res.missing.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    if ((res.notices || []).length) h += '<ul class="mt-3 text-[10.5px] text-slate-500 space-y-1 list-disc pl-5">' + res.notices.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+    return h;
   }
 
   var STYLE_CONTEXT = [
@@ -287,6 +358,7 @@
     STATUS: STATUS, AXIS_STATUS: AX, LEVEL: LEVEL, DATA_KINDS: KINDS, AXES: AXES,
     D0_HARD: D0_HARD.map(function (g) { return { key: g.key, label: g.label }; }),
     STYLE_CONTEXT: STYLE_CONTEXT, compute: compute,
-    _validators: { isIsoDate: isIsoDate, isPos: isPos, validSide: validSide, nearMultiple: nearMultiple },
+    parseNumsStrict: parseNumsStrict, parseLevelsStrict: parseLevelsStrict, renderResultHTML: renderResultHTML,
+    _validators: { isIsoDate: isIsoDate, isIsoDateTimeTz: isIsoDateTimeTz, isPos: isPos, validSide: validSide, nearMultiple: nearMultiple },
   };
 })(window);

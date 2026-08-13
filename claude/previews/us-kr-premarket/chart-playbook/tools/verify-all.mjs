@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { buildScenariosSource } from './build-scenarios.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CP = path.join(__dirname, '..');          // chart-playbook/
@@ -32,16 +33,23 @@ step('1) 스키마 게이트 + 음성·회귀');
   else console.log('    ' + (r.stdout || '').trim().split('\n').filter(l => /검증 대상|통과/.test(l)).join('\n    '));
 }
 
-/* 2) 결정론 재생성 */
-step('2) 합성 시나리오 결정론');
+/* 2) 결정론 — 파일을 쓰지 않고 메모리에서 재생성해 디스크 산출물과 대조한다.
+ * (read-only 환경에서도 재현되며, 생성 실패를 "동일"로 오판하지 않는다) */
+step('2) 합성 시나리오 결정론 (쓰기 없음)');
 {
   const target = path.join(CP, 'data', 'scenarios.js');
-  const before = crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex');
-  const r = run(path.join(__dirname, 'gen-scenarios.mjs'));
-  ok('생성기 종료 0', r.status === 0, (r.stderr || '').trim());
-  const after = crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex');
-  ok('재생성 바이트 동일', before === after, `${before.slice(0, 12)} vs ${after.slice(0, 12)}`);
-  console.log(`    sha256 ${after.slice(0, 24)}…`);
+  const onDisk = fs.readFileSync(target, 'utf8');
+  let built = null, buildErr = null;
+  try { built = buildScenariosSource().source; } catch (e) { buildErr = e; }
+  ok('메모리 재생성 성공', !!built && !buildErr, buildErr ? buildErr.message : '');
+  if (built) {
+    const h1 = crypto.createHash('sha256').update(built, 'utf8').digest('hex');
+    const h2 = crypto.createHash('sha256').update(onDisk.replace(/\r\n/g, '\n'), 'utf8').digest('hex');
+    ok('재생성 바이트 동일(디스크 산출물과 일치)', h1 === h2, `built ${h1.slice(0, 12)} vs disk ${h2.slice(0, 12)}`);
+    console.log(`    sha256 ${h1.slice(0, 24)}…  (${Buffer.byteLength(built)} bytes)`);
+  } else {
+    ok('재생성 바이트 동일(디스크 산출물과 일치)', false, '생성 실패로 대조 불가 — 동일성 주장하지 않음');
+  }
 }
 
 /* 3~4) 짝 prefix 동일성 + JCS 재해시 */
