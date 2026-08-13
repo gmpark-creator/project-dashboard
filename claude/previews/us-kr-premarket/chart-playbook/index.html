@@ -70,12 +70,13 @@
 </footer>
 
 <script src="../data/core-data.js?v=20260813"></script>
+<script src="./data/patterns.js?v=20260813"></script>
 <script src="./data/scenarios.js?v=20260813"></script>
 <script src="./data/suitability.js?v=20260813"></script>
 <script>
 "use strict";
 (function () {
-  const CORE = window.POLARIS_CORE, SCN = window.POLARIS_SCENARIOS, SUIT = window.POLARIS_SUITABILITY;
+  const CORE = window.POLARIS_CORE, SCN = window.POLARIS_SCENARIOS, SUIT = window.POLARIS_SUITABILITY, PAT = window.POLARIS_PATTERNS;
   const $ = s => document.querySelector(s);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
@@ -296,26 +297,11 @@
   }
 
   /* ── ⑤ 캔들·꼬리 ── */
-  const PATTERNS = [
-    { id:'term.hammer', bars:[[100,101,99.6,100.4],[100.4,100.7,97.2,100.2],[100.2,101.4,99.9,101.1]] },
-    { id:'term.hanging-man', bars:[[100,101.6,99.8,101.3],[101.3,101.6,98.4,101.1],[101.1,101.3,99.6,99.9]] },
-    { id:'term.inverted-hammer', bars:[[101,101.2,99.8,100.1],[100.1,103.1,99.9,100.4],[100.4,101.6,100.2,101.4]] },
-    { id:'term.shooting-star', bars:[[100,101.4,99.8,101.2],[101.2,104.2,101,101.5],[101.5,101.6,99.9,100.1]] },
-    { id:'term.doji', bars:[[100,100.9,99.2,100.05],[100.05,101.6,98.5,100.06],[100.06,100.8,99.4,99.7]] },
-    { id:'term.dragonfly-doji', bars:[[100,100.2,99.4,99.98],[99.98,100.1,97.4,100.02],[100.02,101,99.8,100.8]] },
-    { id:'term.gravestone-doji', bars:[[100,100.6,99.8,100.02],[100.02,102.6,99.9,99.98],[99.98,100.2,98.9,99.1]] },
-    { id:'term.spinning-top', bars:[[100,100.8,99.4,100.3],[100.3,101.8,98.9,100.6],[100.6,101.2,99.9,100.2]] },
-    { id:'term.marubozu', bars:[[99.5,100.2,99.4,100.1],[100.1,103.1,100.1,103.0],[103.0,103.6,102.4,103.2]] },
-    { id:'term.bullish-engulfing', bars:[[101.5,101.7,100.4,100.6],[100.4,102.4,100.2,102.2],[102.2,102.9,101.8,102.6]] },
-    { id:'term.bearish-engulfing', bars:[[100.6,101.9,100.4,101.7],[101.9,102.1,100.2,100.4],[100.4,100.6,99.4,99.7]] },
-    { id:'term.piercing-line', bars:[[102,102.2,100.2,100.4],[99.8,101.7,99.6,101.5],[101.5,102.2,101.2,101.9]] },
-    { id:'term.dark-cloud-cover', bars:[[100.4,102.3,100.2,102.1],[102.7,102.9,100.7,100.9],[100.9,101.1,99.8,100.1]] },
-    { id:'term.morning-star', bars:[[102.4,102.6,100.2,100.4],[100.1,100.4,99.6,100.0],[100.2,102.3,100.1,102.1]] },
-    { id:'term.evening-star', bars:[[100.2,102.4,100.1,102.2],[102.5,102.9,102.1,102.4],[102.3,102.4,100.2,100.4]] },
-    { id:'term.three-white-soldiers', bars:[[100,100.9,99.8,100.7],[100.7,101.7,100.6,101.5],[101.5,102.5,101.4,102.3]] },
-    { id:'term.three-black-crows', bars:[[102.3,102.4,101.4,101.6],[101.6,101.7,100.6,100.8],[100.8,100.9,99.8,100.0]] },
-    { id:'term.harami', bars:[[102.4,102.6,100.1,100.3],[100.8,101.4,100.6,101.1],[101.1,101.6,100.7,100.9]] },
-  ];
+  const PATTERNS = (PAT && Array.isArray(PAT.patterns))
+    ? PAT.patterns.filter(p => p.coreId !== 'term.candle-body').map(p => ({ id: p.coreId, bars: p.bars, dataKind: p.dataKind }))
+    : [];
+  const ANAT_BAR = (PAT && Array.isArray(PAT.patterns) ? (PAT.patterns.find(p => p.coreId === 'term.candle-body') || {}) : {}).bars || [];
+
   function secCandles() {
     const anat = [
       ['term.candle-body','몸통(실체)'],['term.upper-wick','위꼬리'],['term.lower-wick','아래꼬리'],['indicator.body-ratio','몸통 비율'],
@@ -333,7 +319,7 @@
       <div class="card p-5">
         <h3 class="font-bold text-white text-[15px]">해부</h3>
         <div class="mt-3 grid grid-cols-2 gap-3">
-          <div>${miniSVG([[100,103.4,97.2,101.8]],'캔들 해부 예시')}</div>
+          <div>${ANAT_BAR.length ? miniSVG(ANAT_BAR,'캔들 해부 예시') : '<span class=\"text-rose-400 text-[12px]\">합성 자료 연결 실패 · 판정 불가</span>'}</div>
           <ul class="text-[12px] text-slate-400 space-y-1.5">
             ${anat.map(([id,l])=>{const e=ref(id);return `<li><b class="text-slate-200">${esc(l)}</b> — ${e?esc(e.definition):'<span class="text-rose-400">자료 연결 실패</span>'}</li>`;}).join('')}
           </ul>
@@ -445,6 +431,7 @@
 
     <div class="mt-6 card p-5">
       <h3 class="font-bold text-white text-[15px]"><i class="fa-solid fa-calculator text-sky-400"></i> 관측값 입력 <span class="text-[11px] font-normal text-slate-500">— 값은 브라우저 안에서만 계산되며 어디로도 전송되지 않습니다</span></h3>
+      <p class="mt-1.5 text-[11.5px] text-amber-400/85"><i class="fa-solid fa-circle-exclamation"></i> 아래 기본값은 <b>앱이 넣은 합성 예시</b>입니다. 실제 종목을 판정하려면 직접 관측한 값으로 바꾸세요. 값을 하나라도 바꾸면 데이터 종류가 <b>사용자 입력</b>으로 전환되고 입력 시각이 함께 기록됩니다.</p>
       <div class="mt-3 grid gap-3 md:grid-cols-3 text-[11.5px]">
         <label class="block"><span class="text-slate-400">관측기간 종료 거래일</span><input id="i-periodEnd" value="2026-08-12"></label>
         <label class="block"><span class="text-slate-400">입력 asOf (같아야 통과)</span><input id="i-asOf" value="2026-08-12"></label>
@@ -459,6 +446,8 @@
         <label class="block"><span class="text-slate-400">ATR(14, 사용 봉) (A3)</span><input id="i-atr" value="2.4"></label>
         <label class="block"><span class="text-slate-400">최근 종가</span><input id="i-close" value="100.09"></label>
         <label class="block"><span class="text-slate-400">기준 주문금액 (A9)</span><input id="i-notional" value="400000"></label>
+        <label class="block"><span class="text-slate-400">호가 스냅샷 시각 (A9 필수)</span><input id="i-snapat" value="2026-08-12"></label>
+        <label class="block"><span class="text-slate-400">틱 크기 (A9 필수)</span><input id="i-tick" value="0.01"></label>
         <label class="block"><span class="text-slate-400">계획 손실거리 (직접 입력)</span><input id="i-plan" value="3.0"></label>
         <label class="block"><span class="text-slate-400">1회 감내 손실 금액</span><input id="i-budget" value="300000"></label>
       </div>
@@ -578,9 +567,15 @@
     $('#i-closes').value = cl.join(', '); $('#i-vols').value = vo.join(', '); $('#i-gaps').value = gp.join(', ');
     $('#i-rs-stock').value = st.join(', '); $('#i-rs-sector').value = se.join(', '); $('#i-rs-broad').value = br.join(', ');
   }
+  let userDirty = false;
+  const INPUT_IDS = ['i-periodEnd','i-asOf','i-tf','i-instr','i-session','i-side','i-adj','i-ca','i-halt','i-turnover','i-atr','i-close','i-notional','i-snapat','i-tick','i-plan','i-budget','i-asks','i-bids','i-vols','i-gaps','i-closes','i-rs-stock','i-rs-sector','i-rs-broad','i-cal','i-same'];
+  function markDirty() { userDirty = true; }
+
   function runCalc() {
     const asks = parseLevels($('#i-asks').value), bids = parseLevels($('#i-bids').value);
     const input = {
+      dataKind: userDirty ? 'userProvided' : 'synthetic',
+      enteredAt: userDirty ? new Date().toISOString() : null,
       meta: {
         asOf: $('#i-asOf').value.trim(), periodEnd: $('#i-periodEnd').value.trim(),
         adjusted: $('#i-adj').value === 'true',
@@ -588,10 +583,11 @@
         tradingHaltInPeriod: $('#i-halt').value === 'true',
         session: $('#i-session').value, timeframe: $('#i-tf').value.trim(),
         instrumentType: $('#i-instr').value, side: $('#i-side').value,
+        quoteSnapshotAt: $('#i-snapat').value.trim(),
       },
       data: {
         dailyTurnover: Number($('#i-turnover').value), atr: Number($('#i-atr').value), lastClose: Number($('#i-close').value),
-        orderNotional: Number($('#i-notional').value),
+        orderNotional: Number($('#i-notional').value), tickSize: Number($('#i-tick').value),
         quote: (asks.length && bids.length) ? { asks, bids } : undefined,
         volumes: parseNums($('#i-vols').value), gaps: parseNums($('#i-gaps').value), closes120: parseNums($('#i-closes').value),
         rsSeries: { stock: parseNums($('#i-rs-stock').value), sector: parseNums($('#i-rs-sector').value), broad: parseNums($('#i-rs-broad').value),
@@ -602,13 +598,21 @@
     const res = SUIT.compute(input);
     const badge = s => s===SUIT.STATUS.DONE ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
       : s===SUIT.STATUS.PARTIAL ? 'bg-amber-500/15 text-amber-300 ring-amber-500/30' : 'bg-rose-500/15 text-rose-300 ring-rose-500/30';
+    const kindCls = k => k==='synthetic' ? 'bg-slate-700/50 text-slate-300' : k==='measuredHistorical' ? 'bg-violet-500/15 text-violet-300' : 'bg-sky-500/15 text-sky-300';
     const axBadge = s => s===SUIT.AXIS_STATUS.OK ? 'text-emerald-300' : s===SUIT.AXIS_STATUS.OFF ? 'text-slate-500' : 'text-rose-300';
+    const prov = res.dataKind==='synthetic' ? '출처: 앱이 넣은 합성 예시 · 실제 종목 판정 아님'
+      : res.dataKind==='measuredHistorical' ? ('출처: ' + (res.sourceRefs.join(', ') || '(미기입)') + ' · asOf ' + (res.asOf||'(미기입)'))
+      : ('출처: 사용자 직접 입력 · 입력 시각 ' + (res.enteredAt||'(미기록)') + ' · asOf ' + (res.asOf||'(미기입)'));
     $('#suit-out').innerHTML = `
       <div class="flex items-center gap-2 flex-wrap">
         <span class="rounded-full ring-1 px-3 py-1 text-[12px] font-extrabold ${badge(res.status)}">${esc(res.status)}</span>
-        <span class="rounded px-2 py-0.5 text-[10px] font-bold bg-slate-700/50 text-slate-300">사용자 입력</span>
-        <span class="text-[10.5px] text-slate-500">출처: 사용자 직접 입력 · asOf ${esc(input.meta.asOf || '미기입')}</span>
+        <span class="rounded-full ring-1 ring-slate-600 px-2.5 py-1 text-[11px] font-bold text-slate-300">${esc(res.level)}</span>
+        <span class="rounded px-2 py-0.5 text-[10px] font-bold ${kindCls(res.dataKind)}">${esc(res.dataKindLabel)}</span>
+        <span class="text-[10.5px] text-slate-500">${esc(prov)}</span>
       </div>
+      ${res.inputErrors.length ? `<div class="mt-3 rounded-lg bg-rose-500/5 ring-1 ring-rose-500/25 p-3">
+        <div class="text-[12px] font-bold text-rose-300">입력 오류</div>
+        <ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">${res.inputErrors.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
       ${res.gate.some(g=>!g.pass) ? `<div class="mt-3 rounded-lg bg-rose-500/5 ring-1 ring-rose-500/25 p-3">
         <div class="text-[12px] font-bold text-rose-300">데이터 품질 게이트 미통과</div>
         <ul class="mt-1 text-[11.5px] text-slate-300 list-disc pl-5">${res.gate.filter(g=>!g.pass).map(g=>`<li><b>${esc(g.label)}</b> — ${esc(g.why)}</li>`).join('')}</ul></div>` : ''}
@@ -647,6 +651,7 @@
     paintLegend(); paintGlossary();
     $('#gsearch').addEventListener('input', paintGlossary);
     $('#gcat').addEventListener('change', paintGlossary);
+    INPUT_IDS.forEach(id => { const el = document.getElementById(id); if (el) { el.addEventListener('input', markDirty); el.addEventListener('change', markDirty); } });
     $('#btn-demo').addEventListener('click', fillDemo);
     $('#btn-calc').addEventListener('click', runCalc);
   }

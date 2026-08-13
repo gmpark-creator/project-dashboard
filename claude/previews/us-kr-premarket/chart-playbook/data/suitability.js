@@ -5,25 +5,57 @@
  *  - 종목을 추천하지 않는다. 매수·매도 의견을 내지 않는다.
  *  - 밸류에이션·목표가·승률을 다루지 않는다.
  *  - 「낮음/높음」 같은 범주 판정을 하지 않는다. 임계값을 두지 않기로 했으므로
- *    출력은 관측값과 `산출 완료 / 부분 산출 / 산출 불가` 상태까지다. (Codex R3 조정① 판정)
+ *    출력은 관측값과 `산출 완료 / 부분 산출 / 산출 불가` 상태까지다.
  *  - 손절 가격을 정해 주지 않는다. 계획 손실거리는 이용자가 직접 입력하는 값이다.
  *
- * 데이터 출처: 전부 `userProvided`. 앱은 값을 보정하거나 추정하지 않는다.
- * 입력이 없으면 계산하지 않고 `산출 불가`로 두고, 무엇을 더 관측해야 하는지 알려준다.
+ * 2026-08-13 사후검수 반영:
+ *  - 입력 검증 전면 추가(ISO 날짜·양수·유한수·호가 정렬·교차 호가·틱 정합·RS 분모).
+ *    잘못된 입력은 해당 축을 `산출 불가`로 전파하며 어떤 경우에도 NaN을 반환하지 않는다.
+ *  - A9에 `quoteSnapshotAt`·`tickSize`를 필수 입력으로 추가.
+ *  - 데이터 완전성 레벨(L1/L2/L3)을 산출 상태와 분리해 함께 낸다.
+ *  - dataKind(synthetic|measuredHistorical|userProvided)를 호출자가 넘기며 기본은 synthetic이다.
  */
 (function (root) {
   'use strict';
 
   var STATUS = { DONE: '산출 완료', PARTIAL: '부분 산출', NONE: '산출 불가' };
   var AX = { OK: '산출', NONE: '산출 불가', OFF: '비활성 · 상품 구조' };
+  var LEVEL = { L1: 'L1 · 입력 없음(합성 시연)', L2: 'L2 · 부분 입력', L3: 'L3 · 완전 입력' };
+  var KINDS = { synthetic: '합성 · 교육용', measuredHistorical: '실측 과거', userProvided: '사용자 입력' };
 
-  /* ── D0 데이터 품질 게이트 ──
-   * 전체 차단(hard): 신선도 · 수정주가 · 기업행사 · 거래정지 · 세션
-   * 축 단위: 창 미달 · 호가 데이터 없음
-   */
+  /* ── 입력 검증 원자 ── */
+  function isNum(v) { return typeof v === 'number' && isFinite(v); }
+  function isPos(v) { return isNum(v) && v > 0; }
+  function isIsoDate(s) {
+    if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+    var p = s.split('-').map(Number), d = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+    return d.getUTCFullYear() === p[0] && d.getUTCMonth() === p[1] - 1 && d.getUTCDate() === p[2];
+  }
+  function allPos(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isPos); }
+  function allNum(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isNum); }
+  function nearMultiple(v, step) {
+    if (!isPos(step)) return false;
+    var q = v / step, r = Math.abs(q - Math.round(q));
+    return r < 1e-6 || Math.abs(1 - r) < 1e-6;
+  }
+  function validSide(levels, ascending) {
+    if (!Array.isArray(levels) || levels.length < 5) return '호가 레벨이 5단계 미만이다.';
+    for (var i = 0; i < levels.length; i++) {
+      var L = levels[i];
+      if (!Array.isArray(L) || L.length < 2 || !isPos(L[0]) || !isPos(L[1])) return '호가 ' + (i + 1) + '단계의 가격 또는 수량이 양수가 아니다.';
+      if (i > 0) {
+        var prev = levels[i - 1][0], cur = L[0];
+        if (ascending && !(cur > prev)) return '매도호가가 오름차순이 아니다(' + prev + ' → ' + cur + ').';
+        if (!ascending && !(cur < prev)) return '매수호가가 내림차순이 아니다(' + prev + ' → ' + cur + ').';
+      }
+    }
+    return null;
+  }
+
+  /* ── D0 데이터 품질 게이트 (전체 차단) ── */
   var D0_HARD = [
-    { key: 'asOf', label: '시세 신선도', fail: function (m) { return !m.asOf || !m.periodEnd || m.asOf !== m.periodEnd; },
-      why: '입력 asOf가 비었거나 관측기간 종료 거래일과 다르다.' },
+    { key: 'asOf', label: '시세 신선도', fail: function (m) { return !isIsoDate(m.asOf) || !isIsoDate(m.periodEnd) || m.asOf !== m.periodEnd; },
+      why: 'asOf 또는 관측기간 종료일이 YYYY-MM-DD 형식의 실재 날짜가 아니거나 두 값이 다르다.' },
     { key: 'adjusted', label: '수정주가 적용', fail: function (m) { return m.adjusted !== true; },
       why: '수정주가 적용 여부가 true로 확인되지 않았다. 분할·배당 미반영 가격으로는 갭·이동평균·신고가가 다른 값이 된다.' },
     { key: 'corporateAction', label: '기업행사 유무', fail: function (m) { return m.corporateActionInPeriod !== false; },
@@ -34,65 +66,75 @@
       why: '정규장만인지 시간외를 포함하는지 표기되지 않았다. 세션이 섞이면 관측치가 비교되지 않는다.' },
   ];
 
-  /* ── 축 메타데이터 ── */
   var AXES = [
-    { id: 'A1', label: '유동성', unit: '통화 금액', needs: ['dailyTurnover'], multiDay: false,
-      desc: '일평균 거래대금. 체결 마찰의 분모가 된다.' },
-    { id: 'A2', label: '호가 스프레드', unit: '%', needs: ['quote'], multiDay: false,
-      desc: '최우선 매도·매수 호가 차이. 왕복 비용의 하한.' },
-    { id: 'A3', label: '변동성', unit: '%', needs: ['atr', 'lastClose'], multiDay: false,
-      desc: 'ATR을 종가 대비 비율로 환산한 값.' },
-    { id: 'A4', label: '거래량 일관성', unit: '비율', needs: ['volumes'], multiDay: false,
-      desc: '거래량 변동계수와 최대일 집중도.' },
-    { id: 'A5', label: '갭 분포', unit: '%', needs: ['gaps'], multiDay: true,
-      desc: '오버나잇 갭의 평균·최대 크기.' },
-    { id: 'A6', label: '구조 명료성', unit: '비율', needs: ['closes120'], multiDay: true,
-      desc: 'SMA20/SMA60 배열 지속률과 방향 전환 빈도. 해석·등급 없이 값만 낸다.' },
-    { id: 'A7', label: '상대강도', unit: '비율', needs: ['rsSeries'], multiDay: true,
-      desc: '종목·섹터·광역지수 20거래일 수익률 비교.' },
-    { id: 'A9', label: '시장 깊이·가격충격', unit: '%', needs: ['quote', 'orderNotional'], multiDay: false,
-      desc: '기준 주문금액을 정적 호가에 넣었을 때의 체결가중평균 이탈.' },
+    { id: 'A1', label: '유동성', unit: '통화 금액', desc: '일평균 거래대금. 체결 마찰의 분모가 된다.' },
+    { id: 'A2', label: '호가 스프레드', unit: '%', desc: '최우선 매도·매수 호가 차이. 왕복 비용의 하한.' },
+    { id: 'A3', label: '변동성', unit: '%', desc: 'ATR을 종가 대비 비율로 환산한 값.' },
+    { id: 'A4', label: '거래량 일관성', unit: '비율', desc: '거래량 변동계수와 최대일 집중도.' },
+    { id: 'A5', label: '갭 분포', unit: '%', desc: '오버나잇 갭의 평균·최대 크기.' },
+    { id: 'A6', label: '구조 명료성', unit: '비율', desc: 'SMA20/SMA60 배열 지속률과 방향 전환 빈도. 해석·등급 없이 값만 낸다.' },
+    { id: 'A7', label: '상대강도', unit: '비율', desc: '종목·섹터·광역지수 20거래일 수익률 비교.' },
+    { id: 'A9', label: '시장 깊이·가격충격', unit: '%', desc: '기준 주문금액을 정적 표시호가에 넣었을 때의 체결가중평균 이탈.' },
   ];
 
-  function n(v) { return typeof v === 'number' && isFinite(v); }
   function mean(a) { return a.reduce(function (s, x) { return s + x; }, 0) / a.length; }
   function stdev(a) { var m = mean(a); return Math.sqrt(mean(a.map(function (x) { return (x - m) * (x - m); }))); }
-  function sma(arr, i, k) {
-    if (i - k + 1 < 0) return null;
-    var s = 0; for (var j = i - k + 1; j <= i; j++) s += arr[j];
-    return s / k;
-  }
-  function r(x, d) { var p = Math.pow(10, d == null ? 4 : d); return Math.round(x * p) / p; }
+  function sma(arr, i, k) { if (i - k + 1 < 0) return null; var s = 0; for (var j = i - k + 1; j <= i; j++) s += arr[j]; return s / k; }
+  function r(x, d) { if (!isNum(x)) return null; var p = Math.pow(10, d == null ? 4 : d); return Math.round(x * p) / p; }
 
-  /* ── A9 정적 호가 소진 모델 ── */
-  function priceImpact(quote, side, notional) {
+  var IMPACT_LIMIT = '정적 표시호가 스냅샷 기준 추정치이며 실제 체결값의 상한도 하한도 아니다. 체결 중 호가 갱신·숨은 유동성·가격개선·다른 참여자의 반응에 따라 실제값은 더 크거나 더 작을 수 있다.';
+
+  /* ── A9 정적 표시호가 소진 모델 ── */
+  function priceImpact(quote, side, notional, tickSize, snapshotAt) {
+    if (!isIsoDate(String(snapshotAt || '').slice(0, 10))) return { status: AX.NONE, reason: '호가 스냅샷 시각이 입력되지 않았거나 형식이 올바르지 않다.' };
+    if (!isPos(tickSize)) return { status: AX.NONE, reason: '틱 크기가 양수로 입력되지 않았다.' };
+    if (!isPos(notional)) return { status: AX.NONE, reason: '기준 주문금액이 양수가 아니다.' };
+    var askErr = validSide(quote.asks, true), bidErr = validSide(quote.bids, false);
+    if (askErr) return { status: AX.NONE, reason: '매도호가 오류 — ' + askErr };
+    if (bidErr) return { status: AX.NONE, reason: '매수호가 오류 — ' + bidErr };
+    if (!(quote.bids[0][0] < quote.asks[0][0])) return { status: AX.NONE, reason: '최우선 매수호가가 최우선 매도호가보다 낮지 않다(교차 호가).' };
+    var all = quote.asks.concat(quote.bids);
+    for (var t = 0; t < all.length; t++) if (!nearMultiple(all[t][0], tickSize)) return { status: AX.NONE, reason: '호가 ' + all[t][0] + '이 틱 크기 ' + tickSize + '의 배수가 아니다.' };
+
     var levels = side === 'buy' ? quote.asks : quote.bids;
-    if (!levels || levels.length < 5) return { status: AX.NONE, reason: '호가 레벨이 5단계 미만이다.' };
-    var p0 = levels[0][0];
-    var remaining = notional, cost = 0, qty = 0;
+    var p0 = levels[0][0], remaining = notional, cost = 0, qty = 0;
     for (var i = 0; i < levels.length; i++) {
-      var px = levels[i][0], sz = levels[i][1];
-      var cap = px * sz;
+      var px = levels[i][0], sz = levels[i][1], cap = px * sz;
       if (remaining <= cap) { var q = remaining / px; cost += q * px; qty += q; remaining = 0; break; }
       cost += cap; qty += sz; remaining -= cap;
     }
-    if (remaining > 0) return { status: AX.NONE, reason: '제공된 호가를 모두 소진하고도 잔여 금액이 남았다. 외삽하지 않는다.', code: '호가 부족' };
+    if (remaining > 0) return { status: AX.NONE, code: '호가 부족', reason: '제공된 표시호가를 모두 소진하고도 잔여 금액이 남았다. 외삽하지 않는다.' };
+    if (!isPos(qty)) return { status: AX.NONE, reason: '체결 수량이 0이어서 평균 체결가를 정의할 수 없다.' };
     var fill = cost / qty;
+    if (!isNum(fill) || !isPos(p0)) return { status: AX.NONE, reason: '체결가중평균가를 계산할 수 없다.' };
     return {
-      status: AX.OK,
-      value: r(Math.abs(fill - p0) / p0 * 100, 4),
-      detail: { fillPrice: r(fill, 4), reference: p0, filledQty: r(qty, 4) },
+      status: AX.OK, value: r(Math.abs(fill - p0) / p0 * 100, 4),
+      detail: { fillPrice: r(fill, 4), reference: p0, filledQty: r(qty, 4), snapshotAt: snapshotAt, tickSize: tickSize },
       formula: 'P_fill = Σ(가격ᵢ×체결수량ᵢ)/Σ체결수량ᵢ · 가격충격% = |P_fill − P0|/P0 × 100 (P0 = 반대편 최우선 호가)',
+      note: IMPACT_LIMIT,
     };
   }
 
   /* ── 메인 ── */
   function compute(input) {
     input = input || {};
-    var m = input.meta || {};
-    var d = input.data || {};
-    var risk = input.risk || {};
-    var out = { status: null, gate: [], axes: [], derived: [], missing: [], notices: [], dataKind: 'userProvided' };
+    var m = input.meta || {}, d = input.data || {}, risk = input.risk || {};
+    var dataKind = KINDS[input.dataKind] ? input.dataKind : 'synthetic';
+    var out = { status: null, level: null, dataKind: dataKind, dataKindLabel: KINDS[dataKind],
+      asOf: m.asOf || null, enteredAt: input.enteredAt || null, sourceRefs: input.sourceRefs || [],
+      gate: [], axes: [], derived: [], missing: [], notices: [], inputErrors: [] };
+
+    /* 데이터 완전성 레벨 — 산출 상태와 분리 */
+    var provided = ['dailyTurnover', 'quote', 'atr', 'lastClose', 'volumes', 'gaps', 'closes120', 'rsSeries', 'orderNotional']
+      .filter(function (k) { var v = d[k]; return v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0); });
+    out.level = provided.length === 0 ? LEVEL.L1 : (provided.length === 9 ? LEVEL.L3 : LEVEL.L2);
+
+    if (dataKind === 'measuredHistorical' && (!out.sourceRefs.length || !m.asOf)) {
+      out.inputErrors.push('실측 과거 데이터는 출처(sourceRefs)와 asOf가 함께 있어야 한다.');
+    }
+    if (dataKind === 'userProvided' && !out.enteredAt) {
+      out.inputErrors.push('사용자 입력 데이터는 입력 시각(enteredAt)이 함께 기록되어야 한다.');
+    }
 
     /* 1) D0 하드 게이트 */
     var hardFail = [];
@@ -108,131 +150,116 @@
       return out;
     }
 
-    /* 2) A8 하드 플래그 — 레버리지·인버스는 다일 해석 축을 비활성화 */
+    /* 2) A8 하드 플래그 */
     var leveraged = m.instrumentType === 'leveragedEtf';
-    if (leveraged) {
-      out.notices.push('상품 구조가 일일 재설정형(레버리지·인버스)이다. 다일 구조 해석·기초지수 대비 누적 비교·장기 가격 레벨 해석에 별도 경고가 필요하므로 A5·A6·A7을 비활성화하고 완전성 집계에서 제외한다. 당일 축(A1·A2·A3·A4·A9)은 그대로 산출한다.');
-    }
+    if (leveraged) out.notices.push('상품 구조가 일일 재설정형(레버리지·인버스)이다. 다일 구조 해석·기초지수 대비 누적 비교·장기 가격 레벨 해석에 별도 경고가 필요하므로 A5·A6·A7을 비활성화하고 완전성 집계에서 제외한다. 당일 축(A1·A2·A3·A4·A9)은 그대로 산출한다.');
 
-    /* 3) 축별 산출 */
+    /* 3) 축별 산출 — 모든 분기에서 NaN을 만들지 않는다 */
     var res = {};
-    var add = function (id, o) { res[id] = o; };
-
-    // A1 유동성
-    add('A1', n(d.dailyTurnover)
-      ? { status: AX.OK, value: r(d.dailyTurnover, 0), formula: '입력값 · 일평균 거래대금' }
-      : { status: AX.NONE, reason: '일평균 거래대금이 입력되지 않았다.' });
-
-    // A2 스프레드
     var q = d.quote;
-    var hasQuote = !!(q && q.asks && q.bids && q.asks.length && q.bids.length);
-    add('A2', hasQuote
-      ? (function () {
-        var ask = q.asks[0][0], bid = q.bids[0][0], mid = (ask + bid) / 2;
-        return { status: AX.OK, value: r((ask - bid) / mid * 100, 4), formula: '(최우선매도 − 최우선매수) / 중간가 × 100', detail: { ask: ask, bid: bid, mid: r(mid, 4) } };
-      })()
-      : { status: AX.NONE, reason: '호가 스냅샷이 없다.' });
+    var quoteErr = null;
+    if (q && q.asks && q.bids) {
+      quoteErr = validSide(q.asks, true) || validSide(q.bids, false)
+        || (!(q.bids[0] && q.asks[0] && q.bids[0][0] < q.asks[0][0]) ? '최우선 매수호가가 최우선 매도호가보다 낮지 않다(교차 호가).' : null);
+    }
+    var hasQuote = !!(q && q.asks && q.bids && !quoteErr);
 
-    // A3 변동성
-    add('A3', (n(d.atr) && n(d.lastClose) && d.lastClose > 0)
+    res.A1 = isPos(d.dailyTurnover)
+      ? { status: AX.OK, value: r(d.dailyTurnover, 0), formula: '입력값 · 일평균 거래대금' }
+      : { status: AX.NONE, reason: d.dailyTurnover === undefined ? '일평균 거래대금이 입력되지 않았다.' : '일평균 거래대금이 양수·유한수가 아니다.' };
+
+    res.A2 = hasQuote
+      ? (function () { var a = q.asks[0][0], b = q.bids[0][0], mid = (a + b) / 2;
+          if (!isPos(mid)) return { status: AX.NONE, reason: '중간가를 계산할 수 없다.' };
+          return { status: AX.OK, value: r((a - b) / mid * 100, 4), formula: '(최우선매도 − 최우선매수) / 중간가 × 100', detail: { ask: a, bid: b, mid: r(mid, 4) } }; })()
+      : { status: AX.NONE, reason: quoteErr ? ('호가 오류 — ' + quoteErr) : '호가 스냅샷이 없다.' };
+
+    res.A3 = (isPos(d.atr) && isPos(d.lastClose))
       ? { status: AX.OK, value: r(d.atr / d.lastClose * 100, 4), formula: 'ATR(14, 사용 봉) / 종가 × 100', detail: { atr: d.atr, close: d.lastClose, timeframe: m.timeframe || '(미표기)' } }
-      : { status: AX.NONE, reason: 'ATR 또는 종가가 입력되지 않았다.' });
+      : { status: AX.NONE, reason: (d.atr === undefined || d.lastClose === undefined) ? 'ATR 또는 종가가 입력되지 않았다.' : 'ATR·종가가 양수·유한수가 아니다.' };
 
-    // A4 거래량 일관성
-    add('A4', (Array.isArray(d.volumes) && d.volumes.length >= 20)
-      ? (function () {
-        var v = d.volumes, mu = mean(v), sd = stdev(v), sum = v.reduce(function (s, x) { return s + x; }, 0);
-        return { status: AX.OK, value: r(sd / mu, 4), formula: '변동계수 = 표준편차/평균 · 최대일 집중도 = 최대거래량/합계', detail: { cv: r(sd / mu, 4), maxShare: r(Math.max.apply(null, v) / sum, 4), n: v.length } };
-      })()
-      : { status: AX.NONE, reason: '거래량 배열이 20거래일 미만이다.' });
+    res.A4 = (function () {
+      var v = d.volumes;
+      if (!Array.isArray(v) || v.length < 20) return { status: AX.NONE, reason: '거래량 배열이 20거래일 미만이다.' };
+      if (!v.every(function (x) { return isNum(x) && x >= 0; })) return { status: AX.NONE, reason: '거래량에 음수 또는 수가 아닌 값이 있다.' };
+      var sum = v.reduce(function (s, x) { return s + x; }, 0), mu = mean(v);
+      if (!isPos(sum) || !isPos(mu)) return { status: AX.NONE, reason: '거래량 합계가 0이어서 변동계수·집중도를 정의할 수 없다.' };
+      return { status: AX.OK, value: r(stdev(v) / mu, 4), formula: '변동계수 = 표준편차/평균 · 최대일 집중도 = 최대거래량/합계',
+        detail: { cv: r(stdev(v) / mu, 4), maxShare: r(Math.max.apply(null, v) / sum, 4), n: v.length } };
+    })();
 
-    // A5 갭 분포
-    add('A5', leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 다일 갭 해석을 비활성화한다.' }
-      : (Array.isArray(d.gaps) && d.gaps.length >= 20)
-        ? (function () {
-          var g = d.gaps.map(Math.abs);
-          return { status: AX.OK, value: r(mean(g), 4), formula: '갭%ᵢ = (시가ᵢ − 전일 정규장 종가ᵢ₋₁)/전일 종가ᵢ₋₁ × 100 · 평균·최대 |갭%|', detail: { meanAbs: r(mean(g), 4), maxAbs: r(Math.max.apply(null, g), 4), n: g.length } };
-        })()
-        : { status: AX.NONE, reason: '갭 배열이 20거래일 미만이다.' });
+    res.A5 = leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 다일 갭 해석을 비활성화한다.' }
+      : (function () {
+        if (!Array.isArray(d.gaps) || d.gaps.length < 20) return { status: AX.NONE, reason: '갭 배열이 20거래일 미만이다.' };
+        if (!allNum(d.gaps)) return { status: AX.NONE, reason: '갭 배열에 수가 아닌 값이 있다.' };
+        var g = d.gaps.map(Math.abs);
+        return { status: AX.OK, value: r(mean(g), 4), formula: '갭%ᵢ = (시가ᵢ − 전일 정규장 종가ᵢ₋₁)/전일 종가ᵢ₋₁ × 100 · 평균·최대 |갭%|',
+          detail: { meanAbs: r(mean(g), 4), maxAbs: r(Math.max.apply(null, g), 4), n: g.length } };
+      })();
 
-    // A6 구조 명료성 (일봉 60거래일 창 + SMA60 워밍업 → 종가 120개 필요)
-    add('A6', leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 다일 구조 해석을 비활성화한다.' }
-      : (Array.isArray(d.closes120) && d.closes120.length >= 120)
-        ? (function () {
-          var c = d.closes120, N = c.length, hits = 0, flips = 0, prevSign = null, cnt = 0, prevS20 = null;
-          for (var i = N - 60; i < N; i++) {
-            var s20 = sma(c, i, 20), s60 = sma(c, i, 60);
-            if (s20 == null || s60 == null) continue;
-            cnt++;
-            if (s20 > s60) hits++;
-            if (prevS20 != null) {
-              var sign = Math.sign(s20 - prevS20);
-              if (prevSign !== null && sign !== 0 && sign !== prevSign) flips++;
-              if (sign !== 0) prevSign = sign;
-            }
-            prevS20 = s20;
-          }
-          return {
-            status: AX.OK, value: r(hits / cnt, 4),
-            formula: '배열지속률 = count(SMA20 > SMA60, 최근 60거래일)/60 · 방향전환빈도 = SMA20 기울기 부호 전환 횟수/60',
-            detail: { alignmentRatio: r(hits / cnt, 4), flipRate: r(flips / cnt, 4), window: cnt },
-            note: '해석·등급을 부여하지 않는다. 두 비율을 그대로 표시한다.',
-          };
-        })()
-        : { status: AX.NONE, reason: '일봉 종가가 120개 미만이다(60거래일 창 + SMA60 워밍업).' });
+    res.A6 = leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 다일 구조 해석을 비활성화한다.' }
+      : (function () {
+        var c = d.closes120;
+        if (!Array.isArray(c) || c.length < 120) return { status: AX.NONE, reason: '일봉 종가가 120개 미만이다(60거래일 창 + SMA60 워밍업).' };
+        if (!allPos(c)) return { status: AX.NONE, reason: '종가 배열에 양수가 아닌 값이 있다.' };
+        var N = c.length, hits = 0, flips = 0, prevSign = null, cnt = 0, prevS20 = null;
+        for (var i = N - 60; i < N; i++) {
+          var s20 = sma(c, i, 20), s60 = sma(c, i, 60);
+          if (s20 == null || s60 == null) continue;
+          cnt++; if (s20 > s60) hits++;
+          if (prevS20 != null) { var sign = Math.sign(s20 - prevS20); if (prevSign !== null && sign !== 0 && sign !== prevSign) flips++; if (sign !== 0) prevSign = sign; }
+          prevS20 = s20;
+        }
+        if (!cnt) return { status: AX.NONE, reason: '창을 채우지 못했다.' };
+        return { status: AX.OK, value: r(hits / cnt, 4),
+          formula: '배열지속률 = count(SMA20 > SMA60, 최근 60거래일)/60 · 방향전환빈도 = SMA20 기울기 부호 전환 횟수/60',
+          detail: { alignmentRatio: r(hits / cnt, 4), flipRate: r(flips / cnt, 4), window: cnt },
+          note: '해석·등급을 부여하지 않는다. 두 비율을 그대로 표시한다.' };
+      })();
 
-    // A7 상대강도 — 캘린더 완전 일치 필수
-    add('A7', leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 기초지수 대비 누적 비교를 비활성화한다.' }
+    res.A7 = leveraged ? { status: AX.OFF, reason: '일일 재설정형 상품이라 기초지수 대비 누적 비교를 비활성화한다.' }
       : (function () {
         var s = d.rsSeries;
         if (!s || !s.stock || !s.sector || !s.broad) return { status: AX.NONE, reason: '종목·섹터·광역지수 3계열이 모두 입력되지 않았다.' };
+        if (![s.stock, s.sector, s.broad].every(allPos)) return { status: AX.NONE, reason: '세 시계열에 양수가 아닌 값이 있다.' };
         if (s.calendarAligned !== true) return { status: AX.NONE, reason: '세 시계열의 거래일 캘린더가 완전히 일치한다고 확인되지 않았다. 결측이 하루라도 있으면 산출하지 않는다.' };
+        if (s.sameMarket !== true) return { status: AX.NONE, reason: '동일 시장·동일 통화 내 비교로 확인되지 않았다.' };
         if (s.stock.length !== s.sector.length || s.stock.length !== s.broad.length) return { status: AX.NONE, reason: '세 시계열의 길이가 다르다.' };
         if (s.stock.length < 21) return { status: AX.NONE, reason: '20거래일 수익률 계산에 필요한 21개 종가가 되지 않는다.' };
-        if (s.sameMarket !== true) return { status: AX.NONE, reason: '동일 시장·동일 통화 내 비교로 확인되지 않았다. 거래 캘린더가 다른 시장 간 비교는 하지 않는다.' };
-        var L = s.stock.length, k = 20;
-        var ret = function (a) { return a[L - 1] / a[L - 1 - k] - 1; };
+        var L = s.stock.length, k = 20, ret = function (a) { return a[L - 1] / a[L - 1 - k] - 1; };
         var rs = ret(s.stock), rSec = ret(s.sector), rBr = ret(s.broad);
-        return {
-          status: AX.OK, value: r((1 + rs) / (1 + rSec) - 1, 4),
+        if (!(isNum(rs) && isNum(rSec) && isNum(rBr))) return { status: AX.NONE, reason: '수익률을 계산할 수 없다.' };
+        if (Math.abs(1 + rSec) < 1e-12 || Math.abs(1 + rBr) < 1e-12) return { status: AX.NONE, reason: '비교집단 수익률이 −100%에 가까워 상대강도 분모가 0이 된다.' };
+        return { status: AX.OK, value: r((1 + rs) / (1 + rSec) - 1, 4),
           formula: 'r_x = P[t]/P[t−20] − 1 · RS = (1+r_종목)/(1+r_비교집단) − 1',
-          detail: { rStock: r(rs, 4), rSector: r(rSec, 4), rBroad: r(rBr, 4), rsSector: r((1 + rs) / (1 + rSec) - 1, 4), rsBroad: r((1 + rs) / (1 + rBr) - 1, 4) },
-        };
-      })());
+          detail: { rStock: r(rs, 4), rSector: r(rSec, 4), rBroad: r(rBr, 4), rsSector: r((1 + rs) / (1 + rSec) - 1, 4), rsBroad: r((1 + rs) / (1 + rBr) - 1, 4) } };
+      })();
 
-    // A9 가격충격
-    add('A9', hasQuote
-      ? (n(d.orderNotional) && (m.side === 'buy' || m.side === 'sell')
-        ? priceImpact(q, m.side, d.orderNotional)
-        : { status: AX.NONE, reason: '기준 주문금액 또는 주문 방향이 입력되지 않았다.' })
-      : { status: AX.NONE, reason: '호가 스냅샷이 없다.' });
+    res.A9 = hasQuote
+      ? ((m.side === 'buy' || m.side === 'sell')
+        ? priceImpact(q, m.side, d.orderNotional, d.tickSize, m.quoteSnapshotAt)
+        : { status: AX.NONE, reason: '주문 방향이 매수/매도로 입력되지 않았다.' })
+      : { status: AX.NONE, reason: quoteErr ? ('호가 오류 — ' + quoteErr) : '호가 스냅샷이 없다.' };
 
-    /* 4) 축 간 산술 (예측 아님 — 입력값들 사이의 관계) */
-    var plan = risk.plannedLossDistance;   // 이용자가 직접 정한 계획 손실거리(가격)
-    var budget = risk.lossBudget;          // 1회 감내 손실 금액
-    if (n(plan) && plan > 0 && n(budget) && budget > 0 && n(d.lastClose)) {
-      var qty = budget / plan;
-      var notional = qty * d.lastClose;
-      out.derived.push({ id: 'D-POS', label: '계획 수량·명목금액', value: r(notional, 0), unit: '통화 금액',
-        formula: '수량 = 감내 손실액 / 계획 손실거리 · 명목금액 = 수량 × 종가', detail: { qty: r(qty, 4), notional: r(notional, 0) } });
-      if (res.A1.status === AX.OK && res.A1.value > 0) {
-        out.derived.push({ id: 'D-LIQ', label: '명목금액 ÷ 일평균 거래대금', value: r(notional / res.A1.value * 100, 4), unit: '%',
-          formula: '명목금액 / 일평균 거래대금 × 100' });
+    /* 4) 축 간 산술 */
+    var plan = risk.plannedLossDistance, budget = risk.lossBudget;
+    if (isPos(plan) && isPos(budget) && isPos(d.lastClose)) {
+      var qty = budget / plan, notional = qty * d.lastClose;
+      if (isPos(notional)) {
+        out.derived.push({ id: 'D-POS', label: '계획 수량·명목금액', value: r(notional, 0), unit: '통화 금액',
+          formula: '수량 = 감내 손실액 / 계획 손실거리 · 명목금액 = 수량 × 종가', detail: { qty: r(qty, 4), notional: r(notional, 0) } });
+        if (res.A1.status === AX.OK && isPos(res.A1.value)) out.derived.push({ id: 'D-LIQ', label: '명목금액 ÷ 일평균 거래대금', value: r(notional / res.A1.value * 100, 4), unit: '%', formula: '명목금액 / 일평균 거래대금 × 100' });
+        if (res.A2.status === AX.OK) { var sc = d.lastClose * (res.A2.value / 100);
+          out.derived.push({ id: 'D-COST', label: '왕복 스프레드 비용 ÷ 계획 손실거리', value: r(sc / plan * 100, 4), unit: '%', formula: '왕복 스프레드 비용 = 종가 × 스프레드% · 그 값을 계획 손실거리로 나눈 비율', detail: { spreadCost: r(sc, 4), plannedLossDistance: plan } }); }
+        if (res.A3.status === AX.OK && isPos(d.atr)) out.derived.push({ id: 'D-ATR', label: '계획 손실거리 ÷ ATR', value: r(plan / d.atr, 4), unit: '배', formula: '계획 손실거리 / ATR(사용 봉)', detail: { note: '이용자가 정한 손실거리가 변동성 대비 몇 배인지를 보여줄 뿐이며, 적정 배수를 제시하지 않는다.' } });
       }
-      if (res.A2.status === AX.OK && n(d.lastClose)) {
-        var spreadCost = d.lastClose * (res.A2.value / 100);
-        out.derived.push({ id: 'D-COST', label: '왕복 스프레드 비용 ÷ 계획 손실거리', value: r(spreadCost / plan * 100, 4), unit: '%',
-          formula: '왕복 스프레드 비용 = 종가 × 스프레드% · 그 값을 계획 손실거리로 나눈 비율', detail: { spreadCost: r(spreadCost, 4), plannedLossDistance: plan } });
-      }
-      if (res.A3.status === AX.OK && n(d.atr) && d.atr > 0) {
-        out.derived.push({ id: 'D-ATR', label: '계획 손실거리 ÷ ATR', value: r(plan / d.atr, 4), unit: '배',
-          formula: '계획 손실거리 / ATR(사용 봉)', detail: { note: '이 값은 이용자가 정한 손실거리가 변동성 대비 몇 배인지를 보여줄 뿐이며, 적정 배수를 제시하지 않는다.' } });
-      }
+    } else if (plan !== undefined || budget !== undefined) {
+      out.inputErrors.push('계획 손실거리와 1회 감내 손실 금액은 둘 다 양수여야 한다.');
     } else {
       out.notices.push('계획 손실거리와 1회 감내 손실 금액이 모두 입력되어야 축 간 산술을 낼 수 있다. 앱은 ATR을 손실거리로 자동 대입하지 않는다.');
     }
 
-    /* 5) 상태 판정 — 완전성 집계(비활성 축 제외) */
+    /* 5) 상태 판정 */
     AXES.forEach(function (a) {
       var v = res[a.id];
       out.axes.push(Object.assign({ id: a.id, label: a.label, unit: a.unit, desc: a.desc }, v));
@@ -240,15 +267,16 @@
     });
     var applicable = out.axes.filter(function (a) { return a.status !== AX.OFF; });
     var computed = applicable.filter(function (a) { return a.status === AX.OK; });
-    if (computed.length === applicable.length) out.status = STATUS.DONE;
-    else if (computed.length === 0) out.status = STATUS.NONE;
-    else out.status = STATUS.PARTIAL;
+    out.status = computed.length === applicable.length ? STATUS.DONE : (computed.length === 0 ? STATUS.NONE : STATUS.PARTIAL);
+
+    /* NaN 방어 — 어떤 경로로도 NaN이 새어나가지 않는다 */
+    out.axes.forEach(function (a) { if (a.value !== undefined && !isNum(a.value)) { a.status = AX.NONE; a.reason = '계산 결과가 유한수가 아니어서 산출하지 않는다.'; delete a.value; } });
+    out.derived = out.derived.filter(function (x) { return isNum(x.value); });
 
     out.notices.push('출력은 관측값과 산출 상태까지다. 이 페이지는 임계값을 두지 않으므로 「낮음/높음」 같은 범주 판정이나 스타일 종합판정을 하지 않는다.');
     return out;
   }
 
-  /* 스타일별로 어떤 축이 지배적인지 — 설명용 문맥이며 판정 라벨이 아니다 */
   var STYLE_CONTEXT = [
     { style: '스캘핑 (수초~15분)', dominant: ['A1', 'A2', 'A9'], note: '왕복 비용과 체결 마찰이 목표 변동폭에 비해 커지기 쉬운 구간이다.' },
     { style: '인트라데이 (당일 청산)', dominant: ['A1', 'A3', 'A9'], note: '당일 변동폭과 체결 가능 규모가 함께 걸린다.' },
@@ -256,7 +284,9 @@
   ];
 
   root.POLARIS_SUITABILITY = {
-    STATUS: STATUS, AXIS_STATUS: AX, AXES: AXES, D0_HARD: D0_HARD.map(function (g) { return { key: g.key, label: g.label }; }),
+    STATUS: STATUS, AXIS_STATUS: AX, LEVEL: LEVEL, DATA_KINDS: KINDS, AXES: AXES,
+    D0_HARD: D0_HARD.map(function (g) { return { key: g.key, label: g.label }; }),
     STYLE_CONTEXT: STYLE_CONTEXT, compute: compute,
+    _validators: { isIsoDate: isIsoDate, isPos: isPos, validSide: validSide, nearMultiple: nearMultiple },
   };
 })(window);

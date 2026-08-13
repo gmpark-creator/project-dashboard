@@ -244,6 +244,6 @@
     rerender();
   }
 
-  fetch('../data/rules.json?v=20260615').then(r => r.json()).then(j => { RULES = j; init(); })
+  fetch('../data/rules.json?v=20260813').then(r => r.json()).then(j => { RULES = j; init(); })
     .catch(() => { $('#out').innerHTML = '<div class="rounded-xl bg-rose-500/10 ring-1 ring-rose-500/40 p-4 text-[13px] text-rose-300">rules.json 로딩 실패 — GitHub Pages(https)에서 열어주세요.</div>'; $('#asof').textContent = L.asOf; });
 })();

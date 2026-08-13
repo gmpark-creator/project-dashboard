@@ -1,7 +1,7 @@
 /* Polaris Chart Playbook — 합성 시나리오 (window.POLARIS_SCENARIOS)
  *
  * ⚠ 전부 합성 데이터다. 실제 시세가 아니며 성과·성공률의 근거가 아니다.
- * 생성: internal/_verify_tmp/gen-scenarios.mjs (시드 고정 LCG, Math.random 미사용 → 재실행 시 바이트 동일)
+ * 생성: chart-playbook/tools/gen-scenarios.mjs (시드 고정 LCG, Math.random 미사용 → 재실행 시 바이트 동일)
  *
  * 짝(성공/실패)은 같은 생성 규칙·같은 시드로 「관측 컷오프 이전 봉을 완전히 동일하게」 만든다.
  * 컷오프 이후에만 분기하므로 동일 사전조건이 구조적으로 보장된다.
@@ -12,7 +12,7 @@
 window.POLARIS_SCENARIOS = {
   meta: {
     asOf: '2026-08-13',
-    generator: 'internal/_verify_tmp/gen-scenarios.mjs',
+    generator: 'chart-playbook/tools/gen-scenarios.mjs',
     hashSpec: 'RFC 8785 JCS -> UTF-8 -> SHA-256 (lowercase hex)',
     disclaimer: '합성 · 교육용. 실제 시세가 아니며 성과의 증거가 아닙니다.',
   },
