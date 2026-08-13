@@ -181,6 +181,27 @@ console.log('── 16) 해석 불가 입력이 걸러진 값으로 계산되지
   check(`${nm} 해석 불가 → 사유 명시`, /해석할 수 없는 값/.test(a.reason || ''), a.reason);
 });
 
+console.log('── 16-b) 무효 축에 의존하는 파생값이 남지 않는가 (실제 파서 경유) ──');
+{ /* 유효 호가 5단계 + 불량 토큰 1개를 실제 파서에 통과시킨다 */
+  const raw = '100.10:900, 100.11:1200, 100.12:1500, 100.13:1800, 100.14:2200, 100.15:';
+  const parsed = S.parseLevelsStrict(raw);
+  check('불량 토큰 1건 검출 + 유효 5단계 확보', parsed.bad.length === 1 && parsed.values.length === 5, JSON.stringify(parsed.bad));
+
+  const inp = full();
+  inp.data.quote = { asks: parsed.values, bids: quote.bids };
+  inp.invalidFields = { quote: true };          // UI가 bad 토큰을 감지해 전달하는 경로
+  const res = S.compute(inp);
+  check('A2 산출 불가', ax(res, 'A2').status === S.AXIS_STATUS.NONE, ax(res, 'A2').status);
+  check('A9 산출 불가', ax(res, 'A9').status === S.AXIS_STATUS.NONE, ax(res, 'A9').status);
+  const dcost = res.derived.find(d => d.id === 'D-COST');
+  check('D-COST가 결과에 없음(걸러진 호가로 선계산되지 않음)', !dcost, dcost ? String(dcost.value) : '');
+  const html = S.renderResultHTML(res);
+  check('D-COST가 렌더에도 없음', !/왕복 스프레드 비용 ÷ 계획 손실거리/.test(html));
+  check('전체가 산출 완료가 아님', res.status !== DONE, res.status);
+  /* 호가와 무관한 파생값(D-POS·D-LIQ·D-ATR)은 그대로 남아야 한다 */
+  check('호가 무관 파생값은 유지', ['D-POS', 'D-LIQ', 'D-ATR'].every(id => res.derived.some(d => d.id === id)),
+    res.derived.map(d => d.id).join(',')); }
+
 console.log('── 17) 결과 렌더러 — measuredHistorical 경로 직접 assert ──');
 { const meas = S.compute({ dataKind: 'measuredHistorical', sourceRefs: ['src.polaris-market-ledger'],
     meta: { ...okMeta }, data: JSON.parse(JSON.stringify(okData)), risk: { ...okRisk } });

@@ -261,7 +261,15 @@
         : { status: AX.NONE, reason: '주문 방향이 매수/매도로 입력되지 않았다.' })
       : { status: AX.NONE, reason: quoteErr ? ('호가 오류 — ' + quoteErr) : '호가 스냅샷이 없다.' };
 
-    /* 4) 축 간 산술 */
+    /* 3-b) 해석 불가 입력을 가진 축을 「축 간 산술보다 먼저」 산출 불가로 덮는다.
+     * (사후검수 R4 지적 8: 뒤에 두면 D-COST 등 파생값이 걸러진 값으로 먼저 계산된다) */
+    var INVALID_MAP = { quote: ['A2', 'A9'], volumes: ['A4'], gaps: ['A5'], closes120: ['A6'], rsSeries: ['A7'], dailyTurnover: ['A1'] };
+    Object.keys(INVALID_MAP).forEach(function (k) {
+      if (!invalid[k]) return;
+      INVALID_MAP[k].forEach(function (id) { if (res[id] && res[id].status !== AX.OFF) res[id] = { status: AX.NONE, reason: INVALID_REASON }; });
+    });
+
+    /* 4) 축 간 산술 — 산출된 축만 사용한다 */
     var plan = risk.plannedLossDistance, budget = risk.lossBudget;
     if (isPos(plan) && isPos(budget) && isPos(d.lastClose)) {
       var qty = budget / plan, notional = qty * d.lastClose;
@@ -278,13 +286,6 @@
     } else {
       out.notices.push('계획 손실거리와 1회 감내 손실 금액이 모두 입력되어야 축 간 산술을 낼 수 있다. 앱은 ATR을 손실거리로 자동 대입하지 않는다.');
     }
-
-    /* 4-b) 해석 불가 입력을 가진 축을 산출 불가로 덮어쓴다(상태 재계산 전에 적용) */
-    var INVALID_MAP = { quote: ['A2', 'A9'], volumes: ['A4'], gaps: ['A5'], closes120: ['A6'], rsSeries: ['A7'], dailyTurnover: ['A1'] };
-    Object.keys(INVALID_MAP).forEach(function (k) {
-      if (!invalid[k]) return;
-      INVALID_MAP[k].forEach(function (id) { if (res[id] && res[id].status !== AX.OFF) res[id] = { status: AX.NONE, reason: INVALID_REASON }; });
-    });
 
     /* 5) 비유한값 방어를 「먼저」 적용한 뒤 상태·결손을 재계산한다.
      * (사후검수 지적 8: 방어를 상태 판정 뒤에 두면 축은 산출 불가인데 전체는 산출 완료로 남는다) */
