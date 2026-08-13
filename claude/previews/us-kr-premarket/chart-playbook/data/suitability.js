@@ -35,11 +35,17 @@
    * 날짜만 있거나 뒤에 임의 문자열이 붙으면 거부한다(사후검수 지적 8). */
   function isIsoDateTimeTz(s) {
     if (typeof s !== 'string') return false;
-    var m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/.exec(s);
+    var m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(s);
     if (!m) return false;
     if (!isIsoDate(m[1])) return false;
     var hh = Number(m[2]), mm = Number(m[3]), ss = m[4] === undefined ? 0 : Number(m[4]);
-    return hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59 && ss >= 0 && ss <= 59;
+    if (!(hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59 && ss >= 0 && ss <= 59)) return false;
+    if (m[5] !== 'Z') {                     // 오프셋 시·분 범위도 검증한다(사후검수 R3 지적 8)
+      var oh = Number(m[7]), om = Number(m[8]);
+      if (!(oh >= 0 && oh <= 14 && om >= 0 && om <= 59)) return false;
+      if (oh === 14 && om !== 0) return false;   // 실제 사용되는 최대 오프셋은 ±14:00
+    }
+    return true;
   }
   function allPos(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isPos); }
   function allNum(arr) { return Array.isArray(arr) && arr.length > 0 && arr.every(isNum); }
@@ -164,7 +170,11 @@
     var leveraged = m.instrumentType === 'leveragedEtf';
     if (leveraged) out.notices.push('상품 구조가 일일 재설정형(레버리지·인버스)이다. 다일 구조 해석·기초지수 대비 누적 비교·장기 가격 레벨 해석에 별도 경고가 필요하므로 A5·A6·A7을 비활성화하고 완전성 집계에서 제외한다. 당일 축(A1·A2·A3·A4·A9)은 그대로 산출한다.');
 
-    /* 3) 축별 산출 — 모든 분기에서 NaN을 만들지 않는다 */
+    /* 3) 축별 산출 — 모든 분기에서 NaN을 만들지 않는다.
+     * invalidFields[key]가 true면 그 입력은 해석 불가 토큰을 포함한 것이므로,
+     * 걸러낸 값으로 계산을 이어가지 않고 해당 축을 산출 불가로 전파한다(사후검수 R3 지적 8). */
+    var invalid = input.invalidFields || {};
+    var INVALID_REASON = '입력에 해석할 수 없는 값이 있어 걸러낸 값으로 계산하지 않는다.';
     var res = {};
     var q = d.quote;
     var quoteErr = null;
@@ -269,6 +279,13 @@
       out.notices.push('계획 손실거리와 1회 감내 손실 금액이 모두 입력되어야 축 간 산술을 낼 수 있다. 앱은 ATR을 손실거리로 자동 대입하지 않는다.');
     }
 
+    /* 4-b) 해석 불가 입력을 가진 축을 산출 불가로 덮어쓴다(상태 재계산 전에 적용) */
+    var INVALID_MAP = { quote: ['A2', 'A9'], volumes: ['A4'], gaps: ['A5'], closes120: ['A6'], rsSeries: ['A7'], dailyTurnover: ['A1'] };
+    Object.keys(INVALID_MAP).forEach(function (k) {
+      if (!invalid[k]) return;
+      INVALID_MAP[k].forEach(function (id) { if (res[id] && res[id].status !== AX.OFF) res[id] = { status: AX.NONE, reason: INVALID_REASON }; });
+    });
+
     /* 5) 비유한값 방어를 「먼저」 적용한 뒤 상태·결손을 재계산한다.
      * (사후검수 지적 8: 방어를 상태 판정 뒤에 두면 축은 산출 불가인데 전체는 산출 완료로 남는다) */
     AXES.forEach(function (a) {
@@ -288,10 +305,15 @@
   }
 
   /* ── 입력 파서 — 잘못된 토큰을 조용히 버리지 않고 그대로 보고한다(사후검수 지적 8) ── */
+  var NUM_TOKEN_RE = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?$/;
   function parseNumsStrict(s) {
     var toks = String(s == null ? '' : s).split(/[\s,]+/).filter(function (t) { return t !== ''; });
     var vals = [], bad = [];
-    toks.forEach(function (t) { var v = Number(t); if (t !== '' && isFinite(v) && /^[-+]?[\d.eE+-]+$/.test(t)) vals.push(v); else bad.push(t); });
+    toks.forEach(function (t) {
+      if (!NUM_TOKEN_RE.test(t)) { bad.push(t); return; }
+      var v = Number(t);
+      if (isFinite(v)) vals.push(v); else bad.push(t);
+    });
     return { values: vals, bad: bad };
   }
   function parseLevelsStrict(s) {
@@ -299,7 +321,8 @@
     var vals = [], bad = [];
     toks.forEach(function (t) {
       var parts = t.split(':');
-      if (parts.length !== 2) { bad.push(t); return; }
+      /* 빈 가격·빈 수량("100:")을 0으로 보정하지 않고 bad로 처리한다(사후검수 R3 지적 8) */
+      if (parts.length !== 2 || !NUM_TOKEN_RE.test(parts[0].trim()) || !NUM_TOKEN_RE.test(parts[1].trim())) { bad.push(t); return; }
       var p = Number(parts[0]), q = Number(parts[1]);
       if (isFinite(p) && isFinite(q)) vals.push([p, q]); else bad.push(t);
     });

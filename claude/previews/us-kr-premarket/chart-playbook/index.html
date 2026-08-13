@@ -579,11 +579,13 @@
     const pCloses = SUIT.parseNumsStrict($('#i-closes').value);
     const pRs = { stock: SUIT.parseNumsStrict($('#i-rs-stock').value), sector: SUIT.parseNumsStrict($('#i-rs-sector').value), broad: SUIT.parseNumsStrict($('#i-rs-broad').value) };
     const asks = pAsks.values, bids = pBids.values;
-    const badTokens = [];
-    [['매도호가', pAsks], ['매수호가', pBids], ['거래량', pVols], ['갭', pGaps], ['일봉 종가', pCloses],
-     ['종목 종가', pRs.stock], ['섹터 종가', pRs.sector], ['광역지수 종가', pRs.broad]]
-      .forEach(([nm, p]) => { if (p.bad.length) badTokens.push(`${nm} 입력에 해석할 수 없는 값 ${p.bad.length}건: ${p.bad.slice(0,5).join(', ')}`); });
+    const badTokens = [], invalidFields = {};
+    [['매도호가', pAsks, 'quote'], ['매수호가', pBids, 'quote'], ['거래량', pVols, 'volumes'], ['갭', pGaps, 'gaps'],
+     ['일봉 종가', pCloses, 'closes120'], ['종목 종가', pRs.stock, 'rsSeries'], ['섹터 종가', pRs.sector, 'rsSeries'],
+     ['광역지수 종가', pRs.broad, 'rsSeries']]
+      .forEach(([nm, p, key]) => { if (p.bad.length) { badTokens.push(`${nm} 입력에 해석할 수 없는 값 ${p.bad.length}건: ${p.bad.slice(0,5).join(', ')}`); if (key) invalidFields[key] = true; } });
     const input = {
+      invalidFields,
       dataKind: userDirty ? 'userProvided' : 'synthetic',
       enteredAt: userDirty ? enteredAtStamp : null,
       meta: {

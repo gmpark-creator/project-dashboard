@@ -152,5 +152,48 @@ console.log('── 13) 범주 판정·자동 대입 부재 ──');
   check('손실거리 없으면 축 간 산술 0', r2.derived.length === 0);
   check('ATR 자동 대입 안 함 고지', r2.notices.some(x => /자동 대입/.test(x))); }
 
+console.log('── 14) 파서 — 잘못된 토큰을 버리지 않고 보고하는가 ──');
+{ const a = S.parseNumsStrict('1, 2, 없음, 4, NaN, 1e5');
+  check('숫자 파서 bad 토큰 수집', a.values.length === 4 && a.bad.length === 2, JSON.stringify(a));
+  const b = S.parseLevelsStrict('100.1:900, 잘못됨, 100.2:x');
+  check('호가 파서 bad 토큰 수집', b.values.length === 1 && b.bad.length === 2, JSON.stringify(b));
+  const c = S.parseLevelsStrict('100:');
+  check('빈 수량("100:")을 0으로 보정하지 않고 bad 처리', c.values.length === 0 && c.bad.length === 1, JSON.stringify(c));
+  const d = S.parseLevelsStrict(':900');
+  check('빈 가격(":900")도 bad 처리', d.values.length === 0 && d.bad.length === 1, JSON.stringify(d)); }
+
+console.log('── 15) 시간대 오프셋 범위 검증 ──');
+{ const V = S._validators;
+  check('+99:99 거부', V.isIsoDateTimeTz('2026-08-12T15:30:00+99:99') === false);
+  check('+14:30 거부(최대 오프셋 초과)', V.isIsoDateTimeTz('2026-08-12T15:30:00+14:30') === false);
+  check('+09:00 허용', V.isIsoDateTimeTz('2026-08-12T15:30:00+09:00') === true);
+  check('Z 허용', V.isIsoDateTimeTz('2026-08-12T06:30:00Z') === true);
+  check('시각 없는 날짜 거부', V.isIsoDateTimeTz('2026-08-12') === false); }
+
+console.log('── 16) 해석 불가 입력이 걸러진 값으로 계산되지 않는가 ──');
+[['호가', 'quote', 'A2'], ['거래량', 'volumes', 'A4'], ['갭', 'gaps', 'A5'],
+ ['일봉 종가', 'closes120', 'A6'], ['상대강도 계열', 'rsSeries', 'A7']].forEach(([nm, key, axis]) => {
+  const inp = full(); inp.invalidFields = { [key]: true };
+  const res = S.compute(inp);
+  const a = ax(res, axis);
+  check(`${nm} 해석 불가 → ${axis} 산출 불가`, a.status === S.AXIS_STATUS.NONE, `실제 ${a.status}`);
+  check(`${nm} 해석 불가 → 전체가 ${DONE}가 아님`, res.status !== DONE, `실제 ${res.status}`);
+  check(`${nm} 해석 불가 → 사유 명시`, /해석할 수 없는 값/.test(a.reason || ''), a.reason);
+});
+
+console.log('── 17) 결과 렌더러 — measuredHistorical 경로 직접 assert ──');
+{ const meas = S.compute({ dataKind: 'measuredHistorical', sourceRefs: ['src.polaris-market-ledger'],
+    meta: { ...okMeta }, data: JSON.parse(JSON.stringify(okData)), risk: { ...okRisk } });
+  check('measuredHistorical 입력오류 없음', meas.inputErrors.length === 0, JSON.stringify(meas.inputErrors));
+  check('dataKindLabel = 실측 과거', meas.dataKindLabel === '실측 과거', meas.dataKindLabel);
+  const html = S.renderResultHTML(meas);
+  check('배지 렌더', /실측 과거/.test(html));
+  check('sourceRefs 렌더', /src\.polaris-market-ledger/.test(html));
+  check('asOf 렌더', /asOf 2026-08-12/.test(html));
+  const syn = S.renderResultHTML(S.compute({ dataKind: 'synthetic', meta: { ...okMeta }, data: {}, risk: {} }));
+  check('합성 배지 렌더', /합성 · 교육용/.test(syn) && /실제 종목 판정 아님/.test(syn));
+  const usr = S.renderResultHTML(S.compute(full()));
+  check('사용자 입력 배지·입력시각 렌더', /사용자 입력/.test(usr) && /입력 시각 2026-08-13/.test(usr)); }
+
 console.log(`\n결과: 통과 ${pass} · 실패 ${fail}`);
 process.exit(fail ? 1 : 0);

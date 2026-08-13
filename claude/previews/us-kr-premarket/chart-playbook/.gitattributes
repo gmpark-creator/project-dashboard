@@ -1,0 +1,5 @@
+# 바이트 동일성 검증 대상 — git의 개행 변환을 금지한다.
+# verify-all.mjs가 메모리 생성본과 디스크 원시 바이트를 Buffer.equals()로 비교하므로,
+# 체크아웃 시 CRLF로 바뀌면 검증이 실패해야 정상이다(정규화로 덮지 않는다).
+data/scenarios.js -text
+data/patterns.js -text

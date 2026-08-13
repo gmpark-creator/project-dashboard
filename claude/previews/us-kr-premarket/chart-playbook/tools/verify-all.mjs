@@ -38,17 +38,24 @@ step('1) 스키마 게이트 + 음성·회귀');
 step('2) 합성 시나리오 결정론 (쓰기 없음)');
 {
   const target = path.join(CP, 'data', 'scenarios.js');
-  const onDisk = fs.readFileSync(target, 'utf8');
+  const onDisk = fs.readFileSync(target);            // 원시 Buffer — 개행 정규화를 하지 않는다
   let built = null, buildErr = null;
   try { built = buildScenariosSource().source; } catch (e) { buildErr = e; }
   ok('메모리 재생성 성공', !!built && !buildErr, buildErr ? buildErr.message : '');
   if (built) {
-    const h1 = crypto.createHash('sha256').update(built, 'utf8').digest('hex');
-    const h2 = crypto.createHash('sha256').update(onDisk.replace(/\r\n/g, '\n'), 'utf8').digest('hex');
-    ok('재생성 바이트 동일(디스크 산출물과 일치)', h1 === h2, `built ${h1.slice(0, 12)} vs disk ${h2.slice(0, 12)}`);
-    console.log(`    sha256 ${h1.slice(0, 24)}…  (${Buffer.byteLength(built)} bytes)`);
+    const bufBuilt = Buffer.from(built, 'utf8');
+    const h1 = crypto.createHash('sha256').update(bufBuilt).digest('hex');
+    const h2 = crypto.createHash('sha256').update(onDisk).digest('hex');
+    /* CRLF 산출물이 주입되면 반드시 실패해야 하므로 정규화 없이 원시 바이트를 비교한다
+     * (사후검수 R3 지적 11). 개행 고정은 chart-playbook/.gitattributes의 -text로 보장한다. */
+    ok('재생성 바이트 동일(디스크 원시 바이트와 일치)', bufBuilt.equals(onDisk),
+      `built ${h1.slice(0, 12)}(${bufBuilt.length}B) vs disk ${h2.slice(0, 12)}(${onDisk.length}B)`);
+    console.log(`    sha256 ${h1.slice(0, 24)}…  (${bufBuilt.length} bytes · 원시 비교)`);
+    /* 비교기 자체의 음성 확인 — CRLF 산출물을 주입하면 반드시 불일치여야 한다(디스크 접근 없음) */
+    const crlf = Buffer.from(built.replace(/\n/g, '\r\n'), 'utf8');
+    ok('CRLF 주입본을 동일로 오판하지 않음', !bufBuilt.equals(crlf), 'CRLF 변형이 동일로 판정됨');
   } else {
-    ok('재생성 바이트 동일(디스크 산출물과 일치)', false, '생성 실패로 대조 불가 — 동일성 주장하지 않음');
+    ok('재생성 바이트 동일(디스크 원시 바이트와 일치)', false, '생성 실패로 대조 불가 — 동일성 주장하지 않음');
   }
 }
 
