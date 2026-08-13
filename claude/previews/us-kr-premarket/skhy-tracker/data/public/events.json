@@ -1,0 +1,107 @@
+{
+  "asOf": "2026-08-13",
+  "note": "확정 사건과 예정 일정을 구분한다. 예정 일정은 지수 제공사가 공표한 스케줄이며, 편입 여부·비중은 확정된 바 없다.",
+  "rows": [
+    {
+      "date": "2026-07-01",
+      "title": "SEC Form F-6 제출",
+      "kind": "confirmed",
+      "weight": 2,
+      "detail": "ADS 등록. 등록용량은 실제 발행량이나 현재 outstanding과 다른 개념이다.",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119380526000898/e665622_f6-skhynix.htm"
+    },
+    {
+      "date": "2026-07-09",
+      "title": "CERT · EFFECT",
+      "kind": "confirmed",
+      "weight": 1,
+      "detail": "상장 인증 및 등록 효력 발생.",
+      "url": null
+    },
+    {
+      "date": "2026-07-10",
+      "title": "SKHY 나스닥 상장 · 424B4 공시",
+      "kind": "confirmed",
+      "weight": 3,
+      "detail": "보통주 17,790,000주 = ADS 177,900,000주 공모. 1 ADS = 보통주 1/10주.",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299963/d32785d424b4.htm"
+    },
+    {
+      "date": "2026-07-16",
+      "title": "외국인 보유주식수 급증 관측",
+      "kind": "observed",
+      "weight": 2,
+      "detail": "공개 지분율 화면에서 하루 +18,233,725주 증가가 관측됐다(355,501,397 → 373,735,122). IPO 기초주식 17,790,000주와 근사하며 당일 전체 거래량은 5,521,187주였다. 1회 열람으로 확인한 참고 관측이며, 해당 화면은 자동수집·재배포 허용이 확인되지 않아 이 대시보드의 데이터 소스로 쓰지 않는다.",
+      "url": null
+    },
+    {
+      "date": "2026-07-29",
+      "title": "신주 상장 — 지분율 분모 전환",
+      "kind": "confirmed",
+      "weight": 2,
+      "detail": "상장주식수가 712,702,365 → 730,492,365로 바뀐다. 분모를 고정 상수로 두면 이 날 지분율이 인위적으로 튄다.",
+      "url": null
+    },
+    {
+      "date": "2026-08-31",
+      "title": "MVIS 지수 구성종목 선정 데이터 기준일",
+      "kind": "scheduled",
+      "weight": 3,
+      "detail": "지수 제공사가 이 시점 데이터를 사용한다고 공표한 일정. 편입 여부는 확정되지 않았다.",
+      "url": "https://www.marketvector.com/indexes/sector/mvis-us-listed-semiconductor-25"
+    },
+    {
+      "date": "2026-09-11",
+      "title": "MVIS 정기변경 발표 예정",
+      "kind": "scheduled",
+      "weight": 3,
+      "detail": "이 날 편입 여부와 비중이 공표된다. 그 전까지 편입을 전제한 매수 규모는 시나리오일 뿐이다.",
+      "url": "https://www.marketvector.com/indexes/sector/mvis-us-listed-semiconductor-25"
+    },
+    {
+      "date": "2026-09-18",
+      "title": "MVIS 정기변경 실행 예정 (종가 기준)",
+      "kind": "scheduled",
+      "weight": 3,
+      "detail": "실행일. 지수 추종 주문은 특정 종가에 몰리는 일방향 수요다.",
+      "url": null
+    },
+    {
+      "date": "2026-09-21",
+      "title": "MVIS 정기변경 효력 발생 예정",
+      "kind": "scheduled",
+      "weight": 2,
+      "detail": null,
+      "url": null
+    },
+    {
+      "date": "2026-11-30",
+      "title": "나스닥100 리컨스티튜션 기준일 (예정)",
+      "kind": "scheduled",
+      "weight": 2,
+      "detail": "원 스펙 문서에 기재된 일정. 이 페이지에서 독립 검증하지 않았다.",
+      "url": null
+    },
+    {
+      "date": "2026-12-11",
+      "title": "나스닥100 편입 발표 (예정)",
+      "kind": "scheduled",
+      "weight": 2,
+      "detail": "원 스펙 문서에 기재된 일정. 이 페이지에서 독립 검증하지 않았다.",
+      "url": null
+    },
+    {
+      "date": "2026-12-21",
+      "title": "나스닥100 효력 발생 (예정)",
+      "kind": "scheduled",
+      "weight": 1,
+      "detail": "원 스펙 문서에 기재된 일정. 이 페이지에서 독립 검증하지 않았다.",
+      "url": null
+    }
+  ],
+  "scenarioNote": {
+    "headline": "편입 시 필요 매수 규모는 시나리오다",
+    "detail": "원 스펙은 20~40억 달러를 제시했다. 이는 지수 자산과 예상 비중을 가정한 값이며 확정 필요매수액이 아니다. 편입 여부 자체가 미확정이고, 지수는 free-float 시총과 거래량 순위를 함께 쓰며 기존 구성종목 버퍼도 둔다.",
+    "context": "참고로 최근 SKHY의 종가×거래량 proxy 일평균은 아래 관측 패널에 표시된다. 20억·40억 달러가 그 몇 일분에 해당하는지는 계산해 볼 수 있으나, gross volume에는 양방향 체결이 섞여 있어 일방향 수용력과 다르다. 실제 수용력 판단에는 종가 경매량·호가 깊이·참여율·스프레드·가격충격이 필요하며 이 페이지는 그 데이터를 갖고 있지 않다."
+  }
+}

@@ -104,6 +104,35 @@
       </a>
     </section>
 
+    <!-- 섹션 0.4: SKHY 관측 대시보드 (신규 2026-08-13) -->
+    <section>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-solid fa-binoculars"></i> SK하이닉스 ADR · 관측</h2>
+      <p class="text-[11px] text-slate-500 mb-4">나스닥 상장 ADR(SKHY)의 발행 구조·가격 괴리·SEC 공시를 관측만 하는 페이지. 별도 스펙 문서의 축소 구현이며 <b class="text-slate-400">경로 판별은 데이터 미확보로 수행하지 않습니다</b>(연구·교육용).</p>
+      <a href="./skhy-tracker/" class="cat-card block rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900/70 to-slate-800/40 ring-1 ring-amber-500/30 p-6 hover:ring-amber-400/60">
+        <div class="flex items-start gap-5 flex-wrap">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/15 ring-1 ring-amber-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-binoculars text-amber-400 text-xl"></i></div>
+          <div class="flex-1 min-w-[220px]">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-lg font-bold text-white">SKHY 관측 대시보드</h3>
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">New</span>
+              <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/15 ring-1 ring-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-300 uppercase tracking-widest">경로 판정 불가</span>
+            </div>
+            <p class="mt-1 text-[13px] leading-relaxed text-slate-400">
+              SEC 원문 확정 사실(<b class="text-slate-300">1 ADS = 보통주 1/10주</b> · IPO 본주 17,790,000주 = ADS 177,900,000주 · 발행총수 730,492,365주 / outstanding 728,865,500주 구분),
+              <b class="text-slate-300">두 시점 정의를 병기한</b> ADR 가격 괴리, 거래 규모 proxy, 사건 타임라인, SEC 제출 로그, 소스 상태·수집 receipt.
+              <b class="text-amber-300">외국인 보유주식수·순매수는 KRX 통계 API가 인증 뒤로 이동해 확보하지 못했고, 추정으로 채우지 않았습니다.</b>
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest">ADR 가격 괴리 (관측)</div>
+            <div class="text-xl font-extrabold text-amber-400 tabular-nums">+15.3 ~ +60.1%</div>
+            <div class="text-[11px] text-slate-500">동일 날짜 라벨 기준 · 원인 미확정</div>
+          </div>
+        </div>
+        <div class="mt-4 text-xs font-semibold text-amber-400">열기 <i class="fa-solid fa-arrow-right ml-1"></i></div>
+      </a>
+    </section>
+
     <!-- 섹션 0.5: 암호화폐 크로스 워치 (신규 2026-06-24) -->
     <section>
       <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-brands fa-bitcoin"></i> 암호화폐 · 크로스 워치</h2>

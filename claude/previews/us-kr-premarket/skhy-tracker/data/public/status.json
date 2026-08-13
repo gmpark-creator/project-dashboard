@@ -1,0 +1,102 @@
+{
+  "asOfUtc": "2026-08-13T05:54:46.915Z",
+  "stalenessTtlHours": 30,
+  "sources": [
+    {
+      "id": "yahoo-skhy",
+      "label": "SKHY 일봉 (Yahoo)",
+      "ok": true,
+      "httpStatus": 200,
+      "lastSuccessUtc": "2026-08-13T05:54:46.918Z",
+      "error": null
+    },
+    {
+      "id": "yahoo-000660",
+      "label": "본주 000660 일봉 (Yahoo)",
+      "ok": true,
+      "httpStatus": 200,
+      "lastSuccessUtc": "2026-08-13T05:54:47.361Z",
+      "error": null
+    },
+    {
+      "id": "yahoo-krwx",
+      "label": "USD/KRW 일봉 (Yahoo KRW=X)",
+      "ok": true,
+      "httpStatus": 200,
+      "lastSuccessUtc": "2026-08-13T05:54:47.536Z",
+      "error": null
+    },
+    {
+      "id": "frankfurter-fx",
+      "label": "USD/KRW 교차확인 (Frankfurter/ECB)",
+      "ok": true,
+      "httpStatus": 200,
+      "lastSuccessUtc": "2026-08-13T05:54:47.684Z",
+      "error": null
+    },
+    {
+      "id": "sec-submissions",
+      "label": "SEC EDGAR 제출 (CIK 0002120882)",
+      "ok": true,
+      "httpStatus": 200,
+      "lastSuccessUtc": "2026-08-13T05:54:48.474Z",
+      "error": null
+    }
+  ],
+  "receipts": [
+    {
+      "id": "yahoo-skhy",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/SKHY?range=3mo&interval=1d",
+      "fetchedAtUtc": "2026-08-13T05:54:46.918Z",
+      "httpStatus": 200,
+      "bytes": 3641,
+      "sha256": "4303cd303c4f5b09c34a699c6c13ba568482cd2a2225c7748433e731a6340b19",
+      "error": null
+    },
+    {
+      "id": "yahoo-000660",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/000660.KS?range=3mo&interval=1d",
+      "fetchedAtUtc": "2026-08-13T05:54:47.361Z",
+      "httpStatus": 200,
+      "bytes": 5517,
+      "sha256": "199d807542819ebe847d0c407bfaaca86b4ac90adccb0714c73c2045250d40b8",
+      "error": null
+    },
+    {
+      "id": "yahoo-krwx",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=3mo&interval=1d",
+      "fetchedAtUtc": "2026-08-13T05:54:47.536Z",
+      "httpStatus": 200,
+      "bytes": 7904,
+      "sha256": "401ddb7cbbb68e7a28bba36ca11c35c4250014bb31cf76804abb7e7dc5e4bce2",
+      "error": null
+    },
+    {
+      "id": "frankfurter-fx",
+      "url": "https://api.frankfurter.dev/v1/2026-07-10..?base=USD&symbols=KRW",
+      "fetchedAtUtc": "2026-08-13T05:54:47.684Z",
+      "httpStatus": 200,
+      "bytes": 780,
+      "sha256": "c516c5800ae4c0375c350e3975d741a73e97ea41d7784d532793535f2e079c76",
+      "error": null
+    },
+    {
+      "id": "sec-submissions",
+      "url": "https://data.sec.gov/submissions/CIK0002120882.json",
+      "fetchedAtUtc": "2026-08-13T05:54:48.474Z",
+      "httpStatus": 200,
+      "bytes": 5201,
+      "sha256": "1fc7ca2f2cdc48ec1c8aa1a4e8031c9d5ab2bf7627c788c3d5335cc6811cc0c5",
+      "error": null
+    }
+  ],
+  "blocked": [
+    {
+      "id": "krx-foreign-holdings",
+      "label": "외국인 보유주식수 · 외국인 순매수 (KRX)",
+      "state": "BLOCKED",
+      "reason": "data.krx.co.kr 통계 API가 인증 뒤로 이동(HTTP 400 · 본문 \"LOGOUT\"). 쿠키·Referer·AJAX 헤더 선행에도 동일. KRX OpenAPI 서비스 목록에 해당 필드가 없음.",
+      "consequence": "Gap(Δ외국인보유 − 외국인순매수) 산출 불가 → 경로 A/B 판별 불가. 추정·대체 소스로 채우지 않는다."
+    }
+  ]
+}

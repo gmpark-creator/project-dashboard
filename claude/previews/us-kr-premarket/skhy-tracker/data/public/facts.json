@@ -1,0 +1,73 @@
+{
+  "asOf": "2026-08-13",
+  "note": "전부 SEC 원문에서 확인한 값이며 추정치가 아니다. Codex(gpt-5.6-sol) 적대검토로 재대조했다.",
+  "issuer": {
+    "name": "SK hynix Inc.",
+    "issuerCik": "0002120882",
+    "tickers": ["SKHY", "HXSCL"],
+    "exchanges": ["Nasdaq", "OTC"],
+    "f6ArchiveRegistrantCik": "1472033",
+    "cikCaveat": "F-6의 archive registrant CIK가 issuer CIK와 다르다. issuer CIK로 archive 문서 URL을 조립하면 깨진다."
+  },
+  "adsStructure": [
+    {
+      "key": "ADS 비율",
+      "value": "1 ADS = 보통주 1/10주",
+      "detail": "보통주 1주 = ADS 10주. 본주 환산가 = ADS 가격 × 10.",
+      "source": "SEC Form F-6 원문",
+      "quote": "each American Depositary Share representing the right to receive one-tenth (1/10) of one common share of SK hynix Inc.",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119380526000898/e665622_f6-skhynix.htm"
+    },
+    {
+      "key": "IPO 발행 보통주",
+      "value": "17,790,000 주",
+      "detail": "예탁기관에 배정된 기초 보통주. 스펙의 INITIAL_ADR_SHARES라는 이름은 오해를 부르며 INITIAL_UNDERLYING_COMMON이 정확하다.",
+      "source": "SEC 424B4 표지",
+      "quote": "17,790,000 Common Shares Represented by American Depositary Shares",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299963/d32785d424b4.htm"
+    },
+    {
+      "key": "IPO 발행 ADS",
+      "value": "177,900,000 ADS",
+      "detail": "1억 7,790만 ADS. ⚠️ 원 스펙 문서는 이를 '약 17억 7,900만 ADS'로 적었는데 10배 오류이며, F-6 등록용량과 혼동한 것이다.",
+      "source": "SEC 424B4 본문",
+      "quote": "We are offering 177,900,000 ADSs.",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299963/d32785d424b4.htm"
+    },
+    {
+      "key": "F-6 등록용량",
+      "value": "실제 발행량과 다른 개념",
+      "detail": "등록용량(registration capacity) ≠ 실제 발행된 ADS ≠ 현재 outstanding ADS. 셋을 구분하지 않으면 발행 여력을 과대평가한다. 현재 outstanding은 Citi 공식 자료로만 확인 가능하며 이 페이지는 갖고 있지 않다.",
+      "source": "SEC Form F-6",
+      "quote": null,
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119380526000898/e665622_f6-skhynix.htm"
+    }
+  ],
+  "shareCounts": {
+    "note": "issued(발행총수) · outstanding(자기주식 제외) · 날짜별 상장주식수는 서로 다른 개념이다. 외국인 지분율의 분모는 날짜별 상장주식수이며, 고정 상수로 두면 안 된다.",
+    "rows": [
+      { "key": "공모 전 발행총수 (issued)", "value": 712702365, "source": "424B4 원문 직접 인용", "quote": "17,790,000 shares, representing approximately 2.50% of our total issued common shares of 712,702,365 shares as of the date of such resolution" },
+      { "key": "IPO 신주", "value": 17790000, "source": "424B4 표지", "quote": null },
+      { "key": "공모 후 발행총수 (issued)", "value": 730492365, "source": "파생값 (712,702,365 + 17,790,000)", "quote": "⚠️ 424B4 본문에 이 숫자는 등장하지 않는다. 계산으로 얻은 값이다." },
+      { "key": "공모 후 outstanding (자기주식 제외)", "value": 728865500, "source": "424B4 원문", "quote": "Immediately after the offering, we will have an aggregate of 728,865,500 common shares, including common shares represented by ADSs, outstanding" },
+      { "key": "자기주식 (파생)", "value": 1626865, "source": "파생값 (730,492,365 − 728,865,500)", "quote": null }
+    ]
+  },
+  "denominatorSwitch": {
+    "headline": "외국인 지분율의 분모는 신주 상장일에 바뀐다",
+    "detail": "공개 지분율 표에서 보유수량 + 매수가능수량의 합이 곧 분모(상장주식수)다. 이 합이 7/28과 7/29 사이에 정확히 신주 17,790,000주만큼 늘어난다. 따라서 분모를 고정 상수로 두면 신주 상장일에 지분율이 인위적으로 튄다.",
+    "rows": [
+      { "date": "2026-07-28", "held": 373374636, "buyable": 339327729, "sum": 712702365 },
+      { "date": "2026-07-29", "held": 371422583, "buyable": 359069782, "sum": 730492365 }
+    ],
+    "delta": 17790000,
+    "warning": "반올림된 지분율(%)로 보유주수를 역산하면 안 된다. 분모 선택만으로 최대 약 1,515만 주, 소수 둘째 자리 반올림만으로도 약 ±36,525주(ADS 환산 ±365,250주)의 오차가 생긴다."
+  },
+  "blockedMetric": {
+    "headline": "핵심 지표 미확보 — 경로 판정 불가",
+    "detail": "이 프로젝트의 원래 목적은 경로 A(ADR 유통시장 흡수)와 경로 B(신규 ADS 발행)를 매일 판별하는 것이었다. 그 판별은 외국인 보유주식수와 외국인 순매수를 모두 필요로 한다. 두 값 모두 현재 확보하지 못했다.",
+    "why": "data.krx.co.kr 통계 API가 인증 뒤로 이동했다(HTTP 400, 본문 \"LOGOUT\"). 쿠키·Referer·AJAX 헤더를 선행해도 동일하다. KRX OpenAPI 서비스 목록에 외국인 보유수량과 종목별 투자자 순매수가 없어, 계정 발급만으로 해결되지 않는다.",
+    "notDone": "추정하거나 다른 소스로 대체하거나 보간하지 않았다. 자동수집·공개 재배포가 허용된다고 확인된 합법 경로가 없기 때문이다.",
+    "methodologyCaveat": "설령 데이터를 확보하더라도 Δ외국인보유 − 장내순매수는 DR 전환량이 아니라 「미설명 외국인 보유 변동」이다. 이 잔차에는 장외·계좌간 이전, 신주·소각·배정, 등록분류 변경, 정정이 함께 섞인다. Citi 월별 outstanding과 반복적으로 대조되기 전에는 DR 추정치로 승격할 수 없다."
+  }
+}

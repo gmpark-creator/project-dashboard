@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKHY 관측 대시보드 — Polaris Market Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body { background:#0B1120; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; word-break:keep-all; }
+  .card { background:rgba(15,23,42,.7); border:1px solid #1e293b; border-radius:14px; }
+  .kv { font-variant-numeric:tabular-nums; }
+  .chart { background:#131722; border-radius:12px; }
+  table.grid td, table.grid th { border:1px solid #1e293b; padding:7px 10px; font-size:12.5px; vertical-align:top; }
+  .scrollx { overflow-x:auto; }
+  .blk { border-left:3px solid #334155; padding-left:12px; }
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+
+<header class="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-[#0B1120]">
+  <div class="max-w-[1180px] mx-auto px-6 py-7">
+    <div class="flex items-center gap-2 text-xs font-semibold tracking-widest text-sky-400 uppercase flex-wrap">
+      <a href="../" class="hover:text-sky-300"><i class="fa-solid fa-compass"></i> Project #6 · Polaris</a>
+      <span class="text-slate-600">/</span><span class="text-slate-400">SKHY Observation</span>
+      <span class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 ring-1 ring-slate-500/30 px-2.5 py-0.5 text-[10px] font-bold text-slate-300 normal-case tracking-normal">
+        <i class="fa-solid fa-flask text-[9px]"></i> RESEARCH ONLY
+      </span>
+    </div>
+    <h1 class="mt-2 text-3xl font-extrabold text-white">SK하이닉스 ADR <span class="text-sky-400">관측 대시보드</span></h1>
+    <p class="mt-2 text-sm text-slate-400">나스닥 상장 ADR(<b class="text-slate-300">SKHY</b>)의 발행 구조·가격 괴리·공시를 <b class="text-slate-300">관측만</b> 하는 페이지입니다. 판별하지 않습니다.</p>
+    <div class="mt-3 text-[11px] text-slate-500 kv">
+      데이터 기준 <span id="hdr-asof">—</span> · 원 설계 대비 축소 범위 · Claude 제안 → Codex(gpt-5.6-sol) 적대검토 반영본
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1180px] mx-auto px-6 py-8 space-y-10" id="main">
+  <p class="text-slate-500 text-sm">자료를 불러오는 중…</p>
+</main>
+
+<footer class="border-t border-slate-800 mt-6">
+  <div class="max-w-[1180px] mx-auto px-6 py-7 text-[11px] text-slate-500 leading-relaxed">
+    <p><b class="text-slate-400">연구·교육 전용.</b> 투자자문이 아니며 매매 결정과 그 결과의 책임은 이용자 본인에게 있습니다. 추천·목표가·승률을 제공하지 않고 자동주문을 사용하지 않습니다.</p>
+    <p class="mt-1">이 페이지는 경로 판별·전환량 추정·편입 확정 여부를 제시하지 않습니다. 확보하지 못한 데이터는 비워 두며 추정으로 채우지 않습니다.</p>
+    <p class="mt-1">Polaris Market Intelligence · G.M.PARK</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+(function () {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+  const pct = v => v == null ? '—' : (v * 100).toFixed(2) + '%';
+  const num = (v, d) => v == null ? '—' : Number(v).toLocaleString('ko-KR', { maximumFractionDigits: d == null ? 0 : d });
+  const CH = { bg:'#131722', grid:'#2A2E39', axis:'#787B86' };
+
+  /* ── 인라인 SVG 라인 차트 · 결측은 이어붙이지 않는다 ── */
+  function lineChart(series, o) {
+    o = o || {};
+    const W = o.w || 1080, H = o.h || 240, padL = 8, padR = 62, padT = 16, padB = 24;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    const all = series.flatMap(s => s.points.map(p => p.v)).filter(v => v != null);
+    if (!all.length) return `<div class="text-[12px] text-rose-400 p-3">표시할 관측값이 없습니다.</div>`;
+    let hi = Math.max(...all), lo = Math.min(...all);
+    if (o.includeZero) { hi = Math.max(hi, 0); lo = Math.min(lo, 0); }
+    const pad = (hi - lo) * 0.12 || Math.abs(hi || 1) * 0.1; hi += pad; lo -= pad;
+    const dates = o.dates;
+    const x = i => padL + (dates.length === 1 ? iw / 2 : (i * iw) / (dates.length - 1));
+    const y = v => padT + ((hi - v) / (hi - lo)) * ih;
+
+    let g = '';
+    for (let k = 0; k <= 4; k++) {
+      const yy = padT + (ih * k) / 4, val = hi - ((hi - lo) * k) / 4;
+      g += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${padL + iw}" y2="${yy.toFixed(1)}" stroke="${CH.grid}" stroke-width="1"/>`;
+      g += `<text x="${padL + iw + 6}" y="${(yy + 3.5).toFixed(1)}" fill="${CH.axis}" font-size="9.5">${o.fmt ? o.fmt(val) : val.toFixed(1)}</text>`;
+    }
+    if (lo < 0 && hi > 0) g += `<line x1="${padL}" y1="${y(0).toFixed(1)}" x2="${padL + iw}" y2="${y(0).toFixed(1)}" stroke="#64748b" stroke-width="1" stroke-dasharray="4 3"/>`;
+
+    let paths = '';
+    series.forEach(s => {
+      let d = '', open = false, dots = '';
+      s.points.forEach((p, i) => {
+        if (p.v == null) { open = false; return; }        // 결측에서 선을 끊는다
+        const X = x(i).toFixed(1), Y = y(p.v).toFixed(1);
+        d += (open ? ' L' : ' M') + X + ' ' + Y; open = true;
+        dots += `<circle cx="${X}" cy="${Y}" r="1.6" fill="${s.color}" opacity=".85"/>`;
+      });
+      paths += `<path d="${d.trim()}" fill="none" stroke="${s.color}" stroke-width="1.7"${s.dash ? ' stroke-dasharray="4 3"' : ''}/>${dots}`;
+    });
+
+    let ticks = '';
+    const step = Math.max(1, Math.ceil(dates.length / 8));
+    dates.forEach((dt, i) => {
+      if (i % step) return;
+      ticks += `<text x="${x(i).toFixed(1)}" y="${H - 7}" fill="${CH.axis}" font-size="9" text-anchor="middle">${dt.slice(5)}</text>`;
+    });
+
+    let marks = '';
+    (o.marks || []).forEach(m => {
+      const i = dates.indexOf(m.date);
+      if (i < 0) return;
+      marks += `<line x1="${x(i).toFixed(1)}" y1="${padT}" x2="${x(i).toFixed(1)}" y2="${padT + ih}" stroke="${m.color || '#94a3b8'}" stroke-width="1" stroke-dasharray="3 3"/>`;
+      marks += `<text x="${(x(i) + 3).toFixed(1)}" y="${padT + 10}" fill="${m.color || '#cbd5e1'}" font-size="8.5">${esc(m.label)}</text>`;
+    });
+
+    return `<svg viewBox="0 0 ${W} ${H}" class="chart w-full" role="img" aria-label="${esc(o.alt || '관측 차트')}">
+      <rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="11" fill="${CH.bg}" stroke="#334155"/>${g}${marks}${paths}${ticks}</svg>`;
+  }
+
+  const legend = series => series.map(s =>
+    `<span class="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span style="display:inline-block;width:16px;height:0;border-top:2px ${s.dash ? 'dashed' : 'solid'} ${s.color}"></span>${esc(s.name)}</span>`
+  ).join('<span class="mx-2 text-slate-700">·</span>');
+
+  /* ── 렌더 ── */
+  function render(D) {
+    const ts = D.timeseries, st = D.status, fa = D.facts, ev = D.events, fi = D.filings;
+    const rows = ts.rows;
+    const dates = rows.map(r => r.date);
+    $('#hdr-asof').textContent = (ts.asOfUtc || '').slice(0, 16).replace('T', ' ') + ' UTC';
+
+    /* 신선도 */
+    const ageH = (Date.now() - Date.parse(st.asOfUtc)) / 36e5;
+    const stale = ageH > (st.stalenessTtlHours || 30);
+
+    const secA = `
+      <section>
+        ${stale ? `<div class="mb-4 rounded-xl bg-rose-500/10 ring-1 ring-rose-500/40 p-4 text-[13px] text-rose-200">
+          <b><i class="fa-solid fa-clock-rotate-left"></i> 데이터가 오래됐습니다</b> — 마지막 수집 ${ageH.toFixed(1)}시간 전(TTL ${st.stalenessTtlHours}시간). 아래 값은 <b>현재 시세가 아닙니다.</b>
+        </div>` : ''}
+
+        <div class="rounded-2xl bg-amber-500/5 ring-1 ring-amber-500/30 p-6">
+          <div class="flex items-center gap-2 flex-wrap">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
+            <h2 class="text-lg font-extrabold text-amber-200">${esc(fa.blockedMetric.headline)}</h2>
+            <span class="rounded-full bg-rose-500/15 ring-1 ring-rose-500/30 px-2.5 py-0.5 text-[10px] font-bold text-rose-300 uppercase tracking-widest">판정 불가</span>
+          </div>
+          <p class="mt-2 text-[13px] leading-relaxed text-slate-300">${esc(fa.blockedMetric.detail)}</p>
+          <div class="mt-3 grid gap-3 md:grid-cols-3 text-[12px]">
+            <div class="blk"><div class="text-[10.5px] font-bold uppercase tracking-widest text-slate-500">막힌 이유</div><p class="mt-1 text-slate-400">${esc(fa.blockedMetric.why)}</p></div>
+            <div class="blk"><div class="text-[10.5px] font-bold uppercase tracking-widest text-slate-500">하지 않은 것</div><p class="mt-1 text-slate-400">${esc(fa.blockedMetric.notDone)}</p></div>
+            <div class="blk"><div class="text-[10.5px] font-bold uppercase tracking-widest text-slate-500">데이터를 얻더라도</div><p class="mt-1 text-slate-400">${esc(fa.blockedMetric.methodologyCaveat)}</p></div>
+          </div>
+        </div>
+      </section>`;
+
+    /* 소스 상태 */
+    const secB = `
+      <section>
+        <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-2"><i class="fa-solid fa-signal"></i> 데이터 소스 상태</h2>
+        <div class="grid gap-2 md:grid-cols-3">
+          ${st.sources.map(s => `<div class="card p-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[12.5px] font-bold text-white">${esc(s.label)}</span>
+              <span class="text-[11px] font-bold ${s.ok ? 'text-emerald-300' : 'text-rose-300'}">${s.ok ? '🟢 정상' : '🔴 실패'}</span>
+            </div>
+            <div class="mt-1 text-[10.5px] text-slate-500 kv">HTTP ${esc(s.httpStatus ?? '—')} · ${s.lastSuccessUtc ? esc(s.lastSuccessUtc.slice(0, 16).replace('T', ' ')) + ' UTC' : '마지막 성공 없음'}</div>
+            ${s.error ? `<div class="mt-1 text-[10.5px] text-rose-400">${esc(s.error)}</div>` : ''}
+          </div>`).join('')}
+          ${st.blocked.map(b => `<div class="card p-3 ring-1 ring-rose-500/30">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[12.5px] font-bold text-white">${esc(b.label)}</span>
+              <span class="text-[11px] font-bold text-rose-300">⛔ 차단</span>
+            </div>
+            <div class="mt-1 text-[10.5px] text-slate-400">${esc(b.reason)}</div>
+          </div>`).join('')}
+        </div>
+      </section>`;
+
+    /* 발행 구조 */
+    const secC = `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">발행 구조 — 원문 확정 사실</h2>
+        <p class="mt-1 text-[12.5px] text-slate-400">${esc(fa.note)}</p>
+        <div class="mt-4 grid gap-3 md:grid-cols-2">
+          ${fa.adsStructure.map(a => `<div class="card p-4">
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="font-bold text-white text-[14px]">${esc(a.key)}</h3>
+              <span class="text-[13px] font-extrabold text-sky-300 kv">${esc(a.value)}</span>
+            </div>
+            <p class="mt-1.5 text-[12px] text-slate-400 leading-relaxed">${esc(a.detail)}</p>
+            ${a.quote ? `<div class="mt-2 rounded bg-slate-800/60 px-2.5 py-1.5 text-[11px] text-slate-300 italic">“${esc(a.quote)}”</div>` : ''}
+            <div class="mt-1.5 text-[10.5px] text-slate-500">${esc(a.source)}${a.url ? ` · <a href="${esc(a.url)}" target="_blank" rel="noopener" class="text-sky-400 hover:underline">원문 <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></a>` : ''}</div>
+          </div>`).join('')}
+        </div>
+
+        <h3 class="mt-6 font-bold text-white text-[15px]">주식수 — 개념을 구분한다</h3>
+        <p class="text-[12px] text-slate-400 mt-1">${esc(fa.shareCounts.note)}</p>
+        <div class="mt-2 scrollx"><table class="grid w-full min-w-[680px] text-slate-300">
+          <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">구분</th><th class="text-right">주식수</th><th class="text-left">출처</th></tr></thead>
+          <tbody>${fa.shareCounts.rows.map(r => `<tr>
+            <td class="font-semibold text-slate-200">${esc(r.key)}</td>
+            <td class="text-right kv font-bold text-white">${num(r.value)}</td>
+            <td class="text-slate-400">${esc(r.source)}${r.quote ? `<div class="mt-1 text-[10.5px] text-slate-500 italic">${esc(r.quote)}</div>` : ''}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+
+        <div class="mt-4 rounded-xl bg-sky-500/5 ring-1 ring-sky-500/25 p-4">
+          <h4 class="font-bold text-sky-300 text-[13.5px]"><i class="fa-solid fa-scale-balanced"></i> ${esc(fa.denominatorSwitch.headline)}</h4>
+          <p class="mt-1.5 text-[12px] text-slate-300">${esc(fa.denominatorSwitch.detail)}</p>
+          <div class="mt-2 scrollx"><table class="grid w-full min-w-[560px] text-slate-300">
+            <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">날짜</th><th class="text-right">외국인 보유</th><th class="text-right">매수 가능</th><th class="text-right">합 = 분모</th></tr></thead>
+            <tbody>${fa.denominatorSwitch.rows.map(r => `<tr><td class="kv">${esc(r.date)}</td><td class="text-right kv">${num(r.held)}</td><td class="text-right kv">${num(r.buyable)}</td><td class="text-right kv font-bold text-white">${num(r.sum)}</td></tr>`).join('')}
+            <tr><td colspan="3" class="text-right font-semibold text-slate-200">차이</td><td class="text-right kv font-extrabold text-emerald-300">+${num(fa.denominatorSwitch.delta)}</td></tr></tbody>
+          </table></div>
+          <p class="mt-2 text-[11.5px] text-amber-400/90"><i class="fa-solid fa-circle-exclamation"></i> ${esc(fa.denominatorSwitch.warning)}</p>
+        </div>
+      </section>`;
+
+    /* 프리미엄 */
+    const pSeries = [
+      { name: '① 동일 날짜 라벨 (KR D일 ↔ US D일)', color: '#38bdf8', points: rows.map(r => ({ v: r.premiumSameLabel })) },
+      { name: '② 한국 종가 시점 기지 (KR D일 ↔ 직전 US 종가)', color: '#f59e0b', dash: true, points: rows.map(r => ({ v: r.premiumKnownAtKrClose })) },
+    ];
+    const s1 = ts.summary.premiumSameLabel, s2 = ts.summary.premiumKnownAtKrClose;
+    const secD = `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">ADR 가격 괴리 — 두 시점 정의를 함께 본다</h2>
+        <p class="mt-1 text-[12.5px] text-slate-400">
+          <code class="text-[11.5px] text-sky-300">${esc(ts.premiumFormula)}</code><br>
+          <b class="text-slate-300">어느 쪽도 동시 가격이 아닙니다.</b> 한국 종가는 15:30 KST, 미국 종가는 다음날 05~06시 KST입니다. 단일 수치로 제시하지 않고 두 정의를 병기합니다.
+        </p>
+        <div class="mt-3 grid gap-3 md:grid-cols-2">
+          <div class="card p-4"><div class="text-[11px] font-bold uppercase tracking-widest text-sky-400">① 동일 날짜 라벨</div>
+            <p class="mt-1 text-[11.5px] text-slate-400">${esc(ts.premiumDefinitions.premiumSameLabel)}</p>
+            <div class="mt-2 text-[13px] kv text-slate-200">관측 ${s1 ? s1.n : 0}건 · 범위 <b class="text-white">${pct(s1 && s1.min)} ~ ${pct(s1 && s1.max)}</b> · 평균 <b class="text-white">${pct(s1 && s1.mean)}</b></div></div>
+          <div class="card p-4"><div class="text-[11px] font-bold uppercase tracking-widest text-amber-400">② 한국 종가 시점 기지(旣知)</div>
+            <p class="mt-1 text-[11.5px] text-slate-400">${esc(ts.premiumDefinitions.premiumKnownAtKrClose)}</p>
+            <div class="mt-2 text-[13px] kv text-slate-200">관측 ${s2 ? s2.n : 0}건 · 범위 <b class="text-white">${pct(s2 && s2.min)} ~ ${pct(s2 && s2.max)}</b> · 평균 <b class="text-white">${pct(s2 && s2.mean)}</b></div></div>
+        </div>
+        <div class="mt-3">${legend(pSeries)}</div>
+        <div class="mt-2">${lineChart(pSeries, { dates, includeZero: true, fmt: v => (v * 100).toFixed(0) + '%', alt: 'ADR 가격 괴리 두 정의',
+          marks: [{ date: '2026-07-29', label: '신주 상장', color: '#a78bfa' }] })}</div>
+        <p class="mt-2 text-[11px] text-slate-500">${esc(ts.missingPolicy)} 선이 끊긴 구간은 양 시장 휴장일이 달라 조인되지 않은 날입니다.</p>
+        <div class="mt-3 rounded-lg bg-slate-800/40 p-3 text-[11.5px] text-slate-400">
+          <b class="text-slate-300">이 괴리의 원인은 확정되지 않았습니다.</b> 비동시 가격 비교, 신규 예탁의 법적·운영적 제한, 시장 분절과 직접투자 제약, 공매도·대차 부족, 지수 편입 기대 선반영, 실제 ADS outstanding 오인 등이 후보이며 이 페이지는 어느 하나도 단정하지 않습니다. 원인을 가리려면 전환 용량·예탁기관 발행내역·대차 가용성 자료가 필요하며 확보하지 못했습니다.
+        </div>
+        ${ts.fxCrossCheck ? `<details class="mt-3"><summary class="cursor-pointer text-[11.5px] text-slate-400">환율 소스 교차 확인 (같은 as-of끼리)</summary>
+          <div class="mt-2 scrollx"><table class="grid w-full min-w-[520px] text-slate-300"><thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">날짜</th><th class="text-right">Yahoo KRW=X</th><th class="text-right">Frankfurter(ECB)</th><th class="text-right">차이</th></tr></thead>
+          <tbody>${ts.fxCrossCheck.rows.map(r => `<tr><td class="kv">${esc(r.date)}</td><td class="text-right kv">${num(r.yahoo, 2)}</td><td class="text-right kv">${num(r.frankfurter, 2)}</td><td class="text-right kv ${Math.abs(r.diffPct) > 0.5 ? 'text-amber-300' : 'text-slate-400'}">${r.diffPct.toFixed(3)}%</td></tr>`).join('')}</tbody></table></div>
+          <p class="mt-1 text-[10.5px] text-slate-500">${esc(ts.fxCrossCheck.note)} 환율 소스를 바꾸면 괴리에 상수 편향이 생기므로 이 페이지는 Yahoo KRW=X 하나로 일관되게 계산합니다.</p></details>` : ''}
+      </section>`;
+
+    /* 가격 오버레이 + 거래량 */
+    const priceSeries = [
+      { name: '본주 종가 (원)', color: '#f87171', points: rows.map(r => ({ v: r.krClose })) },
+      { name: 'ADS × 10 환산 (원, 동일 날짜 라벨)', color: '#60a5fa', dash: true, points: rows.map(r => ({ v: (r.usClose != null && r.fxSameLabel != null) ? r.usClose * 10 * r.fxSameLabel : null })) },
+    ];
+    const turn = ts.summary.usTurnoverProxyUsd;
+    const turnSeries = [{ name: 'SKHY 종가 × 거래량 (proxy, USD)', color: '#4ade80', points: rows.map(r => ({ v: r.usTurnoverProxyUsd })) }];
+    const secE = `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">가격 오버레이 · 거래 규모</h2>
+        <div class="mt-3">${legend(priceSeries)}</div>
+        <div class="mt-2">${lineChart(priceSeries, { dates, fmt: v => (v / 1e6).toFixed(2) + 'M', alt: '본주 vs ADS 환산' })}</div>
+        <p class="mt-2 text-[11px] text-slate-500">두 선의 벌어짐이 곧 위의 ① 정의 괴리입니다. 본주는 Yahoo 수정주가이며 관측 구간에 분할 이벤트는 없었습니다.</p>
+
+        <h3 class="mt-6 font-bold text-white text-[15px]">SKHY 거래 규모 <span class="text-[11px] font-normal text-amber-400/90">— 실제 체결대금이 아니라 proxy</span></h3>
+        <p class="text-[11.5px] text-slate-400 mt-1">
+          <b class="text-slate-300">종가 × 거래량</b>으로 계산한 근사치입니다. 실제 체결대금도, 일방향 매도 가능 물량도, 종가 경매 깊이도 아닙니다.
+          ${turn ? `관측 ${turn.n}일 · 평균 <b class="text-white kv">$${num(turn.mean)}</b> · 범위 $${num(turn.min)} ~ $${num(turn.max)}` : ''}
+        </p>
+        <div class="mt-2">${lineChart(turnSeries, { dates, h: 180, fmt: v => '$' + (v / 1e9).toFixed(1) + 'B', alt: '거래 규모 proxy' })}</div>
+        <p class="mt-2 text-[11px] text-slate-500">gross volume에는 양방향 체결이 섞여 있어 일방향 수용력과 다릅니다. 수용력 판단에는 종가 경매량·호가 깊이·참여율·스프레드·가격충격이 필요하며 이 페이지는 그 자료를 갖고 있지 않습니다.</p>
+      </section>`;
+
+    /* 타임라인 */
+    const KIND = { confirmed: ['확정', 'text-emerald-300 bg-emerald-500/15 ring-emerald-500/30'],
+                   observed: ['관측', 'text-sky-300 bg-sky-500/15 ring-sky-500/30'],
+                   scheduled: ['예정', 'text-amber-300 bg-amber-500/15 ring-amber-500/30'] };
+    const today = new Date(ts.asOfUtc);
+    const secF = `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">사건 타임라인</h2>
+        <p class="mt-1 text-[12.5px] text-slate-400">${esc(ev.note)}</p>
+        <div class="mt-4 space-y-2">
+          ${ev.rows.map(e => {
+            const dd = Math.round((Date.parse(e.date + 'T00:00:00Z') - today) / 864e5);
+            const [kl, kc] = KIND[e.kind] || ['—', 'text-slate-300 bg-slate-700/40 ring-slate-600'];
+            return `<div class="card p-3.5">
+              <div class="flex items-start gap-3 flex-wrap">
+                <span class="kv text-[12px] text-slate-400 w-[92px] shrink-0">${esc(e.date)}</span>
+                <span class="rounded-full ring-1 px-2 py-0.5 text-[10px] font-bold ${kc}">${kl}</span>
+                <span class="text-[13.5px] font-bold text-white flex-1 min-w-[180px]">${esc(e.title)}${'●'.repeat(e.weight).replace(/●/g, '<span class="text-sky-500/60 text-[9px] ml-0.5">●</span>')}</span>
+                <span class="kv text-[11px] ${dd > 0 ? 'text-amber-300' : 'text-slate-600'}">${dd > 0 ? 'D−' + dd : dd === 0 ? 'D-day' : 'D+' + (-dd)}</span>
+              </div>
+              ${e.detail ? `<p class="mt-1.5 text-[12px] text-slate-400 pl-[104px]">${esc(e.detail)}</p>` : ''}
+              ${e.url ? `<div class="mt-1 pl-[104px]"><a href="${esc(e.url)}" target="_blank" rel="noopener" class="text-[11px] text-sky-400 hover:underline">출처 <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></a></div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="mt-4 rounded-xl bg-slate-800/40 p-4">
+          <h4 class="font-bold text-slate-200 text-[13.5px]">${esc(ev.scenarioNote.headline)}</h4>
+          <p class="mt-1.5 text-[12px] text-slate-400">${esc(ev.scenarioNote.detail)}</p>
+          <p class="mt-1.5 text-[12px] text-slate-400">${esc(ev.scenarioNote.context)}</p>
+        </div>
+      </section>`;
+
+    /* SEC 제출 */
+    const secG = fi ? `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">SEC 제출 로그</h2>
+        <p class="mt-1 text-[12.5px] text-slate-400">
+          ${esc(fi.issuer.name)} · issuer CIK <span class="kv">${esc(fi.issuer.cik)}</span> · ${esc((fi.issuer.tickers || []).join(', '))}
+          · F-6 계열 <b class="text-white">${fi.f6Count}</b>건
+        </p>
+        <p class="mt-1 text-[11px] text-amber-400/85"><i class="fa-solid fa-circle-exclamation"></i> ${esc(fi.note)}</p>
+        <div class="mt-3 scrollx"><table class="grid w-full min-w-[640px] text-slate-300">
+          <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">제출일</th><th class="text-left">폼</th><th class="text-left">설명</th><th class="text-left">인덱스</th></tr></thead>
+          <tbody>${fi.rows.slice(0, 20).map(r => `<tr class="${r.form.startsWith('F-6') ? 'bg-sky-500/5' : ''}">
+            <td class="kv">${esc(r.filingDate)}</td>
+            <td class="font-bold ${r.form.startsWith('F-6') ? 'text-sky-300' : 'text-slate-200'}">${esc(r.form)}</td>
+            <td class="text-slate-400">${esc(r.description || '—')}</td>
+            <td><a href="${esc(r.indexUrl)}" target="_blank" rel="noopener" class="text-sky-400 hover:underline text-[11px]">열기 <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></a></td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </section>` : '';
+
+    /* 방법론·면책 */
+    const secH = `
+      <section>
+        <h2 class="text-xl font-extrabold text-white">방법론과 한계</h2>
+        <div class="mt-3 grid gap-3 md:grid-cols-2">
+          <div class="card p-4">
+            <h3 class="font-bold text-white text-[14px]">이 페이지가 하지 않는 것</h3>
+            <ul class="mt-2 text-[12px] text-slate-400 space-y-1.5 list-disc pl-5">
+              <li>경로 A/B 판별·점수·배지를 제시하지 않는다</li>
+              <li>누적 Gap·추정 신규 ADS 발행량을 계산하지 않는다</li>
+              <li>"전환 파이프가 열렸다/막혔다"고 말하지 않는다</li>
+              <li>지수 편입을 확정으로 표기하거나 필요 매수액을 확정치로 제시하지 않는다</li>
+              <li>가격 괴리만으로 신뢰도 라벨을 만들지 않는다</li>
+              <li>결측을 0이나 직전값으로 채우지 않는다</li>
+            </ul>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-bold text-white text-[14px]">데이터 취급</h3>
+            <ul class="mt-2 text-[12px] text-slate-400 space-y-1.5 list-disc pl-5">
+              <li>모든 외부 호출은 URL·수집시각(UTC)·HTTP status·바이트수·SHA-256 receipt를 남긴다</li>
+              <li>원본 응답은 로컬에만 보존하고 공개 저장소에 커밋하지 않는다</li>
+              <li>수집 실패는 화면 상단 상태 카드에 그대로 노출한다(조용한 실패 금지)</li>
+              <li>마지막 수집이 TTL(${st.stalenessTtlHours}시간)을 넘으면 전면 경고 배너를 띄운다</li>
+              <li>가격 괴리 계산의 환율 소스는 Yahoo <code>KRW=X</code> 하나로 고정한다</li>
+            </ul>
+          </div>
+        </div>
+        <details class="mt-3"><summary class="cursor-pointer text-[12px] text-slate-400">수집 receipt ${st.receipts.length}건</summary>
+          <div class="mt-2 scrollx"><table class="grid w-full min-w-[720px] text-slate-300">
+            <thead><tr class="bg-slate-900/60 text-slate-400 text-[11px] uppercase tracking-wider"><th class="text-left">id</th><th class="text-left">수집(UTC)</th><th class="text-right">status</th><th class="text-right">bytes</th><th class="text-left">sha256</th></tr></thead>
+            <tbody>${st.receipts.map(r => `<tr><td class="font-semibold text-slate-200">${esc(r.id)}</td><td class="kv">${esc((r.fetchedAtUtc || '').slice(0, 19).replace('T', ' '))}</td><td class="text-right kv">${esc(r.httpStatus ?? '—')}</td><td class="text-right kv">${num(r.bytes)}</td><td class="kv text-[10px] text-slate-500">${esc((r.sha256 || '—').slice(0, 24))}…</td></tr>`).join('')}</tbody>
+          </table></div>
+        </details>
+        <p class="mt-3 text-[11.5px] text-slate-500">
+          이 페이지는 별도 스펙 문서(웹 Claude 작성)의 축소 구현입니다. 원 스펙의 핵심 목적인 경로 판별은 데이터 미확보로 달성하지 못했으며,
+          Codex(gpt-5.6-sol) 적대검토에서 확인된 스펙 오류(ADS 수량 10배 표기, 발행주식총수, 기준일 이중계상 위험, 시그널 점수화 결함)는 이 페이지에 반영하지 않았습니다.
+        </p>
+      </section>`;
+
+    $('#main').innerHTML = secA + secB + secC + secD + secE + secF + secG + secH;
+  }
+
+  async function boot() {
+    const base = './data/public/';
+    const need = ['timeseries', 'status', 'facts', 'events'];
+    try {
+      const got = {};
+      for (const n of [...need, 'filings']) {
+        const r = await fetch(base + n + '.json', { cache: 'no-store' });
+        if (!r.ok) { if (need.includes(n)) throw new Error(`${n}.json HTTP ${r.status}`); continue; }
+        got[n] = await r.json();
+      }
+      for (const n of need) if (!got[n]) throw new Error(`${n}.json 누락`);
+      render(got);
+    } catch (e) {
+      $('#main').innerHTML = `<div class="rounded-xl bg-rose-500/10 ring-1 ring-rose-500/40 p-5">
+        <h2 class="text-base font-bold text-rose-300"><i class="fa-solid fa-triangle-exclamation"></i> 자료를 불러오지 못했습니다</h2>
+        <p class="mt-2 text-[13px] text-slate-300">${esc(e.message)}</p>
+        <p class="mt-2 text-[12px] text-slate-400">이 페이지는 <code>data/public/*.json</code>을 읽습니다. 로컬 파일(file://)로 직접 열면 브라우저 보안 정책상 읽을 수 없으니 웹 서버로 열어야 합니다. 수집이 필요하면 <code>node skhy-tracker/tools/collect.mjs</code>를 실행하세요.</p>
+        <p class="mt-2 text-[12px] text-slate-500">추정값이나 예시 데이터로 화면을 채우지 않습니다.</p>
+      </div>`;
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

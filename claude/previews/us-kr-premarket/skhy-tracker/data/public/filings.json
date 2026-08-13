@@ -1,0 +1,211 @@
+{
+  "asOfUtc": "2026-08-13T05:54:46.915Z",
+  "issuer": {
+    "name": "SK hynix Inc.",
+    "cik": "0002120882",
+    "tickers": [
+      "SKHY",
+      "HXSCL"
+    ],
+    "exchanges": [
+      "Nasdaq",
+      "OTC"
+    ]
+  },
+  "note": "F-6 계열의 archive registrant CIK는 issuer CIK와 다를 수 있어 문서 직링크를 조립하지 않고 인덱스 링크만 제공한다.",
+  "f6Count": 1,
+  "rows": [
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-10",
+      "accession": "0001193125-26-341163",
+      "primaryDoc": "d64707d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526341163/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-07",
+      "accession": "0001193125-26-339031",
+      "primaryDoc": "d123529d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526339031/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-07",
+      "accession": "0001193125-26-339024",
+      "primaryDoc": "d13432d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526339024/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-07",
+      "accession": "0001193125-26-339011",
+      "primaryDoc": "d140960d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526339011/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-07",
+      "accession": "0001193125-26-339002",
+      "primaryDoc": "d104981d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526339002/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-08-06",
+      "accession": "0001193125-26-336490",
+      "primaryDoc": "d174813d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526336490/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-07-29",
+      "accession": "0001193125-26-321989",
+      "primaryDoc": "d115239d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526321989/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-07-22",
+      "accession": "0001193125-26-311230",
+      "primaryDoc": "d121520d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526311230/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-07-22",
+      "accession": "0001193125-26-311226",
+      "primaryDoc": "d139467d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526311226/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-07-15",
+      "accession": "0001193125-26-303983",
+      "primaryDoc": "d19380d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526303983/"
+    },
+    {
+      "form": "6-K",
+      "filingDate": "2026-07-15",
+      "accession": "0001193125-26-303972",
+      "primaryDoc": "d143606d6k.htm",
+      "description": "FORM 6-K",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526303972/"
+    },
+    {
+      "form": "424B4",
+      "filingDate": "2026-07-10",
+      "accession": "0001193125-26-299963",
+      "primaryDoc": "d32785d424b4.htm",
+      "description": "424(B)(4)",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299963/"
+    },
+    {
+      "form": "EFFECT",
+      "filingDate": "2026-07-09",
+      "accession": "9999999995-26-002244",
+      "primaryDoc": "xslEFFECTX01/primary_doc.xml",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/999999999526002244/"
+    },
+    {
+      "form": "EFFECT",
+      "filingDate": "2026-07-09",
+      "accession": "9999999995-26-002238",
+      "primaryDoc": "xslEFFECTX01/primary_doc.xml",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/999999999526002238/"
+    },
+    {
+      "form": "CERT",
+      "filingDate": "2026-07-09",
+      "accession": "0001354457-26-000656",
+      "primaryDoc": "SKHY_8A_Cert_2120882.pdf",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000135445726000656/"
+    },
+    {
+      "form": "8-A12B",
+      "filingDate": "2026-07-09",
+      "accession": "0001193125-26-299071",
+      "primaryDoc": "d28812d8a12b.htm",
+      "description": "FORM 8-A12B",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299071/"
+    },
+    {
+      "form": "F-1/A",
+      "filingDate": "2026-07-06",
+      "accession": "0001193125-26-295501",
+      "primaryDoc": "d32785df1a.htm",
+      "description": "AMENDMENT NO. 2 TO FORM F-1",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526295501/"
+    },
+    {
+      "form": "F-6",
+      "filingDate": "2026-07-01",
+      "accession": "0001193805-26-000898",
+      "primaryDoc": "e665622_f6-skhynix.htm",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119380526000898/"
+    },
+    {
+      "form": "F-1/A",
+      "filingDate": "2026-06-30",
+      "accession": "0001193125-26-289345",
+      "primaryDoc": "d32785df1a.htm",
+      "description": "AMENDMENT NO. 1 TO FORM F-1",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526289345/"
+    },
+    {
+      "form": "F-1",
+      "filingDate": "2026-06-24",
+      "accession": "0001193125-26-280172",
+      "primaryDoc": "d32785df1.htm",
+      "description": "FORM F-1",
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526280172/"
+    },
+    {
+      "form": "DRS/A",
+      "filingDate": "2026-06-11",
+      "accession": "0001193125-26-266801",
+      "primaryDoc": "filename1.htm",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526266801/"
+    },
+    {
+      "form": "DRS/A",
+      "filingDate": "2026-05-29",
+      "accession": "0001193125-26-246418",
+      "primaryDoc": "filename1.htm",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526246418/"
+    },
+    {
+      "form": "DRS/A",
+      "filingDate": "2026-05-08",
+      "accession": "0001193125-26-213985",
+      "primaryDoc": "filename1.htm",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526213985/"
+    },
+    {
+      "form": "DRS",
+      "filingDate": "2026-03-24",
+      "accession": "0001193125-26-120672",
+      "primaryDoc": "filename1.htm",
+      "description": null,
+      "indexUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526120672/"
+    }
+  ]
+}
