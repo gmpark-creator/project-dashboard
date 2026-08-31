@@ -133,6 +133,36 @@
       </a>
     </section>
 
+    <!-- 섹션 0.45: 눌림목 반등 스크리너 (신규 2026-08-31) -->
+    <section>
+      <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-solid fa-filter"></i> 조건식 스크리너 · 전수 순회 검증</h2>
+      <p class="text-[11px] text-slate-500 mb-4">박사가 지정한 6조건 동시충족 조건식을 나스닥100·코스피200 <b class="text-slate-400">전 종목에 빠짐없이 적용</b>하고, 신호 이후 성과를 실패 사례까지 포함해 집계한 기록. 조건에 맞는 사례만 추려오지 않고 <b class="text-slate-400">신호 0개인 종목도 0으로 기록</b>하는 것이 이 작업의 핵심(연구·교육용, 투자자문 아님).</p>
+      <a href="./rebound-screener/" class="cat-card block rounded-2xl bg-gradient-to-r from-violet-500/10 via-slate-900/70 to-sky-500/10 ring-1 ring-violet-500/30 p-6 hover:ring-violet-400/60">
+        <div class="flex items-start gap-5 flex-wrap">
+          <div class="w-12 h-12 rounded-xl bg-violet-500/15 ring-1 ring-violet-500/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-filter text-violet-400 text-xl"></i></div>
+          <div class="flex-1 min-w-[220px]">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-lg font-bold text-white">눌림목 반등 스크리너 — 6조건 전수 검증</h3>
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">New</span>
+              <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/15 ring-1 ring-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-300 uppercase tracking-widest">생존편향 미보정</span>
+            </div>
+            <p class="mt-1 text-[13px] leading-relaxed text-slate-400">
+              추세 필터(200·120일선) + 볼린저 −2σ 이탈 이력 + −1σ 회복 + RSI 45~60 상승 + MACD 골든크로스 5봉 이내 + 거래량 20일평균 1.5배를
+              <b class="text-slate-300">같은 날 전부 충족</b>하는 날만 추출. 2020-01-01~2026-08-31 · <b class="text-slate-300">303종목 전수 순회</b>.
+              시세는 yfinance(Yahoo)·pykrx(KRX) 두 소스로 받아 교차검증했고, 신호별 20/60일 수익률·최대낙폭·−8% 손절 터치 여부를 함께 기록했다.
+              <b class="text-violet-300">현재 편입종목만 대상이라 지수 퇴출·상폐 종목이 빠져 있어 승률은 과대추정</b>이며, 페이지 전면에 경고를 고정 표시했다.
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest">신호 (관측)</div>
+            <div class="text-xl font-extrabold text-violet-400 tabular-nums">352건 / 303종목</div>
+            <div class="text-[11px] text-slate-500">이 중 109종목(36.5%)은 0건</div>
+          </div>
+        </div>
+        <div class="mt-4 text-xs font-semibold text-violet-400">열기 <i class="fa-solid fa-arrow-right ml-1"></i></div>
+      </a>
+    </section>
+
     <!-- 섹션 0.5: 암호화폐 크로스 워치 (신규 2026-06-24) -->
     <section>
       <h2 class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1"><i class="fa-brands fa-bitcoin"></i> 암호화폐 · 크로스 워치</h2>

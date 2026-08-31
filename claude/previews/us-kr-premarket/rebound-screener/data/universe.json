@@ -1,0 +1,1526 @@
+{
+ "asof": "2026-08-31",
+ "sources": {
+  "NASDAQ100": "https://en.wikipedia.org/wiki/List_of_NASDAQ-100_companies",
+  "KOSPI200": "https://finance.naver.com/sise/entryJongmok.naver?&page=1..21"
+ },
+ "NASDAQ100": [
+  {
+   "ticker": "ADBE",
+   "name": "Adobe Inc.",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AMD",
+   "name": "Advanced Micro Devices",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ABNB",
+   "name": "Airbnb",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ALNY",
+   "name": "Alnylam Pharmaceuticals",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "GOOGL",
+   "name": "Alphabet Inc.(Class A)",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "GOOG",
+   "name": "Alphabet Inc.(Class C)",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AMZN",
+   "name": "Amazon",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AEP",
+   "name": "American Electric Power",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AMGN",
+   "name": "Amgen",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ADI",
+   "name": "Analog Devices",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AAPL",
+   "name": "Apple Inc.",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AMAT",
+   "name": "Applied Materials",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "APP",
+   "name": "AppLovin",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ARM",
+   "name": "Arm Holdings",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ASML",
+   "name": "ASML Holding",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ALAB",
+   "name": "Astera Labs",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ADSK",
+   "name": "Autodesk",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ADP",
+   "name": "Automatic Data Processing",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AXON",
+   "name": "Axon Enterprise",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "BKR",
+   "name": "Baker Hughes",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "BKNG",
+   "name": "Booking Holdings",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "AVGO",
+   "name": "Broadcom",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CDNS",
+   "name": "Cadence Design Systems",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CTAS",
+   "name": "Cintas",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CSCO",
+   "name": "Cisco",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CCEP",
+   "name": "Coca-Cola Europacific Partners",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CMCSA",
+   "name": "Comcast",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CEG",
+   "name": "Constellation Energy",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CPRT",
+   "name": "Copart",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CRWV",
+   "name": "CoreWeave",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "COST",
+   "name": "Costco",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CRWD",
+   "name": "CrowdStrike",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "CSX",
+   "name": "CSX Corporation",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "DDOG",
+   "name": "Datadog",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "DXCM",
+   "name": "DexCom",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "FANG",
+   "name": "Diamondback Energy",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "DASH",
+   "name": "DoorDash",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "EXC",
+   "name": "Exelon",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "FAST",
+   "name": "Fastenal",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "FER",
+   "name": "Ferrovial",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "FTNT",
+   "name": "Fortinet",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "GEHC",
+   "name": "GE HealthCare",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "GILD",
+   "name": "Gilead Sciences",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "HONA",
+   "name": "Honeywell Aerospace",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "HON",
+   "name": "Honeywell Technologies",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "IDXX",
+   "name": "Idexx Laboratories",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "INTC",
+   "name": "Intel",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "INTU",
+   "name": "Intuit",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ISRG",
+   "name": "Intuitive Surgical",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "KDP",
+   "name": "Keurig Dr Pepper",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "KLAC",
+   "name": "KLA Corporation",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "KHC",
+   "name": "Kraft Heinz",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "LRCX",
+   "name": "Lam Research",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "LIN",
+   "name": "Linde plc",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "LITE",
+   "name": "Lumentum",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MAR",
+   "name": "Marriott International",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MRVL",
+   "name": "Marvell Technology",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MELI",
+   "name": "Mercado Libre",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "META",
+   "name": "Meta Platforms",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MCHP",
+   "name": "Microchip Technology",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MU",
+   "name": "Micron Technology",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MSFT",
+   "name": "Microsoft",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MSTR",
+   "name": "MicroStrategy",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MDLZ",
+   "name": "Mondelez International",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MPWR",
+   "name": "Monolithic Power Systems",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "MNST",
+   "name": "Monster Beverage",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "NBIS",
+   "name": "Nebius Group",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "NFLX",
+   "name": "Netflix, Inc.",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "NVDA",
+   "name": "Nvidia",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "NXPI",
+   "name": "NXP Semiconductors",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ORLY",
+   "name": "O'Reilly Automotive",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ODFL",
+   "name": "Old Dominion Freight Line",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PCAR",
+   "name": "Paccar",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PLTR",
+   "name": "Palantir Technologies",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PANW",
+   "name": "Palo Alto Networks",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PAYX",
+   "name": "Paychex",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PYPL",
+   "name": "PayPal",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PDD",
+   "name": "PDD Holdings",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "PEP",
+   "name": "PepsiCo",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "QCOM",
+   "name": "Qualcomm",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "REGN",
+   "name": "Regeneron Pharmaceuticals",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "RKLB",
+   "name": "Rocket Lab",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ROP",
+   "name": "Roper Technologies",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "ROST",
+   "name": "Ross Stores",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "SNDK",
+   "name": "Sandisk",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "STX",
+   "name": "Seagate Technology",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "SHOP",
+   "name": "Shopify",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "SPCX",
+   "name": "SpaceX",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "SBUX",
+   "name": "Starbucks",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "SNPS",
+   "name": "Synopsys",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TMUS",
+   "name": "T-Mobile US",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TTWO",
+   "name": "Take-Two Interactive",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TER",
+   "name": "Teradyne",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TSLA",
+   "name": "Tesla, Inc.",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TXN",
+   "name": "Texas Instruments",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "TRI",
+   "name": "Thomson Reuters",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "VRTX",
+   "name": "Vertex Pharmaceuticals",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "WMT",
+   "name": "Walmart",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "WBD",
+   "name": "Warner Bros. Discovery",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "WDC",
+   "name": "Western Digital",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "WDAY",
+   "name": "Workday, Inc.",
+   "market": "NASDAQ100"
+  },
+  {
+   "ticker": "XEL",
+   "name": "Xcel Energy",
+   "market": "NASDAQ100"
+  }
+ ],
+ "KOSPI200": [
+  {
+   "ticker": "005930",
+   "name": "삼성전자",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000660",
+   "name": "SK하이닉스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "402340",
+   "name": "SK스퀘어",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009150",
+   "name": "삼성전기",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "373220",
+   "name": "LG에너지솔루션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005380",
+   "name": "현대차",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "207940",
+   "name": "삼성바이오로직스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "105560",
+   "name": "KB금융",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "028260",
+   "name": "삼성물산",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "032830",
+   "name": "삼성생명",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "012450",
+   "name": "한화에어로스페이스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "034020",
+   "name": "두산에너빌리티",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "055550",
+   "name": "신한지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000270",
+   "name": "기아",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "329180",
+   "name": "HD현대중공업",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006400",
+   "name": "삼성SDI",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "068270",
+   "name": "셀트리온",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "012330",
+   "name": "현대모비스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "034730",
+   "name": "SK",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "086790",
+   "name": "하나금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "066570",
+   "name": "LG전자",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "035420",
+   "name": "NAVER",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "010120",
+   "name": "LS ELECTRIC",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000810",
+   "name": "삼성화재",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "267260",
+   "name": "HD현대일렉트릭",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "298040",
+   "name": "효성중공업",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005490",
+   "name": "POSCO홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "042660",
+   "name": "한화오션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "010130",
+   "name": "고려아연",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "316140",
+   "name": "우리금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009540",
+   "name": "HD한국조선해양",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "042700",
+   "name": "한미반도체",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "096770",
+   "name": "SK이노베이션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000150",
+   "name": "두산",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "015760",
+   "name": "한국전력",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "138040",
+   "name": "메리츠금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "017670",
+   "name": "SK텔레콤",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011200",
+   "name": "HMM",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "051910",
+   "name": "LG화학",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006800",
+   "name": "미래에셋증권",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "018260",
+   "name": "삼성에스디에스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "033780",
+   "name": "KT&G",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "010140",
+   "name": "삼성중공업",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003550",
+   "name": "LG",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003670",
+   "name": "포스코퓨처엠",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "267250",
+   "name": "HD현대",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "278470",
+   "name": "에이피알",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "010950",
+   "name": "S-Oil",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "024110",
+   "name": "기업은행",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "035720",
+   "name": "카카오",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "086280",
+   "name": "현대글로비스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "079550",
+   "name": "LIG디펜스앤에어로스페이스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011070",
+   "name": "LG이노텍",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "064350",
+   "name": "현대로템",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "272210",
+   "name": "한화시스템",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000720",
+   "name": "현대건설",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "030200",
+   "name": "KT",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "047810",
+   "name": "한국항공우주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005830",
+   "name": "DB손해보험",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "078930",
+   "name": "GS",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003230",
+   "name": "삼양식품",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "307950",
+   "name": "현대오토에버",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "071050",
+   "name": "한국금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "323410",
+   "name": "카카오뱅크",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "259960",
+   "name": "크래프톤",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003490",
+   "name": "대한항공",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005940",
+   "name": "NH투자증권",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "0126Z0",
+   "name": "삼성에피스홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006260",
+   "name": "LS",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "047050",
+   "name": "포스코인터내셔널",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "443060",
+   "name": "HD현대마린솔루션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "028050",
+   "name": "삼성E&A",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "180640",
+   "name": "한진칼",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "090430",
+   "name": "아모레퍼시픽",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "007660",
+   "name": "이수페타시스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "161390",
+   "name": "한국타이어앤테크놀로지",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "016360",
+   "name": "삼성증권",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "352820",
+   "name": "하이브",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009830",
+   "name": "한화솔루션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "047040",
+   "name": "대우건설",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "064400",
+   "name": "LG씨엔에스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "039490",
+   "name": "키움증권",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000880",
+   "name": "한화",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "021240",
+   "name": "코웨이",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "326030",
+   "name": "SK바이오팜",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "032640",
+   "name": "LG유플러스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "267270",
+   "name": "HD건설기계",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "377300",
+   "name": "카카오페이",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "128940",
+   "name": "한미약품",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000100",
+   "name": "유한양행",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "062040",
+   "name": "산일전기",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "241560",
+   "name": "두산밥캣",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "066970",
+   "name": "엘앤에프",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001440",
+   "name": "대한전선",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "029780",
+   "name": "삼성카드",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "175330",
+   "name": "JB금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "010060",
+   "name": "OCI홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "271560",
+   "name": "오리온",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "088350",
+   "name": "한화생명",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "036570",
+   "name": "NC",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "034220",
+   "name": "LG디스플레이",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "051900",
+   "name": "LG생활건강",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "138930",
+   "name": "BNK금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "454910",
+   "name": "두산로보틱스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011790",
+   "name": "SKC",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "052690",
+   "name": "한전기술",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001450",
+   "name": "현대해상",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000990",
+   "name": "DB하이텍",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "004020",
+   "name": "현대제철",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "002380",
+   "name": "KCC",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "082740",
+   "name": "한화엔진",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "004170",
+   "name": "신세계",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "161890",
+   "name": "한국콜마",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001040",
+   "name": "CJ",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "018880",
+   "name": "한온시스템",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "036460",
+   "name": "한국가스공사",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "192820",
+   "name": "코스맥스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "022100",
+   "name": "포스코DX",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "111770",
+   "name": "영원무역",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011780",
+   "name": "금호석유화학",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "035250",
+   "name": "강원랜드",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "012750",
+   "name": "에스원",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "251270",
+   "name": "넷마블",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009420",
+   "name": "한올바이오파마",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "008930",
+   "name": "한미사이언스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "028670",
+   "name": "팬오션",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "302440",
+   "name": "SK바이오사이언스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "023530",
+   "name": "롯데쇼핑",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "139130",
+   "name": "iM금융지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "017800",
+   "name": "현대엘리베이터",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "097950",
+   "name": "CJ제일제당",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "375500",
+   "name": "DL이앤씨",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "483650",
+   "name": "달바글로벌",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "007340",
+   "name": "DN오토모티브",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "004370",
+   "name": "농심",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "450080",
+   "name": "에코프로머티",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "026960",
+   "name": "동서",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "282330",
+   "name": "BGF리테일",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "383220",
+   "name": "F&F",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011170",
+   "name": "롯데케미칼",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005850",
+   "name": "에스엘",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "204320",
+   "name": "HL만도",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "004990",
+   "name": "롯데지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000240",
+   "name": "한국앤컴퍼니",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "103140",
+   "name": "풍산",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "007070",
+   "name": "GS리테일",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "030000",
+   "name": "제일기획",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "081660",
+   "name": "미스토홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "014680",
+   "name": "한솔케미칼",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009970",
+   "name": "영원무역홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "073240",
+   "name": "금호타이어",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "457190",
+   "name": "이수스페셜티케미컬",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "002790",
+   "name": "아모레퍼시픽홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "112610",
+   "name": "씨에스윈드",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "051600",
+   "name": "한전KPS",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "139480",
+   "name": "이마트",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "069960",
+   "name": "현대백화점",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "071970",
+   "name": "HD현대마린엔진",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "120110",
+   "name": "코오롱인더",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "008770",
+   "name": "호텔신라",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006040",
+   "name": "동원산업",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000120",
+   "name": "CJ대한통운",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "011210",
+   "name": "현대위아",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001800",
+   "name": "오리온홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "298020",
+   "name": "효성티앤씨",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006280",
+   "name": "녹십자",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001430",
+   "name": "세아베스틸지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "069620",
+   "name": "대웅제약",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "093370",
+   "name": "후성",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "007310",
+   "name": "오뚜기",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "280360",
+   "name": "롯데웰푸드",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "361610",
+   "name": "SK아이이테크놀로지",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "300720",
+   "name": "한일시멘트",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "017960",
+   "name": "한국카본",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "192080",
+   "name": "더블유게임즈",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "004000",
+   "name": "롯데정밀화학",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000080",
+   "name": "하이트진로",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000210",
+   "name": "DL",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003090",
+   "name": "대웅",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003240",
+   "name": "태광산업",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "034230",
+   "name": "파라다이스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "185750",
+   "name": "종근당",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "009240",
+   "name": "한샘",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005300",
+   "name": "롯데칠성",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "285130",
+   "name": "SK케미칼",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "071320",
+   "name": "지역난방공사",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "298050",
+   "name": "HS효성첨단소재",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "137310",
+   "name": "에스디바이오센서",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "456040",
+   "name": "OCI",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "000670",
+   "name": "영풍",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "069260",
+   "name": "TKG휴켐스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "014820",
+   "name": "동원시스템즈",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "268280",
+   "name": "미원에스씨",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "001680",
+   "name": "대상",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "002840",
+   "name": "미원상사",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "006650",
+   "name": "대한유화",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "0220W0",
+   "name": "한화머시너리앤서비스홀딩스",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "005420",
+   "name": "코스모화학",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "002030",
+   "name": "아세아",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "003030",
+   "name": "세아제강지주",
+   "market": "KOSPI200"
+  },
+  {
+   "ticker": "008730",
+   "name": "율촌화학",
+   "market": "KOSPI200"
+  }
+ ]
+}
