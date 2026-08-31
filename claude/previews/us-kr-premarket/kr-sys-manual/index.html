@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KR SYS 지표 판독 매뉴얼</title>
+<style>
+:root{
+  --ink:#16202B;
+  --ink-2:#4A5A6A;
+  --ink-3:#8090A0;
+  --paper:#EEF1F5;
+  --panel:#FFFFFF;
+  --rule:#C8D2DC;
+  --ma1:#26A69A; --ma2:#EF5350; --ma3:#FFA726; --ma4:#AB47BC; --ma5:#42A5F5;
+  --macd:#2962FF; --sig:#FF6D00; --rsi:#7E57C2;
+  --pos:#2E9E5B; --neg:#D23B3B;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:56px 28px 96px}
+.masthead{border-bottom:3px solid var(--ink);padding-bottom:20px;margin-bottom:12px}
+.masthead h1{font-size:34px;line-height:1.15;margin:0 0 8px;font-weight:750;letter-spacing:-.02em}
+.masthead p{margin:0;color:var(--ink-2);max-width:62ch}
+.part{margin-top:64px}
+.part-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px}
+.part-head .n{font-size:13px;font-weight:700;color:var(--panel);background:var(--ink);border-radius:3px;padding:2px 9px;flex:none}
+.part-head h2{margin:0;font-size:23px;font-weight:700;letter-spacing:-.01em}
+.part-head .sub{margin-left:auto;color:var(--ink-3);font-size:13px;flex:none}
+.row{display:grid;grid-template-columns:120px 1fr;gap:0;border-bottom:1px solid var(--rule);padding:16px 0;align-items:start}
+.row:last-child{border-bottom:none}
+.swatch{padding-top:3px}
+.swatch svg{display:block}
+.row h3{margin:0 0 4px;font-size:16px;font-weight:700}
+.row .what{margin:0 0 8px;color:var(--ink-2)}
+.row .how{margin:0;padding:9px 13px;background:var(--panel);border-left:3px solid var(--ink);font-size:14px}
+.row .how b{font-weight:700}
+.note{margin-top:22px;padding:14px 16px;background:#DDE5EC;font-size:14px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.fig{background:var(--panel);border:1px solid var(--rule);padding:18px;margin:24px 0}
+.fig svg{display:block;width:100%;height:auto}
+.cap{margin:10px 2px 0;font-size:13px;color:var(--ink-3)}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule)}
+th{font-weight:700;background:var(--panel);border-bottom:2px solid var(--ink)}
+td.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+tr.hl td{background:#FFF3D6}
+ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:20px 0}
+ol.steps li{counter-increment:s;position:relative;padding:12px 0 12px 44px;border-bottom:1px solid var(--rule)}
+ol.steps li:before{content:counter(s);position:absolute;left:0;top:12px;width:28px;height:28px;line-height:28px;text-align:center;background:var(--ink);color:var(--panel);font-size:13px;font-weight:700;border-radius:50%}
+ol.steps b{font-weight:700}
+.zone{display:inline-block;padding:1px 7px;background:#FFF3D6;border:1px solid #E0C77A;font-weight:700;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.row{grid-template-columns:1fr;gap:8px}.wrap{padding:32px 18px 64px}.masthead h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <h1>KR SYS 지표 판독 매뉴얼</h1>
+  <p>1번 지표(메인 차트)와 2번 지표(하단 패널)의 선을 색깔별로 정리하고, 골든크로스 지점에 피보나치 되돌림을 적용하는 방법을 ADI 실제 사례로 설명합니다.</p>
+</header>
+
+<!-- ===================== PART 1 ===================== -->
+<section class="part">
+  <div class="part-head">
+    <span class="n">1</span>
+    <h2>메인 차트에 그려지는 선</h2>
+    <span class="sub">KR SYS 1</span>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#26A69A" stroke-width="3"/></svg></div>
+    <div>
+      <h3>청록색 — 5일 이동평균선</h3>
+      <p class="what">최근 5일 종가의 평균. 가장 민감하게 움직여 캔들에 딱 붙어 다닙니다.</p>
+      <p class="how">단기 심리를 봅니다. 캔들이 이 선 <b>위</b>에 있으면 최근 5일 산 사람이 이익 중, <b>아래</b>면 손실 중입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#EF5350" stroke-width="3"/></svg></div>
+    <div>
+      <h3>빨간색 — 20일 이동평균선</h3>
+      <p class="what">한 달치 평균. 볼린저밴드의 중심선과 같은 값입니다.</p>
+      <p class="how">단기 추세의 기준선입니다. 눌림목 매수에서 <b>1차 지지선</b> 역할을 합니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#FFA726" stroke-width="3"/></svg></div>
+    <div>
+      <h3>주황색 — 60일 이동평균선</h3>
+      <p class="what">약 3개월 평균. 흔히 수급선이라 부릅니다.</p>
+      <p class="how">기관·외국인 매매의 평균 단가에 가깝습니다. 이 선을 <b>위로 뚫으면 중기 전환</b>의 첫 신호로 봅니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#AB47BC" stroke-width="4"/></svg></div>
+    <div>
+      <h3>보라색 — 120일 이동평균선 · 중기 필터</h3>
+      <p class="what">약 6개월 평균. 굵게 그려진 이유는 <b>조건 1번의 판정 기준</b>이기 때문입니다.</p>
+      <p class="how">현재가가 이 선 <b>아래</b>면 조건 1번이 무조건 X가 됩니다. 하이닉스가 걸린 게 정확히 이 선이었습니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#42A5F5" stroke-width="4"/></svg></div>
+    <div>
+      <h3>파란색 — 200일 이동평균선 · 장기 필터</h3>
+      <p class="what">약 10개월 평균. 시장이 이 종목을 장기적으로 어떻게 보는지의 기준선입니다.</p>
+      <p class="how">조건 1번은 이 선에 대해 두 가지를 봅니다. <b>현재가가 위에 있는가</b>, 그리고 <b>선 자체가 20일 전보다 올라갔는가</b>(기울기). 둘 다 만족해야 합니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="34" viewBox="0 0 104 34">
+      <line x1="2" y1="6" x2="102" y2="6" stroke="#9AA7B4" stroke-width="1.5"/>
+      <line x1="2" y1="14" x2="102" y2="14" stroke="#9AA7B4" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="2" y1="20" x2="102" y2="20" stroke="#9AA7B4" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="2" y1="28" x2="102" y2="28" stroke="#9AA7B4" stroke-width="1.5"/>
+    </svg></div>
+    <div>
+      <h3>회색 가는 선 4개 — 더블 볼린저밴드</h3>
+      <p class="what">20일 평균에서 표준편차만큼 위아래로 벌린 선입니다. 안쪽이 ±1σ, 바깥이 ±2σ.</p>
+      <p class="how">가격이 통계적으로 어디쯤에 있는지 봅니다. <b>바깥 하단(-2σ) 아래로 내려가면 과매도</b>, 그게 조건 2번입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="34" viewBox="0 0 104 34">
+      <rect x="2" y="2" width="100" height="13" fill="#EF5350" opacity="0.13"/>
+      <rect x="2" y="19" width="100" height="13" fill="#26A69A" opacity="0.13"/>
+    </svg></div>
+    <div>
+      <h3>연한 빨강 · 연한 초록 음영 — 매도존과 매수존</h3>
+      <p class="what">볼린저 1σ와 2σ 사이를 칠한 구간입니다. 위쪽이 매도존, 아래쪽이 매수존.</p>
+      <p class="how">캔들이 <b>아래쪽 초록 띠 안에 들어갔다 나오는 자리</b>가 이 시스템이 노리는 지점입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="30" viewBox="0 0 104 30"><rect x="2" y="2" width="100" height="26" fill="#EF5350" opacity="0.09"/><text x="52" y="19" text-anchor="middle" font-size="11" fill="#B03030" font-family="sans-serif">배경 전체</text></svg></div>
+    <div>
+      <h3>화면 전체에 깔린 붉은 배경</h3>
+      <p class="what">조건 1번(추세)이 X인 모든 구간에 자동으로 깔립니다.</p>
+      <p class="how"><b>붉으면 이 종목은 보지 마세요.</b> 나머지 조건을 확인할 필요도 없습니다. 떨어지는 칼날을 차단하는 장치입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="30" viewBox="0 0 104 30"><polygon points="26,8 34,22 18,22" fill="#00C853"/><circle cx="70" cy="15" r="6" fill="#FF9800" opacity="0.75"/></svg></div>
+    <div>
+      <h3>초록 삼각형(ENTRY)과 주황 동그라미</h3>
+      <p class="what">초록 삼각형은 6개 조건 전부 충족, 주황 동그라미는 5개만 충족입니다.</p>
+      <p class="how">초록은 <b>매수 검토</b>, 주황은 <b>관심종목 등록</b>. 주황이 뜨면 표를 열어 어느 조건이 X인지 확인하세요.</p>
+    </div>
+  </div>
+
+  <div class="note"><b>우측 상단 표</b>는 이 6개 조건의 채점표입니다. 종합 칸이 6/6이면 매수 검토, 그 외에는 관망. 맨 아랫줄은 매수 시 손절가와 손실률입니다.</div>
+</section>
+
+<!-- ===================== PART 2 ===================== -->
+<section class="part">
+  <div class="part-head">
+    <span class="n">2</span>
+    <h2>하단 패널에 그려지는 선</h2>
+    <span class="sub">KR SYS 2</span>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#7E57C2" stroke-width="3"/></svg></div>
+    <div>
+      <h3>보라색 선 — RSI</h3>
+      <p class="what">최근 14일간 오른 폭과 내린 폭의 비율. 0에서 100 사이 값입니다.</p>
+      <p class="how">70 위는 과열, 30 아래는 과매도. 이 시스템은 <b>45~60 사이에서 위로 향할 때</b>만 조건 충족으로 봅니다. 화면의 연한 파란 띠가 그 구간입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#2962FF" stroke-width="3"/></svg></div>
+    <div>
+      <h3>파란색 선 — MACD</h3>
+      <p class="what">12일 평균과 26일 평균의 차이. 주가에 힘이 붙는 속도를 봅니다.</p>
+      <p class="how">이 선이 <b>주황선 위로 올라가면 골든크로스</b>, 아래로 내려가면 데드크로스입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#FF6D00" stroke-width="3"/></svg></div>
+    <div>
+      <h3>주황색 선 — 시그널</h3>
+      <p class="what">MACD를 다시 9일 평균 낸 선. 파란선보다 항상 느리게 움직입니다.</p>
+      <p class="how">혼자서는 의미가 없습니다. <b>파란선과의 교차</b>를 보기 위한 기준선입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="34" viewBox="0 0 104 34">
+      <path d="M2 22 C 30 22, 40 8, 102 6" stroke="#2962FF" stroke-width="2.5" fill="none"/>
+      <path d="M2 26 C 34 26, 46 18, 102 15" stroke="#FF6D00" stroke-width="2.5" fill="none"/>
+      <path d="M2 22 C 30 22, 40 8, 102 6 L 102 15 C 46 18, 34 26, 2 26 Z" fill="#2E9E5B" opacity="0.3"/>
+    </svg></div>
+    <div>
+      <h3>초록 음영 · 빨강 음영 — 두 선 사이를 칠한 것</h3>
+      <p class="what">일반 MACD 차트의 막대그래프(히스토그램)와 같은 역할입니다.</p>
+      <p class="how"><b>초록 = 파란선이 위 = 상승 우위</b>, 빨강 = 하락 우위. 그리고 <b>폭이 넓어지면 힘이 붙는 중, 좁아지면 꺾이는 중</b>입니다. 폭이 좁아지는 초록은 위험 신호입니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="20" viewBox="0 0 104 20"><line x1="2" y1="10" x2="102" y2="10" stroke="#16202B" stroke-width="2.5"/></svg></div>
+    <div>
+      <h3>가운데 진한 회색 가로선 — 50선</h3>
+      <p class="what">이 패널의 설계 핵심입니다. <b>RSI의 50선과 MACD의 0선을 같은 위치에 겹쳐놨습니다.</b></p>
+      <p class="how">선 하나가 두 가지 의미를 갖습니다. 보라선이 위로 넘으면 RSI 50 돌파, 파란선이 위로 넘으면 MACD 0선 돌파. <b>선 하나만 보면 두 지표를 동시에 판단</b>할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="swatch"><svg width="104" height="40" viewBox="0 0 104 40">
+      <polygon points="14,26 21,38 7,38" fill="#00A040"/>
+      <polygon points="40,14 47,2 33,2" fill="#D23B3B"/>
+      <polygon points="66,32 72,26 66,20 60,26" fill="#00B8D4"/>
+      <polygon points="92,8 98,2 92,-4 86,2" fill="#C51BC5"/>
+    </svg></div>
+    <div>
+      <h3>삼각형과 다이아몬드 표시</h3>
+      <p class="what">아래쪽 초록 삼각형은 골든크로스, 위쪽 빨강 삼각형은 데드크로스가 일어난 날입니다.</p>
+      <p class="how"><b>하늘색 다이아몬드가 가장 중요합니다.</b> MACD가 0선을 위로 뚫은 날이고, 자홍색은 아래로 이탈한 날입니다. 0선 위에서 나온 골든크로스가 0선 아래 것보다 훨씬 신뢰도가 높습니다.</p>
+    </div>
+  </div>
+
+  <div class="note"><b>좌측 하단 표</b>는 MACD의 실제 수치입니다. 화면의 선은 0~100으로 변환된 상대값이라 절대 크기를 읽을 수 없어서 따로 띄웁니다. <b>Hist 옆의 ▲▼</b>가 초록 음영이 넓어지는 중인지 좁아지는 중인지를 숫자로 알려줍니다.</div>
+</section>
+
+<!-- ===================== PART 3 ===================== -->
+<section class="part">
+  <div class="part-head">
+    <span class="n">3</span>
+    <h2>골든크로스에 피보나치 되돌림 적용하기</h2>
+    <span class="sub">ADI 실제 사례</span>
+  </div>
+
+  <p>피보나치 되돌림은 <b>하락 파동이 끝난 뒤</b>, 그 하락폭의 몇 %를 되돌렸는지 재는 도구입니다. 저점이 확정되지 않으면 기준선이 계속 움직이므로 의미가 없습니다. 이것이 순서상 골든크로스 이후에 대는 이유입니다.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="900" height="540" fill="#FFFFFF"/>
+
+      <!-- fib zone highlight -->
+      <rect x="430" y="225" width="440" height="69" fill="#FFC107" opacity="0.16"/>
+
+      <!-- fib lines -->
+      <g font-family="ui-monospace,Menlo,monospace" font-size="12">
+        <line x1="430" y1="113" x2="870" y2="113" stroke="#8090A0" stroke-width="1.5"/>
+        <text x="876" y="117" fill="#4A5A6A">100%  250.00</text>
+        <line x1="430" y1="176" x2="870" y2="176" stroke="#C8D2DC" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="876" y="180" fill="#8090A0">78.6%  244.86</text>
+        <line x1="430" y1="225" x2="870" y2="225" stroke="#E0A800" stroke-width="1.5"/>
+        <text x="876" y="229" fill="#9A7500">61.8%  240.83</text>
+        <line x1="430" y1="260" x2="870" y2="260" stroke="#C8D2DC" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="876" y="264" fill="#8090A0">50.0%  238.00</text>
+        <line x1="430" y1="294" x2="870" y2="294" stroke="#E0A800" stroke-width="1.5"/>
+        <text x="876" y="298" fill="#9A7500">38.2%  235.17</text>
+        <line x1="430" y1="337" x2="870" y2="337" stroke="#C8D2DC" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="876" y="341" fill="#8090A0">23.6%  231.66</text>
+        <line x1="430" y1="407" x2="870" y2="407" stroke="#8090A0" stroke-width="1.5"/>
+        <text x="876" y="411" fill="#4A5A6A">0%    226.00</text>
+      </g>
+
+      <!-- price path -->
+      <polyline points="90,113 140,150 180,130 230,210 270,190 320,270 360,250 400,350 430,407"
+        fill="none" stroke="#D23B3B" stroke-width="3"/>
+      <polyline points="430,407 455,330 470,282 490,243 540,200 600,152 680,112 760,82 820,60"
+        fill="none" stroke="#2E9E5B" stroke-width="3"/>
+
+      <!-- anchors -->
+      <circle cx="90" cy="113" r="7" fill="#D23B3B"/>
+      <text x="90" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#D23B3B" font-family="sans-serif">고점 250.00</text>
+      <text x="90" y="80" text-anchor="middle" font-size="12" fill="#4A5A6A" font-family="sans-serif">2025-10-08</text>
+
+      <circle cx="430" cy="407" r="7" fill="#D23B3B"/>
+      <text x="400" y="432" text-anchor="middle" font-size="13" font-weight="700" fill="#D23B3B" font-family="sans-serif">저점 226.00</text>
+      <text x="400" y="448" text-anchor="middle" font-size="12" fill="#4A5A6A" font-family="sans-serif">2025-11-21</text>
+
+      <polygon points="490,258 498,272 482,272" fill="#00A040"/>
+      <circle cx="490" cy="243" r="6" fill="#00A040"/>
+      <text x="512" y="240" font-size="13" font-weight="700" fill="#00752E" font-family="sans-serif">ENTRY 239.40 · 되돌림 55.8%</text>
+      <text x="512" y="256" font-size="12" fill="#4A5A6A" font-family="sans-serif">2025-11-24 · MACD 골든크로스</text>
+
+      <!-- zone label -->
+      <text x="440" y="217" font-size="12" font-weight="700" fill="#9A7500" font-family="sans-serif">되돌림 진입 구간 38.2% ~ 61.8%</text>
+
+      <!-- arrows -->
+      <text x="245" y="300" font-size="13" fill="#D23B3B" font-family="sans-serif" font-weight="700">하락 파동</text>
+      <text x="660" y="145" font-size="13" fill="#2E9E5B" font-family="sans-serif" font-weight="700">추세 전환 후 상승</text>
+
+      <line x1="60" y1="500" x2="870" y2="500" stroke="#C8D2DC" stroke-width="1"/>
+      <text x="90" y="518" text-anchor="middle" font-size="12" fill="#8090A0" font-family="sans-serif">10월</text>
+      <text x="430" y="518" text-anchor="middle" font-size="12" fill="#8090A0" font-family="sans-serif">11월 하순</text>
+      <text x="700" y="518" text-anchor="middle" font-size="12" fill="#8090A0" font-family="sans-serif">12월 이후</text>
+    </svg>
+    <p class="cap">ADI(Analog Devices) 2025년 10월~12월 개념도. 실제 캔들이 아닌 파동 흐름을 단순화한 그림입니다.</p>
+  </div>
+
+  <h3 style="margin:34px 0 0;font-size:18px">긋는 순서</h3>
+  <ol class="steps">
+    <li><b>골든크로스 날짜를 먼저 확정합니다.</b> ADI는 2025년 11월 24일입니다. 하단 패널의 초록 삼각형, 또는 1번 지표 표의 "MACD GC" 줄에서 확인합니다.</li>
+    <li><b>그 직전 하락 파동의 저점을 찾습니다.</b> 2025년 11월 21일, 약 226.00. 골든크로스 직전의 가장 낮은 저가입니다. <b>이 저점이 확정된 뒤에만 피보나치가 의미를 갖습니다.</b></li>
+    <li><b>그 하락이 시작된 고점을 찾습니다.</b> 2025년 10월 8일, 약 250.00. 저점에서 왼쪽으로 거슬러 올라가 직전에 가장 높았던 고가입니다.</li>
+    <li><b>TradingView 좌측 도구에서 피보나치 되돌림을 선택하고, 고점에서 저점으로 드래그합니다.</b> 순서가 중요합니다. 하락 파동이므로 고점(10/08)을 먼저 클릭하고 저점(11/21)에서 놓습니다. 그러면 0%가 저점, 100%가 고점에 붙습니다.</li>
+    <li><b>38.2%와 61.8% 사이가 진입 구간입니다.</b> ADI의 경우 235.17 ~ 240.83. 골든크로스 당일 종가 239.40이 정확히 이 안에 들어왔습니다. 되돌림 비율로는 55.8%입니다.</li>
+    <li><b>손절과 목표를 이 선들로 정합니다.</b> 손절은 0%선(226.00) 이탈, 1차 목표는 78.6%선(244.86), 2차 목표는 100%선(250.00) 돌파입니다.</li>
+  </ol>
+
+  <table>
+    <thead><tr><th>되돌림</th><th>가격</th><th>이 선의 의미</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0%</td><td class="num">226.00</td><td>하락 파동 저점. 이탈하면 손절</td></tr>
+      <tr><td class="num">23.6%</td><td class="num">231.66</td><td>얕은 되돌림. 아직 반등 초기</td></tr>
+      <tr class="hl"><td class="num">38.2%</td><td class="num">235.17</td><td>진입 구간 하단</td></tr>
+      <tr class="hl"><td class="num">50.0%</td><td class="num">238.00</td><td>절반 회복. 심리적 분기점</td></tr>
+      <tr class="hl"><td class="num">61.8%</td><td class="num">240.83</td><td>진입 구간 상단. 넘으면 추세 전환 가능성</td></tr>
+      <tr><td class="num">78.6%</td><td class="num">244.86</td><td>1차 목표가</td></tr>
+      <tr><td class="num">100%</td><td class="num">250.00</td><td>직전 고점. 돌파 시 신고가 흐름</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>이 숫자들은 차트 이미지에서 눈으로 읽은 근사치입니다.</b> 실제로 적용하실 때는 TradingView에서 해당 날짜의 정확한 고가·저가를 확인해서 다시 계산하세요. 방법과 순서만 참고하시면 됩니다.
+  </div>
+
+  <div class="note" style="background:#F5DEDE">
+    <b>가장 흔한 실수 하나.</b> 저점이 확정되지 않았는데 피보나치를 긋는 것입니다. 주가가 신저가를 낼 때마다 0%선이 내려가고, 어제 38.2%였던 자리가 오늘은 23.6%가 됩니다. 앞서 실패한 MCHP·ARM·MPWR이 모두 이 상태였습니다. <b>저점 확정 여부를 먼저 판단하고, 애매하면 진입하지 않는 것</b>이 이 도구를 쓰는 전제입니다.
+  </div>
+</section>
+
+</div>
+</body>
+</html>
