@@ -868,6 +868,41 @@ const PROJECTS = [
     milestones: [
       { date:'2026-06-28', title:'프로젝트 #13 신설 — 크리에이터 툴셋', desc:'클로드·코덱스 변증법으로 설계 합의 → Phase 1·2·3 빌드·검증 완료. ReMaster 자산 재사용(중복 0).', isCore:true }
     ]
+  },
+  {
+    id: 'agent-gorgo',
+    no: 14,
+    name: 'AGENT GORGO WORLD',
+    subtitle: '2D 도트 지도 위를 걸어 다니며 업무를 보는 개인 업무 도구 · 부산편',
+    icon: 'building',
+    platform: '웹 앱 · Canvas 2D (빌드 없음)',
+    status: 'in-progress',
+    start: '2026-11-03',
+    latest: '2026-11-03',
+    progress: 1,
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/',
+    preview: { type:'embed', height:600, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'부산 필드맵 — 에이전트 고르고 이동 · 센텀 사무실 / 부산출입국·외국인청 업무 존' }
+    ]},
+    summary: '탑다운 2D 도트 RPG 형식으로 부산 지도 위를 캐릭터 「에이전트 고르고」가 걸어 다니고,\n'
+           + '업무 장소(센텀시티 사무실, 부산출입국·외국인청)에 들어가면 해당 업무 화면이 뜨는 개인 업무 도구.\n'
+           + '1단계는 지도와 캐릭터의 미적 완성도. 업무 모듈(인보이스, EDI 정정신청서, 선원명부)은 디렉터 지시에 따라 순차 추가.',
+    method: '외부 이미지 없이 모든 타일·건물·캐릭터를 코드로 픽셀 생성(오리지널 도트, 장르 문법만 차용). '
+          + '부산 지형은 데포르메 폴리곤(낙동강·을숙도·영도·북항·수영강·해운대)을 타일로 래스터화하고, 다리·항만·산·주택가·도심을 규칙 기반으로 배치한다.',
+    stack: ['Vanilla JS', 'Canvas 2D', 'HTML5 · CSS'],
+    stackDetail: [
+      { area: '지형 생성', tech: 'Vanilla JS', how: 'mapgen.js — 부산 데포르메 폴리곤을 150×90 타일로 래스터화하고, 강·산·도심·해변·항만·도로(물 위면 다리)를 순서대로 깔아 지형을 만든다. 노드에서도 돌아가는 순수 데이터 모듈.' },
+      { area: '픽셀 아트', tech: 'Canvas 2D', how: 'art.js — 타일, 나무, 산복도로 주택, 유리 타워, 크레인, 컨테이너, 랜드마크(사무실·출입국청·부산역·부산타워·등대)를 코드로 픽셀 단위로 그린다.' },
+      { area: '캐릭터', tech: 'Canvas 2D', how: 'gorgo.js — 16×21 치비 도트, 4방향 × 4프레임 걷기 + 눈 깜빡임.' },
+      { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
+    ],
+    issues: [
+      { type:'완료', title:'1차 빌드 — 부산 지도 + 에이전트 고르고', desc:'지형·오브젝트 1094개 생성, 업무 존 2곳(센텀 사무실 / 부산출입국·외국인청) 배치, 헤드리스 브라우저 실검증(콘솔 오류 0).' },
+      { type:'이슈', title:'Codex 검수 대기', desc:'1차 빌드 검수 요청서 전달(internal/notes/2026-11-03-agent-gorgo-codex-review-prompt.md). 판정 전.' }
+    ],
+    milestones: [
+      { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
