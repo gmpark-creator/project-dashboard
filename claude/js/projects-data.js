@@ -885,7 +885,8 @@ const PROJECTS = [
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'부산 필드맵 — 에이전트 고르고 이동 · 센텀 사무실 / 부산출입국·외국인청 업무 존' }
     ]},
     summary: '탑다운 2D 도트 RPG 형식으로 부산 지도 위를 캐릭터 「에이전트 고르고」가 걸어 다니고,\n'
-           + '업무 장소(센텀시티 사무실, 부산출입국·외국인청)에 들어가면 해당 업무 화면이 뜨는 개인 업무 도구.\n'
+           + '업무 장소(센텀시티 사무실, 부산출입국·외국인청, 진해 신항 CFS)에 들어가면 해당 업무 화면이 뜨는 개인 업무 도구.\n'
+           + '지형은 OpenStreetMap 실측(진해 신항 서컨테이너부두 ~ 해운대), 그림체는 아기자기한 오리지널 도트.\n'
            + '1단계는 지도와 캐릭터의 미적 완성도. 업무 모듈(인보이스, EDI 정정신청서, 선원명부)은 디렉터 지시에 따라 순차 추가.',
     method: '외부 이미지 없이 모든 타일·건물·캐릭터를 코드로 픽셀 생성(오리지널 도트, 장르 문법만 차용). '
           + '부산 지형은 데포르메 폴리곤(낙동강·을숙도·영도·북항·수영강·해운대)을 타일로 래스터화하고, 다리·항만·산·주택가·도심을 규칙 기반으로 배치한다.',
@@ -901,7 +902,9 @@ const PROJECTS = [
       { type:'완료', title:'Codex 항목4 BLOCK 3건 수정 (22bbe3a)', desc:'패널 입력 격리·초기화, ?at 스폰 검증, ?open ID 검증. tools/qa.html 시나리오 A–F 전부 통과, 기본 스폰→두 문 픽셀 BFS 도달.' },
       { type:'완료', title:'v1 스냅샷 고정 (fe91e36)', desc:'재설계 전후 비교용 — /claude/previews/agent-gorgo/v1/' },
       { type:'완료', title:'AGENT-GORGO-2 R1 Thesis → Codex R1 Antithesis BLOCK', desc:'지역 분할·중앙동 선행·두 대교 배경·v2 별도 URL은 PASS. 배율 계약·렌더 앞뒤 규칙·OSM 라이선스 범위·게이트 기준은 BLOCK.' },
-      { type:'이슈', title:'AGENT-GORGO-2 R2 Thesis 제출 — Codex 재판정 대기', desc:'장치 픽셀 정수 배율·공간 비례/지리 압축(10m/타일) 분리, 단일 sortY 렌더 계약, 맵 데이터 ODbL·코드/아트 분리, 게이트 G1–G9 통과선+negative control. internal/notes/2026-11-03-agent-gorgo-2-r2-thesis.md' }
+      { type:'보류', title:'AGENT-GORGO-2 R2 Thesis (그래픽 재설계) — 보류', desc:'디렉터 지시로 현재 아기자기한 그림체 유지가 우선. R2(32px·3/4 시점·중앙동 동네맵)는 보류. internal/notes/2026-11-03-agent-gorgo-2-r2-thesis.md' },
+      { type:'핵심', title:'부산 실측 지형으로 지도 전면 교체 + 진해 신항 CFS (a7e25b4)', desc:'OSM 실측 해안선·강·산림·시가지·간선도로·부산시 경계 → 300×214 타일(1칸≈140m). 진해 신항 서컨테이너부두(DGT)~해운대·송정. 업무 존 3곳: 센텀 사무실 / 중앙동 출입국청 / 신항 CFS(창원 진해). 광안대교=현수교·부산항대교=사장교, 부산↔경남 경계 점선, M키 부산 전도. 지도 데이터 © OpenStreetMap contributors(ODbL).' },
+      { type:'이슈', title:'Codex 사후 검수 대기 — 실측 지형 교체', desc:'디렉터 우선 지시로 판정 전 구현. 검수 요청서 internal/notes/2026-11-03-agent-gorgo-director-override-real-terrain.md' }
     ],
     milestones: [
       { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true }

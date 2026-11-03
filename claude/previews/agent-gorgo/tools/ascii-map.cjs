@@ -1,4 +1,4 @@
-const path=process.argv[2];require(path);
+const path=process.argv[2];require(require("path").join(require("path").dirname(path),"..","data","busan-osm.js"));require(path);
 const m=globalThis.GorgoMapGen.generate();
 const ch=['~','-','.',':','=','#',',','^','Q','B','r'];
 const grid=[];for(let y=0;y<m.H;y++){let s='';for(let x=0;x<m.W;x++)s+=ch[m.tiles[y*m.W+x]];grid.push(s.split(''));}
