@@ -101,8 +101,8 @@
   /* ---------- 플레이어 ---------- */
   const frames = window.Gorgo.build();
   const office = zones.find(z => z.id === 'office');
-  const Q = new URLSearchParams(location.search), AT = (Q.get("at") || "").split(",").map(Number);
-  const player = { x: AT.length === 2 ? AT[0] * TS : office.dx, y: AT.length === 2 ? AT[1] * TS : office.dy + 14, dir: 'down', moving: false, dist: 0, blink: 0, nextBlink: 2.5, running: false };
+  const Q = new URLSearchParams(location.search);
+  const player = { x: office.dx, y: office.dy + 14, dir: 'down', moving: false, dist: 0, blink: 0, nextBlink: 2.5, running: false };
   const HB = { w: 8, h: 4 };
   function blocked(px, py) {
     const x0 = px - HB.w / 2, y0 = py - HB.h, x1 = px + HB.w / 2 - 0.01, y1 = py - 0.01;
@@ -115,6 +115,18 @@
     }
     return false;
   }
+  // ?at=x,y (타일 좌표, 검증용) — 유한한 숫자 2개 + 월드 안 + 실제 이동 가능 위치일 때만 적용, 아니면 기본 스폰 유지
+  (function applySpawnParam() {
+    const raw = Q.get('at'); if (raw === null) return;
+    const parts = raw.split(',');
+    if (parts.length !== 2 || parts.some(p => p.trim() === '')) return;
+    const ax = Number(parts[0]), ay = Number(parts[1]);
+    if (!Number.isFinite(ax) || !Number.isFinite(ay)) return;
+    const px = ax * TS, py = ay * TS;
+    if (px < 8 || px > WPX - 8 || py < 20 || py > HPX - 4) return;
+    if (blocked(px, py)) return;
+    player.x = px; player.y = py;
+  })();
 
   /* ---------- 입력 ---------- */
   const keys = new Set();
@@ -125,12 +137,19 @@
     const k = e.key.toLowerCase();
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'w', 'a', 's', 'd'].includes(k)) e.preventDefault();
     hideIntro();
-    if (k === 'escape') { closePanel(); return; }
-    if ((k === ' ' || k === 'enter' || k === 'e') && !panelOpen()) { if (nearZone) openPanel(nearZone); return; }
+    if (panelOpen()) { if (k === 'escape') closePanel(); return; } // 패널 안: Esc만 처리, 월드 입력 차단
+    if (k === 'escape') return;
+    if (k === ' ' || k === 'enter' || k === 'e') { if (nearZone) openPanel(nearZone); return; }
     keys.add(k); target = null;
   });
   window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
-  window.addEventListener('blur', () => keys.clear());
+  window.addEventListener('blur', () => resetInput());
+  // 키·클릭 목표·조이스틱(ID·벡터·표시) 전부 초기화 — 패널 열기/닫기·창 blur 시 호출
+  function resetInput() {
+    keys.clear(); target = null;
+    joy.active = false; joy.id = null; joy.dx = 0; joy.dy = 0;
+    joyEl.style.display = 'none'; joyKnob.style.transform = 'translate(-50%,-50%)';
+  }
   canvas.addEventListener('pointerdown', (e) => {
     hideIntro(); if (panelOpen()) return;
     if (e.pointerType === 'touch') return; // 터치는 조이스틱
@@ -150,6 +169,7 @@
     }
   }, { passive: true });
   window.addEventListener('touchmove', (e) => {
+    if (!joy.active || panelOpen()) return;
     for (const t of e.changedTouches) if (t.identifier === joy.id) {
       let dx = t.clientX - joy.sx, dy = t.clientY - joy.sy; const d = Math.hypot(dx, dy), m = 42;
       if (d > m) { dx = dx / d * m; dy = dy / d * m; }
@@ -236,7 +256,8 @@
     },
   };
   function openPanel(z) {
-    const c = ZONE_CONTENT[z.id]; if (!c) return;
+    if (!z || !ZONE_CONTENT[z.id]) return;
+    const c = ZONE_CONTENT[z.id];
     panel.style.setProperty('--zc', c.color);
     panel.querySelector('.p-icon').textContent = c.icon;
     panel.querySelector('.p-title').textContent = c.title;
@@ -245,10 +266,10 @@
     panel.querySelector('.p-list').innerHTML = c.items.map((it, i) =>
       `<li style="--i:${i}"><div><b>${it.t}</b><small>${it.d}</small></div><span class="chip ${it.s === '예정' ? 'soon' : 'wait'}">${it.s === '예정' ? '곧 추가' : '빈 슬롯'}</span></li>`).join('');
     document.body.classList.add('panel-open');
-    keys.clear(); target = null;
+    resetInput();
     spawnSparkle(z.dx, z.dy - 6);
   }
-  function closePanel() { document.body.classList.remove('panel-open'); }
+  function closePanel() { document.body.classList.remove('panel-open'); resetInput(); }
   panel.querySelector('.p-close').addEventListener('click', closePanel);
   document.getElementById('panel-dim').addEventListener('click', closePanel);
 
@@ -258,7 +279,7 @@
   function hideIntro() { if (!introShown) return; introShown = false; intro.classList.add('gone'); }
   intro.addEventListener('click', hideIntro);
   if (Q.has('nointro')) hideIntro();
-  if (Q.get('open')) setTimeout(() => openPanel(zones.find(z => z.id === Q.get('open'))), 300);
+  { const want = Q.get('open'), z = want ? zones.find(zz => zz.id === want) : null; if (z) setTimeout(() => openPanel(z), 300); }
 
   /* ---------- 업데이트 ---------- */
   let nearZone = null, dustT = 0, time = 0;
@@ -462,5 +483,5 @@
   }
   requestAnimationFrame(loop);
 
-  window.__gorgo = { player, map, zones, openPanel, closePanel, cam };
+  window.__gorgo = { player, map, zones, openPanel, closePanel, cam, update, keys, joy, blocked };
 })();

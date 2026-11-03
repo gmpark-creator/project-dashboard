@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>gorgo qa</title></head>
+<body>
+<!-- 실제 게임 DOM과 동일한 id 세트 -->
+<canvas id="world"></canvas><div id="labels"></div>
+<div id="loc"><b id="loc-name"></b><span id="loc-coord"></span></div>
+<div id="mm-wrap"><canvas id="minimap"></canvas></div>
+<div id="joy"><div id="joy-knob"></div></div><button id="act-btn"></button>
+<div id="panel-dim"></div>
+<aside id="panel"><div class="p-icon"></div><div class="p-title"></div><div class="p-en"></div><button class="p-close"></button><p class="p-intro"></p><ul class="p-list"></ul></aside>
+<div id="intro"></div>
+<pre id="out">RUNNING</pre>
+<script>window.__errors = []; window.addEventListener('error', e => window.__errors.push(String(e.message)));</script>
+<script src="../js/mapgen.js"></script>
+<script src="../js/art.js"></script>
+<script src="../js/gorgo.js"></script>
+<script src="../js/game.js"></script>
+<script>
+(function () {
+  const g = window.__gorgo, R = {};
+  const P = g.player;
+  R.query = location.search;
+  R.spawn = { x: P.x, y: P.y, finite: Number.isFinite(P.x) && Number.isFinite(P.y), blocked: g.blocked(P.x, P.y) };
+  R.camFinite = Number.isFinite(g.cam.x) && Number.isFinite(g.cam.y);
+
+  if (!location.search) {
+    const office = g.zones.find(z => z.id === 'office');
+    const key = (type, k) => window.dispatchEvent(new KeyboardEvent(type, { key: k }));
+    // 시나리오 A: 패널 열기 → d 누르기 → 패널 닫기 → update
+    P.x = office.dx; P.y = office.dy + 14;
+    g.openPanel(office); key('keydown', 'd'); g.closePanel();
+    let x0 = P.x, y0 = P.y; g.update(0.05);
+    R.A_keyDuringPanel = { before: x0, after: P.x, unchanged: P.x === x0 && P.y === y0 };
+    // 시나리오 B: 조이스틱 잔류 → 패널 열기/닫기 → update
+    g.joy.active = true; g.joy.id = 7; g.joy.dx = 1; g.joy.dy = 0;
+    g.openPanel(office); g.closePanel();
+    x0 = P.x; g.update(0.05);
+    R.B_joyResidue = { before: x0, after: P.x, unchanged: P.x === x0, joyActive: g.joy.active, joyId: g.joy.id };
+    // 시나리오 C: 패널 열린 채 Esc → 닫힘
+    g.openPanel(office); key('keydown', 'Escape');
+    R.C_escCloses = !document.body.classList.contains('panel-open');
+    // 시나리오 D: blur 시 키 초기화
+    key('keydown', 'd'); window.dispatchEvent(new Event('blur')); x0 = P.x; g.update(0.05);
+    R.D_blurReset = { unchanged: P.x === x0, keys: g.keys.size };
+    // 시나리오 E: 새 입력이면 정상 이동
+    key('keydown', 'd'); x0 = P.x; g.update(0.05); key('keyup', 'd');
+    R.E_newInputMoves = P.x > x0;
+
+    // 시나리오 F: 픽셀 단위 경로 — 실제 blocked() 기준 4px 격자 BFS, 기본 스폰 → 두 문
+    const S = 4, W = g.map.W * 16 / S, H = g.map.H * 16 / S;
+    const sx = Math.round(office.dx / S), sy = Math.round((office.dy + 14) / S);
+    const seen = new Uint8Array(W * H), q = new Int32Array(W * H); let qh = 0, qt = 0;
+    seen[sy * W + sx] = 1; q[qt++] = sy * W + sx;
+    while (qh < qt) {
+      const k = q[qh++], x = k % W, y = (k / W) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy; if (nx < 2 || ny < 5 || nx >= W - 2 || ny >= H - 1) continue;
+        const nk = ny * W + nx; if (seen[nk]) continue;
+        if (g.blocked(nx * S, ny * S)) continue;
+        seen[nk] = 1; q[qt++] = nk;
+      }
+    }
+    R.F_doors = g.zones.map(z => {
+      let ok = false;
+      for (let y = 0; y < H && !ok; y++) for (let x = 0; x < W; x++) if (seen[y * W + x] && Math.hypot(x * S - z.dx, y * S - z.dy) < 26) { ok = true; break; }
+      return { id: z.id, reachable: ok };
+    });
+    R.F_reachedCells = qt;
+  }
+  setTimeout(() => { R.errors = window.__errors; R.panelOpen = document.body.classList.contains('panel-open'); document.getElementById('out').textContent = 'QA_RESULT ' + JSON.stringify(R); }, 600);
+})();
+</script>
+</body></html>
