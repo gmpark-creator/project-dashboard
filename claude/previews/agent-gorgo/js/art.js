@@ -25,15 +25,17 @@
   const FLOWERS = ['#ff8fb1', '#fff27a', '#ffffff', '#c3b2ff', '#ffb36b'];
 
   /* ---------------- 지면 ---------------- */
-  function paintGround(map) {
+  // (tx0,ty0,tw,th) 구역만 그린 캔버스를 반환 — 큰 지도는 청크 단위로 호출
+  function paintGround(map, tx0, ty0, tw, th) {
     const { W, H, T, tiles, hash } = map;
-    const can = cv(W * TS, H * TS), c = can.getContext('2d');
+    tx0 = tx0 || 0; ty0 = ty0 || 0; tw = tw || W; th = th || H;
+    const can = cv(tw * TS, th * TS), c = can.getContext('2d');
     const get = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.DEEP : tiles[y * W + x];
     const isW = (t) => t === T.DEEP || t === T.SHALLOW || t === T.RIVER;
     const isLandish = (t) => !isW(t) && t !== T.BRIDGE;
 
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const t = get(x, y), X = x * TS, Y = y * TS;
+    for (let y = ty0; y < Math.min(H, ty0 + th); y++) for (let x = tx0; x < Math.min(W, tx0 + tw); x++) {
+      const t = get(x, y), X = (x - tx0) * TS, Y = (y - ty0) * TS;
       const r = (k) => hash(x, y, 100 + k);
       switch (t) {
         case T.DEEP: case T.SHALLOW: case T.RIVER: {
@@ -329,6 +331,32 @@
     return can;
   }
 
+  /* ---- 업무 랜드마크: 신항 CFS 창고 (창원 진해) ---- */
+  function makeWarehouse() {
+    const can = cv(88, 54), c = can.getContext('2d'), o = '#3d3a5c';
+    // 박공 지붕 (청록 골강판)
+    for (let yy = 0; yy < 12; yy++) { const inset = Math.round((11 - yy) * 0.9); P(c, 2 + inset, 4 + yy, 84 - inset * 2, 1, o); P(c, 3 + inset, 4 + yy, 82 - inset * 2, 1, yy % 3 === 0 ? '#3fb8a8' : '#5fd0bf'); }
+    for (let x = 6; x < 84; x += 5) P(c, x, 8, 1, 8, '#2f9a8c');
+    // 벽
+    P(c, 4, 16, 80, 36, o); P(c, 5, 17, 78, 34, '#f4f1ea'); P(c, 5, 17, 78, 3, '#e2ddd2');
+    // 셔터 도크 3개 + 번호판
+    for (let i = 0; i < 3; i++) { const x = 10 + i * 24; P(c, x, 26, 18, 25, o); P(c, x + 1, 27, 16, 24, '#c9cfd9'); for (let y = 29; y < 51; y += 3) P(c, x + 1, y, 16, 1, '#aab2c0'); P(c, x + 6, 21, 6, 4, '#ffd23f'); P(c, x + 8, 22, 2, 2, o); }
+    // 간판 띠 "CFS"
+    P(c, 30, 17, 28, 4, '#2f6fd6');
+    // 지게차 · 팔레트
+    P(c, 76, 44, 6, 6, '#ffb84d'); P(c, 76, 44, 6, 1, o); P(c, 75, 49, 2, 2, o); P(c, 81, 49, 2, 2, o); P(c, 74, 38, 1, 12, '#5a5f73');
+    P(c, 2, 46, 6, 4, '#c98f5a'); P(c, 2, 44, 6, 2, '#ff6b6b');
+    return can;
+  }
+  function makeFactory(v) {
+    const can = cv(26, 26), c = can.getContext('2d'), o = C.outline, wall = ['#e6e9f0', '#efe8dc', '#e3ecf2'][v % 3];
+    P(c, 2, 10, 22, 15, o); P(c, 3, 11, 20, 13, wall);
+    for (let i = 0; i < 3; i++) { P(c, 3 + i * 7, 6, 7, 5, o); P(c, 4 + i * 7, 7, 5, 3, ['#9fb3c8', '#b8a6ff', '#7fc8f2'][v % 3]); }
+    P(c, 18, 0, 4, 10, o); P(c, 19, 1, 2, 9, '#ff8f6b'); P(c, 19, 3, 2, 1, '#fff');
+    P(c, 6, 16, 6, 8, o); P(c, 7, 17, 4, 7, '#c9cfd9');
+    return can;
+  }
+
   G.GorgoArt = { TS, C, cv, P, blob, darken, paintGround, makeTree, makeHouse, makeApt, makeTower, makeContainers, makeCrane, makePylon,
-                  makeLighthouse, makeBusanTower, makeStation, makeOffice, makeImmigration };
+                  makeLighthouse, makeBusanTower, makeStation, makeOffice, makeImmigration, makeWarehouse, makeFactory };
 })(window);

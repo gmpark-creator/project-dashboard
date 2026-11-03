@@ -25,7 +25,15 @@
   window.addEventListener('resize', resize); resize();
 
   /* ---------- 월드 빌드 ---------- */
-  const ground = A.paintGround(map);
+  // 지면은 32×32 타일(512px) 청크로 필요할 때만 그리고 최근 것만 보관 (큰 실측 지도 대응)
+  const CH = 32, chunks = new Map();
+  function groundChunk(gx, gy) {
+    const k = gy * 4096 + gx; let c = chunks.get(k);
+    if (c) { chunks.delete(k); chunks.set(k, c); return c; }
+    c = A.paintGround(map, gx * CH, gy * CH, CH, CH); chunks.set(k, c);
+    if (chunks.size > 90) chunks.delete(chunks.keys().next().value);
+    return c;
+  }
   const cache = new Map();
   const spr = (key, fn) => { if (!cache.has(key)) cache.set(key, fn()); return cache.get(key); };
 
@@ -55,7 +63,8 @@
       case 'tower': place(spr('tow' + o.v + o.h, () => A.makeTower(o.v, o.h)), fx, fy, 1, [-13, -10, 26, 9]); break;
       case 'container': place(spr('ct' + o.v + o.h, () => A.makeContainers(o.v, o.h)), fx, fy, 1, [-8, -7, 16, 6]); break;
       case 'crane': place(spr('cr' + o.v, () => A.makeCrane(o.v)), fx, fy, 1, null); addSolid({ x: fx - 13, y: fy - 4, w: 4, h: 3 }); addSolid({ x: fx + 9, y: fy - 4, w: 4, h: 3 }); break;
-      case 'pylon': place(spr('pylon', () => makePylonSlim()), fx, fy - 2, 0, null); break;
+      case 'factory': place(spr('fac' + (o.v % 3), () => A.makeFactory(o.v)), fx, fy, 1, [-11, -9, 22, 8]); break;
+      case 'pylon': place(spr('pylon-' + o.v, () => o.v === 'stayed' ? makePylonStayed() : makePylonSlim()), fx, fy, 0, null); break;
     }
   }
   function makePylonSlim() {
@@ -63,6 +72,13 @@
     for (const lx of [2, 10]) { A.P(x, lx, 2, 4, 82, o); A.P(x, lx + 1, 3, 2, 81, '#eef2fb'); A.P(x, lx + 3, 3, 1, 81, '#bcc5d8'); }
     for (const y of [8, 30, 52]) { A.P(x, 2, y, 12, 3, o); A.P(x, 3, y + 1, 10, 1, '#eef2fb'); }
     A.P(x, 3, 0, 2, 2, '#ff5a5a'); A.P(x, 11, 0, 2, 2, '#ff5a5a');
+    return c;
+  }
+
+  function makePylonStayed() { // 사장교 A형 주탑
+    const c = A.cv(20, 84), x = c.getContext('2d'), o = '#4b5470';
+    for (let y = 2; y < 84; y++) { const sp = Math.round((y - 2) / 82 * 7); for (const lx of [9 - sp, 9 + sp]) { A.P(x, lx, y, 3, 1, o); A.P(x, lx + 1, y, 1, 1, '#eef2fb'); } }
+    A.P(x, 6, 40, 9, 3, o); A.P(x, 7, 41, 7, 1, '#eef2fb'); A.P(x, 9, 0, 3, 3, '#ff5a5a');
     return c;
   }
 
@@ -78,6 +94,10 @@
       const o = place(spr('immig', A.makeImmigration), fx, fy, 1, null);
       addSolid({ x: o.ox + 14, y: fy - 42, w: 64, h: 32 }); addSolid({ x: o.ox + 3, y: fy - 4, w: 4, h: 3 });
       zones.push({ ...l, dx: o.ox + 47, dy: fy + 6 });
+    } else if (l.kind === 'cfs') {
+      const o = place(spr('cfs', A.makeWarehouse), fx, fy, 1, null);
+      addSolid({ x: o.ox + 4, y: fy - 34, w: 80, h: 28 });
+      zones.push({ ...l, dx: fx, dy: fy + 6 });
     } else if (l.kind === 'station') place(spr('station', A.makeStation), fx, fy, 1, [-34, -24, 68, 22]);
     else if (l.kind === 'busantower') place(spr('btower', A.makeBusanTower), fx, fy, 1, [-4, -6, 8, 5]);
     else if (l.kind === 'lighthouse') place(spr('lh', A.makeLighthouse), fx, fy, 1, [-5, -6, 10, 5]);
@@ -93,10 +113,19 @@
     return c;
   }
   const ships = [];
-  const lanes = [{ y: 66, a: 100, b: 150 }, { y: 73, a: 92, b: 150 }, { y: 84, a: 0, b: 150 }, { y: 88, a: 0, b: 150 }, { y: 82, a: 76, b: 150 }];
+  const lanes = [];
+  for (let y = 4; y < H - 2; y += 9) { // 가로로 길게 이어진 깊은 바다 구간 = 항로
+    let run = -1;
+    for (let x = 0; x <= W; x++) {
+      const deep = x < W && getT(x, y) === T.DEEP && getT(x, y - 1) === T.DEEP && getT(x, y + 1) === T.DEEP;
+      if (deep && run < 0) run = x;
+      if (!deep && run >= 0) { if (x - run > 28) lanes.push({ y: y + 0.5, a: run + 2, b: x - 2 }); run = -1; }
+    }
+  }
   lanes.forEach((ln, i) => { for (let k = 0; k < 2; k++) ships.push({ lane: ln, x: (ln.a + (ln.b - ln.a) * (k * 0.5 + i * 0.13)) * TS, dir: i % 2 ? -1 : 1, spd: 8 + (i * 3) % 7, img: makeShip(i + k), ph: i + k }); });
-  const gulls = Array.from({ length: 9 }, (_, i) => ({ cx: [100, 125, 80, 60, 30, 110, 140, 70, 45][i] * TS, cy: [55, 50, 62, 66, 70, 62, 45, 76, 64][i] * TS, r: 60 + i * 9, sp: 0.25 + (i % 4) * 0.07, ph: i * 1.7 }));
-  const clouds = Array.from({ length: 7 }, (_, i) => ({ x: (i * 23 % W) * TS, y: ((i * 37) % H) * TS, rx: 60 + (i * 13) % 50, ry: 26 + (i * 7) % 16, sp: 6 + i % 3 * 3 }));
+  const gulls = [];
+  for (let y = 0; y < H && gulls.length < 40; y += 3) for (let x = 0; x < W && gulls.length < 40; x += 3) if (getT(x, y) === T.SHALLOW && hash(x, y, 55) < 0.05) gulls.push({ cx: x * TS, cy: y * TS, r: 40 + hash(x, y, 56) * 60, sp: 0.25 + hash(x, y, 57) * 0.3, ph: hash(x, y, 58) * 6 });
+  const clouds = Array.from({ length: 22 }, (_, i) => ({ x: (i * 23 % W) * TS, y: ((i * 37) % H) * TS, rx: 60 + (i * 13) % 50, ry: 26 + (i * 7) % 16, sp: 6 + i % 3 * 3 }));
 
   /* ---------- 플레이어 ---------- */
   const frames = window.Gorgo.build();
@@ -128,6 +157,9 @@
     player.x = px; player.y = py;
   })();
 
+  // ?spawn=office|immigration|cfs — 해당 업무 존 문 앞에서 시작 (검증·바로가기용, 알 수 없는 값은 무시)
+  { const sp = Q.get("spawn"), z = sp ? zones.find(zz => zz.id === sp) : null; if (z && !Q.has("at")) { outer: for (const oy of [14, 8, 20, 4, 26]) for (const ox of [0, -8, 8, -16, 16]) if (!blocked(z.dx + ox, z.dy + oy)) { player.x = z.dx + ox; player.y = z.dy + oy; break outer; } } }
+
   /* ---------- 입력 ---------- */
   const keys = new Set();
   let target = null; // 클릭 이동
@@ -138,6 +170,8 @@
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'w', 'a', 's', 'd'].includes(k)) e.preventDefault();
     hideIntro();
     if (panelOpen()) { if (k === 'escape') closePanel(); return; } // 패널 안: Esc만 처리, 월드 입력 차단
+    if (bigOpen()) { if (k === 'escape' || k === 'm') closeBig(); return; }
+    if (k === 'm') { openBig(); return; }
     if (k === 'escape') return;
     if (k === ' ' || k === 'enter' || k === 'e') { if (nearZone) openPanel(nearZone); return; }
     keys.add(k); target = null;
@@ -221,9 +255,12 @@
   const locEl = document.getElementById('loc-name'), coordEl = document.getElementById('loc-coord');
   let lastDistrict = '';
   function districtAt(x, y) {
-    const tx = x / TS, ty = y / TS; let best = null, bd = 1e9;
+    const tx = x / TS, ty = y / TS, ix = Math.floor(tx), iy = Math.floor(ty);
+    const inside = ix >= 0 && iy >= 0 && ix < W && iy < H && map.inBusan[iy * W + ix];
+    if (!inside && !isWaterT(getT(ix, iy))) return tx < map.X(128.86) ? '경상남도 · 창원시 진해구' : '경상남도 · 김해시';
+    let best = null, bd = 1e9;
     for (const d of map.districts) { const dd = (d[1] - tx) ** 2 + (d[2] - ty) ** 2; if (dd < bd) { bd = dd; best = d[0]; } }
-    return best;
+    return '부산 · ' + best;
   }
   // 미니맵
   const mm = document.getElementById('minimap'), mctx = mm.getContext('2d');
@@ -232,6 +269,11 @@
     const c = mmBase.getContext('2d');
     const col = { [T.DEEP]: '#5aaee8', [T.SHALLOW]: '#80cdf3', [T.RIVER]: '#80cdf3', [T.GRASS]: '#a3dc7a', [T.SAND]: '#fbe7b0', [T.ROAD]: '#fff3dc', [T.PLAZA]: '#f3ecfa', [T.FARM]: '#d6ad78', [T.FOREST]: '#6db75a', [T.QUAY]: '#c7cdd8', [T.BRIDGE]: '#ffffff' };
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) A.P(c, x * 2, y * 2, 2, 2, col[getT(x, y)]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!map.inBusan[y * W + x] && !isWaterT(getT(x, y))) A.P(c, x * 2, y * 2, 2, 2, 'rgba(60,40,90,.22)');
+    for (const line of map.boundary) for (let i = 0; i < line.length - 1; i++) {
+      const [ax, ay] = line[i], [bx, by] = line[i + 1], n = Math.ceil(Math.hypot(bx - ax, by - ay) * 2);
+      for (let k = 0; k <= n; k += 2) { const px = ax + (bx - ax) * k / n, py = ay + (by - ay) * k / n; if (!isWaterT(getT(Math.floor(px), Math.floor(py)))) A.P(c, Math.round(px * 2), Math.round(py * 2), 1, 1, '#8a3fd1'); }
+    }
   }
 
   /* ---------- 패널 (업무 존) ---------- */
@@ -254,6 +296,14 @@
         { t: '업무 슬롯', d: '박사님 지시에 따라 순차 추가', s: '대기' },
       ],
     },
+    cfs: {
+      icon: '📦', color: '#1fa28f', title: '신항 CFS', en: 'BUSAN NEW PORT CFS · 창원시 진해구 (경상남도)',
+      intro: '부산신항 배후 CFS. 행정구역상 부산이 아닌 경상남도 창원시 진해구에 속합니다. 화물 반입·반출 관련 업무가 이곳에 들어옵니다.',
+      items: [
+        { t: 'CFS 업무', d: '세부 업무는 박사님 지시에 따라 추가', s: '예정' },
+        { t: '업무 슬롯', d: '박사님 지시에 따라 순차 추가', s: '대기' },
+      ],
+    },
   };
   function openPanel(z) {
     if (!z || !ZONE_CONTENT[z.id]) return;
@@ -273,6 +323,23 @@
   panel.querySelector('.p-close').addEventListener('click', closePanel);
   document.getElementById('panel-dim').addEventListener('click', closePanel);
 
+  /* ---------- 부산 전도 ---------- */
+  const bigOpen = () => document.body.classList.contains('bigmap-open');
+  const bigC = document.getElementById('bigmap-c'), bigL = document.getElementById('bigmap-labels');
+  bigC.width = W * 2; bigC.height = H * 2; bigC.getContext('2d').drawImage(mmBase, 0, 0);
+  {
+    const pct = (x, y) => `left:${(x / W * 100).toFixed(2)}%;top:${(y / H * 100).toFixed(2)}%`;
+    const keep = new Set(['water', 'region', 'port', 'beach', 'area', 'mt']);
+    bigL.innerHTML = map.labels.filter(l => keep.has(l.k)).map(l => `<div class="bm-l k-${l.k}" style="${pct(l.x, l.y)}">${l.t}</div>`).join('')
+      + zones.map(z => `<div class="bm-z" style="${pct(z.dx / TS, z.dy / TS - 1)}">${z.name}</div>`).join('')
+      + '<div class="bm-me" id="bm-me"></div>';
+  }
+  function openBig() { const me = document.getElementById('bm-me'); me.style.left = (player.x / TS / W * 100) + '%'; me.style.top = (player.y / TS / H * 100) + '%'; document.body.classList.add('bigmap-open'); resetInput(); }
+  function closeBig() { document.body.classList.remove('bigmap-open'); resetInput(); }
+  document.getElementById('mm-wrap').addEventListener('click', openBig);
+  document.getElementById('bigmap').addEventListener('click', closeBig);
+  if (Q.has('bigmap')) setTimeout(openBig, 200);
+
   /* ---------- 인트로 ---------- */
   const intro = document.getElementById('intro');
   let introShown = true;
@@ -286,7 +353,7 @@
   function update(dt) {
     time += dt;
     let ix = 0, iy = 0;
-    if (!panelOpen()) {
+    if (!panelOpen() && !bigOpen()) {
       if (keys.has('arrowleft') || keys.has('a')) ix -= 1;
       if (keys.has('arrowright') || keys.has('d')) ix += 1;
       if (keys.has('arrowup') || keys.has('w')) iy -= 1;
@@ -302,7 +369,7 @@
     player.moving = len > 0.01;
     if (player.moving) {
       ix /= Math.max(1, len); iy /= Math.max(1, len);
-      const sp = (player.running ? 128 : 74) * dt;
+      const sp = (player.running ? 175 : 82) * dt;
       const nx = player.x + ix * sp, ny = player.y + iy * sp;
       let moved = false;
       if (!blocked(nx, player.y)) { player.x = nx; moved = true; }
@@ -336,7 +403,12 @@
   function draw() {
     const cx = Math.round(cam.x), cy = Math.round(cam.y);
     ctx.fillStyle = A.C.deep; ctx.fillRect(0, 0, VW, VH);
-    ctx.drawImage(ground, cx, cy, VW, VH, 0, 0, VW, VH);
+    const CPX = CH * TS;
+    for (let gy = Math.floor(cy / CPX); gy <= Math.floor((cy + VH) / CPX); gy++) for (let gx = Math.floor(cx / CPX); gx <= Math.floor((cx + VW) / CPX); gx++) {
+      if (gx < 0 || gy < 0 || gx * CH >= W || gy * CH >= H) continue;
+      ctx.drawImage(groundChunk(gx, gy), gx * CPX - cx, gy * CPX - cy);
+    }
+    drawBoundary(cx, cy);
 
     // 물결 반짝임
     const tx0 = Math.floor(cx / TS), ty0 = Math.floor(cy / TS), tx1 = Math.ceil((cx + VW) / TS), ty1 = Math.ceil((cy + VH) / TS);
@@ -424,21 +496,38 @@
   }
 
   function drawCables(b, cx, cy) {
-    const deckY = b.a[1] * TS - 4, topY = deckY + 10 - 84;
-    const p1 = b.p1 * TS, p2 = b.p2 * TS, ax = b.a[0] * TS, bx = b.b[0] * TS;
-    if (Math.max(ax, bx) - cx < -10 || Math.min(ax, bx) - cx > VW + 10 || deckY - cy < -10 || topY - cy > VH + 10) return;
-    const seg = (x0, y0, x1, y1, sag) => {
-      const n = Math.ceil(Math.abs(x1 - x0));
-      for (let i = 0; i <= n; i++) {
-        const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t + sag * 4 * t * (1 - t);
-        ctx.fillStyle = '#f4f7ff'; ctx.fillRect(Math.round(x - cx), Math.round(y - cy), 1, 1);
-        if (i % 6 === 3) { ctx.fillStyle = 'rgba(244,247,255,.55)'; ctx.fillRect(Math.round(x - cx), Math.round(y - cy) + 1, 1, Math.max(0, Math.round(deckY - y - 1))); }
+    const P = (p, up) => [p[0] * TS, p[1] * TS - (up || 0)];
+    const A0 = P(b.a), B0 = P(b.b), D1 = P(b.p1), D2 = P(b.p2), T1 = P([b.p1[0], b.p1[1] + 0.3], 80), T2 = P([b.p2[0], b.p2[1] + 0.3], 80);
+    const minx = Math.min(A0[0], B0[0]) - 10, maxx = Math.max(A0[0], B0[0]) + 10, miny = Math.min(T1[1], T2[1], A0[1], B0[1]) - 10, maxy = Math.max(A0[1], B0[1]) + 10;
+    if (maxx - cx < 0 || minx - cx > VW || maxy - cy < 0 || miny - cy > VH) return;
+    const dot = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x - cx), Math.round(y - cy), 1, 1); };
+    const lineP = (x0, y0, x1, y1, c) => { const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))); for (let i = 0; i <= n; i++) dot(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, c); };
+    if (b.kind === 'suspension') { // 현수교(광안대교): 주케이블 + 수직 행어
+      const span = (d0, d1, t0, t1, sag) => {
+        const n = Math.ceil(Math.hypot(d1[0] - d0[0], d1[1] - d0[1]));
+        for (let i = 0; i <= n; i++) {
+          const t = i / n, x = d0[0] + (d1[0] - d0[0]) * t, dy = d0[1] + (d1[1] - d0[1]) * t;
+          const y = t0[1] + (t1[1] - t0[1]) * t + sag * 4 * t * (1 - t);
+          dot(x, y, '#f4f7ff');
+          if (i % 5 === 2) { ctx.fillStyle = 'rgba(244,247,255,.6)'; ctx.fillRect(Math.round(x - cx), Math.round(y - cy) + 1, 1, Math.max(0, Math.round(dy - y - 2))); }
+        }
+      };
+      span(A0, D1, A0, T1, 14); span(D1, D2, T1, T2, 58); span(D2, B0, T2, B0, 14);
+    } else { // 사장교(부산항대교): 주탑 꼭대기에서 부채꼴 케이블
+      const mid = [(D1[0] + D2[0]) / 2, (D1[1] + D2[1]) / 2];
+      for (const [Tp, Dp, ends] of [[T1, D1, [A0, mid]], [T2, D2, [mid, B0]]]) for (const E of ends) for (const f of [0.3, 0.55, 0.8, 1]) {
+        lineP(Tp[0], Tp[1] + 2, Dp[0] + (E[0] - Dp[0]) * f, Dp[1] + (E[1] - Dp[1]) * f - 3, '#eef2fb');
       }
-    };
-    for (const off of [-0.5, 0.5]) {
-      seg(ax, deckY, p1 + off * 8, topY + 2, 18);
-      seg(p1 + off * 8, topY + 2, p2 + off * 8, topY + 2, 62);
-      seg(p2 + off * 8, topY + 2, bx, deckY, 18);
+    }
+  }
+  // 부산 ↔ 경남 경계 (육지 위에만 점선)
+  function drawBoundary(cx, cy) {
+    ctx.fillStyle = '#8a3fd1';
+    for (const line of map.boundary) for (let i = 0; i < line.length - 1; i++) {
+      const ax = line[i][0] * TS, ay = line[i][1] * TS, bx = line[i + 1][0] * TS, by = line[i + 1][1] * TS;
+      if (Math.max(ax, bx) < cx - 4 || Math.min(ax, bx) > cx + VW + 4 || Math.max(ay, by) < cy - 4 || Math.min(ay, by) > cy + VH + 4) continue;
+      const n = Math.ceil(Math.hypot(bx - ax, by - ay));
+      for (let k = 0; k <= n; k += 7) { const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n; if (isWaterT(getT(Math.floor(x / TS), Math.floor(y / TS)))) continue; ctx.fillRect(Math.round(x - cx) - 1, Math.round(y - cy) - 1, 3, 3); }
     }
   }
 
@@ -449,7 +538,7 @@
       l.el.style.display = vis ? '' : 'none'; if (vis) l.el.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-50%)`;
     }
     for (const z of zones) {
-      const top = z.id === 'office' ? 108 : 66;
+      const top = z.id === 'office' ? 108 : z.id === 'cfs' ? 52 : 66;
       const sx = (z.dx - cx) * S, sy = (z.dy - 8 - top - cy) * S;
       z.tag.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-100%)`;
       z.tag.classList.toggle('near', nearZone === z);

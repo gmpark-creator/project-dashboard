@@ -31,6 +31,7 @@
   .place.k-port{color:#ffe0e8}
   .place.k-bridge{color:#ffffff;font-size:11px}
   .place.k-area{color:#fff}
+  .place.k-region{color:#e9dcff;font-size:13px;letter-spacing:2px;opacity:.95}
   .place.k-landmark{background:rgba(59,47,85,.72);text-shadow:none;font-size:11px;border:2px solid #fff}
 
   /* 업무 존 태그 */
@@ -62,20 +63,38 @@
   #brand{left:50%;bottom:14px;transform:translateX(-50%);padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:13px}
   #brand i{font-style:normal;background:var(--pink);color:#fff;border:2px solid var(--line);border-radius:3px;padding:0 6px;font-size:11px}
   #mm-wrap{right:14px;top:14px;padding:6px}
-  #minimap{display:block;width:225px;height:135px;image-rendering:pixelated;border:2px solid var(--line);border-radius:2px}
+  #minimap{display:block;width:240px;height:auto;aspect-ratio:300/214;image-rendering:pixelated;border:2px solid var(--line);border-radius:2px}
   #mm-wrap .mm-t{font-family:'Galmuri9',var(--font);font-size:10px;display:flex;justify-content:space-between;padding:0 2px 4px;color:var(--ink2)}
   #help{left:14px;bottom:14px;padding:8px 12px;font-family:'Galmuri9',var(--font);font-size:11px;line-height:1.75}
   #help kbd{font-family:inherit;background:var(--paper2);border:2px solid var(--line);border-radius:3px;padding:0 4px}
 
+  #osm{right:8px;bottom:6px;font-family:"Galmuri9",var(--font);font-size:10px;padding:2px 6px;background:rgba(255,250,240,.82);border-radius:3px;color:var(--ink)}
+  #osm a{color:inherit}
   /* 모바일 */
   #joy{position:fixed;display:none;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;
     background:rgba(255,250,240,.35);border:3px solid rgba(59,47,85,.6);z-index:6;pointer-events:none}
   #joy-knob{position:absolute;left:50%;top:50%;width:40px;height:40px;border-radius:50%;background:var(--paper);border:3px solid var(--line);transform:translate(-50%,-50%)}
-  #act-btn{right:18px;bottom:22px;width:74px;height:74px;border-radius:50%;font-family:var(--font);font-size:13px;color:var(--ink);
+  #act-btn{right:18px;bottom:34px;width:74px;height:74px;border-radius:50%;font-family:var(--font);font-size:13px;color:var(--ink);
     background:var(--gold);border:3px solid var(--line);box-shadow:0 4px 0 rgba(59,47,85,.4);display:none;opacity:.45}
   #act-btn.on{opacity:1;animation:bob 1s ease-in-out infinite}
   @media (hover:none) and (pointer:coarse){ #act-btn{display:block} #help{display:none} }
   @media (max-width:720px){ #mm-wrap{display:none} #brand{display:none} #loc{min-width:0} }
+
+  /* 부산 전도 */
+  #bigmap{position:fixed;inset:0;z-index:12;display:none;place-items:center;background:rgba(30,24,60,.45)}
+  body.bigmap-open #bigmap{display:grid}
+  #bigmap .bm-card{padding:10px 12px 12px;max-width:calc(100vw - 24px)}
+  #bigmap .bm-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;padding:2px 4px 8px}
+  #bigmap .bm-head small{font-family:'Galmuri9',var(--font);font-size:10px;color:var(--ink2)}
+  #bigmap .bm-wrap{position:relative;width:min(1080px,calc(100vw - 48px),calc((100vh - 110px) * 300 / 214));aspect-ratio:300/214}
+  #bigmap-c{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;border:3px solid var(--line);border-radius:3px}
+  #bigmap-labels{position:absolute;inset:0;pointer-events:none}
+  .bm-l{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:'Galmuri9',var(--font);font-size:11px;color:#fff;
+    text-shadow:1px 0 #3b2f55,-1px 0 #3b2f55,0 1px #3b2f55,0 -1px #3b2f55}
+  .bm-l.k-water{color:#e3f6ff}.bm-l.k-region{color:#e9dcff;font-size:13px;letter-spacing:2px}.bm-l.k-port{color:#ffe0e8}.bm-l.k-beach{color:#fff3b0}.bm-l.k-mt{color:#eaffd8;font-size:10px}
+  .bm-z{position:absolute;transform:translate(-50%,-100%);font-size:11px;padding:2px 6px;background:var(--gold);border:2px solid var(--line);border-radius:4px;white-space:nowrap}
+  .bm-me{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#ff4d6d;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);animation:bob 1s ease-in-out infinite}
+  #mm-wrap{cursor:pointer}
 
   /* 업무 패널 */
   #panel-dim{position:fixed;inset:0;background:rgba(40,30,70,.28);opacity:0;pointer-events:none;transition:opacity .25s;z-index:8}
@@ -124,11 +143,15 @@
   <div id="mm-wrap" class="hud pix no-joy"><div class="mm-t"><span>부산 전도</span><span>◆ 업무 존</span></div><canvas id="minimap"></canvas></div>
   <div id="help" class="hud pix">
     <kbd>←↑↓→</kbd>/<kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기<br>
-    <kbd>클릭</kbd> 그곳으로 걷기 · <kbd>Space</kbd> 들어가기 · <kbd>Esc</kbd> 닫기
+    <kbd>클릭</kbd> 그곳으로 걷기 · <kbd>Space</kbd> 들어가기 · <kbd>M</kbd> 부산 전도 · <kbd>Esc</kbd> 닫기
   </div>
+
+  <div id="osm" class="hud no-joy">지도 데이터 <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="data/busan-osm.js" target="_blank">ODbL</a></div>
 
   <div id="joy"><div id="joy-knob"></div></div>
   <button id="act-btn" class="hud no-joy">들어가기</button>
+
+  <div id="bigmap" class="no-joy"><div class="bm-card pix"><div class="bm-head"><b>부산 전도 · 진해 신항 ~ 해운대</b><small>M / Esc 닫기 · 지도 데이터 © OpenStreetMap contributors</small></div><div class="bm-wrap"><canvas id="bigmap-c"></canvas><div id="bigmap-labels"></div></div></div></div>
 
   <div id="panel-dim"></div>
   <aside id="panel" class="pix no-joy" aria-live="polite">
@@ -154,6 +177,7 @@
     </div>
   </div>
 
+  <script src="data/busan-osm.js"></script>
   <script src="js/mapgen.js"></script>
   <script src="js/art.js"></script>
   <script src="js/gorgo.js"></script>
