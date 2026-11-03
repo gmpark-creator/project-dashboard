@@ -898,7 +898,9 @@ const PROJECTS = [
     ],
     issues: [
       { type:'완료', title:'1차 빌드 — 부산 지도 + 에이전트 고르고', desc:'지형·오브젝트 1094개 생성, 업무 존 2곳(센텀 사무실 / 부산출입국·외국인청) 배치, 헤드리스 브라우저 실검증(콘솔 오류 0).' },
-      { type:'이슈', title:'Codex 검수 대기', desc:'1차 빌드 검수 요청서 전달(internal/notes/2026-11-03-agent-gorgo-codex-review-prompt.md). 판정 전.' }
+      { type:'완료', title:'Codex 항목4 BLOCK 3건 수정 (22bbe3a)', desc:'패널 입력 격리·초기화, ?at 스폰 검증, ?open ID 검증. tools/qa.html 시나리오 A–F 전부 통과, 기본 스폰→두 문 픽셀 BFS 도달.' },
+      { type:'완료', title:'v1 스냅샷 고정 (fe91e36)', desc:'재설계 전후 비교용 — /claude/previews/agent-gorgo/v1/' },
+      { type:'이슈', title:'AGENT-GORGO-2 R1 Thesis 제출 — Codex 판정 대기', desc:'그래픽 고도화(3/4 시점·32px 타일·24×40 캐릭터·48색 팔레트) + 부산 지리 재설계(OSM 근거, 전도+동네 맵 분할, 대표 구역=중앙동). internal/notes/2026-11-03-agent-gorgo-2-r1-thesis.md' }
     ],
     milestones: [
       { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true }
