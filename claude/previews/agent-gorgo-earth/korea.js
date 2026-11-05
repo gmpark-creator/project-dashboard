@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { initAiUI } from './ai-ui.js';
 import { initRecordsUI, openZoneRecords } from './records-ui.js';
-import { buildTrain, Ride, shortestPath } from './ride.js';
+import { buildCar, buildKTX, Ride, shortestPath } from './ride.js';
 
 const $=id=>document.getElementById(id);
 const clamp=THREE.MathUtils.clamp;
@@ -19,8 +19,12 @@ const MAX_DT=.5,CLICK_SLOP=6,CLICK_MS=450,EDGE=.3,NEAR=1.1;
 const CITY_LABELS=[['서울',126.978,37.566,'major'],['인천',126.705,37.456,''],['수원',127.029,37.263,''],['춘천',127.730,37.881,''],['강릉',128.876,37.752,''],['청주',127.489,36.642,''],['대전',127.385,36.351,'major'],['전주',127.148,35.824,''],['광주',126.853,35.160,'major'],['목포',126.392,34.812,''],['여수',127.662,34.760,''],['대구',128.601,35.871,'major'],['안동',128.729,36.568,''],['울산',129.311,35.539,''],['창원',128.681,35.228,''],['제주',126.531,33.500,'major'],['울릉도',130.866,37.500,''],['독도',131.866,37.242,''],['백령도',124.680,37.960,''],['평양',125.754,39.039,'major'],['개성',126.554,37.971,''],['원산',127.443,39.153,''],['함흥',127.536,39.918,''],['신의주',124.398,40.100,''],['청진',129.776,41.795,''],['백두산',128.077,42.006,''],['한라산',126.533,33.362,''],['지리산',127.731,35.337,''],['설악산',128.465,38.119,''],['동해',130.6,36.6,'water'],['서해',124.9,36.4,'water'],['남해',127.8,33.9,'water']];
 let scene,camera,renderer,controls,terrain,heights,land,meta,places={},catalog,agent,legs=[],arms=[],targetMark,flight=null,last=0,gait=0,toastTimer,nearby=null,moveTarget=null;
 let widthU,depthU,leaders,busanBounds=null,busanOutline=null,landmarkList=[];
-// AGENT-GORGO-15: 전국 지도에서 고르고는 걷지 않고 기차로 다닌다. agent(보이지 않음)가 기관차 머리 위치, 객차는 지나온 자취를 따라간다.
-const TRAIN_SCALE=2.2;let train=null,trail=[],trainScale=TRAIN_SCALE,lastHead=null;const keys=new Set(),mobileKeys=new Set(),labelItems=[],spinners=[],clock=new THREE.Clock(),inputLog=[];
+// AGENT-GORGO-15/16: 전국 지도에서 고르고는 걷지 않는다. 방향키로 다닐 때는 자동차, 지도·핀을 눌러 갈 때는 고속열차.
+// agent(보이지 않음)가 탈것 머리 위치이고, 열차의 객차는 지나온 자취를 따라간다.
+const CAR_SCALE=3.2,KTX_SCALE=2.0;let car=null,ktx=null,veh=null,mode='',scaleF=1,trail=[],lastHead=null;
+function vehScale(){return (mode==='car'?CAR_SCALE:KTX_SCALE)*scaleF;}
+function setMode(m){if(m===mode&&veh)return;const behind=trail.length>1?trail[1].clone().sub(trail[0]).setY(0):null;mode=m;veh=m==='car'?car:ktx;
+ for(const p of car.parts)p.visible=m==='car';for(const p of ktx.parts)p.visible=m==='train';resetTrail(behind&&behind.lengthSq()>1e-6?behind.normalize():undefined);}const keys=new Set(),mobileKeys=new Set(),labelItems=[],spinners=[],clock=new THREE.Clock(),inputLog=[];
 const matCache=new Map();const material=(color,extra={})=>{const k=color+JSON.stringify(extra);if(!matCache.has(k))matCache.set(k,new THREE.MeshStandardMaterial({color,roughness:.88,...extra}));return matCache.get(k);};
 const rand=(x,z,s=0)=>{const n=Math.sin(x*127.1+z*311.7+s*73.1)*43758.5453;return n-Math.floor(n);};
 const KX=()=>Math.cos(THREE.MathUtils.degToRad((meta.bounds[1]+meta.bounds[3])/2))*111.32/meta.unitKm,KZ=()=>111.195/meta.unitKm;
@@ -122,29 +126,34 @@ function railGraph(){if(rail)return rail;const city=Object.fromEntries(CITY_LABE
 // 선로 높이: 지형을 앞뒤로 평균 내어 완만하게, 바다 위는 다리 높이로.
 function railLine(pts){const out=[];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.max(1,Math.ceil(a.distanceTo(b)/.25));for(let k=i===1?0:1;k<=n;k++)out.push(new THREE.Vector3().lerpVectors(a,b,k/n));}
  const raw=out.map(p=>Math.max(.04,groundHeight(p.x,p.z))),W=6;out.forEach((p,i)=>{let s=0,c=0;for(let j=Math.max(0,i-W);j<=Math.min(raw.length-1,i+W);j++){s+=raw[j];c++;}p.y=Math.max(.08,s/c)+.02;});return out;}
-function resetTrail(behind=new THREE.Vector3(-.55,0,-1).normalize()){trail=[agent.position.clone()];const len=(train.parts.length+1)*train.spacing*trainScale;for(let s=.2;s<=len+.2;s+=.2)trail.push(agent.position.clone().addScaledVector(behind,s));lastHead=agent.position.clone();}
+function resetTrail(behind=new THREE.Vector3(-.55,0,-1).normalize()){trail=[agent.position.clone()];const len=(veh.parts.length+1)*veh.spacing*vehScale();for(let s=.2;s<=len+.2;s+=.2)trail.push(agent.position.clone().addScaledVector(behind,s));lastHead=agent.position.clone();}
 function placeTrain(){const h=agent.position;if(h.distanceTo(trail[0])>.04)trail.unshift(h.clone());else trail[0].copy(h);
- const need=(train.parts.length+1)*train.spacing*trainScale+1;let acc=0;for(let i=1;i<trail.length;i++){acc+=trail[i].distanceTo(trail[i-1]);if(acc>need){trail.length=i+1;break;}}
- train.parts.forEach((part,i)=>{const want=i*train.spacing*trainScale,pos=trail[0].clone(),dir=new THREE.Vector3(0,0,-1);let s=0,j=1;
+ const need=(veh.parts.length+1)*veh.spacing*vehScale()+1;let acc=0;for(let i=1;i<trail.length;i++){acc+=trail[i].distanceTo(trail[i-1]);if(acc>need){trail.length=i+1;break;}}
+ veh.parts.forEach((part,i)=>{const want=i*veh.spacing*vehScale(),pos=trail[0].clone(),dir=new THREE.Vector3(0,0,-1);let s=0,j=1;
   for(;j<trail.length;j++){const seg=trail[j].distanceTo(trail[j-1]);if(s+seg>=want){pos.lerpVectors(trail[j-1],trail[j],seg?(want-s)/seg:0);dir.subVectors(trail[j-1],trail[j]);break;}s+=seg;}
   if(j>=trail.length){pos.copy(trail[trail.length-1]);if(trail.length>1)dir.subVectors(trail[trail.length-2],trail[trail.length-1]);}
-  part.position.copy(pos);dir.y=0;if(dir.lengthSq()>1e-10)part.rotation.y=Math.atan2(dir.x,dir.z);part.scale.setScalar(trainScale);});
- const moved=lastHead?lastHead.distanceTo(h):0;for(const w of train.wheels)w.rotation.x+=moved*30;lastHead=h.clone();}
-function rideTo(id){const p=places[id];if(!p||state.leaving)return;if(state.riding)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
+  part.position.copy(pos);dir.y=0;if(dir.lengthSq()>1e-10)part.rotation.y=Math.atan2(dir.x,dir.z);part.scale.setScalar(vehScale());});
+ const moved=lastHead?lastHead.distanceTo(h):0;for(const w of veh.wheels)w.rotation.x+=moved*30;lastHead=h.clone();}
+function nearestRail(v){const g=railGraph();let best=-1,bd=Infinity;g.nodes.forEach((n,i)=>{const d=Math.hypot(n.x-v.x,n.z-v.z);if(d<bd&&g.adj[i].length){bd=d;best=i;}});return best;}
+function rideTo(id){const p=places[id];if(!p||state.leaving||state.riding)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
  const q=project(p.lon,p.lat);if(Math.hypot(agent.position.x-q.x,agent.position.z-q.z)<NEAR){openPlace(id);return;}
- const dest=new THREE.Vector3(q.x+.65,0,q.z+.8);dest.y=groundHeight(dest.x,dest.z)+.02;
- const g=railGraph(),goal=g.idx.get(id);let start=-1,bd=Infinity;g.nodes.forEach((n,i)=>{const d=Math.hypot(n.x-agent.position.x,n.z-agent.position.z);if(d<bd&&g.adj[i].length){bd=d;start=i;}});
- const path=start>=0&&goal!=null?shortestPath(g.adj,start,goal):null;const way=[agent.position.clone()];if(path)for(const i of path)way.push(g.nodes[i].clone());way.push(dest.clone());
+ trainTo(new THREE.Vector3(q.x+.65,0,q.z+.8),id,railGraph().idx.get(id));}
+// 고속열차로 dest까지: 4단위(40km) 넘게 떨어지면 주요 철도 축을 타고, 가까우면 곧장 선로를 깔며 간다.
+function trainTo(dest,id=null,goal=null){if(state.leaving||state.riding)return false;dest.y=Math.max(.08,groundHeight(dest.x,dest.z))+.02;
+ const g=railGraph(),direct=Math.hypot(dest.x-agent.position.x,dest.z-agent.position.z);if(direct<.15)return false;let path=null;
+ if(direct>4){const start=nearestRail(agent.position);if(goal==null)goal=nearestRail(dest);if(start>=0&&goal>=0){path=shortestPath(g.adj,start,goal);
+  if(path&&id==null){let L=0,prev=agent.position;for(const i of path){L+=prev.distanceTo(g.nodes[i]);prev=g.nodes[i];}L+=prev.distanceTo(dest);if(L>direct*2.2)path=null;}}}
+ const way=[agent.position.clone()];if(path)for(const i of path)way.push(g.nodes[i].clone());way.push(dest.clone());
  // 꺾이는 역에서 객차가 벌어지지 않도록 노선을 곡선으로 다듬고 같은 간격으로 다시 찍는다.
  const raw=railLine(way.filter((v,i)=>!i||v.distanceTo(way[i-1])>.05)),smooth=new THREE.CatmullRomCurve3(raw,false,'centripetal'),line=smooth.getSpacedPoints(Math.max(8,Math.ceil(smooth.getLength()/.15)));
  const curve=new THREE.CatmullRomCurve3(line.map(v=>v.clone().setY(v.y-.03)));const track=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.min(2400,line.length*2),.06,6,false),new THREE.MeshStandardMaterial({color:'#55585c',roughness:.75,metalness:.15,transparent:true,opacity:.95}));scene.add(track);
- const ride=new Ride(line,[],{duration:1});ride.duration=clamp(2.6+ride.length*.09,3,8);
- state.riding={id,ride,track,dest,view:clamp(camera.position.distanceTo(controls.target)*.6,12,22)};state.follow=false;flight=null;$('work-open').hidden=true;
- state.lastRide={id,units:+ride.length.toFixed(2),seconds:+ride.duration.toFixed(2),stations:path?path.length:0};toast(p.name+' · 기차로 이동 중');}
+ setMode('train');const ride=new Ride(line,[],{duration:1});ride.duration=clamp(2.2+ride.length*.09,2.4,8);
+ state.riding={id,ride,track,dest,view:clamp(camera.position.distanceTo(controls.target)*.6,12,22)};state.follow=false;flight=null;clearMovement();$('work-open').hidden=true;
+ state.lastRide={id,units:+ride.length.toFixed(2),seconds:+ride.duration.toFixed(2),stations:path?path.length:0};toast((id?places[id].name:'선택한 곳')+' · 고속열차로 이동 중');return true;}
 function stepRide(dt){const r=state.riding;const done=r.ride.update(dt);agent.position.copy(r.ride.head);
  const dist=camera.position.distanceTo(controls.target);const dir=camera.position.clone().sub(controls.target).normalize();controls.target.lerp(r.ride.head,Math.min(1,dt*5));camera.position.copy(controls.target).addScaledVector(dir,dist+(r.view-dist)*Math.min(1,dt*2));
  if(done){const track=r.track,t0=clock.getElapsedTime();const fade=()=>{const k=(clock.getElapsedTime()-t0)/.9;if(k>=1){scene.remove(track);track.geometry.dispose();track.material.dispose();return;}track.material.opacity=.95*(1-k);requestAnimationFrame(fade);};fade();
-  state.riding=null;agent.position.copy(r.dest);state.selected=r.id;state.follow=true;nearby=null;toast(places[r.id].name+' 도착');openPlace(r.id);}}
+  state.riding=null;agent.position.copy(r.dest);state.selected=r.id;state.follow=true;nearby=null;toast((r.id?places[r.id].name:'목적지')+' 도착');if(r.id)openPlace(r.id);}}
 
 // ── 이동 (부산 지도와 같은 조작) ─────────────────────────────
 function flyTo(target,distance=30,keepFollow=false,duration=1.65,zoom=false){state.follow=keepFollow;const end=target.clone().add(new THREE.Vector3(distance*.14,distance*.72,distance*.76));flight={start:clock.getElapsedTime(),from:camera.position.clone(),to:end,fromTarget:controls.target.clone(),toTarget:target.clone(),duration:matchMedia('(prefers-reduced-motion: reduce)').matches?.05:duration,zoom};}
@@ -167,8 +176,8 @@ function speedMultiplier(){return state.speedMode==='fast'?3:1;}
 function setSpeedMode(mode){state.speedMode=mode==='fast'?'fast':'normal';try{localStorage.setItem('gorgo.speedMode',state.speedMode);}catch{}const b=$('speed-mode');b.textContent='속도 '+speedMultiplier()+'×';b.setAttribute('aria-pressed',String(state.speedMode==='fast'));}
 const blocked=()=>!!state.leaving||!!state.riding||!!document.querySelector('dialog[open]');
 function moveKey(e){return KEY_CODES[e.code]||KEY_FALLBACK[(e.key||'').toLowerCase()]||null;}
-function walkTo(cx,cy){if(blocked())return false;const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-(cy/innerHeight)*2+1),camera);const hit=ray.intersectObject(terrain,false)[0];if(!hit)return false;const x=clamp(hit.point.x,-widthU/2+EDGE,widthU/2-EDGE),z=clamp(hit.point.z,-depthU/2+EDGE,depthU/2-EDGE);moveTarget=new THREE.Vector3(x,0,z);targetMark.position.set(x,groundHeight(x,z)+.03,z);targetMark.visible=true;return true;}
-function updateAgent(dt){let x=0,z=0;if(keys.has('up')||mobileKeys.has('up'))z--;if(keys.has('down')||mobileKeys.has('down'))z++;if(keys.has('left')||mobileKeys.has('left'))x--;if(keys.has('right')||mobileKeys.has('right'))x++;if(x||z)moveTarget=null;
+function walkTo(cx,cy){if(blocked())return false;const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-(cy/innerHeight)*2+1),camera);const hit=ray.intersectObject(terrain,false)[0];if(!hit)return false;const x=clamp(hit.point.x,-widthU/2+EDGE,widthU/2-EDGE),z=clamp(hit.point.z,-depthU/2+EDGE,depthU/2-EDGE);return trainTo(new THREE.Vector3(x,0,z));}
+function updateAgent(dt){let x=0,z=0;if(keys.has('up')||mobileKeys.has('up'))z--;if(keys.has('down')||mobileKeys.has('down'))z++;if(keys.has('left')||mobileKeys.has('left'))x--;if(keys.has('right')||mobileKeys.has('right'))x++;if(x||z){moveTarget=null;if(!blocked())setMode('car');}
  const to=moveTarget?new THREE.Vector3(moveTarget.x-agent.position.x,0,moveTarget.z-agent.position.z):null;if(to&&to.length()<.03){moveTarget=null;}targetMark.visible=!!moveTarget;
  const moving=(!!(x||z)||!!moveTarget)&&!blocked();if(moving){let v,speed;
   if(moveTarget){const d=to.length();v=to.normalize();speed=Math.min(d,Math.max(2.5,Math.min(9,d*1.6))*speedMultiplier()*dt);}
@@ -187,7 +196,7 @@ function animate(now){requestAnimationFrame(animate);const dt=Math.min(MAX_DT,Ma
  if(flight)stepFlight(t);
  if(state.riding)stepRide(dt);
  // 부산과 이어지는 동안에는 고르고·랜드마크를 거리에 맞춰 줄인다. 부산 구도(거리≈5)에서 전국 축척 그대로면 화면을 가린다.
- if(state.leaving||state.arriving){const f=clamp(camera.position.distanceTo(controls.target)/26,.08,1);agent.scale.setScalar(1.25*f);trainScale=TRAIN_SCALE*f;for(const g of landmarkList)g.scale.setScalar(.95*f);if(state.arriving&&f>=1&&!flight)state.arriving=false;}
+ if(state.leaving||state.arriving){const f=clamp(camera.position.distanceTo(controls.target)/26,.08,1);agent.scale.setScalar(1.25*f);scaleF=f;for(const g of landmarkList)g.scale.setScalar(.95*f);if(state.arriving&&f>=1&&!flight)state.arriving=false;}
  updateAgent(dt);placeTrain();controls.update();for(const s of spinners)s.rotor.rotation.z+=dt*s.speed;
  renderer.render(scene,camera);
  if(state.leaving&&!flight&&!state.left){state.left=true;window.GorgoHandoff?window.GorgoHandoff.leave(renderer.domElement,'busan','./?map=busan'):location.href='./?map=busan';}
@@ -244,15 +253,15 @@ export async function initKorea(){
   // AGENT-GORGO-13 (박사 11-05): 전국 지도에서도 고르고는 센텀 스카이비즈 사무실 자리에 가만히 서서 시작한다.
   const busan=places['busan-station'],office=Array.isArray(wps)?wps.find(w=>w.id==='skybiz'):null;
   makeAgent(office?geoPoint(office.lon,office.lat,.02):busan?geoPoint(busan.lon,busan.lat,.02).add(new THREE.Vector3(.5,0,.5)):new THREE.Vector3());
-  agent.visible=false;agent.position.y=Math.max(.08,groundHeight(agent.position.x,agent.position.z))+.02;train=buildTrain();for(const part of train.parts)scene.add(part);resetTrail();placeTrain();
+  agent.visible=false;agent.position.y=Math.max(.08,groundHeight(agent.position.x,agent.position.z))+.02;const c=buildCar();car={parts:[c],spacing:0,wheels:c.userData.wheels};ktx=buildKTX();for(const part of[...car.parts,...ktx.parts])scene.add(part);setMode('car');placeTrain();
   targetMark=new THREE.Mesh(new THREE.RingGeometry(.1,.15,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#ff7a45',transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;scene.add(targetMark);
   buildDialogs();setupEvents();
   // 부산 상세 지도에서 나왔다면 부산 처음 화면과 같은 구도에서 시작해 한반도로 줄어든다. 아니면 한반도 전체에서 시작한다.
   const fromBusan=window.GorgoHandoff?.pending?.from==='busan'&&busanBounds;
   if(fromBusan){state.arriving=true;const f=busanFrame();controls.target.copy(f.target);camera.position.copy(f.target).add(new THREE.Vector3(f.distance*.14,f.distance*.72,f.distance*.76));}
   else{const d=26;controls.target.copy(agent.position);camera.position.copy(agent.position).add(new THREE.Vector3(d*.14,d*.72,d*.76));state.follow=true;}controls.update();
-  state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,project,elevation,groundHeight,travelTo,openPlace,openContent,catalog,inputLog,walkTo,landmarks,enterBusan,busanFrame,busanBounds,rideTo,train:()=>train&&{parts:train.parts.length,scale:trainScale,head:train.parts[0].position.toArray()},riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,extent:()=>({hw:widthU/2,hd:depthU/2}),map:'korea'};
+  state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,project,elevation,groundHeight,travelTo,openPlace,openContent,catalog,inputLog,walkTo,landmarks,enterBusan,busanFrame,busanBounds,rideTo,train:()=>veh&&{mode,parts:veh.parts.length,scale:vehScale(),head:veh.parts[0].position.toArray()},trainTo,riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,extent:()=>({hw:widthU/2,hd:depthU/2}),map:'korea'};
   $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);
   if(fromBusan){setTimeout(()=>flyTo(agent.position.clone(),26,true,2.2,true),650);toast('전국 지도 · 부산으로 돌아가려면 부산 핀에서 들어가기');}
-  else{toast('전국 지도 · 고르고는 기차로 다닙니다 · 장소 핀을 누르면 그곳까지 달려요');}
+  else{toast('전국 지도 · 방향키 = 자동차 · 지도나 장소 핀을 누르면 고속열차로 갑니다');}
  }catch(error){console.error(error);$('loading-status').textContent='한반도 지도를 불러오지 못했어요. ('+error.message+')';$('loading').dataset.error=error.message;}}
