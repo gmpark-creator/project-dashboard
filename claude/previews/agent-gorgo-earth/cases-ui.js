@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id);
 const el=(tag,props={},...kids)=>{const n=Object.assign(document.createElement(tag),props);n.append(...kids.filter(k=>k!=null));return n;};
 const STATUS={open:'접수',analyzing:'분석 중',review:'검토 필요',progress:'진행 중',hold:'보류',done:'완료'};
-const AI_NAME={chatgpt:'ChatGPT',claude:'Claude',gemini:'Gemini'};
+const AI_NAME={chatgpt:'ChatGPT',claudecode:'Claude (구독)',claude:'Claude API',gemini:'Gemini'};
 let hooks={},zone=null,zoneName='',cases=[],selected=null,dirty=new Set(),busy=false;
 async function api(url,options={}){const r=await fetch(url,{cache:'no-store',...options});const data=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(Error(data.error||'요청을 완료하지 못했습니다.'),{status:r.status});return data;}
 const post=(url,body)=>api(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
