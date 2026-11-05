@@ -29,7 +29,7 @@ function confirmZone(id){const z=zones.find(z=>z.id===id);if(!z)return;currentZo
 async function save(){if(!pendingFiles.length)return;clearTimers();const files=pendingFiles;pendingFiles=[];const zone=currentZone,docType=$('drop-type').value,memo=$('drop-memo').value;$('drop-save').disabled=true;$('drop-cancel').disabled=true;let saved=0,failed=[];
  for(const file of files){let meta={zone,docType,memo,originalName:file.name,size:file.size,mime:file.type||'application/octet-stream'};try{try{await api('/api/records',{method:'POST',headers:{'X-Gorgo-Meta':encodeURIComponent(JSON.stringify(meta))},body:file});}catch(e){if(e.status!==409||!confirm(file.name+' 파일이 이미 있습니다. 한 번 더 넣을까요?'))throw e;meta.allowDuplicate=true;await api('/api/records',{method:'POST',headers:{'X-Gorgo-Meta':encodeURIComponent(JSON.stringify(meta))},body:file});}saved++;}catch(e){failed.push({file,message:e.message});}}
  await refresh();if(failed.length){pendingFiles=failed.map(x=>x.file);$('drop-error').textContent=failed.map(x=>x.file.name+': '+x.message).join('\n');$('drop-save').disabled=false;$('drop-cancel').disabled=false;$('drop-countdown').textContent='저장되지 않은 파일이 있습니다. 다시 넣거나 취소할 수 있습니다.';return;}
- $('record-drop-dialog').close();tell(zones.find(z=>z.id===zone).name+'에 '+docType+' '+saved+'건을 넣었어요 · 동기화 중');hooks.walkToZone?.(zones.find(z=>z.id===zone));
+ $('record-drop-dialog').close();tell(zones.find(z=>z.id===zone).name+'에 '+docType+' '+saved+'건을 넣었어요 · 건물 안 안내원에게 말을 걸어 일을 맡기세요');hooks.walkToZone?.(zones.find(z=>z.id===zone));
 }
 function cancel(){clearTimers();pendingFiles=[];$('record-drop-dialog').close();$('record-zone-dialog').close();}
 export async function initRecordsUI(options){hooks=options;

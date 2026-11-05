@@ -5,6 +5,7 @@ import { initCrewWorkbench, openCrewWorkbench } from './crew-workbench.js';
 import { initRecordsUI, openZoneRecords, hasRecordZone } from './records-ui.js';
 import { buildCar, Ride, shortestPath } from './ride.js';
 import { openInterior } from './interior.js';
+import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked } from './concierge.js';
 
 const $ = id => document.getElementById(id);
 const clamp = THREE.MathUtils.clamp;
@@ -283,9 +284,10 @@ function buildPlaceDialogs(){
 }
 function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
 // 장소에 도착했을 때(AGENT-GORGO-20): 콘텐츠가 있으면 건물 안(로비)으로 들어가 키오스크에서 연다. 없으면 예전처럼 자료 창.
-function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;if(!items.length){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
+function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;const zoned=hasRecordZone(id);if(!items.length&&!zoned){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
+  // AGENT-GORGO-26: 자료 존이 있는 장소(설치형 서버)에는 안내원이 상주한다
   clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();$('work-open').hidden=true;
-  openInterior({id,name:p.name,theme:p.spot?'hall':'office',items:items.map(it=>({title:it.title,disabled:!contentUrl(it),open:()=>openContent(it)})),records:hasRecordZone(id)?()=>openZoneRecords(id):null,onExit:()=>{nearbyWork=null;updateWorkPoint();}});}
+  openInterior({id,name:p.name,theme:p.spot?'hall':'office',items:items.map(it=>({title:it.title,disabled:!contentUrl(it),open:()=>openContent(it)})),records:zoned?()=>openZoneRecords(id):null,npcs:zoned?{initial:npcCached(),checked:npcChecked(),refresh:npcInfo}:null,onConcierge:provider=>openConcierge({zone:id,name:p.name,provider}),onExit:()=>{closeConcierge();nearbyWork=null;updateWorkPoint();}});}
 function addSpots(list){const b=meta.bounds,m=.0015;
   for(const s of list){if(typeof s.lon!=='number')continue;const lon=clamp(s.lon,b[0]+m,b[2]-m),lat=clamp(s.lat,b[1]+m,b[3]-m);
     const p={id:s.id,name:s.name,lon,lat,spawn:[lon,lat],spot:true,unverified:!!s.unverified,locationNote:s.locationNote||'',source:s.source};places[s.id]=p;SPOTS[s.id]=p;WORK_POINTS[s.id]={name:s.name,radius:.75};
@@ -323,7 +325,7 @@ function setupEvents(){
   initCrewWorkbench({beforeOpen:clearMovement});
   $('work-open').onclick=()=>{if(nearbyWork)openSpot(nearbyWork);};
   $('map-switch').textContent='한반도 지도로';$('map-switch').setAttribute('aria-label','한반도 지도로 전환');$('map-switch').onclick=()=>leaveToKorea();
-  initRecordsUI({clearMovement,toast,getPosition:()=>agent.position,project:z=>places[z.place]?project(places[z.place].lon,places[z.place].lat):new THREE.Vector3(1e6,0,1e6),pickPoint:(cx,cy)=>{const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-cy/innerHeight*2+1),camera);return ray.intersectObject(terrain,false)[0]?.point;},ensurePin:z=>{if(z.map==='korea')return;if(!places[z.place])throw Error('업무존 장소가 없습니다: '+z.place);if(!labelItems.some(l=>l.el.dataset.place===z.id))addLabel(z.name,places[z.place].lon,places[z.place].lat,'pin',z.id);},walkToZone:z=>{if(!places[z.place])return;const p=project(places[z.place].lon,places[z.place].lat);moveTarget=p;targetMark.position.set(p.x,groundHeight(p.x,p.z)+.012,p.z);},onReady:()=>{nearbyWork=null;updateWorkPoint();}});
+  initRecordsUI({clearMovement,toast,getPosition:()=>agent.position,project:z=>places[z.place]?project(places[z.place].lon,places[z.place].lat):new THREE.Vector3(1e6,0,1e6),pickPoint:(cx,cy)=>{const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-cy/innerHeight*2+1),camera);return ray.intersectObject(terrain,false)[0]?.point;},ensurePin:z=>{if(z.map==='korea')return;if(!places[z.place])throw Error('업무존 장소가 없습니다: '+z.place);if(!labelItems.some(l=>l.el.dataset.place===z.id))addLabel(z.name,places[z.place].lon,places[z.place].lat,'pin',z.id);},walkToZone:z=>{if(!places[z.place])return;const p=project(places[z.place].lon,places[z.place].lat);moveTarget=p;targetMark.position.set(p.x,groundHeight(p.x,p.z)+.012,p.z);},onReady:()=>{nearbyWork=null;updateWorkPoint();conciergeInfo();}});
   document.querySelectorAll('[data-travel]').forEach(b=>b.addEventListener('click',()=>travelTo(b.dataset.travel)));
   $('travel-open').onclick=()=>{keys.clear();mobileKeys.clear();$('travel-dialog').showModal();};$('travel-close').onclick=()=>$('travel-dialog').close();
   // FIX-2 (Codex ddc5c83 review #1): physical key position (e.code), so the Korean IME state (key 'ㅈ'/'Process') cannot drop or stick a key.

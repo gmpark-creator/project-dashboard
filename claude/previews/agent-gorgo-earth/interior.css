@@ -13,3 +13,43 @@
 #interior-fade.on{opacity:1}
 body.in-interior #labels,body.in-interior .travel-open,body.in-interior .ai-open,body.in-interior .map-switch,body.in-interior .speed-mode,body.in-interior #sync-dot,body.in-interior .work-open,body.in-interior #mobile-pad,body.in-interior .attribution,body.in-interior #toast{visibility:hidden}
 @media(max-width:700px){#interior .in-place{font-size:12px;padding:8px 13px}#interior .in-exit{font-size:12px;padding:8px 13px}#interior .in-action{bottom:34px;font-size:13px}#interior .in-hint{display:none}}
+/* AGENT-GORGO-26~28 안내원 대화창 */
+.concierge{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:38;display:none;flex-direction:column;background:#fffdf6;border-left:1px solid #e3dccb;box-shadow:-10px 0 40px #23443820;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:#2f4c45}
+.concierge.on{display:flex}
+.cg-head{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;border-bottom:1px solid #efe8d8}
+.cg-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px;flex:none}
+.cg-who{flex:1;min-width:0}.cg-who b{display:block;font-size:15px}.cg-who small{font-size:11px;color:#a0573c}.cg-who small[data-ready=true]{color:#427d54}
+.cg-switch{font-size:10px;color:#7e907f;display:grid;gap:2px}.cg-switch select{font:inherit;font-size:11px;padding:4px;border:1px solid #d9d1bd;border-radius:6px;background:#fff}
+.cg-close{background:none;border:0;font-size:22px;color:#829184;cursor:pointer}
+.cg-bar{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid #efe8d8}.cg-bar select{flex:1;min-width:0;font:inherit;font-size:12px;padding:6px;border:1px solid #d9d1bd;border-radius:6px;background:#fff}
+.cg-bar button,.cg-foot button,.cg-login button,.cg-modal-actions button{font:inherit;font-size:12px;padding:6px 10px;border:1px solid #d9d1bd;border-radius:6px;background:#f3efe3;cursor:pointer;color:#2f4c45}
+.cg-login{margin:10px 14px 0;padding:10px;border-radius:8px;background:#fff4ec;border:1px solid #f0c9b3;font-size:12px;display:flex;gap:8px;align-items:center}.cg-login[hidden]{display:none}
+.cg-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.cg-msg{max-width:88%;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.cg-msg b{display:block;font-size:11px;margin-bottom:2px;opacity:.75}.cg-msg p{margin:0}
+.cg-msg.agent{align-self:flex-start;background:#eef3ec}.cg-msg.user{align-self:flex-end;background:#2f4c45;color:#fffef4}
+.cg-msg.thinking p{animation:cgblink 1.2s infinite}@keyframes cgblink{50%{opacity:.35}}
+.cg-msg-actions{margin-top:4px}.cg-msg-actions button{font:inherit;font-size:10px;padding:2px 8px;border:1px solid #cfd9cc;border-radius:10px;background:#fff;cursor:pointer}
+.cg-note{align-self:center;font-size:11px;color:#8a6a3a;margin:0;text-align:center}
+.cg-chips,.cg-attach{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px}.cg-chips{padding-top:6px}
+.cg-chip{font:inherit;font-size:11px;padding:5px 10px;border-radius:14px;border:1px solid #e3b79e;background:#fff4ec;color:#a0573c;cursor:pointer}
+.cg-chip-file{font-size:11px;padding:4px 8px;border-radius:10px;background:#eef3ec;margin-top:6px}
+.cg-input{display:flex;gap:6px;padding:10px 14px 4px;align-items:flex-end}
+.cg-input textarea{flex:1;font:inherit;font-size:13px;padding:9px;border:1px solid #d9d1bd;border-radius:10px;resize:none;background:#fff}
+.cg-input button{font:inherit;padding:9px 12px;border:0;border-radius:10px;background:#e77f58;color:#fff;font-weight:800;cursor:pointer}.cg-input .cg-file{background:#f3efe3;color:#2f4c45}
+.cg-input button:disabled{opacity:.5}
+.cg-foot{display:flex;gap:8px;align-items:center;padding:4px 14px 12px}.cg-foot small{font-size:10px;color:#9aa38f}
+.cg-drop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;background:#2f4c45e6;color:#fff;font-size:15px;font-weight:800;border:3px dashed #e77f58}
+.concierge.dragging .cg-drop{display:flex}
+.cg-modal{position:absolute;inset:0;background:#23443866;display:flex;align-items:center;justify-content:center;padding:16px}.cg-modal[hidden]{display:none}
+.cg-modal-box{background:#fffdf6;border-radius:12px;padding:16px;width:100%}.cg-modal-box h3{margin:0 0 8px;font-size:14px}
+.cg-modal-box textarea{width:100%;font:inherit;font-size:12px;padding:8px;border:1px solid #d9d1bd;border-radius:8px}
+.cg-modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}.cg-modal-actions .primary{background:#e77f58;color:#fff;border-color:#e77f58}
+body.concierge-on #interior .in-top{right:440px}body.concierge-on #interior .in-action,body.concierge-on #interior .in-hint{left:calc(50% - 210px)}
+@media(max-width:700px){.concierge{top:auto;height:72vh;width:100vw;border-left:0;border-top:1px solid #e3dccb;border-radius:16px 16px 0 0}body.concierge-on #interior .in-top{right:18px}}
+/* AGENT-GORGO-32 안내원 없음 안내(로그인 전) */
+.in-npc{position:absolute;left:50%;top:70px;transform:translateX(-50%);max-width:calc(100vw - 32px);padding:10px 18px;border-radius:22px;border:1px dashed #9db3a8;background:#fffdf6e8;color:#2f4c45;font:700 13px 'Noto Sans KR','Malgun Gothic',sans-serif;cursor:pointer;white-space:normal;text-align:center;box-shadow:0 6px 20px #23443820}
+.in-npc[hidden]{display:none}
+.cg-npcs{display:flex;gap:6px;padding:0 14px 8px}.cg-npcs button{flex:1;border:1px solid #d8d0bd;background:#fff;border-radius:16px;padding:6px 8px;font:700 12px inherit;color:#2f4c45;cursor:pointer}.cg-npcs button.on{background:#2f4c45;color:#fffef4;border-color:#2f4c45}
+.cg-today{margin:0 14px 8px;padding:9px 12px;border-radius:12px;background:#fdf0e3;border:1px solid #f0c9a6;font-size:12.5px;display:flex;gap:8px;align-items:center;justify-content:space-between}.cg-today[hidden]{display:none}.cg-today button{border:0;border-radius:14px;background:#e8784e;color:#fff;font-weight:800;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.cg-pick{list-style:none;margin:0 0 10px;padding:0;max-height:46vh;overflow:auto;border:1px solid #e3dccb;border-radius:10px}.cg-pick li{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #f0eadc;font-size:13px}.cg-pick li:last-child{border-bottom:0}.cg-pick li small{color:#7a877f;margin-left:auto;white-space:nowrap}.cg-pick li.done{opacity:.5}

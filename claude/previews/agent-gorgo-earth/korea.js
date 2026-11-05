@@ -8,6 +8,7 @@ import { initAiUI } from './ai-ui.js';
 import { initRecordsUI, openZoneRecords } from './records-ui.js';
 import { buildCar, buildKTX, Ride, shortestPath } from './ride.js';
 import { openInterior } from './interior.js';
+import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked } from './concierge.js';
 
 const $=id=>document.getElementById(id);
 const clamp=THREE.MathUtils.clamp;
@@ -106,7 +107,7 @@ function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연
 function openPlace(id){if(id==='busan-station'){enterBusan();return;}const p=places[id];if(!p)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
  // AGENT-GORGO-20: 장소에 들어가면 건물 안(로비)으로 — 키오스크 화면에는 제목만
  const items=itemsFor(id).map(it=>({title:it.title,disabled:!it.zone&&!contentUrl(it),open:()=>{if(it.zone)openZoneRecords(it.zone);else openContent(it);}}));
- openInterior({id,name:p.name,theme:'office',items,records:p.zone&&!itemsFor(id).some(x=>x.zone===p.zone)?()=>openZoneRecords(p.zone):null,onExit:()=>{nearby=null;}});}
+ openInterior({id,name:p.name,theme:'office',items,records:p.zone&&!itemsFor(id).some(x=>x.zone===p.zone)?()=>openZoneRecords(p.zone):null,npcs:p.zone?{initial:npcCached(),checked:npcChecked(),refresh:npcInfo}:null,onConcierge:provider=>openConcierge({zone:p.zone,name:p.name,provider}),onExit:()=>{closeConcierge();nearby=null;}});}
 
 // ── AGENT-GORGO-14: 핀을 누르면 고르고가 기차를 타고 간다 ─────────────────────
 // 노선은 실제 철도 데이터가 아니라 주요 철도 축(경부·호남·전라·동해·경강·중앙 등)을 도시 지명 좌표(CITY_LABELS)와
@@ -251,7 +252,7 @@ export async function initKorea(){
   makeAgent(office?geoPoint(office.lon,office.lat,.02):busan?geoPoint(busan.lon,busan.lat,.02).add(new THREE.Vector3(.5,0,.5)):new THREE.Vector3());
   agent.visible=false;agent.position.y=Math.max(.08,groundHeight(agent.position.x,agent.position.z))+.02;const c=buildCar();car={parts:[c],spacing:0,wheels:c.userData.wheels};ktx=buildKTX();for(const part of[...car.parts,...ktx.parts])scene.add(part);setMode('car');placeTrain();
   targetMark=new THREE.Mesh(new THREE.RingGeometry(.1,.15,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#ff7a45',transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;scene.add(targetMark);
-  buildDialogs();setupEvents();
+  buildDialogs();setupEvents();conciergeInfo();
   // 부산 상세 지도에서 나왔다면 부산 처음 화면과 같은 구도에서 시작해 한반도로 줄어든다. 아니면 한반도 전체에서 시작한다.
   const fromBusan=window.GorgoHandoff?.pending?.from==='busan'&&busanBounds;
   if(fromBusan){state.arriving=true;const f=busanFrame();controls.target.copy(f.target);camera.position.copy(f.target).add(new THREE.Vector3(f.distance*.14,f.distance*.72,f.distance*.76));}

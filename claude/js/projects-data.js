@@ -882,7 +882,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'940c01d'+') — 전국: 방향키 = 자동차 · 클릭/핀 = 고속열차 · ⇄ 부산 상세 지도로 확대 전환 · 부산 핀 = 자동차' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'032f4ff'+') — 업무 장소 로비 = 1번 GPT · 2번 Claude 안내원(로그인 시) · 전국: 방향키 = 자동차 · 클릭/핀 = 고속열차 · ⇄ 부산 상세 지도로 확대 전환 · 부산 핀 = 자동차' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
     ]},
@@ -919,11 +919,15 @@ const PROJECTS = [
       { type:'완료', title:'G20 건물 내부(기본 로비) + 장소별 콘텐츠 고정', desc:'장소에 들어가면 고르고가 로비 안으로 — 키오스크 화면에 제목만, 자료함, 나가기 문. 포항에서는 철강·제련만(영역 메뉴 고정). 설명 문구 제거.' },
       { type:'완료', title:'G21·G22 Claude 구독 연결 + 계정 바꾸기 (b174322 배포)', desc:'공식 Claude Code 경유로 Claude 구독(Pro/Max) 분석 — API 요금 없음. AI 연결 칸에 로그인 계정 표시, 「계정 바꾸기」(ChatGPT=시크릿 창, Claude=이메일 미리 입력). 전체 검사 8/8 PASS 후 설치 앱 배포.' },
       { type:'완료', title:'설치 앱 배포 — codex 채널 9207504 (G10~G20)', desc:'전체 검사 8/8 PASS 후 설치 앱 채널을 최신으로 갱신. 새 PC는 기존 설치 ZIP(setup-2026.11.04-ai1)으로 설치하면 최신 앱을 받는다. 프로그램 안 AI 연결에서 로그인.' },
+      { type:'완료', title:'G24·G25 독립 프로그램(.exe) 전환', desc:'Edge 창 대신 전용 데스크톱 프로그램(Electron) — 브라우저 계정·동기화·자동 로그인이 끼어들지 않고, 창을 닫으면 서버도 멈춘다. 첫 실행 설정을 프로그램 안에서.' },
+      { type:'완료', title:'G26~28·31 상주 안내원 + 대화로 일 맡기기', desc:'건물 로비 데스크의 안내원에게 말을 걸면 대화창. 대화 1개 = 업무 카드(3대 PC 동기화), 파일 끌어놓기 첨부, 「기억하기」로 장소별 작업 노트 학습.' },
+      { type:'핵심', title:'G32 안내원 2명 — 1번 GPT · 2번 Claude (로그인된 AI만 보임)', desc:'모든 업무 장소 로비에 1번 「도윤 · GPT」, 2번 「하랑 · Claude」. 이 PC에서 로그인된 AI의 안내원만 나타나고, 아무도 없으면 로그인 안내. 「오늘 넣은 자료 N건 첨부」·「자료함에서 첨부」로 넣어 둔 서류를 바로 맡긴다. 엑셀·워드·한글(doc/xls/hwp 포함)·PDF를 읽는다. 실측: 센텀 사무실에 넣은 ZHONG LING FA ZHAN 입항 서류 8건 → Claude 88초·GPT 58초에 선박 정보 표 + 서류 간 불일치(승객 수 1/NIL, 항차 02/001, 보건신고서 공란) 정리.' },
     ],
     milestones: [
       { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true },
       { date:'2026-11-04', title:'기준 버전 GORGO EARTH 3D 채택 · 설치형 배포', desc:'Windows 설치 ZIP(private Release), 3대 PC 자료 동기화, AI 연결 창.', isCore:true },
-      { date:'2026-11-05', title:'Claude 전면 인수 · 전국 기차 ⇄ 부산 확대 전환', desc:'G12~G15: 전국 지도 시작, 확대·축소 이음새, 센텀 시작, 부산 자동차·전국 기차, 메뉴 전환 버튼.', isCore:true }
+      { date:'2026-11-05', title:'Claude 전면 인수 · 전국 기차 ⇄ 부산 확대 전환', desc:'G12~G15: 전국 지도 시작, 확대·축소 이음새, 센텀 시작, 부산 자동차·전국 기차, 메뉴 전환 버튼.', isCore:true },
+      { date:'2026-11-05', title:'안내원에게 말 걸어 일 맡기기 — 1번 GPT · 2번 Claude', desc:'G26~G32: 로비 상주 안내원, AI 대화 작업, 엑셀·워드·한글·PDF 서류 읽기. 실제 입항 서류 8건으로 두 AI 모두 정상 동작 확인.', isCore:true }
     ]
   }
 ];
