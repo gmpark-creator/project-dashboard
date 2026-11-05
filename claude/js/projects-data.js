@@ -873,16 +873,18 @@ const PROJECTS = [
     id: 'agent-gorgo',
     no: 14,
     name: 'AGENT GORGO WORLD',
-    subtitle: '2D 도트 지도 위를 걸어 다니며 업무를 보는 개인 업무 도구 · 부산편',
+    subtitle: '전국 지도는 기차로, 부산 지도는 걸어서 · 업무 거점까지 자동차로 가는 개인 업무 도구 (GORGO EARTH 3D)',
     icon: 'building',
-    platform: '웹 앱 · Canvas 2D (빌드 없음)',
+    platform: '웹 앱 + Windows 설치형 · Three.js 3D (빌드 없음)',
     status: 'in-progress',
     start: '2026-11-03',
-    latest: '2026-11-03',
+    latest: '2026-11-05',
     progress: 1,
-    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/',
-    preview: { type:'embed', height:600, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'부산 필드맵 — 에이전트 고르고 이동 · 센텀 사무실 / 부산출입국·외국인청 업무 존' }
+    link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
+    preview: { type:'embed', height:640, items:[
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton 9974526) — 전국 지도에서 기차로 시작 · ⇄ 부산 상세 지도로 확대 전환 · 부산 핀 = 자동차 이동' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
     ]},
     summary: '탑다운 2D 도트 RPG 형식으로 부산 지도 위를 캐릭터 「에이전트 고르고」가 걸어 다니고,\n'
            + '업무 장소(센텀시티 사무실, 부산출입국·외국인청, 진해 신항 CFS)에 들어가면 해당 업무 화면이 뜨는 개인 업무 도구.\n'
@@ -890,7 +892,7 @@ const PROJECTS = [
            + '1단계는 지도와 캐릭터의 미적 완성도. 업무 모듈(인보이스, EDI 정정신청서, 선원명부)은 디렉터 지시에 따라 순차 추가.',
     method: '외부 이미지 없이 모든 타일·건물·캐릭터를 코드로 픽셀 생성(오리지널 도트, 장르 문법만 차용). '
           + '부산 지형은 데포르메 폴리곤(낙동강·을숙도·영도·북항·수영강·해운대)을 타일로 래스터화하고, 다리·항만·산·주택가·도심을 규칙 기반으로 배치한다.',
-    stack: ['Vanilla JS', 'Canvas 2D', 'HTML5 · CSS'],
+    stack: ['Vanilla JS', 'Three.js', 'Node.js 로컬 서버', 'Git 자료 동기화', 'HTML5 · CSS'],
     stackDetail: [
       { area: '지형 생성', tech: 'Vanilla JS', how: 'mapgen.js — 부산 데포르메 폴리곤을 150×90 타일로 래스터화하고, 강·산·도심·해변·항만·도로(물 위면 다리)를 순서대로 깔아 지형을 만든다. 노드에서도 돌아가는 순수 데이터 모듈.' },
       { area: '픽셀 아트', tech: 'Canvas 2D', how: 'art.js — 타일, 나무, 산복도로 주택, 유리 타워, 크레인, 컨테이너, 랜드마크(사무실·출입국청·부산역·부산타워·등대)를 코드로 픽셀 단위로 그린다.' },
@@ -904,10 +906,18 @@ const PROJECTS = [
       { type:'완료', title:'AGENT-GORGO-2 R1 Thesis → Codex R1 Antithesis BLOCK', desc:'지역 분할·중앙동 선행·두 대교 배경·v2 별도 URL은 PASS. 배율 계약·렌더 앞뒤 규칙·OSM 라이선스 범위·게이트 기준은 BLOCK.' },
       { type:'보류', title:'AGENT-GORGO-2 R2 Thesis (그래픽 재설계) — 보류', desc:'디렉터 지시로 현재 아기자기한 그림체 유지가 우선. R2(32px·3/4 시점·중앙동 동네맵)는 보류. internal/notes/2026-11-03-agent-gorgo-2-r2-thesis.md' },
       { type:'핵심', title:'부산 실측 지형으로 지도 전면 교체 + 진해 신항 CFS (a7e25b4)', desc:'OSM 실측 해안선·강·산림·시가지·간선도로·부산시 경계 → 300×214 타일(1칸≈140m). 진해 신항 서컨테이너부두(DGT)~해운대·송정. 업무 존 3곳: 센텀 사무실 / 중앙동 출입국청 / 신항 CFS(창원 진해). 광안대교=현수교·부산항대교=사장교, 부산↔경남 경계 점선, M키 부산 전도. 지도 데이터 © OpenStreetMap contributors(ODbL).' },
-      { type:'이슈', title:'Codex 사후 검수 대기 — 실측 지형 교체', desc:'디렉터 우선 지시로 판정 전 구현. 검수 요청서 internal/notes/2026-11-03-agent-gorgo-director-override-real-terrain.md' }
+      { type:'이슈', title:'Codex 사후 검수 대기 — 실측 지형 교체', desc:'디렉터 우선 지시로 판정 전 구현. 검수 요청서 internal/notes/2026-11-03-agent-gorgo-director-override-real-terrain.md' },
+      { type:'핵심', title:'기준 버전 전환 — GORGO EARTH 3D (레포 agent-gorgo-earth)', desc:'11-04 박사 선택. Three.js 3D 부산 실측 지형, Windows 설치형(로컬 서버 + Edge 앱 창), 3대 PC 자료 Git 동기화, AI 연결 창, 업무 카드(G10), 한반도 지도(G11). 11-05부터 Claude 전면 인수.' },
+      { type:'완료', title:'G12 전국 ⇄ 부산 확대·축소 이음새 (9929144)', desc:'처음 화면 = 전국 지도. 부산에 들어가면 부산 상세 범위(부산 + 신항 CFS)로 확대 → 같은 구도로 부산 상세 지도. 되돌아가면 한반도로 축소.' },
+      { type:'완료', title:'G13 센텀 스카이비즈에서 가만히 서서 시작 (811dcf7)', desc:'두 지도 모두 시작 위치 = 센텀 스카이비즈. 시작 카메라 비행 제거, 창 활성화 클릭은 걷기 무시.' },
+      { type:'완료', title:'G14 핀 클릭 → 부산 자동차 · 전국 기차 (03682bc)', desc:'부산: OSM 도로망 다익스트라로 실제 도로를 따라 자동차 이동(2~6초). 전국: 주요 철도 축 모식도를 따라 기차 이동(3~8초), 지나갈 때 선로가 깔린다.' },
+      { type:'완료', title:'G15 메뉴 지도 전환 버튼 + 전국 지도는 기차로만 (9974526)', desc:'「빠른 이동」 아래 ⇄ 전환 버튼(부산: 한반도 지도로 / 전국: 부산 상세 지도로). 전국 고르고 = 기관차 + 객차 2량(WASD 50km/s · 클릭 · 핀 모두 기차). 부산은 걷기 + 핀 자동차.' },
+      { type:'이슈', title:'설치 앱 미반영 — 배포 채널 박사 결정 대기', desc:'설치 앱은 codex 브랜치를 추적해서 G10~G15가 사무실·집 PC 앱에 아직 안 들어갔다. 대시보드 미리보기는 지도·이동만 동작하고, 자료 저장·AI는 설치형 서버가 필요하다.' }
     ],
     milestones: [
-      { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true }
+      { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true },
+      { date:'2026-11-04', title:'기준 버전 GORGO EARTH 3D 채택 · 설치형 배포', desc:'Windows 설치 ZIP(private Release), 3대 PC 자료 동기화, AI 연결 창.', isCore:true },
+      { date:'2026-11-05', title:'Claude 전면 인수 · 전국 기차 ⇄ 부산 확대 전환', desc:'G12~G15: 전국 지도 시작, 확대·축소 이음새, 센텀 시작, 부산 자동차·전국 기차, 메뉴 전환 버튼.', isCore:true }
     ]
   }
 ];

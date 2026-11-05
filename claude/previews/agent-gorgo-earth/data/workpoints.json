@@ -1,0 +1,191 @@
+[
+  {
+    "id": "skybiz",
+    "name": "센텀 스카이비즈 사무실",
+    "address": "부산광역시 해운대구 센텀중앙로 97",
+    "lon": 129.1245269,
+    "lat": 35.1751167,
+    "source": "https://shipowners.or.kr/region/?page=3",
+    "coordinateSource": "https://findby.co.kr/details/48058-263503133020-st-652bef804e0223ae1803aa96",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "인보이스",
+      "일반 서류",
+      "기타"
+    ],
+    "spawn": [
+      129.1245269,
+      35.1751167
+    ],
+    "aliases": [
+      "centum"
+    ]
+  },
+  {
+    "id": "imm-jungang",
+    "name": "출입국외국인청 · 중앙동",
+    "address": "부산광역시 중구 충장대로 22-1",
+    "lon": 129.03926,
+    "lat": 35.104821,
+    "source": "https://mojhome.moj.go.kr/immigration/1619/subview.do",
+    "coordinateSource": "https://mojhome.moj.go.kr/immigration/1619/subview.do",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "선원명부",
+      "선원명부 양식",
+      "EDI 정정",
+      "기타"
+    ],
+    "spawn": [
+      129.03926,
+      35.104821
+    ],
+    "aliases": [
+      "jungang"
+    ]
+  },
+  {
+    "id": "imm-gamcheon",
+    "name": "출입국외국인청 · 감천",
+    "address": "부산광역시 서구 원양로 35, 11층",
+    "lon": 129.010832,
+    "lat": 35.058571,
+    "source": "https://mojhome.moj.go.kr/immigration/1619/subview.do",
+    "coordinateSource": "https://mojhome.moj.go.kr/immigration/1619/subview.do",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "선원명부",
+      "선원명부 양식",
+      "EDI 정정",
+      "기타"
+    ],
+    "spawn": [
+      129.010832,
+      35.058571
+    ],
+    "aliases": [
+      "gamcheon"
+    ]
+  },
+  {
+    "id": "customs",
+    "name": "부산세관",
+    "address": "부산광역시 중구 충장대로 20",
+    "lon": 129.03843892015,
+    "lat": 35.104934877342,
+    "source": "https://www.customs.go.kr/busan/main.do",
+    "coordinateSource": "https://jusoga.com/b/2611010700100170026005282/부산광역시-중구-충장대로-20-중앙동4가",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "수입신고",
+      "수출신고",
+      "기타"
+    ],
+    "spawn": [
+      129.03843892015,
+      35.104934877342
+    ],
+    "aliases": []
+  },
+  {
+    "id": "bpa",
+    "name": "부산항만공사",
+    "address": "부산광역시 중구 대교로 122",
+    "lon": 129.0385959,
+    "lat": 35.100957,
+    "source": "https://www.busanpa.com/index.bpa?menuCd=DOM_000000101005001000",
+    "coordinateSource": "https://megojigo.com/bbs/board.php?bo_table=evcharging&wr_id=137971",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "항만 이용",
+      "기타"
+    ],
+    "spawn": [
+      129.0385959,
+      35.100957
+    ],
+    "aliases": []
+  },
+  {
+    "id": "mof-busan",
+    "name": "부산지방해양수산청",
+    "address": "부산광역시 동구 충장대로 351",
+    "lon": 129.056713,
+    "lat": 35.129465,
+    "source": "https://busan.mof.go.kr/ko/",
+    "coordinateSource": "https://findby.co.kr/details/48755-261702006001-st-652b2e6a8c641f9e3898cd07",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "선박 입출항",
+      "기타"
+    ],
+    "spawn": [
+      129.056713,
+      35.129465
+    ],
+    "aliases": []
+  },
+  {
+    "id": "quarantine",
+    "name": "국립부산검역소",
+    "address": "부산광역시 중구 충장대로 22",
+    "lon": 129.03843892015,
+    "lat": 35.104934877342,
+    "source": "https://www.kdca.go.kr/gyeongnam/3912/subview.do",
+    "coordinateSource": "https://jusoga.com/b/2611010700100170026005282/부산광역시-중구-충장대로-20-중앙동4가",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "검역",
+      "선박 위생",
+      "기타"
+    ],
+    "spawn": [
+      129.03843892015,
+      35.104934877342
+    ],
+    "aliases": [],
+    "unverified": true,
+    "locationNote": "주소는 확인했습니다. 좌표는 인접 부산본부세관 청사 대표점이며 검역소 개별 건물 위치는 확인이 필요합니다."
+  },
+  {
+    "id": "intergis-7",
+    "name": "북항 7부두 · 인터지스 터미널",
+    "address": "부산광역시 남구 우암로 279 북항제7부두",
+    "lon": 129.067787526538,
+    "lat": 35.1240332920684,
+    "source": "https://www.busanpa.com/index.bpa?menuCd=DOM_000000103001003010",
+    "coordinateSource": "https://www.placeview.co.kr/id/MjA2MzM0NzcwMyAg",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "반입·반출",
+      "기타"
+    ],
+    "spawn": [
+      129.067787526538,
+      35.1240332920684
+    ],
+    "aliases": []
+  },
+  {
+    "id": "newport-cfs",
+    "name": "신항 CFS 단지",
+    "address": "대표 거점: 부산광역시 강서구 신항로 96-72",
+    "lon": 128.8255342559504,
+    "lat": 35.08428989143487,
+    "source": "https://changgo-eum.kr/kor/03_warehouse/01_view.php?idx=123",
+    "coordinateSource": "https://juso.app/b/byjyyvfwlj4chwqp",
+    "checkedAt": "2026-11-04",
+    "docTypes": [
+      "반입·반출",
+      "창고",
+      "기타"
+    ],
+    "spawn": [
+      128.8255342559504,
+      35.08428989143487
+    ],
+    "aliases": [],
+    "unverified": true,
+    "locationNote": "단지 내 부산신항CFS 주소를 대표 거점으로 사용합니다. 실제 이용 창고는 확인이 필요합니다."
+  }
+]

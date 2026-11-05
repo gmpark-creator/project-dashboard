@@ -1,0 +1,22 @@
+.map-korea .map-label.major{font-size:15px}
+.map-korea .map-label.water{font-size:13px;letter-spacing:.3em}
+.place-dialog{width:min(620px,calc(100vw - 28px));max-height:calc(100dvh - 36px);overflow:auto;padding:28px}
+.place-dialog h2{font-size:22px;margin:2px 30px 8px 0}
+.place-kicker{margin:0;font-size:11px;color:#7e907f;letter-spacing:.08em}
+.place-note{margin:0 0 14px;font-size:11px;color:#8a6a3a;white-space:pre-wrap}.place-note:empty{display:none}
+.place-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.place-actions:empty{display:none}
+.place-actions button,.place-item{font:inherit;font-size:12px;padding:9px 12px;border-radius:8px;border:1px solid #c9d6c8;background:#fffef9;color:#36544a;cursor:pointer;text-align:left}
+.place-actions button.primary{background:#3f6653;color:#fff;border-color:#3f6653}
+.place-items{display:flex;flex-direction:column;gap:6px}
+.place-items h3{font-size:12px;margin:10px 0 2px;color:#5b7363}
+.place-item{display:grid;gap:3px}.place-item b{font-size:13px}.place-item small{font-size:10px;color:#7e907f}
+.place-item:disabled{opacity:.5;cursor:default}
+.place-empty{font-size:12px;color:#7e907f}
+.content-dialog{width:calc(100vw - 24px);height:calc(100dvh - 24px);max-width:none;max-height:none;padding:0;display:none;flex-direction:column;overflow:hidden}
+.content-dialog[open]{display:flex}
+.content-bar{display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f4f1e6;border-bottom:1px solid #d9dccf;font-size:12px}
+.content-bar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#36544a}
+.content-bar button,.content-bar a{font:inherit;font-size:12px;padding:7px 11px;border-radius:6px;border:1px solid #3f6653;background:#3f6653;color:#fff;cursor:pointer;text-decoration:none}
+.content-bar a{background:#fffef9;color:#3f6653}
+#content-frame{flex:1;width:100%;border:0;background:#fff}
+.travel-list .travel-korea{border-style:dashed}

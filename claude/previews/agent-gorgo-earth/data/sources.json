@@ -1,0 +1,43 @@
+{
+  "accessed": "2026-11-04",
+  "bounds": [
+    128.75,
+    35.035,
+    129.225,
+    35.245
+  ],
+  "nx": 672,
+  "nz": 368,
+  "terrain": {
+    "source": "Mapzen Terrain Tiles / AWS Open Data",
+    "url": "https://registry.opendata.aws/terrain-tiles/",
+    "attribution": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "encoding": "little-endian int16, units 0.25m, north-to-south rows"
+  },
+  "roads": {
+    "source": "OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "endpoint": "https://overpass-api.de/api/interpreter",
+    "query": "[out:json][timeout:90];way[highway~\"^(motorway|trunk|primary|secondary|tertiary)$\"](35.035,128.75,35.245,129.225);out geom;",
+    "derivative": "roads.json; simplified coordinates and selected road tags"
+  },
+  "art": "Original miniature interpretation. Buildings and character are deliberately exaggerated; not surveyed footprints.",
+  "coast": {
+    "source": "OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "endpoint": "https://overpass-api.de/api/interpreter",
+    "query": "[out:json][timeout:45];way[natural=coastline](35.01499999999999,128.73,35.265,129.245);out geom;",
+    "derivatives": [
+      "land.bin",
+      "land-derived.geojson"
+    ],
+    "method": "Node directed coastline with bbox; polygonize; land is left of oriented coast; rasterize north-to-south."
+  },
+  "water": {
+    "source": "OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "query": "[out:json][timeout:45];(way[natural=water][water=river](35.035,128.75,35.245,129.225);relation[natural=water][water=river](35.035,128.75,35.245,129.225);way[waterway=riverbank](35.035,128.75,35.245,129.225););out geom;",
+    "method": "Subtract closed river ways / multipolygon river relations from the OSM coastal land polygons."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "accessed": "2026-11-04",
+  "bounds": [
+    124.0,
+    32.9,
+    132.0,
+    43.1
+  ],
+  "nx": 400,
+  "nz": 640,
+  "unitKm": 10,
+  "terrain": {
+    "source": "Mapzen Terrain Tiles / AWS Open Data",
+    "url": "https://registry.opendata.aws/terrain-tiles/",
+    "attribution": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "zoom": 8,
+    "tiles": 66,
+    "encoding": "korea-terrain.bin little-endian int16 metres, north-to-south rows; korea-land.bin 1=land (height > 0.5m)"
+  },
+  "places": {
+    "method": "OpenStreetMap Nominatim geocoding of official names/addresses (countrycodes=kr, 1 req/s)",
+    "license": "ODbL-1.0"
+  }
+}

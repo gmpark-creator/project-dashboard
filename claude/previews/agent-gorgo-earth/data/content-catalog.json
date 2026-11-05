@@ -1,0 +1,503 @@
+{
+  "schema": "agent-gorgo/content-catalog@1",
+  "note": "프로젝트 대시보드 콘텐츠를 고르고 세계의 장소에 배치하는 목록. 좌표는 넣지 않는다 — 장소 이름만 두고, 좌표는 공식 주소 확인 후 workpoints 규칙(추정 금지, 미확인=unverified)으로 채운다. host가 있으면 기존 업무 거점(data/workpoints.json id)에 붙는다.",
+  "source": {
+    "repo": "gmpark-creator/project-dashboard",
+    "visibility": "PUBLIC",
+    "localClone": "../project-dashboard",
+    "previewsRoot": "claude/previews",
+    "pagesBase": "https://gmpark-creator.github.io/project-dashboard/"
+  },
+  "gateways": [
+    {
+      "id": "busan-station",
+      "place": "부산역",
+      "role": "한반도 지도(index.html?map=korea)의 「부산 (상세 지도)」 핀. 부산 안 콘텐츠 목록과 부산 상세 지도 입구를 겸한다."
+    }
+  ],
+  "items": [
+    {
+      "id": "solar",
+      "title": "태양계 시뮬레이터",
+      "dashboardNo": 3,
+      "kind": "knowledge",
+      "src": {
+        "path": "solar-project-claude/",
+        "entry": "index.html",
+        "query": "?v=final"
+      },
+      "place": {
+        "name": "경주 첨성대",
+        "region": "경북 경주",
+        "scope": "national",
+        "koreaId": "cheomseongdae"
+      },
+      "why": "박사 지정 — 우주 파트는 첨성대."
+    },
+    {
+      "id": "science-theory",
+      "title": "기초과학 (학교 과학 133단원·도해 131종)",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=theory&hub=1"
+      },
+      "place": {
+        "name": "국립부산과학관",
+        "region": "부산 기장",
+        "scope": "busan",
+        "boundsCheck": true,
+        "koreaId": "busan-science"
+      },
+      "why": "학교 과학 = 과학관. 지도 동쪽 끝 근처라 범위 확인 필요."
+    },
+    {
+      "id": "industry-semiconductor",
+      "title": "산업 3D · 반도체",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "이천 반도체 단지",
+        "region": "경기 이천",
+        "scope": "national",
+        "koreaId": "icheon-semi"
+      },
+      "why": "국내 메모리 반도체 생산 거점."
+    },
+    {
+      "id": "industry-power",
+      "title": "산업 3D · 전력",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "고리원자력본부",
+        "region": "부산 기장",
+        "scope": "busan",
+        "boundsCheck": true,
+        "koreaId": "kori-nuclear"
+      },
+      "why": "부산 안의 대표 발전 시설. 현재 지도 북동쪽 바깥일 가능성 — 좌표 확인 때 판정."
+    },
+    {
+      "id": "industry-battery",
+      "title": "산업 3D · 2차전지",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "울산 2차전지 공장 단지",
+        "region": "울산",
+        "scope": "national",
+        "koreaId": "ulsan-battery"
+      },
+      "why": "동남권 산업벨트(울산·포항)로 묶어 이동 동선을 짧게."
+    },
+    {
+      "id": "industry-display",
+      "title": "산업 3D · 디스플레이",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "아산 탕정 디스플레이 단지",
+        "region": "충남 아산",
+        "scope": "national",
+        "koreaId": "asan-display"
+      },
+      "why": "국내 디스플레이 생산 거점."
+    },
+    {
+      "id": "industry-steel",
+      "title": "산업 3D · 철강",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "포항제철소",
+        "region": "경북 포항",
+        "scope": "national",
+        "koreaId": "pohang-steel"
+      },
+      "why": "철강 대표 거점."
+    },
+    {
+      "id": "industry-smelting",
+      "title": "산업 3D · 제련",
+      "dashboardNo": 7,
+      "kind": "knowledge",
+      "src": {
+        "path": "claude/previews/semiconductor-universe/",
+        "entry": "index.html",
+        "query": "?section=industry&hub=1",
+        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+      },
+      "place": {
+        "name": "울산 온산 제련소",
+        "region": "울산 울주",
+        "scope": "national",
+        "koreaId": "onsan-smelter"
+      },
+      "why": "비철금속 제련 대표 거점."
+    },
+    {
+      "id": "toeic-paralex",
+      "title": "토익 950 학습 (Paralex)",
+      "dashboardNo": 7,
+      "kind": "study",
+      "src": {
+        "path": "claude/previews/paralex/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "부산대학교",
+        "region": "부산 금정",
+        "scope": "busan"
+      },
+      "why": "어학 공부 = 대학 도서관."
+    },
+    {
+      "id": "fitrx",
+      "title": "FitRx 근거기반 운동 가이드",
+      "dashboardNo": 10,
+      "kind": "personal",
+      "src": {
+        "path": "claude/previews/fitrx/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "사직 종합운동장 (체육시설)",
+        "region": "부산 동래",
+        "scope": "busan",
+        "spreadWith": "dduim"
+      },
+      "why": "운동 = 체육시설. DDUIM과 같은 단지라 핀을 둥글게 펼친다."
+    },
+    {
+      "id": "dduim",
+      "title": "DDUIM 2D 매치 트래커",
+      "dashboardNo": 2,
+      "kind": "personal",
+      "src": {
+        "path": "match-tracker/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "부산아시아드주경기장",
+        "region": "부산 연제",
+        "scope": "busan",
+        "spreadWith": "fitrx"
+      },
+      "why": "축구 하이라이트 = 축구 경기장."
+    },
+    {
+      "id": "customs-master",
+      "title": "TradeLogix 통관 마스터 (부산항 통관·Incoterms·수입신고필증)",
+      "dashboardNo": 8,
+      "kind": "work",
+      "src": {
+        "path": "claude/previews/tradelogix-nexus/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "부산세관",
+        "region": "부산 중구",
+        "scope": "busan",
+        "host": "customs"
+      },
+      "why": "통관 = 세관."
+    },
+    {
+      "id": "bosesa",
+      "title": "보세사 기출문제 뷰어 (900문항·중요개념·해설)",
+      "dashboardNo": 8,
+      "kind": "study",
+      "src": {
+        "path": "claude/previews/tradelogix-nexus/",
+        "entry": "index.html",
+        "mobile": "bosesa-mobile/index.html"
+      },
+      "place": {
+        "name": "부산세관",
+        "region": "부산 중구",
+        "scope": "busan",
+        "host": "customs"
+      },
+      "why": "보세사 = 세관 보세 업무 자격."
+    },
+    {
+      "id": "hazmat",
+      "title": "위험물산업기사 기출 뷰어",
+      "dashboardNo": 12,
+      "kind": "study",
+      "src": {
+        "path": "claude/previews/hazmat-exam/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "한국산업인력공단 부산지역본부",
+        "region": "부산 북구",
+        "scope": "busan"
+      },
+      "why": "국가기술자격 시행처 = 시험장."
+    },
+    {
+      "id": "ship-certs",
+      "title": "선박 증서 31종 도해",
+      "dashboardNo": 8,
+      "kind": "work",
+      "src": {
+        "path": "claude/previews/ship-certs/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "부산지방해양수산청",
+        "region": "부산 동구",
+        "scope": "busan",
+        "host": "mof-busan"
+      },
+      "why": "선박 검사·증서 관할 기관."
+    },
+    {
+      "id": "panda-express",
+      "title": "판다 익스프레스 라인 (선사 업무)",
+      "dashboardNo": 8,
+      "kind": "work",
+      "src": {
+        "path": "claude/previews/panda-express-line/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "북항 7부두 · 인터지스 터미널",
+        "region": "부산 남구",
+        "scope": "busan",
+        "host": "intergis-7"
+      },
+      "why": "선사 운항·터미널 업무."
+    },
+    {
+      "id": "mage-supply",
+      "title": "MAGE 프로젝트 Supply DB (선용품 ~404행)",
+      "dashboardNo": 8,
+      "kind": "work",
+      "src": {
+        "path": "claude/previews/mage-supply/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "북항 7부두 · 인터지스 터미널",
+        "region": "부산 남구",
+        "scope": "busan",
+        "host": "intergis-7"
+      },
+      "why": "선용품 선적 = 부두."
+    },
+    {
+      "id": "ais",
+      "title": "AIS Ship Tracker",
+      "dashboardNo": 1,
+      "kind": "work",
+      "external": true,
+      "src": {
+        "url": "https://ais.vercel.co.kr/ops-main",
+        "alt": "https://ais.vercel.co.kr/kyowa-line-ops"
+      },
+      "place": {
+        "name": "부산항만공사",
+        "region": "부산 중구",
+        "scope": "busan",
+        "host": "bpa"
+      },
+      "why": "항만 운영 = 선박 위치 관제. 형님 레포의 외부 사이트라 복사하지 않고 링크로만 연다."
+    },
+    {
+      "id": "polaris",
+      "title": "Polaris 증권 터미널 (①~⑫ 전체)",
+      "dashboardNo": 6,
+      "kind": "personal",
+      "src": {
+        "path": "claude/previews/us-kr-premarket/",
+        "entry": "index.html",
+        "liveApis": [
+          "api.binance.com",
+          "api.upbit.com",
+          "api.kraken.com",
+          "api.gemini.com"
+        ]
+      },
+      "place": {
+        "name": "부산국제금융센터(BIFC) · 한국거래소",
+        "region": "부산 남구",
+        "scope": "busan"
+      },
+      "why": "한국거래소 본사가 부산 BIFC에 있다."
+    },
+    {
+      "id": "tech-stack",
+      "title": "Tech Stack Collection + 미래 스택 데모",
+      "dashboardNo": 9,
+      "kind": "tool",
+      "src": {
+        "path": "claude/previews/tech-stack-architecture-hub/",
+        "entry": "index.html",
+        "also": "claude/previews/future-stack-demos/"
+      },
+      "place": {
+        "name": "센텀 스카이비즈 사무실",
+        "region": "부산 해운대",
+        "scope": "busan",
+        "host": "skybiz"
+      },
+      "why": "개발 책상 자료."
+    },
+    {
+      "id": "tone-atelier",
+      "title": "Frontend & Tone Atelier (JP GLOBAL 시범 사이트)",
+      "dashboardNo": 5,
+      "kind": "tool",
+      "src": {
+        "path": "claude/previews/jpglobal-web/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "센텀 스카이비즈 사무실",
+        "region": "부산 해운대",
+        "scope": "busan",
+        "host": "skybiz"
+      },
+      "why": "디자인 작업물. 실제 JP GLOBAL 사무실 주소는 미확인이라 사무실에 둔다."
+    },
+    {
+      "id": "cutpilot",
+      "title": "Cutpilot AI 영상 제작",
+      "dashboardNo": 11,
+      "kind": "tool",
+      "src": {
+        "path": "ai-video-studio/mock-app/",
+        "entry": "index.html",
+        "also": "ai-video-studio/prototype/"
+      },
+      "place": {
+        "name": "영화의전당",
+        "region": "부산 해운대(센텀)",
+        "scope": "busan",
+        "spreadWith": "creator-toolset"
+      },
+      "why": "영상 제작 = 영화의전당. 사무실과 같은 센텀이라 걸어서 간다."
+    },
+    {
+      "id": "creator-toolset",
+      "title": "Creator Toolset · Export Runner",
+      "dashboardNo": 13,
+      "kind": "tool",
+      "src": {
+        "path": "claude/previews/creator-toolset/",
+        "entry": "index.html",
+        "also": "guide.html"
+      },
+      "place": {
+        "name": "영화의전당",
+        "region": "부산 해운대(센텀)",
+        "scope": "busan",
+        "spreadWith": "cutpilot"
+      },
+      "why": "유튜브 내보내기 도구 — 영상 묶음."
+    },
+    {
+      "id": "inst",
+      "title": "INST Extractor 반주 추출기",
+      "dashboardNo": 4,
+      "kind": "tool",
+      "src": {
+        "path": "claude/previews/inst-extractor/",
+        "entry": "index.html"
+      },
+      "place": {
+        "name": "부산콘서트홀 (부산시민공원)",
+        "region": "부산 부산진",
+        "scope": "busan",
+        "verify": "개관·주소 확인 필요"
+      },
+      "why": "음악 = 공연장."
+    },
+    {
+      "id": "korea-gov-sim",
+      "title": "2026 PRESIDENT KOREA (일시정지)",
+      "dashboardNo": null,
+      "kind": "personal",
+      "src": {
+        "path": "claude/previews/korea-gov-sim/",
+        "entry": "index.html",
+        "also": "claude/previews/inauguration-cinematic/"
+      },
+      "place": {
+        "name": "서울 청와대",
+        "region": "서울 종로",
+        "scope": "national",
+        "koreaId": "cheongwadae"
+      },
+      "why": "대통령 시뮬레이션."
+    },
+    {
+      "id": "jindo-offshore-wind",
+      "title": "진도 해상풍력 프로젝트 (COENS + EOLOS)",
+      "dashboardNo": null,
+      "kind": "work-history",
+      "zone": "jindo-wind",
+      "src": null,
+      "place": {
+        "name": "진도 해상풍력단지",
+        "region": "전남 진도",
+        "scope": "national",
+        "koreaId": "jindo",
+        "verify": "실제 단지 좌표 확인 필요 — 현재 대표 지점은 진도군청"
+      },
+      "why": "박사가 예전에 맡았던 해상풍력 프로젝트. 자료는 이 장소에 끌어 넣으면 저장·동기화된다."
+    }
+  ],
+  "notPlaced": [
+    {
+      "id": "agent-gorgo-2d",
+      "path": "claude/previews/agent-gorgo/",
+      "reason": "이 앱의 옛 2D 버전. 옮기지 않는다."
+    },
+    {
+      "id": "hubs",
+      "path": "claude/previews/knowledgeverse-hub/ · tradelogix-hub/ · ship-ops-hub/",
+      "reason": "묶음 시작페이지. 고르고에서는 장소가 그 역할을 대신하므로 옮기지 않는다."
+    }
+  ],
+  "nationalMap": {
+    "page": "index.html?map=korea",
+    "places": "data/korea-places.json",
+    "note": "koreaId = korea-places.json id. 없으면 scope=busan 항목은 부산 핀 목록에 묶인다."
+  }
+}

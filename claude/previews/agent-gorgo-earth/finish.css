@@ -1,0 +1,25 @@
+/* AGENT-GORGO-4: 지도와 캐릭터만 남기는 최소 UI (박사 2026-11-04). */
+.travel-open{position:absolute;top:22px;right:22px;z-index:5;padding:11px 18px;border-radius:30px;background:#2f4c45ee;color:#fffef4;font-size:13px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 24px #23443830;border:1px solid #ffffff40}
+.travel-open:hover,.travel-open:focus-visible{background:#e77f58}
+#travel-dialog{width:min(380px,calc(100vw - 32px));padding:26px 22px 18px}
+#travel-dialog h2{margin:0 0 14px;font-size:21px}
+.travel-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.travel-list button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 13px;border-radius:6px;background:#eef1e6;text-align:left;font-size:13px;color:var(--ink)}
+.travel-list button:hover,.travel-list button:focus-visible{background:#f4d8c6}
+.travel-list small{font-size:10px;color:#7f8f80}
+.travel-list .travel-home{grid-column:1/-1;background:#e3ebe6}
+.travel-hint{margin:14px 0 0;font-size:10px!important;line-height:1.6!important;color:#8a988b!important}
+.attribution{position:absolute;right:12px;bottom:8px;font-size:9px;color:#60887d;text-decoration:none;background:#ffffff70;padding:2px 6px;border-radius:3px}
+#toast{top:76px}
+@media(max-width:700px){.travel-open{top:14px;right:14px;padding:10px 15px;font-size:12px}#toast{top:64px}#mobile-pad{bottom:34px}.attribution{font-size:7px}}
+/* AGENT-GORGO-12 전국 ⇄ 부산 지도 이음새 */
+.map-switch{position:absolute;top:76px;right:22px;z-index:5;padding:10px 16px;border-radius:30px;background:#fffdf2;color:#2f4c45;font-size:12px;font-weight:800;letter-spacing:.01em;box-shadow:0 6px 24px #23443826;border:1.5px solid #2f4c45}
+.map-switch:before{content:'\21C4';margin-right:6px;color:#e77f58}
+.map-switch:hover,.map-switch:focus-visible{background:#e77f58;color:#fff;border-color:#e77f58}.map-switch:hover:before{color:#fff}
+.travel-list .travel-switch{border:1.5px solid #e77f58!important;background:#fff4ec!important}
+#map-handoff{position:fixed;inset:0;z-index:40;background:#b4d9d2 center/cover no-repeat;transition:opacity .85s ease;pointer-events:none}
+#map-handoff.fade{opacity:0}
+#map-handoff span{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);padding:10px 18px;border-radius:30px;background:#304e46d9;color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.map-handoff-active #loading{opacity:0}
+body.map-leaving #labels,body.map-leaving .travel-open,body.map-leaving .ai-open,body.map-leaving .map-switch,body.map-leaving .speed-mode,body.map-leaving #sync-dot,body.map-leaving .work-open,body.map-leaving #mobile-pad{opacity:0;pointer-events:none;transition:opacity .5s}
+@media(max-width:700px){.map-switch{top:62px;right:14px;padding:8px 13px;font-size:11px}}

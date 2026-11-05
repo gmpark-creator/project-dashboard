@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#e9eee6">
+  <title>에이전트 고르고의 모험</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="finish.css">
+  <link rel="stylesheet" href="crew-workbench.css">
+  <link rel="stylesheet" href="records-ui.css">
+  <link rel="stylesheet" href="ai-ui.css">
+  <link rel="icon" href="assets/gorgo.svg" type="image/svg+xml">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+  <div id="scene" aria-label="에이전트 고르고 업무 지도"></div>
+  <div id="labels" aria-hidden="true"></div>
+  <button id="travel-open" class="travel-open" aria-haspopup="dialog" aria-controls="travel-dialog">빠른 이동</button>
+  <button id="map-switch" class="map-switch">지도 전환</button>
+  <button id="ai-open" class="ai-open" aria-haspopup="dialog">AI 연결</button>
+  <button id="sync-dot" data-state="offline" aria-label="동기화 상태"></button>
+  <div class="drop-guide">업무존 핀에 파일을 놓으세요 · 빈 곳에 놓으면 업무존을 고를 수 있습니다</div>
+  <button id="speed-mode" class="speed-mode" aria-pressed="false">속도 1×</button>
+  <button id="work-open" class="work-open" hidden>선원명부</button>
+  <dialog id="travel-dialog" aria-labelledby="travel-title">
+    <button class="close" id="travel-close" aria-label="이동 창 닫기">×</button>
+    <h2 id="travel-title">어디로 갈까요?</h2>
+    <div class="travel-list"></div>
+    <p class="travel-hint">지도 클릭으로 이동 · WASD/방향키 · 속도 버튼 3배 · Shift 가속</p>
+  </dialog>
+  <dialog id="crew-dialog" aria-labelledby="crew-title">
+    <button class="close" id="crew-close" aria-label="선원명부 업무 닫기">×</button>
+    <p class="crew-location" id="crew-location"></p>
+    <h2 id="crew-title">선원명부 업무</h2>
+    <p class="crew-intro">이 포인트에서는 부산항 출입국 선원명부를 준비합니다.</p>
+    <section class="crew-section" aria-labelledby="template-title">
+      <h3 id="template-title">1. 사용할 출입국 양식</h3>
+      <p>현재 제출할 때 쓰는 원본 양식을 선택하세요.</p>
+      <button id="crew-template-pick" class="crew-button">양식 파일 선택</button>
+      <input id="crew-template" type="file" accept=".xlsx,.xls,.hwp,.hwpx,.doc,.docx,.pdf" hidden>
+      <p id="crew-template-name" class="crew-file-summary">아직 선택하지 않았습니다.</p>
+    </section>
+    <section class="crew-section" aria-labelledby="source-title">
+      <h3 id="source-title">2. 이번 본선 자료</h3>
+      <p>본선 선원명부·여권사본·선원수첩사본이 들어 있는 폴더를 선택하세요.</p>
+      <div class="crew-buttons"><button id="crew-folder-pick" class="crew-button">자료 폴더 선택</button><button id="crew-folder-refresh" class="crew-button secondary" disabled>다시 읽기</button></div>
+      <input id="crew-folder" type="file" webkitdirectory multiple hidden>
+      <p id="crew-source-summary" class="crew-file-summary">아직 선택하지 않았습니다.</p>
+      <div id="crew-file-list" class="crew-file-list" aria-label="선택한 본선 자료"></div>
+    </section>
+    <p id="crew-status" role="status" class="crew-status"></p>
+    <p class="crew-pending">현재는 양식과 자료 연결까지 가능합니다. 사용할 양식을 확인한 뒤 실제 명부 작성·저장 기능을 연결합니다.</p>
+  </dialog>
+  <dialog id="records-dialog" aria-labelledby="records-title"><button id="records-close" class="close" aria-label="자료 창 닫기">×</button><h2 id="records-title">업무 자료</h2><div class="records-toolbar"><select id="records-filter" aria-label="문서 종류 필터"></select><small>파일을 이 창이나 업무존 핀으로 끌어 넣을 수 있습니다.</small></div><div id="records-list"></div></dialog>
+  <dialog id="record-zone-dialog" class="record-form" aria-labelledby="record-zone-title"><h2 id="record-zone-title">어느 업무존에 넣을까요?</h2><label>업무존<select id="record-zone-select"></select></label><div class="record-buttons"><button id="record-zone-cancel" class="record-button">취소</button><button id="record-zone-continue" class="record-button primary">선택</button></div></dialog>
+  <dialog id="record-drop-dialog" class="record-form" aria-labelledby="drop-title"><p id="drop-location" class="record-location"></p><h2 id="drop-title">자료 넣기</h2><ul id="drop-files"></ul><label>문서 종류<select id="drop-type"></select></label><label>메모<input id="drop-memo" maxlength="4000" placeholder="선택 사항"></label><p id="drop-countdown" class="record-counter"></p><p id="drop-error" class="record-error" role="status"></p><div class="record-buttons"><button id="drop-cancel" class="record-button">취소</button><button id="drop-save" class="record-button primary">넣기</button></div></dialog>
+  <dialog id="record-edit-dialog" class="record-form" aria-labelledby="record-edit-title"><button id="record-edit-close" class="close" aria-label="수정 닫기">×</button><h2 id="record-edit-title">종류·메모 수정</h2><label>문서 종류<select id="record-edit-type"></select></label><label>메모<input id="record-edit-memo" maxlength="4000"></label><p id="record-edit-error" class="record-error" role="status"></p><div class="record-buttons"><button id="record-edit-save" class="record-button primary">저장</button></div></dialog>
+  <dialog id="sync-dialog" class="record-form" aria-labelledby="sync-title"><button id="sync-close" class="close" aria-label="동기화 상태 닫기">×</button><h2 id="sync-title">동기화 상태</h2><pre id="sync-detail"></pre><button id="sync-now" class="record-button primary">지금 맞추기</button></dialog>
+  <dialog id="ai-dialog" aria-labelledby="ai-title"><button id="ai-close" class="close" aria-label="AI 연결 닫기">×</button><h2 id="ai-title">AI 연결</h2><p class="ai-intro">이 PC에서 사용할 AI를 연결하세요. 로그인 정보와 API 키는 다른 PC로 동기화하지 않습니다.</p><div id="ai-providers"></div><p id="ai-message" role="status"></p><p class="ai-note">연결 확인은 모델 목록 접근 검사입니다. 실제 문서 분석과 잔여 사용량 확인은 아직 포함하지 않습니다. API 연결은 웹 구독과 별도 사용량 조건을 따릅니다.</p></dialog>
+  <div id="toast" role="status"></div>
+  <div id="mobile-pad" aria-label="고르고 이동"><button data-move="up" aria-label="앞으로">↑</button><button data-move="left" aria-label="왼쪽">←</button><button data-move="down" aria-label="뒤로">↓</button><button data-move="right" aria-label="오른쪽">→</button></div>
+  <a class="attribution" href="credits.html" target="_blank" rel="noopener">Mapzen terrain · © OpenStreetMap contributors</a>
+  <div id="loading"><span class="loader-mark">g<span>·</span></span><h2>지도를 불러오는 중</h2><p id="loading-status"></p></div>
+  <script src="map-handoff.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+[
+  {
+    "id": "skybiz",
+    "name": "센텀 스카이비즈 사무실",
+    "place": "skybiz",
+    "docTypes": [
+      "인보이스",
+      "일반 서류",
+      "기타"
+    ],
+    "aliases": [
+      "centum"
+    ]
+  },
+  {
+    "id": "imm-jungang",
+    "name": "출입국외국인청 · 중앙동",
+    "place": "imm-jungang",
+    "docTypes": [
+      "선원명부",
+      "선원명부 양식",
+      "EDI 정정",
+      "기타"
+    ],
+    "aliases": [
+      "jungang"
+    ]
+  },
+  {
+    "id": "imm-gamcheon",
+    "name": "출입국외국인청 · 감천",
+    "place": "imm-gamcheon",
+    "docTypes": [
+      "선원명부",
+      "선원명부 양식",
+      "EDI 정정",
+      "기타"
+    ],
+    "aliases": [
+      "gamcheon"
+    ]
+  },
+  {
+    "id": "customs",
+    "name": "부산세관",
+    "place": "customs",
+    "docTypes": [
+      "수입신고",
+      "수출신고",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "bpa",
+    "name": "부산항만공사",
+    "place": "bpa",
+    "docTypes": [
+      "항만 이용",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "mof-busan",
+    "name": "부산지방해양수산청",
+    "place": "mof-busan",
+    "docTypes": [
+      "선박 입출항",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "quarantine",
+    "name": "국립부산검역소",
+    "place": "quarantine",
+    "docTypes": [
+      "검역",
+      "선박 위생",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "intergis-7",
+    "name": "북항 7부두 · 인터지스 터미널",
+    "place": "intergis-7",
+    "docTypes": [
+      "반입·반출",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "newport-cfs",
+    "name": "신항 CFS 단지",
+    "place": "newport-cfs",
+    "docTypes": [
+      "반입·반출",
+      "창고",
+      "기타"
+    ],
+    "aliases": []
+  },
+  {
+    "id": "jindo-wind",
+    "name": "진도 해상풍력단지 · COENS + EOLOS",
+    "place": "jindo",
+    "docTypes": [
+      "프로젝트 자료",
+      "도면·설계",
+      "보고서",
+      "계약·행정",
+      "사진",
+      "기타"
+    ],
+    "map": "korea"
+  }
+]
