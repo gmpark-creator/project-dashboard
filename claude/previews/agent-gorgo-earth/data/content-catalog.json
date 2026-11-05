@@ -61,8 +61,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=semiconductor&node=dram"
       },
       "place": {
         "name": "이천 반도체 단지",
@@ -70,7 +69,7 @@
         "scope": "national",
         "koreaId": "icheon-semi"
       },
-      "why": "국내 메모리 반도체 생산 거점."
+      "why": "국내 메모리 반도체 생산 거점 → 반도체 영역 · DRAM 항목으로 바로 연다."
     },
     {
       "id": "industry-power",
@@ -80,8 +79,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=power&node=nuclear"
       },
       "place": {
         "name": "고리원자력본부",
@@ -90,7 +88,7 @@
         "boundsCheck": true,
         "koreaId": "kori-nuclear"
       },
-      "why": "부산 안의 대표 발전 시설. 현재 지도 북동쪽 바깥일 가능성 — 좌표 확인 때 판정."
+      "why": "부산의 대표 발전 시설 → 전력 영역 · 원자력 항목으로 바로 연다."
     },
     {
       "id": "industry-battery",
@@ -100,8 +98,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=battery"
       },
       "place": {
         "name": "울산 2차전지 공장 단지",
@@ -109,7 +106,7 @@
         "scope": "national",
         "koreaId": "ulsan-battery"
       },
-      "why": "동남권 산업벨트(울산·포항)로 묶어 이동 동선을 짧게."
+      "why": "동남권 2차전지 생산 거점 → 2차전지 영역으로 바로 연다."
     },
     {
       "id": "industry-display",
@@ -119,8 +116,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=display&node=display-rgb-oled"
       },
       "place": {
         "name": "아산 탕정 디스플레이 단지",
@@ -128,7 +124,7 @@
         "scope": "national",
         "koreaId": "asan-display"
       },
-      "why": "국내 디스플레이 생산 거점."
+      "why": "국내 OLED 생산 거점 → 디스플레이 영역 · RGB OLED 항목으로 바로 연다."
     },
     {
       "id": "industry-steel",
@@ -138,8 +134,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=steel&node=steel-bf-bof"
       },
       "place": {
         "name": "포항제철소",
@@ -147,7 +142,7 @@
         "scope": "national",
         "koreaId": "pohang-steel"
       },
-      "why": "철강 대표 거점."
+      "why": "일관제철 대표 거점 → 철강·제련 영역 · 고로-전로 일관제철 항목으로 바로 연다."
     },
     {
       "id": "industry-smelting",
@@ -157,8 +152,7 @@
       "src": {
         "path": "claude/previews/semiconductor-universe/",
         "entry": "index.html",
-        "query": "?section=industry&hub=1",
-        "deepLinkGap": "산업 분야별 바로가기 파라미터 없음"
+        "query": "?section=industry&hub=1&area=steel&node=nf-zinc"
       },
       "place": {
         "name": "울산 온산 제련소",
@@ -166,7 +160,7 @@
         "scope": "national",
         "koreaId": "onsan-smelter"
       },
-      "why": "비철금속 제련 대표 거점."
+      "why": "비철금속 제련 대표 거점 → 철강·제련 영역 · 아연 제련 항목으로 바로 연다(항목 설명에 온산제련소 사례 수록)."
     },
     {
       "id": "toeic-paralex",
