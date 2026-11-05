@@ -94,14 +94,15 @@ function addLabel(text,lon,lat,kind='',id=null,object=null){const el=document.cr
 
 // ── 장소 · 콘텐츠 ─────────────────────────────────────────
 function contentUrl(item){if(item.src?.url)return item.src.url;if(!item.src?.path)return null;return catalog.source.pagesBase+item.src.path+(item.src.entry||'')+(item.src.query||'');}
-function itemsFor(id){return catalog.items.filter(it=>(it.place.koreaId||(it.place.scope==='busan'?'busan-station':null))===id);}
+// 부산 콘텐츠는 부산 상세 지도 안의 각 장소에서만 열린다(AGENT-GORGO-19). 전국 지도에는 koreaId가 있는 항목만.
+function itemsFor(id){return catalog.items.filter(it=>it.place.koreaId===id);}
 function buildDialogs(){
  const place=document.createElement('dialog');place.id='place-dialog';place.className='place-dialog';place.innerHTML='<button class="close" id="place-close" aria-label="장소 창 닫기">×</button><p class="place-kicker" id="place-kicker"></p><h2 id="place-title"></h2><p class="place-note" id="place-note"></p><div id="place-actions" class="place-actions"></div><div id="place-items" class="place-items"></div>';document.body.append(place);
  const view=document.createElement('dialog');view.id='content-dialog';view.className='content-dialog';view.innerHTML='<div class="content-bar"><button id="content-back" type="button">← 고르고로</button><strong id="content-title"></strong><a id="content-external" target="_blank" rel="noopener">새 창으로 열기</a></div><iframe id="content-frame" title="콘텐츠" referrerpolicy="no-referrer"></iframe>';document.body.append(view);
  $('place-close').onclick=()=>place.close();$('content-back').onclick=()=>{view.close();$('content-frame').src='about:blank';};
 }
 function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();if(item.external){window.open(url,'_blank','noopener');return;}$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
-function openPlace(id){const p=places[id];if(!p)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
+function openPlace(id){if(id==='busan-station'){enterBusan();return;}const p=places[id];if(!p)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
  $('place-kicker').textContent=p.region||'';$('place-title').textContent=p.name;$('place-note').textContent=[p.unverified?'위치 확인 필요 — '+(p.note||'대표 지점'):p.note,p.matched?'좌표: '+p.source+' · '+p.matched.split(',').slice(0,3).join(','):''].filter(Boolean).join('\n');
  const actions=$('place-actions');actions.replaceChildren();const btn=(t,f,cls='')=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.className=cls;b.onclick=f;actions.append(b);return b;};
  if(id==='busan-station')btn('부산 상세 지도로 들어가기',()=>enterBusan(),'primary');
@@ -135,7 +136,7 @@ function placeTrain(){const h=agent.position;if(h.distanceTo(trail[0])>.04)trail
   part.position.copy(pos);dir.y=0;if(dir.lengthSq()>1e-10)part.rotation.y=Math.atan2(dir.x,dir.z);part.scale.setScalar(vehScale());});
  const moved=lastHead?lastHead.distanceTo(h):0;for(const w of veh.wheels)w.rotation.x+=moved*30;lastHead=h.clone();}
 function nearestRail(v){const g=railGraph();let best=-1,bd=Infinity;g.nodes.forEach((n,i)=>{const d=Math.hypot(n.x-v.x,n.z-v.z);if(d<bd&&g.adj[i].length){bd=d;best=i;}});return best;}
-function rideTo(id){const p=places[id];if(!p||state.leaving||state.riding)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
+function rideTo(id){if(id==='busan-station'){enterBusan();return;}const p=places[id];if(!p||state.leaving||state.riding)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
  const q=project(p.lon,p.lat);if(Math.hypot(agent.position.x-q.x,agent.position.z-q.z)<NEAR){openPlace(id);return;}
  trainTo(new THREE.Vector3(q.x+.65,0,q.z+.8),id,railGraph().idx.get(id));}
 // 고속열차로 dest까지: 4단위(40km) 넘게 떨어지면 주요 철도 축을 타고, 가까우면 곧장 선로를 깔며 간다.
@@ -209,7 +210,7 @@ function setupEvents(zonesForPins){
  initRecordsUI({clearMovement,toast,getPosition:()=>agent.position,project:z=>{const p=Object.values(places).find(p=>p.zone===z.id);return p?project(p.lon,p.lat):far;},pickPoint:(cx,cy)=>{const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-cy/innerHeight*2+1),camera);return ray.intersectObject(terrain,false)[0]?.point;},
   ensurePin:z=>{const p=Object.values(places).find(p=>p.zone===z.id);if(!p)return;const el=labelItems.find(l=>l.el.dataset.place===p.id)?.el;if(el)el.dataset.recordsZone=z.id;},walkToZone:z=>{const p=Object.values(places).find(p=>p.zone===z.id);if(!p)return;moveTarget=project(p.lon,p.lat);}});
  const list=document.querySelector('.travel-list');list.replaceChildren();
- for(const p of Object.values(places)){const b=document.createElement('button');b.dataset.travel=p.id;b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=p.name+(p.unverified?' (위치 확인 필요)':'');b.querySelector('small').textContent=p.region||'';list.append(b);}
+ for(const p of Object.values(places)){if(p.id==='busan-station')continue;const b=document.createElement('button');b.dataset.travel=p.id;b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=p.name+(p.unverified?' (위치 확인 필요)':'');b.querySelector('small').textContent=p.region||'';list.append(b);}
  const home=document.createElement('button');home.dataset.travel='home';home.className='travel-home';home.innerHTML='<b>한반도 전체 보기</b><small>지도 처음 화면</small>';list.append(home);
  const busan=document.createElement('button');busan.className='travel-home travel-switch';busan.innerHTML='<b>부산 상세 지도로 전환</b><small>부산 범위로 확대 · 업무 거점 9곳</small>';busan.onclick=()=>enterBusan();list.prepend(busan);
  document.querySelector('#travel-title').textContent='어디로 갈까요? · 한반도';

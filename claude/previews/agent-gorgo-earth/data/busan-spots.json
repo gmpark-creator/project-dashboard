@@ -1,0 +1,154 @@
+[
+  {
+    "id": "busan-science",
+    "name": "국립부산과학관",
+    "query": [
+      "국립부산과학관",
+      "부산광역시 기장군 기장읍 동부산관광6로 59"
+    ],
+    "lon": 129.212878,
+    "lat": 35.204234,
+    "matched": "국립부산과학관, 59, 동부산관광6로, 기장읍, 기장군, 부산광역시, 40681, 대한민국",
+    "matchedQuery": "국립부산과학관",
+    "osm": "way/474308749",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05"
+  },
+  {
+    "id": "pnu",
+    "name": "부산대학교",
+    "query": [
+      "부산대학교 부산캠퍼스",
+      "부산대학교",
+      "부산광역시 금정구 부산대학로63번길 2"
+    ],
+    "lon": 129.078407,
+    "lat": 35.23435,
+    "matched": "부산대학교, 금강로335번길, 장전1동, 금정구, 부산광역시, 46282, 대한민국",
+    "matchedQuery": "부산대학교",
+    "osm": "way/472067907",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05"
+  },
+  {
+    "id": "sajik",
+    "name": "사직 종합운동장 (체육시설)",
+    "query": [
+      "부산사직종합운동장",
+      "사직종합운동장",
+      "사직야구장"
+    ],
+    "lon": 129.061484,
+    "lat": 35.194192,
+    "matched": "사직야구장, 사직로, 사직2동, 동래구, 부산광역시, 47856, 대한민국",
+    "matchedQuery": "사직야구장",
+    "osm": "way/175902789",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05",
+    "locationNote": "사직 종합운동장 단지 안의 사직야구장 지점으로 찾았다."
+  },
+  {
+    "id": "asiad",
+    "name": "부산아시아드주경기장",
+    "query": [
+      "부산아시아드주경기장",
+      "아시아드주경기장",
+      "부산광역시 연제구 월드컵대로 344"
+    ],
+    "lon": 129.081433,
+    "lat": 35.186045,
+    "matched": "월드컵대로, 연산5동, 연제구, 부산광역시, 47540, 대한민국",
+    "matchedQuery": "부산광역시 연제구 월드컵대로 344",
+    "osm": "way/1574162600",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05",
+    "unverified": true,
+    "locationNote": "경기장 이름으로는 찾지 못해 주소(월드컵대로 344)의 도로 대표점을 썼다 — 실제 경기장 위치와 다를 수 있다."
+  },
+  {
+    "id": "hrdk-busan",
+    "name": "한국산업인력공단 부산지역본부",
+    "query": [
+      "한국산업인력공단 부산지역본부",
+      "부산광역시 북구 금곡대로441번길 26"
+    ],
+    "lon": 129.012201,
+    "lat": 35.247881,
+    "matched": "금곡대로441번길, 금곡동, 북구, 부산광역시, 46509, 대한민국",
+    "matchedQuery": "부산광역시 북구 금곡대로441번길 26",
+    "osm": "way/164669560",
+    "insideBusanMap": false,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05",
+    "unverified": true,
+    "locationNote": "주소 도로 대표점이 부산 상세 지도 북쪽 경계 밖(약 0.3km)이라 경계 안쪽에 붙여 표시한다."
+  },
+  {
+    "id": "bifc",
+    "name": "부산국제금융센터(BIFC) · 한국거래소",
+    "query": [
+      "부산국제금융센터",
+      "부산광역시 남구 문현금융로 40"
+    ],
+    "lon": 129.065675,
+    "lat": 35.147222,
+    "matched": "부산국제금융센터, 40, 문현금융로, 문현혁신도시, 문현2동, 남구, 부산광역시, 47362, 대한민국",
+    "matchedQuery": "부산국제금융센터",
+    "osm": "way/498976943",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05"
+  },
+  {
+    "id": "cinema-center",
+    "name": "영화의전당",
+    "query": [
+      "영화의전당",
+      "부산광역시 해운대구 수영강변대로 120"
+    ],
+    "lon": 129.126659,
+    "lat": 35.171219,
+    "matched": "영화의전당, 120, 수영강변대로, 우2동, 해운대구, 부산광역시, 48058, 대한민국",
+    "matchedQuery": "영화의전당",
+    "osm": "node/5478364332",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05"
+  },
+  {
+    "id": "concert-hall",
+    "name": "부산콘서트홀 (부산시민공원)",
+    "query": [
+      "부산콘서트홀",
+      "부산시민공원"
+    ],
+    "lon": 129.054218,
+    "lat": 35.16943,
+    "matched": "부산콘서트홀, 부산시민공원 기억의 숲길, 연지동, 부산진구, 부산광역시, 47130, 대한민국",
+    "matchedQuery": "부산콘서트홀",
+    "osm": "way/1335350957",
+    "insideBusanMap": true,
+    "source": "OpenStreetMap Nominatim",
+    "sourceUrl": "https://nominatim.openstreetmap.org/",
+    "license": "ODbL-1.0",
+    "checkedAt": "2026-11-05"
+  }
+]

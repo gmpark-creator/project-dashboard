@@ -131,6 +131,9 @@ function addLandmark(lon,lat,type){
     cylinder(g,.10,.15,.10,0,.05,0,'#d6c8a9');cylinder(g,.035,.065,.72,0,.45,0,'#f6f0dc');cylinder(g,.16,.11,.10,0,.82,0,'#f6edd2');cylinder(g,.11,.16,.10,0,.92,0,'#a7bdbc');cylinder(g,.095,.10,.055,0,1,0,'#e8dfcb');cylinder(g,.005,.008,.18,0,1.10,0,'#de8766');
   }else if(type==='station'){
     cube(g,.64,.18,.27,0,.09,0,'#e7e1c9');cube(g,.71,.045,.33,0,.20,0,'#8ca7a2');cube(g,.50,.075,.04,0,.11,.15,'#9db9bc');cube(g,.11,.24,.07,0,.12,.17,'#ecead5');
+  }else if(type==='spot'){
+    // AGENT-GORGO-19 콘텐츠 장소: 업무 거점과 구별되는 작은 전시관(둥근 지붕 + 깃발)
+    cube(g,.34,.16,.30,0,.08,0,'#f3ead6');const dome=new THREE.Mesh(new THREE.SphereGeometry(.15,16,8,0,Math.PI*2,0,Math.PI/2),material('#8fb7b0'));dome.position.y=.16;g.add(dome);cylinder(g,.006,.006,.3,.12,.31,.1,'#6b8179');cube(g,.09,.05,.005,.165,.42,.1,'#e8784e');
   }else if(type==='office'){
     cube(g,.27,.60,.24,0,.30,0,'#a1c4c5');cube(g,.30,.04,.27,0,.62,0,'#f4ead2');for(let i=1;i<6;i++)cube(g,.28,.014,.25,0,i*.10,0,'#e9ead8');cube(g,.36,.13,.34,0,.065,.025,'#ede6cf');cube(g,.11,.10,.015,0,.05,.202,'#557f86');cube(g,.05,.08,.015,0,.52,.13,'#e88b63');
   }else{
@@ -265,7 +268,30 @@ function stepRide(dt){
   controls.target.lerp(r.ride.head,Math.min(1,dt*6));camera.position.copy(controls.target).addScaledVector(dir,r.view);
   if(done){scene.remove(r.car);state.riding=null;arrive(r.id,r.dest);}
 }
-function arrive(id,dest){agent.position.copy(dest);agent.visible=true;state.selected=id;state.follow=true;nearbyWork=null;updateWorkPoint();toast(workpointName(places[id])+' 도착');openZoneRecords(id);}
+function arrive(id,dest){agent.position.copy(dest);agent.visible=true;state.selected=id;state.follow=true;nearbyWork=null;updateWorkPoint();toast(workpointName(places[id])+' 도착');openSpot(id);}
+// ── AGENT-GORGO-19: 콘텐츠는 그 장소에 가야만 열린다 ─────────────────────
+// 업무 거점(place.host)과 콘텐츠 장소(data/busan-spots.json, place.name 일치)에 카탈로그 항목을 묶는다.
+let catalog=null;const SPOTS={};
+function contentsFor(id){if(!catalog)return[];const p=places[id];return catalog.items.filter(it=>it.place.scope==='busan'&&(it.place.host===id||(p?.spot&&it.place.name===p.name)));}
+function contentUrl(item){if(item.src?.url)return item.src.url;if(!item.src?.path)return null;return catalog.source.pagesBase+item.src.path+(item.src.entry||'')+(item.src.query||'');}
+function buildPlaceDialogs(){
+  const css=document.createElement('link');css.rel='stylesheet';css.href='korea.css';document.head.append(css);
+  const place=document.createElement('dialog');place.id='place-dialog';place.className='place-dialog';place.innerHTML='<button class="close" id="place-close" aria-label="장소 창 닫기">×</button><p class="place-kicker" id="place-kicker"></p><h2 id="place-title"></h2><p class="place-note" id="place-note"></p><div id="place-actions" class="place-actions"></div><div id="place-items" class="place-items"></div>';document.body.append(place);
+  const view=document.createElement('dialog');view.id='content-dialog';view.className='content-dialog';view.innerHTML='<div class="content-bar"><button id="content-back" type="button">← 고르고로</button><strong id="content-title"></strong><a id="content-external" target="_blank" rel="noopener">새 창으로 열기</a></div><iframe id="content-frame" title="콘텐츠" referrerpolicy="no-referrer"></iframe>';document.body.append(view);
+  $('place-close').onclick=()=>place.close();$('content-back').onclick=()=>{view.close();$('content-frame').src='about:blank';};
+}
+function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
+// 장소에 도착했을 때: 콘텐츠가 있으면 장소 창(콘텐츠 + 자료), 없으면 예전처럼 자료 창.
+function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;if(!items.length){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
+  clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
+  $('place-kicker').textContent=p.address||p.region||'';$('place-title').textContent=p.name;$('place-note').textContent=p.unverified?('위치 확인 필요 — '+(p.locationNote||'')):'';
+  const actions=$('place-actions');actions.replaceChildren();if(hasRecordZone(id)){const b=document.createElement('button');b.type='button';b.className='primary';b.textContent='자료 넣기 · 보기';b.onclick=()=>{$('place-dialog').close();openZoneRecords(id);};actions.append(b);}
+  const list=$('place-items');list.replaceChildren();for(const it of items){const b=document.createElement('button');b.type='button';b.className='place-item';b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=it.title;b.querySelector('small').textContent=it.why||'';b.onclick=()=>openContent(it);if(!contentUrl(it))b.disabled=true;list.append(b);}
+  $('place-dialog').showModal();}
+function addSpots(list){const b=meta.bounds,m=.0015;
+  for(const s of list){if(typeof s.lon!=='number')continue;const lon=clamp(s.lon,b[0]+m,b[2]-m),lat=clamp(s.lat,b[1]+m,b[3]-m);
+    const p={id:s.id,name:s.name,lon,lat,spawn:[lon,lat],spot:true,unverified:!!s.unverified,locationNote:s.locationNote||'',source:s.source};places[s.id]=p;SPOTS[s.id]=p;WORK_POINTS[s.id]={name:s.name,radius:.75};
+    const g=addLandmark(lon,lat,'spot');g.userData.spot=s.id;landmarks['spot-'+s.id]=g;}}
 function homeDistance(){return Math.max(34,widthKm*1.2);}
 function home(){state.selected=null;flyTo(new THREE.Vector3(0,0,1.0),homeDistance());}
 function travelTo(id){
@@ -291,13 +317,13 @@ function updateWorkPoint(){
   for(const [id,w]of Object.entries(WORK_POINTS)){const p=project(places[id].lon,places[id].lat),d=Math.hypot(agent.position.x-p.x,agent.position.z-p.z);if(d<=w.radius&&d<best){next=id;best=d;}}
   if(state.selected&&WORK_POINTS[state.selected]){const p=project(places[state.selected].lon,places[state.selected].lat);if(Math.hypot(agent.position.x-p.x,agent.position.z-p.z)<=WORK_POINTS[state.selected].radius)next=state.selected;}
   if(next===nearbyWork)return;nearbyWork=next;$('work-open').hidden=!next;
-  if(next)$('work-open').textContent=WORK_POINTS[next].name+' · 자료';
+  if(next)$('work-open').textContent=WORK_POINTS[next].name+(contentsFor(next).length?' · 들어가기':' · 자료');
 }
 function setupEvents(){
   initAiUI({clearMovement});
   setSpeedMode(state.speedMode);$('speed-mode').onclick=()=>setSpeedMode(state.speedMode==='fast'?'normal':'fast');
   initCrewWorkbench({beforeOpen:clearMovement});
-  $('work-open').onclick=()=>{if(nearbyWork)openZoneRecords(nearbyWork);};
+  $('work-open').onclick=()=>{if(nearbyWork)openSpot(nearbyWork);};
   $('map-switch').textContent='한반도 지도로';$('map-switch').setAttribute('aria-label','한반도 지도로 전환');$('map-switch').onclick=()=>leaveToKorea();
   initRecordsUI({clearMovement,toast,getPosition:()=>agent.position,project:z=>places[z.place]?project(places[z.place].lon,places[z.place].lat):new THREE.Vector3(1e6,0,1e6),pickPoint:(cx,cy)=>{const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-cy/innerHeight*2+1),camera);return ray.intersectObject(terrain,false)[0]?.point;},ensurePin:z=>{if(z.map==='korea')return;if(!places[z.place])throw Error('업무존 장소가 없습니다: '+z.place);if(!labelItems.some(l=>l.el.dataset.place===z.id))addLabel(z.name,places[z.place].lon,places[z.place].lat,'pin',z.id);},walkToZone:z=>{if(!places[z.place])return;const p=project(places[z.place].lon,places[z.place].lat);moveTarget=p;targetMark.position.set(p.x,groundHeight(p.x,p.z)+.012,p.z);},onReady:()=>{nearbyWork=null;updateWorkPoint();}});
   document.querySelectorAll('[data-travel]').forEach(b=>b.addEventListener('click',()=>travelTo(b.dataset.travel)));
@@ -409,10 +435,12 @@ async function init(){
     landmarks.tower=addLandmark(129.0326,35.1006,'tower');landmarks.station=addLandmark(129.0425,35.1154,'station');
     const colors=['#527f94','#697fa8','#6a9c91','#af8958','#577f8d','#8a799f','#839855','#b77458','#768b76'];
     Object.values(places).forEach((p,i)=>{const g=addLandmark(p.lon,p.lat,p.id==='skybiz'?'office':'immigration');g.userData.workpoint=p.id;cube(g,.18,.055,.025,0,.32,.21,colors[i]);g.name=p.name;landmarks[p.id]=g;});
+    // AGENT-GORGO-19: 콘텐츠 카탈로그 + 콘텐츠 장소(없거나 실패해도 지도는 그대로 뜬다)
+    try{const [cat,spots]=await Promise.all(['data/content-catalog.json','data/busan-spots.json'].map(async u=>{const r=await fetch(u);if(!r.ok)throw Error(u+' '+r.status);return r.json();}));catalog=cat;addSpots(spots);}catch(e){console.warn('contents',e.message);}
     landmarks.office=landmarks.skybiz;landmarks.immigration=landmarks['imm-jungang'];landmarks.gamcheon=landmarks['imm-gamcheon'];
     bridge([129.114,35.138],[129.144,35.158],'suspension');bridge([129.053,35.098],[129.075,35.111],'cable');
-    makeHarbor();makeAgent();targetMark=new THREE.Mesh(new THREE.RingGeometry(.035,.05,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:"#ff7a45",transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;targetMark.raycast=()=>{};scene.add(targetMark);makeLabels();setupEvents();
-    state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,elevation,groundHeight,canWalk,project,travelTo,landingSpot,home,homeDistance,leaveToKorea,driveTo,riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,map:'busan',meta,setXray,xrayGhosts,EDGE,extent:()=>({hw:widthKm/2,hd:depthKm/2}),landmarks,renderer,terrain,inputLog,walkTo,MAX_DT,setSpeedMode,speedMultiplier,WORK_POINTS,nearbyWork:()=>nearbyWork,target:()=>moveTarget&&[moveTarget.x,moveTarget.z]};
+    buildPlaceDialogs();makeHarbor();makeAgent();targetMark=new THREE.Mesh(new THREE.RingGeometry(.035,.05,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:"#ff7a45",transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;targetMark.raycast=()=>{};scene.add(targetMark);makeLabels();setupEvents();
+    state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,elevation,groundHeight,canWalk,project,travelTo,landingSpot,home,homeDistance,leaveToKorea,driveTo,openSpot,contentsFor,spots:()=>Object.keys(SPOTS),riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,map:'busan',meta,setXray,xrayGhosts,EDGE,extent:()=>({hw:widthKm/2,hd:depthKm/2}),landmarks,renderer,terrain,inputLog,walkTo,MAX_DT,setSpeedMode,speedMultiplier,WORK_POINTS,nearbyWork:()=>nearbyWork,target:()=>moveTarget&&[moveTarget.x,moveTarget.z]};
     $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);toast('지도 클릭으로 이동 · WASD/방향키');
   }catch(error){console.error(error);$('loading-status').textContent='지도를 불러오지 못했어요. 새로고침해 주세요. ('+error.message+')';$('loading').dataset.error=error.message;}
 }
