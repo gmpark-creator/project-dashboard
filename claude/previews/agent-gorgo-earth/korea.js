@@ -7,6 +7,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 import { initAiUI } from './ai-ui.js';
 import { initRecordsUI, openZoneRecords } from './records-ui.js';
 import { buildCar, buildKTX, Ride, shortestPath } from './ride.js';
+import { openInterior } from './interior.js';
 
 const $=id=>document.getElementById(id);
 const clamp=THREE.MathUtils.clamp;
@@ -103,15 +104,9 @@ function buildDialogs(){
 }
 function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();if(item.external){window.open(url,'_blank','noopener');return;}$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
 function openPlace(id){if(id==='busan-station'){enterBusan();return;}const p=places[id];if(!p)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
- $('place-kicker').textContent=p.region||'';$('place-title').textContent=p.name;$('place-note').textContent=[p.unverified?'위치 확인 필요 — '+(p.note||'대표 지점'):p.note,p.matched?'좌표: '+p.source+' · '+p.matched.split(',').slice(0,3).join(','):''].filter(Boolean).join('\n');
- const actions=$('place-actions');actions.replaceChildren();const btn=(t,f,cls='')=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.className=cls;b.onclick=f;actions.append(b);return b;};
- if(id==='busan-station')btn('부산 상세 지도로 들어가기',()=>enterBusan(),'primary');
- if(p.zone)btn('자료 넣기 · 보기',()=>{$('place-dialog').close();openZoneRecords(p.zone);},'primary');
- const list=$('place-items');list.replaceChildren();const items=itemsFor(id);
- if(!items.length&&!p.zone)list.append(Object.assign(document.createElement('p'),{className:'place-empty',textContent:'아직 이 장소에 연결된 콘텐츠가 없습니다.'}));
- const groups=new Map();for(const it of items){const k=id==='busan-station'?it.place.name:'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(it);}
- for(const [k,arr]of groups){if(k)list.append(Object.assign(document.createElement('h3'),{textContent:k}));for(const it of arr){const b=document.createElement('button');b.type='button';b.className='place-item';b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=it.title;b.querySelector('small').textContent=it.why||'';b.onclick=()=>{if(it.zone){$('place-dialog').close();openZoneRecords(it.zone);}else openContent(it);};if(!contentUrl(it)&&!it.zone)b.disabled=true;list.append(b);}}
- $('place-dialog').showModal();}
+ // AGENT-GORGO-20: 장소에 들어가면 건물 안(로비)으로 — 키오스크 화면에는 제목만
+ const items=itemsFor(id).map(it=>({title:it.title,disabled:!it.zone&&!contentUrl(it),open:()=>{if(it.zone)openZoneRecords(it.zone);else openContent(it);}}));
+ openInterior({id,name:p.name,theme:'office',items,records:p.zone&&!itemsFor(id).some(x=>x.zone===p.zone)?()=>openZoneRecords(p.zone):null,onExit:()=>{nearby=null;}});}
 
 // ── AGENT-GORGO-14: 핀을 누르면 고르고가 기차를 타고 간다 ─────────────────────
 // 노선은 실제 철도 데이터가 아니라 주요 철도 축(경부·호남·전라·동해·경강·중앙 등)을 도시 지명 좌표(CITY_LABELS)와
@@ -175,7 +170,7 @@ function travelTo(id){if($('travel-dialog').open)$('travel-dialog').close();if(i
 function clearMovement(){keys.clear();mobileKeys.clear();moveTarget=null;if(targetMark)targetMark.visible=false;}
 function speedMultiplier(){return state.speedMode==='fast'?3:1;}
 function setSpeedMode(mode){state.speedMode=mode==='fast'?'fast':'normal';try{localStorage.setItem('gorgo.speedMode',state.speedMode);}catch{}const b=$('speed-mode');b.textContent='속도 '+speedMultiplier()+'×';b.setAttribute('aria-pressed',String(state.speedMode==='fast'));}
-const blocked=()=>!!state.leaving||!!state.riding||!!document.querySelector('dialog[open]');
+const blocked=()=>!!window.__gorgoInteriorOpen||!!state.leaving||!!state.riding||!!document.querySelector('dialog[open]');
 function moveKey(e){return KEY_CODES[e.code]||KEY_FALLBACK[(e.key||'').toLowerCase()]||null;}
 function walkTo(cx,cy){if(blocked())return false;const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-(cy/innerHeight)*2+1),camera);const hit=ray.intersectObject(terrain,false)[0];if(!hit)return false;const x=clamp(hit.point.x,-widthU/2+EDGE,widthU/2-EDGE),z=clamp(hit.point.z,-depthU/2+EDGE,depthU/2-EDGE);return trainTo(new THREE.Vector3(x,0,z));}
 function updateAgent(dt){let x=0,z=0;if(keys.has('up')||mobileKeys.has('up'))z--;if(keys.has('down')||mobileKeys.has('down'))z++;if(keys.has('left')||mobileKeys.has('left'))x--;if(keys.has('right')||mobileKeys.has('right'))x++;if(x||z){moveTarget=null;if(!blocked())setMode('car');}
@@ -193,7 +188,7 @@ function updateNearby(){if(state.riding)return;let next=null,best=Infinity;for(c
  if(places['busan-station']&&insideBusan()&&!(next&&next!=='busan-station'&&best<.4))next='busan-station';if(next===nearby)return;nearby=next;$('work-open').hidden=!next;if(next)$('work-open').textContent=next==='busan-station'?'부산 상세 지도 · 들어가기':places[next].name+' · 들어가기';}
 const temp=new THREE.Vector3();
 function updateLabels(){const pins=[];const distance=camera.position.distanceTo(controls.target);for(const l of labelItems){if(l.object){temp.copy(l.object.position);temp.y+=.75*l.object.scale.y;}else temp.copy(l.p);temp.project(camera);const off=temp.z>1||temp.z<-1||Math.abs(temp.x)>1.1||Math.abs(temp.y)>1.1;const hide=off||(l.kind===''&&distance>140)||(l.kind==='water'&&distance<25);l.el.style.display=hide?'none':'';if(hide)continue;const x=(temp.x*.5+.5)*innerWidth,y=(-temp.y*.5+.5)*innerHeight;if(l.kind==='pin'){pins.push({l,x,y,w:l.el.offsetWidth,h:l.el.offsetHeight});continue;}l.el.style.left=x+'px';l.el.style.top=y+'px';}pins.sort((a,b)=>a.y-b.y);const placed=[],lines=[];for(const p of pins){let box=null;for(let k=0;k<14&&!box;k++){const dy=(k%2?1:-1)*Math.ceil(k/2)*(p.h+4);const b={x:p.x-p.w/2,y:p.y-p.h-10+dy,w:p.w,h:p.h};if(!placed.some(o=>b.x<o.x+o.w+4&&b.x+b.w+4>o.x&&b.y<o.y+o.h+2&&b.y+b.h+2>o.y))box=b;}box||={x:p.x-p.w/2,y:p.y-p.h-10,w:p.w,h:p.h};placed.push(box);p.l.el.style.transform='none';p.l.el.style.left=box.x+'px';p.l.el.style.top=box.y+'px';const ln=document.createElementNS('http://www.w3.org/2000/svg','line');ln.setAttribute('x1',p.x);ln.setAttribute('y1',p.y);ln.setAttribute('x2',p.x);ln.setAttribute('y2',clamp(p.y,box.y,box.y+box.h));lines.push(ln);}leaders.replaceChildren(...lines);}
-function animate(now){requestAnimationFrame(animate);const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
+function animate(now){requestAnimationFrame(animate);if(window.__gorgoInteriorOpen){last=now;return;}const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
  if(flight)stepFlight(t);
  if(state.riding)stepRide(dt);
  // 부산과 이어지는 동안에는 고르고·랜드마크를 거리에 맞춰 줄인다. 부산 구도(거리≈5)에서 전국 축척 그대로면 화면을 가린다.

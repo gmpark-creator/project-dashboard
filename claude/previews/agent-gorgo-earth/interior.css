@@ -1,0 +1,15 @@
+/* AGENT-GORGO-20 건물 내부 화면 */
+#interior{position:fixed;inset:0;z-index:35;display:none;background:#e9e3d2}
+#interior.on{display:block}
+#interior canvas{display:block;width:100%;height:100%;touch-action:none}
+#interior .in-top{position:absolute;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+#interior .in-place{pointer-events:auto;padding:10px 18px;border-radius:30px;background:#2f4c45ee;color:#fffef4;font-size:14px;font-weight:800;letter-spacing:.01em;box-shadow:0 6px 24px #23443830}
+#interior .in-exit{pointer-events:auto;padding:10px 18px;border-radius:30px;background:#fffdf2;color:#2f4c45;border:1.5px solid #2f4c45;font-size:13px;font-weight:800}
+#interior .in-exit:hover,#interior .in-exit:focus-visible{background:#e77f58;color:#fff;border-color:#e77f58}
+#interior .in-action{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);max-width:calc(100vw - 32px);padding:13px 24px;border-radius:30px;background:#2f4c45;color:#fffef4;font-size:14px;font-weight:800;box-shadow:0 8px 28px #23443840;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#interior .in-action:hover,#interior .in-action:focus-visible{background:#e77f58}
+#interior .in-hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);margin:0;font-size:11px;color:#6f7f74;white-space:nowrap;pointer-events:none}
+#interior-fade{position:fixed;inset:0;z-index:45;background:#1f2e2a;opacity:0;pointer-events:none;transition:opacity .28s ease}
+#interior-fade.on{opacity:1}
+body.in-interior #labels,body.in-interior .travel-open,body.in-interior .ai-open,body.in-interior .map-switch,body.in-interior .speed-mode,body.in-interior #sync-dot,body.in-interior .work-open,body.in-interior #mobile-pad,body.in-interior .attribution,body.in-interior #toast{visibility:hidden}
+@media(max-width:700px){#interior .in-place{font-size:12px;padding:8px 13px}#interior .in-exit{font-size:12px;padding:8px 13px}#interior .in-action{bottom:34px;font-size:13px}#interior .in-hint{display:none}}

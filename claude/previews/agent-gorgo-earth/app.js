@@ -4,6 +4,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 import { initCrewWorkbench, openCrewWorkbench } from './crew-workbench.js';
 import { initRecordsUI, openZoneRecords, hasRecordZone } from './records-ui.js';
 import { buildCar, Ride, shortestPath } from './ride.js';
+import { openInterior } from './interior.js';
 
 const $ = id => document.getElementById(id);
 const clamp = THREE.MathUtils.clamp;
@@ -281,13 +282,10 @@ function buildPlaceDialogs(){
   $('place-close').onclick=()=>place.close();$('content-back').onclick=()=>{view.close();$('content-frame').src='about:blank';};
 }
 function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
-// 장소에 도착했을 때: 콘텐츠가 있으면 장소 창(콘텐츠 + 자료), 없으면 예전처럼 자료 창.
+// 장소에 도착했을 때(AGENT-GORGO-20): 콘텐츠가 있으면 건물 안(로비)으로 들어가 키오스크에서 연다. 없으면 예전처럼 자료 창.
 function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;if(!items.length){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
-  clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
-  $('place-kicker').textContent=p.address||p.region||'';$('place-title').textContent=p.name;$('place-note').textContent=p.unverified?('위치 확인 필요 — '+(p.locationNote||'')):'';
-  const actions=$('place-actions');actions.replaceChildren();if(hasRecordZone(id)){const b=document.createElement('button');b.type='button';b.className='primary';b.textContent='자료 넣기 · 보기';b.onclick=()=>{$('place-dialog').close();openZoneRecords(id);};actions.append(b);}
-  const list=$('place-items');list.replaceChildren();for(const it of items){const b=document.createElement('button');b.type='button';b.className='place-item';b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=it.title;b.querySelector('small').textContent=it.why||'';b.onclick=()=>openContent(it);if(!contentUrl(it))b.disabled=true;list.append(b);}
-  $('place-dialog').showModal();}
+  clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();$('work-open').hidden=true;
+  openInterior({id,name:p.name,theme:p.spot?'hall':'office',items:items.map(it=>({title:it.title,disabled:!contentUrl(it),open:()=>openContent(it)})),records:hasRecordZone(id)?()=>openZoneRecords(id):null,onExit:()=>{nearbyWork=null;updateWorkPoint();}});}
 function addSpots(list){const b=meta.bounds,m=.0015;
   for(const s of list){if(typeof s.lon!=='number')continue;const lon=clamp(s.lon,b[0]+m,b[2]-m),lat=clamp(s.lat,b[1]+m,b[3]-m);
     const p={id:s.id,name:s.name,lon,lat,spawn:[lon,lat],spot:true,unverified:!!s.unverified,locationNote:s.locationNote||'',source:s.source};places[s.id]=p;SPOTS[s.id]=p;WORK_POINTS[s.id]={name:s.name,radius:.75};
@@ -303,7 +301,7 @@ function travelTo(id){
   toast(workpointName(p)+' 도착');
   flyTo(agent.position.clone(),4.0,false,true);
 }
-function movementBlocked(){return !!state.leaving||!!state.riding||!!document.querySelector('dialog[open]');}
+function movementBlocked(){return !!window.__gorgoInteriorOpen||!!state.leaving||!!state.riding||!!document.querySelector('dialog[open]');}
 function speedMultiplier(){return state.speedMode==='fast'?3:1;}
 function setSpeedMode(mode){
   state.speedMode=mode==='fast'?'fast':'normal';
@@ -406,7 +404,7 @@ function updateLabels(){
 }
 
 function animate(now){
-  requestAnimationFrame(animate);const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
+  requestAnimationFrame(animate);if(window.__gorgoInteriorOpen){last=now;return;}const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
   if(flight)stepFlight(t);
   if(state.riding)stepRide(dt);
   updateAgent(dt);controls.update();agent.scale.setScalar(clamp(camera.position.distanceTo(controls.target)/10,.45,1));
