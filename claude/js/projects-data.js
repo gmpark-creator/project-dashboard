@@ -882,7 +882,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton 5916af6) — 전국: 방향키 = 자동차 · 클릭/핀 = 고속열차 · ⇄ 부산 상세 지도로 확대 전환 · 부산 핀 = 자동차' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'940c01d'+') — 전국: 방향키 = 자동차 · 클릭/핀 = 고속열차 · ⇄ 부산 상세 지도로 확대 전환 · 부산 핀 = 자동차' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
     ]},
@@ -914,6 +914,7 @@ const PROJECTS = [
       { type:'완료', title:'G15 메뉴 지도 전환 버튼 + 전국 지도는 기차로만 (9974526)', desc:'「빠른 이동」 아래 ⇄ 전환 버튼(부산: 한반도 지도로 / 전국: 부산 상세 지도로). 전국 고르고 = 기관차 + 객차 2량(WASD 50km/s · 클릭 · 핀 모두 기차). 부산은 걷기 + 핀 자동차.' },
       { type:'완료', title:'G16 전국: 방향키 = 자동차 · 클릭 = 고속열차 (1f91c5e)', desc:'4량 고속열차(유선형 노즈·창문 띠·남색 줄무늬·팬터그래프·대차, 로고 없음)로 지도 클릭·핀·목록 이동. 방향키는 자동차. 차창 유리화.' },
       { type:'완료', title:'G17 전국 산업 장소 콘텐츠 중복 해소', desc:'이천=반도체·DRAM, 고리=전력·원자력, 울산=2차전지, 아산=디스플레이·OLED, 포항=철강·일관제철, 온산=철강·제련·아연 제련. Knowledgeverse ?area=&node= 딥링크.' },
+      { type:'완료', title:'G18 중복 정리 — 온산 삭제 · 부산세관 링크 분리', desc:'철강·제련 유니버스는 포항제철소에서만. 부산세관의 통관 마스터/보세사 뷰어를 서로 다른 화면으로 분리. 모든 콘텐츠 주소 중복 검사 추가.' },
       { type:'이슈', title:'설치 앱 미반영 — 배포 채널 박사 결정 대기', desc:'설치 앱은 codex 브랜치를 추적해서 G10~G15가 사무실·집 PC 앱에 아직 안 들어갔다. 대시보드 미리보기는 지도·이동만 동작하고, 자료 저장·AI는 설치형 서버가 필요하다.' }
     ],
     milestones: [

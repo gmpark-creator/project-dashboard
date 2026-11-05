@@ -145,24 +145,6 @@
       "why": "일관제철 대표 거점 → 철강·제련 영역 · 고로-전로 일관제철 항목으로 바로 연다."
     },
     {
-      "id": "industry-smelting",
-      "title": "산업 3D · 제련",
-      "dashboardNo": 7,
-      "kind": "knowledge",
-      "src": {
-        "path": "claude/previews/semiconductor-universe/",
-        "entry": "index.html",
-        "query": "?section=industry&hub=1&area=steel&node=nf-zinc"
-      },
-      "place": {
-        "name": "울산 온산 제련소",
-        "region": "울산 울주",
-        "scope": "national",
-        "koreaId": "onsan-smelter"
-      },
-      "why": "비철금속 제련 대표 거점 → 철강·제련 영역 · 아연 제련 항목으로 바로 연다(항목 설명에 온산제련소 사례 수록)."
-    },
-    {
       "id": "toeic-paralex",
       "title": "토익 950 학습 (Paralex)",
       "dashboardNo": 7,
@@ -219,7 +201,8 @@
       "kind": "work",
       "src": {
         "path": "claude/previews/tradelogix-nexus/",
-        "entry": "index.html"
+        "entry": "index.html",
+        "query": "?view=customs"
       },
       "place": {
         "name": "부산세관",
@@ -237,7 +220,8 @@
       "src": {
         "path": "claude/previews/tradelogix-nexus/",
         "entry": "index.html",
-        "mobile": "bosesa-mobile/index.html"
+        "mobile": "bosesa-mobile/index.html",
+        "query": "?view=bosesa"
       },
       "place": {
         "name": "부산세관",

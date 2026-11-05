@@ -67,7 +67,7 @@ function landmark(p){const g=new THREE.Group();g.position.copy(geoPoint(p.lon,p.
   case 'busan-station':{base();for(let i=0;i<14;i++){const a=i/14*Math.PI*2,r=.18+rand(i,3)*.32;cube(g,.09,.12+rand(i,4)*.45,.09,Math.cos(a)*r,.1,Math.sin(a)*r,['#f1e6cb','#d9ded0','#e7c3ae','#a1c4c5'][i%4]).position.y=.06+.06+rand(i,4)*.22;}cylinder(g,.03,.05,.7,0,.41,0,'#f6f0dc');cylinder(g,.09,.06,.07,0,.78,0,'#a7bdbc');break;}
   case 'jindo':{base();cube(g,.3,.15,.22,0,.13,0,'#efe8d6');cube(g,.34,.04,.26,0,.22,0,'#5f8f88');break;}
   default:{base();cube(g,.95,.22,.5,0,.17,0,p.id==='icheon-semi'||p.id==='asan-display'?'#e8eef0':'#d9d2c2');cube(g,.95,.03,.5,0,.3,0,p.id==='icheon-semi'?'#5b88b5':p.id==='asan-display'?'#4f7fa8':'#8f8a7c');
-   if(['pohang-steel','onsan-smelter'].includes(p.id)){for(const x of[-.3,0,.3])cylinder(g,.04,.05,.65,x,.62,-.12,'#b9a89a');cylinder(g,.16,.18,.38,.25,.25,.33,'#9d8f84',14);}
+   if(p.id==='pohang-steel'){for(const x of[-.3,0,.3])cylinder(g,.04,.05,.65,x,.62,-.12,'#b9a89a');cylinder(g,.16,.18,.38,.25,.25,.33,'#9d8f84',14);}
    else if(p.id==='ulsan-battery'){for(let k=0;k<4;k++)cylinder(g,.05,.05,.16,-.3+k*.2,.4,.12,'#6fae7c',10);}else cube(g,.5,.12,.3,-.15,.36,0,'#f2f4f2');}
  }
  g.userData.place=p.id;return g;}
@@ -116,7 +116,7 @@ function openPlace(id){const p=places[id];if(!p)return;clearMovement();for(const
 // 노선은 실제 철도 데이터가 아니라 주요 철도 축(경부·호남·전라·동해·경강·중앙 등)을 도시 지명 좌표(CITY_LABELS)와
 // 장소 좌표(korea-places.json)를 이어 단순화한 모식도다. 정확한 선로 위치를 주장하지 않는다. 진도는 목포에서 이어 간다.
 const RAIL_LINKS=[['서울','수원'],['수원','asan-display'],['asan-display','대전'],['청주','대전'],['청주','asan-display'],['대전','대구'],['대구','busan-station'],['대구','cheomseongdae'],['안동','대구'],['안동','춘천'],
- ['cheomseongdae','pohang-steel'],['cheomseongdae','울산'],['울산','ulsan-battery'],['울산','onsan-smelter'],['onsan-smelter','kori-nuclear'],['kori-nuclear','busan-science'],['busan-science','busan-station'],['울산','busan-station'],['busan-station','창원'],
+ ['cheomseongdae','pohang-steel'],['cheomseongdae','울산'],['울산','ulsan-battery'],['울산','kori-nuclear'],['kori-nuclear','busan-science'],['busan-science','busan-station'],['울산','busan-station'],['busan-station','창원'],
  ['대전','전주'],['전주','광주'],['광주','목포'],['목포','jindo'],['전주','여수'],['창원','여수'],['서울','cheongwadae'],['서울','인천'],['서울','icheon-semi'],['icheon-semi','강릉'],['서울','춘천'],['춘천','강릉'],['강릉','pohang-steel']];
 let rail=null;
 function railGraph(){if(rail)return rail;const city=Object.fromEntries(CITY_LABELS.map(c=>[c[0],[c[1],c[2]]])),idx=new Map(),nodes=[],adj=[];
@@ -235,7 +235,7 @@ export async function initKorea(){
   const [m,hb,lb,pl,cat,zones,bm,wps]=await Promise.all([load('data/korea-meta.json'),load('data/korea-terrain.bin',1),load('data/korea-land.bin',1),load('data/korea-places.json'),load('data/content-catalog.json'),load('data/zones.json'),load('data/sources.json'),load('data/workpoints.json')]);
   if(Array.isArray(bm?.bounds)&&bm.bounds.length===4)busanBounds=bm.bounds;
   meta=m;heights=new Int16Array(hb);land=new Uint8Array(lb);catalog=cat;if(heights.length!==(meta.nx+1)*(meta.nz+1)||land.length!==heights.length)throw Error('Korea terrain size mismatch');
-  const regions={cheomseongdae:'경북 경주',cheongwadae:'서울 종로','icheon-semi':'경기 이천','asan-display':'충남 아산','pohang-steel':'경북 포항','onsan-smelter':'울산 울주','ulsan-battery':'울산 울주','busan-science':'부산 기장','kori-nuclear':'부산 기장','busan-station':'부산',jindo:'전남 진도'};
+  const regions={cheomseongdae:'경북 경주',cheongwadae:'서울 종로','icheon-semi':'경기 이천','asan-display':'충남 아산','pohang-steel':'경북 포항','ulsan-battery':'울산 울주','busan-science':'부산 기장','kori-nuclear':'부산 기장','busan-station':'부산',jindo:'전남 진도'};
   for(const p of pl){if(typeof p.lon!=='number'||typeof p.lat!=='number')continue;places[p.id]={...p,region:regions[p.id]||''};}
   for(const z of zones)if(z.map==='korea'&&places[z.place])places[z.place].zone=z.id;
   widthU=(meta.bounds[2]-meta.bounds[0])*KX();depthU=(meta.bounds[3]-meta.bounds[1])*KZ();

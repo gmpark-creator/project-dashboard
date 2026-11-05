@@ -81,22 +81,6 @@
     "license": "ODbL-1.0"
   },
   {
-    "id": "onsan-smelter",
-    "name": "울산 온산 제련소",
-    "query": [
-      "고려아연 온산제련소",
-      "울산광역시 울주군 온산읍 이진로 139"
-    ],
-    "note": "고려아연",
-    "lon": 129.344654,
-    "lat": 35.430427,
-    "matched": "고려아연 온산제련소, 온산읍, 울주군, 울산광역시, 대한민국",
-    "matchedQuery": "고려아연 온산제련소",
-    "source": "OpenStreetMap Nominatim",
-    "sourceUrl": "https://nominatim.openstreetmap.org/",
-    "license": "ODbL-1.0"
-  },
-  {
     "id": "ulsan-battery",
     "name": "울산 2차전지 공장 단지",
     "query": [
