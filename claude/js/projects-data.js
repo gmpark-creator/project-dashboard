@@ -882,7 +882,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'234baeb'+') — G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'409f95a'+') — G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
