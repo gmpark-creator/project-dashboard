@@ -9,7 +9,9 @@
 const $=id=>document.getElementById(id);
 export const PERSONAS={chatgpt:{slot:1,name:'도윤',ai:'GPT',color:'#2f8f6f'},claudecode:{slot:2,name:'하랑',ai:'Claude',color:'#d9774f'},claude:{slot:2,name:'하랑',ai:'Claude API',color:'#d9774f'},gemini:{slot:3,name:'별',ai:'Gemini',color:'#4a78c9'}};
 const READABLE=/\.(pdf|png|jpe?g|webp|gif|txt|csv|tsv|md|json|xml|log|docx?|xlsx?|xlsm|pptx|hwpx?)$/i;
-let ui=null,ctx=null,state={provider:null,caseId:null,cases:[],busy:false,zoneDocType:'기타',current:null};
+let ui=null,ctx=null,state={provider:null,caseId:null,cases:[],busy:false,zoneDocType:'기타',current:null,filter:'all'};
+export const STATUS={open:'접수',progress:'진행 중',review:'검토 필요',hold:'보류',done:'완료',analyzing:'분석 중'};
+const when=t=>t?String(t).slice(5,16).replace('T',' ').replace('-','/'):'';
 async function api(route,body,method){const r=await fetch(route,{cache:'no-store',...(body===undefined&&!method?{}:{method:method||'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})})});let d=null;try{d=await r.json();}catch{}if(!r.ok)throw Object.assign(Error(d?.error||'요청을 완료하지 못했습니다.'),{status:r.status});return d;}
 function el(tag,props={},kids=[]){const e=document.createElement(tag);Object.assign(e,props);for(const k of kids)e.append(k);return e;}
 const josa=(w,a,b)=>{const c=w.charCodeAt(w.length-1);return c>=0xac00&&c<=0xd7a3&&(c-0xac00)%28?a:b;};
@@ -36,7 +38,12 @@ function build(){
  <header class="cg-head"><span class="cg-avatar" id="cg-avatar"></span><div class="cg-who"><b id="cg-name"></b><small id="cg-state"></small></div>
   <button type="button" class="cg-close" id="cg-close" aria-label="대화창 닫기">×</button></header>
  <div class="cg-npcs" id="cg-npcs"></div>
- <div class="cg-bar"><select id="cg-cases" aria-label="대화 목록"></select><button type="button" id="cg-new">새 대화</button><button type="button" id="cg-notes">작업 노트</button></div>
+ <div class="cg-bar"><button type="button" id="cg-tasks" class="cg-tasks-btn" aria-haspopup="true">📂 작업함 <b id="cg-task-count"></b></button><button type="button" id="cg-new">＋ 새 작업</button><button type="button" id="cg-notes">작업 노트</button><select id="cg-cases" aria-label="작업 목록" hidden></select></div>
+ <div class="cg-task" id="cg-task" hidden><button type="button" id="cg-title" class="cg-title" title="눌러서 작업 제목 바꾸기"></button><select id="cg-status" aria-label="진행 상태"><option value="progress">진행 중</option><option value="review">검토 필요</option><option value="hold">보류</option><option value="done">완료</option></select></div>
+ <div class="cg-results" id="cg-results" hidden></div>
+ <div class="cg-drawer" id="cg-drawer" hidden><div class="cg-drawer-head"><b>이 장소 작업함</b><button type="button" id="cg-drawer-close" aria-label="작업함 닫기">×</button></div>
+  <input type="search" id="cg-search" placeholder="제목·내용으로 찾기" aria-label="작업 찾기"><div class="cg-filter" id="cg-filter"></div><ul class="cg-tasklist" id="cg-tasklist"></ul>
+  <button type="button" id="cg-all-tasks" class="cg-all">모든 장소 업무함 열기</button></div>
  <div class="cg-login" id="cg-login" hidden><span id="cg-login-text"></span><button type="button" id="cg-login-open">AI 연결 열기</button></div>
  <div class="cg-msgs" id="cg-msgs" aria-live="polite"></div>
  <div class="cg-today" id="cg-today" hidden><span id="cg-today-text"></span><button type="button" id="cg-today-btn">대화에 첨부</button></div>
@@ -48,9 +55,16 @@ function build(){
  <div class="cg-drop" id="cg-drop">여기에 놓으면 이 장소 자료로 저장하고 대화에 첨부합니다</div>
  <div class="cg-modal" id="cg-modal" hidden><div class="cg-modal-box"><h3 id="cg-modal-title"></h3><textarea id="cg-modal-text" rows="12" maxlength="12000"></textarea><div class="cg-modal-actions"><button type="button" id="cg-modal-cancel">취소</button><button type="button" id="cg-modal-save" class="primary">저장</button></div></div></div>
  <div class="cg-modal" id="cg-memm" hidden><div class="cg-modal-box"><h3>업무 기억 — 안내원들이 일하면서 정리해 둔 것</h3><p class="cg-memsub">선박·서류·업무 방식만 기억합니다(여권번호 등 개인정보는 기억하지 않아요). 틀린 것은 지울 수 있어요.</p><ul class="cg-pick" id="cg-memlist"></ul><div class="cg-modal-actions"><button type="button" id="cg-mem-close" class="primary">닫기</button></div></div></div>
+ <div class="cg-modal" id="cg-pinm" hidden><div class="cg-modal-box"><h3>결과로 저장</h3><p class="cg-memsub">이 답을 작업의 결과물로 표시합니다. 체크하면 이 장소 자료함에도 글 파일로 남아 다른 PC에서도 열 수 있어요.</p><input id="cg-pin-label" maxlength="120" class="cg-pin-label" aria-label="결과 이름"><label class="cg-pin-save"><input type="checkbox" id="cg-pin-file" checked> 자료함에 파일(.md)로도 저장</label><div class="cg-modal-actions"><button type="button" id="cg-pin-cancel">취소</button><button type="button" id="cg-pin-ok" class="primary">저장</button></div></div></div>
  <div class="cg-modal" id="cg-pickm" hidden><div class="cg-modal-box"><h3>자료함에서 대화에 첨부</h3><ul class="cg-pick" id="cg-pick"></ul><div class="cg-modal-actions"><button type="button" id="cg-pick-cancel">취소</button><button type="button" id="cg-pick-save" class="primary">첨부</button></div></div></div>`;
  document.body.append(ui);
- $('cg-close').onclick=()=>closeConcierge();$('cg-new').onclick=()=>{state.caseId=null;state.current=null;$('cg-cases').value='';render(null);};
+ $('cg-close').onclick=()=>closeConcierge();$('cg-new').onclick=()=>{state.caseId=null;state.current=null;$('cg-cases').value='';$('cg-drawer').hidden=true;render(null);$('cg-text').focus();};
+ // AGENT-GORGO-36 작업함: 이 장소에서 맡긴 일 목록(상태별·검색) · 제목/상태 바꾸기 · 결과물
+ $('cg-tasks').onclick=()=>{const d=$('cg-drawer');d.hidden=!d.hidden;if(!d.hidden){paintTaskList();$('cg-search').focus();}};$('cg-drawer-close').onclick=()=>{$('cg-drawer').hidden=true;};
+ $('cg-search').oninput=()=>paintTaskList();$('cg-all-tasks').onclick=()=>{$('cg-drawer').hidden=true;window.GorgoTasks?.open({zone:ctx?.zone});};
+ $('cg-title').onclick=()=>{if(!state.current)return;modal('작업 제목 바꾸기',state.current.title,async t=>{const c=await api('/api/cases/'+encodeURIComponent(state.current.id)+'/rename',{title:t.trim()});await loadCases();render(c);note('제목을 바꿨습니다.');},{single:true});};
+ $('cg-status').onchange=async e=>{if(!state.current)return;try{const c=await api('/api/cases/'+encodeURIComponent(state.current.id)+'/events',{type:'status',status:e.target.value});await loadCases();render(c);note('「'+STATUS[e.target.value]+'」(으)로 표시했습니다.');}catch(err){note(err.message);}};
+ $('cg-pin-cancel').onclick=()=>{$('cg-pinm').hidden=true;};
  $('cg-cases').onchange=e=>{state.caseId=e.target.value||null;loadCase();};
  $('cg-login-open').onclick=()=>{$('ai-open')?.click();};
  $('cg-form').onsubmit=e=>{e.preventDefault();send();};
@@ -77,9 +91,26 @@ function showPersona(){const p=personaFor(ctx?.zone,state.provider),me=(alive||[
  box.hidden=list.length<2;}
 function render(c){state.current=c;const m=$('cg-msgs');m.replaceChildren();const p=personaFor(ctx.zone,state.provider);
  if(!c||!c.messages?.length){m.append(el('div',{className:'cg-msg agent'},[el('b',{textContent:p.name}),el('p',{textContent:(p.greeting||('안녕하세요, '+ctx.name+' '+p.slot+'번 '+p.name+'('+p.ai+')입니다.'))+'\n서류를 이 창에 끌어다 놓거나 「자료함에서 첨부」로 고른 뒤, 할 일을 말씀해 주세요.'})]));}
- for(const msg of c?.messages||[]){const who=msg.role==='user'?'박사':(personaFor(ctx.zone,msg.provider).name||'안내원');m.append(el('div',{className:'cg-msg '+(msg.role==='user'?'user':'agent')},[el('b',{textContent:who}),el('p',{textContent:msg.text}),...(msg.role==='agent'?[el('div',{className:'cg-msg-actions'},[el('button',{type:'button',textContent:'복사',onclick:()=>navigator.clipboard?.writeText(msg.text)})])]:[])]));}
+ for(const msg of c?.messages||[]){const who=msg.role==='user'?'박사':(personaFor(ctx.zone,msg.provider).name||'안내원');const res=(c.results||[]).find(r=>r.messageId===msg.id);
+  m.append(el('div',{className:'cg-msg '+(msg.role==='user'?'user':'agent')+(res?' pinned':''),id:'cg-m-'+msg.id},[el('b',{textContent:who+(res?' · ⭐ 결과: '+res.label:'')}),el('p',{textContent:msg.text}),...(msg.role==='agent'?[el('div',{className:'cg-msg-actions'},[el('button',{type:'button',textContent:'복사',onclick:()=>navigator.clipboard?.writeText(msg.text)}),
+   res?el('button',{type:'button',textContent:'결과 표시 빼기',onclick:()=>unpin(res.id)}):el('button',{type:'button',className:'cg-pin',textContent:'⭐ 결과로 저장',onclick:()=>pinAsk(msg)})])]:[])]));}
  const at=$('cg-attach');at.replaceChildren();for(const s of c?.attachments||[])at.append(el('span',{className:'cg-chip-file',textContent:'📎 '+s.name}));
- m.scrollTop=m.scrollHeight;renderChips(c);renderToday();}
+ m.scrollTop=m.scrollHeight;renderTask(c);renderChips(c);renderToday();}
+// 현재 작업 머리줄(제목·상태)과 결과물 모음
+function renderTask(c){const has=!!c?.messages?.length;$('cg-task').hidden=!has;$('cg-results').hidden=!(c?.results?.length);if(!has)return;
+ $('cg-title').textContent=c.title+' ✎';const st=['progress','review','hold','done'].includes(c.status)?c.status:'progress';$('cg-status').value=st;$('cg-task').dataset.status=st;
+ const box=$('cg-results');box.replaceChildren(el('b',{textContent:'⭐ 결과물 '+c.results.length}));
+ for(const r of c.results){const a=el('button',{type:'button',className:'cg-res',textContent:r.label+(r.recordId?' · 자료함':''),title:r.recordId?'자료함에 저장된 파일 열기':'그 답으로 이동',onclick:async()=>{if(r.recordId){try{await api('/api/records/'+encodeURIComponent(r.recordId)+'/open',{});}catch(e){note(e.message);}}else $('cg-m-'+r.messageId)?.scrollIntoView({block:'center',behavior:'smooth'});}});box.append(a);}}
+function pinAsk(msg){$('cg-pin-label').value=state.current?.title||'결과';$('cg-pin-file').checked=true;$('cg-pinm').hidden=false;$('cg-pin-label').focus();$('cg-pin-label').select();
+ $('cg-pin-ok').onclick=async()=>{$('cg-pinm').hidden=true;const save=$('cg-pin-file').checked;try{const c=await api('/api/cases/'+encodeURIComponent(state.current.id)+'/pin',{messageId:msg.id,label:$('cg-pin-label').value.trim(),save});await loadCases();render(c);note(save?'결과로 표시하고 이 장소 자료함에 저장했습니다.':'결과로 표시했습니다.');}catch(e){note(e.message);}};}
+async function unpin(id){try{const c=await api('/api/cases/'+encodeURIComponent(state.current.id)+'/unpin',{id});await loadCases();render(c);note('결과 표시를 뺐습니다(자료함 파일은 그대로 둡니다).');}catch(e){note(e.message);}}
+// 작업함 목록: 상태 필터 + 검색(제목·내용)
+function paintTaskList(){const q=$('cg-search').value.trim().toLowerCase(),list=state.cases.filter(c=>c.messages?.length);const count=k=>k==='all'?list.length:list.filter(c=>c.status===k).length;
+ const f=$('cg-filter');f.replaceChildren();for(const k of['all','progress','review','hold','done']){const n=count(k);if(k!=='all'&&!n)continue;f.append(el('button',{type:'button',className:state.filter===k?'on':'',textContent:(k==='all'?'전체':STATUS[k])+' '+n,onclick:()=>{state.filter=k;paintTaskList();}}));}
+ const ul=$('cg-tasklist');ul.replaceChildren();const shown=list.filter(c=>(state.filter==='all'||c.status===state.filter)&&(!q||(c.title+' '+c.messages.map(m=>m.text).join(' ')).toLowerCase().includes(q)));
+ if(!shown.length)ul.append(el('li',{className:'empty',textContent:list.length?'맞는 작업이 없어요.':'아직 맡긴 일이 없어요. 아래 입력창에 할 일을 적어 보내면 작업이 생깁니다.'}));
+ for(const c of shown){const who=c.lastProvider?personaFor(ctx.zone,c.lastProvider).name:'';const li=el('li',{className:c.id===state.caseId?'on':''},[el('button',{type:'button',onclick:()=>{state.caseId=c.id;$('cg-cases').value=c.id;$('cg-drawer').hidden=true;loadCase();}},[
+   el('span',{className:'cg-st st-'+c.status,textContent:STATUS[c.status]||c.status}),el('b',{textContent:c.title}),el('small',{textContent:[when(c.updatedAt),who&&('담당 '+who),c.messages.length+'개 대화',(c.sourceIds||[]).length?'📎'+c.sourceIds.length:'',(c.results||[]).length?'⭐'+c.results.length:''].filter(Boolean).join(' · ')})])]);ul.append(li);}}
 async function renderChips(c){const box=$('cg-chips');box.replaceChildren();let chips=[],smart=[];try{const pb=await api('/api/playbooks/'+encodeURIComponent(ctx.zone));chips=pb.quick||[];}catch{}
  try{smart=(await api('/api/memory/suggest?zone='+encodeURIComponent(ctx.zone))).chips||[];}catch{}
  for(const t of smart.slice(0,2))box.append(el('button',{type:'button',className:'cg-chip smart',title:'기억해 둔 선박 기준 제안',textContent:'💡 '+t,onclick:()=>{$('cg-text').value=t;$('cg-text').focus();}}));
@@ -87,7 +118,7 @@ async function renderChips(c){const box=$('cg-chips');box.replaceChildren();let 
 // 오늘 이 장소에 넣은 자료 중 아직 대화에 안 붙은 것 → 한 번에 첨부 제안
 async function zoneRecords(){try{return await api('/api/records?zone='+encodeURIComponent(ctx.zone));}catch{return [];}}
 const today=()=>{const d=new Date(Date.now()+9*3600e3);return d.toISOString().slice(0,10);};
-async function renderToday(){const box=$('cg-today');box.hidden=true;const attached=new Set(state.current?.sourceIds||[]);const list=(await zoneRecords()).filter(r=>String(r.addedAt).slice(0,10)===today()&&!attached.has(r.id)&&READABLE.test(r.originalName));
+async function renderToday(){const box=$('cg-today');box.hidden=true;const attached=new Set(state.current?.sourceIds||[]);const list=(await zoneRecords()).filter(r=>String(r.addedAt).slice(0,10)===today()&&!attached.has(r.id)&&READABLE.test(r.originalName)&&!/^안내원 결과물/.test(r.memo||'')); // G36: 안내원이 만든 결과물 파일은 다시 첨부하라고 권하지 않는다
  state.today=list.slice(0,10);if(!state.today.length)return;$('cg-today-text').textContent='오늘 이 장소에 넣은 자료 '+state.today.length+'건'+(list[0]?.memo?' ('+list[0].memo+')':'')+' — 안내원이 읽을 수 있게 첨부할까요?';box.hidden=false;}
 async function attachIds(ids){if(!ids.length)return;try{const id=await ensureCase();let c=null;for(const rid of ids)c=await api('/api/cases/'+encodeURIComponent(id)+'/attach',{recordId:rid});if(c)render(c);note(ids.length+'건을 대화에 첨부했습니다. 이제 할 일을 말씀해 주세요.');}catch(e){note(e.message);}}
 async function attachToday(){const ids=(state.today||[]).map(r=>r.id);$('cg-today').hidden=true;await attachIds(ids);}
@@ -97,8 +128,9 @@ async function openPicker(){const list=await zoneRecords();const attached=new Se
   ul.append(el('li',{className:done?'done':''},[cb,el('span',{textContent:r.originalName+(done?' · 첨부됨':ok?'':' · 읽을 수 없는 형식')}),el('small',{textContent:String(r.addedAt).slice(5,16).replace('T',' ')})]));}
  $('cg-pick-save').onclick=async()=>{const ids=[...ul.querySelectorAll('input:checked')].map(i=>i.value);$('cg-pickm').hidden=true;await attachIds(ids);};$('cg-pickm').hidden=false;}
 async function loadCases(){try{const all=await api('/api/cases?zone='+encodeURIComponent(ctx.zone));state.cases=all.filter(c=>c.kind==='chat');}catch{state.cases=[];}
+ const live=state.cases.filter(c=>c.messages?.length);$('cg-task-count').textContent=live.length?String(live.filter(c=>c.status!=='done').length)+'/'+live.length:'';if(!$('cg-drawer').hidden)paintTaskList();
  const sel=$('cg-cases');sel.replaceChildren(new Option('새 대화',''));for(const c of state.cases)sel.append(new Option(c.title+' · '+String(c.updatedAt).slice(5,16).replace('T',' '),c.id));
- if(!state.caseId&&state.cases[0])state.caseId=state.cases[0].id;sel.value=state.caseId||'';}
+ if(!state.caseId){const first=state.cases.find(c=>c.messages?.length)||state.cases[0];if(first)state.caseId=first.id;}sel.value=state.caseId||'';}
 async function loadCase(){if(!state.caseId){render(null);return;}try{render(await api('/api/cases/'+encodeURIComponent(state.caseId)));}catch(e){note(e.message);}}
 async function ensureCase(){if(state.caseId)return state.caseId;const t=new Date();const c=await api('/api/cases',{zone:ctx.zone,kind:'chat',title:'대화 '+(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')});state.caseId=c.id;await loadCases();return c.id;}
 async function send(){const text=$('cg-text').value.trim();if(!text||state.busy)return;const p=persona(state.provider);
@@ -125,11 +157,11 @@ async function openMemory(){const ul=$('cg-memlist');ul.replaceChildren();let m;
 async function openNotes(){try{const pb=await api('/api/playbooks/'+encodeURIComponent(ctx.zone));modal(ctx.name+' 작업 노트',pb.text||'',async t=>{await api('/api/playbooks/'+encodeURIComponent(ctx.zone),{text:t});note('작업 노트를 저장했습니다.');renderChips(null);});}catch(e){note(e.message);}}
 async function learn(){if(!state.caseId){note('먼저 대화를 나눈 뒤 기억할 수 있습니다.');return;}if(!ready()){note('안내원 로그인이 필요합니다.');return;}note('이번 대화에서 기억할 점을 정리하는 중…');
  try{const r=await api('/api/cases/'+encodeURIComponent(state.caseId)+'/learn/suggest',{provider:state.provider});modal('기억할 작업 방식 (고쳐서 저장)',r.suggestion||'',async t=>{await api('/api/cases/'+encodeURIComponent(state.caseId)+'/learn',{text:t});note('작업 노트에 기억했습니다. 다음 대화부터 반영됩니다.');renderChips(null);});}catch(e){note(e.message);}}
-function modal(title,text,onSave){$('cg-modal-title').textContent=title;$('cg-modal-text').value=text;$('cg-modal').hidden=false;$('cg-modal-save').onclick=async()=>{const t=$('cg-modal-text').value;$('cg-modal').hidden=true;try{await onSave(t);}catch(e){note(e.message);}};$('cg-modal-text').focus();}
+function modal(title,text,onSave,opt={}){$('cg-modal-title').textContent=title;$('cg-modal-text').value=text;$('cg-modal-text').rows=opt.single?2:12;$('cg-modal').hidden=false;$('cg-modal-save').onclick=async()=>{const t=$('cg-modal-text').value;$('cg-modal').hidden=true;try{await onSave(t);}catch(e){note(e.message);}};$('cg-modal-text').focus();}
 
 // ctx = {zone, name, provider, onPersona} — provider = 말을 건 안내원의 AI
-export async function openConcierge(c){if(!ui)build();ctx=c;state.caseId=null;state.current=null;state.provider=c.provider||(alive||[])[0]?.provider||'claudecode';npcLoad.then(()=>{if(ui?.classList.contains('on'))showPersona();});ui.classList.add('on');document.body.classList.add('concierge-on');showPersona();
+export async function openConcierge(c){if(!ui)build();ctx=c;state.caseId=c.caseId||null;$('cg-drawer').hidden=true;state.current=null;state.provider=c.provider||(alive||[])[0]?.provider||'claudecode';npcLoad.then(()=>{if(ui?.classList.contains('on'))showPersona();});ui.classList.add('on');document.body.classList.add('concierge-on');showPersona();
  try{const zones=await api('/api/zones');const z=zones.find(z=>z.id===c.zone);state.zoneDocType=z?.docTypes?.includes('기타')?'기타':(z?.docTypes?.at(-1)||'기타');}catch{note('설치형 프로그램에서 안내원과 대화할 수 있습니다.');return;}
- await npcInfo(c.zone);showPersona();await loadCases();await loadCase();setTimeout(()=>$('cg-text')?.focus(),50);}
-export function closeConcierge(){if(!ui)return;ui.classList.remove('on');document.body.classList.remove('concierge-on');$('cg-modal').hidden=true;$('cg-pickm').hidden=true;$('cg-memm').hidden=true;}
+ await npcInfo(c.zone);showPersona();await loadCases();if(c.caseId&&!state.cases.some(x=>x.id===c.caseId))state.caseId=state.cases[0]?.id||null;$('cg-cases').value=state.caseId||'';await loadCase();setTimeout(()=>$('cg-text')?.focus(),50);}
+export function closeConcierge(){if(!ui)return;ui.classList.remove('on');document.body.classList.remove('concierge-on');$('cg-modal').hidden=true;$('cg-pickm').hidden=true;$('cg-memm').hidden=true;$('cg-pinm').hidden=true;$('cg-drawer').hidden=true;}
 export function isConciergeOpen(){return !!ui?.classList.contains('on');}

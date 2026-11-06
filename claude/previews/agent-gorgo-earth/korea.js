@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { initAiUI } from './ai-ui.js';
 import { initShips } from './ships.js';
+import { initTasks } from './tasks-ui.js';
 import { addClouds } from './clouds.js';
 import { initRecordsUI, openZoneRecords } from './records-ui.js';
 import { buildCar, buildKTX, Ride, shortestPath } from './ride.js';
@@ -273,6 +274,10 @@ export async function initKorea(){
   state.ready=true;window.__gorgoEarth={enterWorld,onLand,bridgeAt:typeof bridgeAt==='function'?bridgeAt:undefined,onBridge:typeof onBridge==='function'?onBridge:undefined,state,places,agent,camera,controls,project,elevation,groundHeight,travelTo,openPlace,openContent,catalog,inputLog,walkTo,landmarks,enterBusan,busanFrame,busanBounds,rideTo,train:()=>veh&&{mode,parts:veh.parts.length,scale:vehScale(),head:veh.parts[0].position.toArray()},trainTo,riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,extent:()=>({hw:widthU/2,hd:depthU/2}),map:'korea'};
   cloudLayer=addClouds(scene,{width:widthU,depth:depthU,count:26,y:7,size:2.4,opacity:.8,camera,fadeNear:13,fadeFar:42});
   shipsLayer=initShips({scene,project,seaY:-.05,length:.25,labelDist:120,markerPx:16,camera,bounds:meta.bounds,focus:p=>flyTo(p,26,false),openWorld:s=>{clearMovement();const url='./?map=world&ship='+encodeURIComponent(s.mmsi);if(window.GorgoHandoff)window.GorgoHandoff.leave(renderer.domElement,'world',url);else location.href=url;},clearMovement,toast});window.__gorgoEarth.ships=shipsLayer;
+  // AGENT-GORGO-36 업무함(전국 지도): 전국 장소면 바로, 부산 장소면 부산 지도로 옮겨서 이어서 연다
+  const placeOf=z=>Object.values(places).find(p=>p.zone===z)||(places[z]&&z!=='busan-station'?places[z]:null);
+  initTasks({toast,clearMovement,canOpen:z=>!!placeOf(z),otherMap:()=>enterBusan(),
+   openTask:r=>{const p=placeOf(r.zone);if(!p)return;clearMovement();travelTo(p.id);setTimeout(()=>{openPlace(p.id);setTimeout(()=>openConcierge({zone:r.zone,name:p.name,provider:r.provider||'claudecode',caseId:r.caseId}),700);},1100);}});
   $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);
   if(fromBusan){setTimeout(()=>flyTo(agent.position.clone(),26,true,2.2,true),650);toast('전국 지도 · 부산으로 돌아가려면 부산 핀에서 들어가기');}
   else{toast('전국 지도 · 방향키 = 자동차 · 지도나 장소 핀을 누르면 고속열차로 갑니다');}

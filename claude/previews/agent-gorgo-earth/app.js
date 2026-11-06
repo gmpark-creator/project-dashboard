@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {initAiUI} from './ai-ui.js';
 import {initShips} from './ships.js';
+import { initTasks } from './tasks-ui.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { initCrewWorkbench, openCrewWorkbench } from './crew-workbench.js';
 import { initRecordsUI, openZoneRecords, hasRecordZone } from './records-ui.js';
@@ -481,6 +482,9 @@ async function init(){
     buildPlaceDialogs();makeHarbor();makeAgent();targetMark=new THREE.Mesh(new THREE.RingGeometry(.035,.05,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:"#ff7a45",transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;targetMark.raycast=()=>{};scene.add(targetMark);makeLabels();setupEvents();
     state.ready=true;window.__gorgoEarth={onLand,bridgeAt:typeof bridgeAt==='function'?bridgeAt:undefined,onBridge:typeof onBridge==='function'?onBridge:undefined,state,places,agent,camera,controls,elevation,groundHeight,canWalk,project,travelTo,landingSpot,home,homeDistance,leaveToKorea,driveTo,openSpot,contentsFor,spots:()=>Object.keys(SPOTS),riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,map:'busan',meta,setXray,xrayGhosts,EDGE,extent:()=>({hw:widthKm/2,hd:depthKm/2}),landmarks,renderer,terrain,inputLog,walkTo,MAX_DT,setSpeedMode,speedMultiplier,WORK_POINTS,nearbyWork:()=>nearbyWork,target:()=>moveTarget&&[moveTarget.x,moveTarget.z]};
     shipsLayer=initShips({scene,project,seaY:-.03,length:.28,labelDist:70,markerPx:18,camera,bounds:meta.bounds,focus:p=>flyTo(p,2.6,false,false),openWorld:s=>{clearMovement();const url='./?map=world&ship='+encodeURIComponent(s.mmsi);if(window.GorgoHandoff)window.GorgoHandoff.leave(renderer.domElement,'world',url);else location.href=url;},clearMovement,toast});window.__gorgoEarth.ships=shipsLayer;
+    // AGENT-GORGO-36 업무함: 맡긴 일 모아 보기 → 「이어서 맡기기」는 그 장소로 가서 들어가 그 작업 대화를 연다
+    initTasks({toast,clearMovement,canOpen:z=>!!places[z],otherMap:()=>leaveToKorea(),
+     openTask:r=>{const p=places[r.zone];if(!p)return;clearMovement();travelTo(r.zone);setTimeout(()=>{openSpot(r.zone);setTimeout(()=>openConcierge({zone:r.zone,name:p.name,provider:r.provider||'claudecode',caseId:r.caseId}),700);},1100);}});
     $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);toast('지도 클릭으로 이동 · WASD/방향키');
   }catch(error){console.error(error);$('loading-status').textContent='지도를 불러오지 못했어요. 새로고침해 주세요. ('+error.message+')';$('loading').dataset.error=error.message;}
 }

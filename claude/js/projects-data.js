@@ -882,7 +882,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'07009dc'+') — G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'e8cb3c0'+') — G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -901,6 +901,7 @@ const PROJECTS = [
       { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
     ],
     issues: [
+      { type:'완료', title:'G36 (11-06) 안내원에게 맡긴 일 정리 — 작업함·업무함', desc:'첫 요청으로 작업 제목 자동, 진행 상태(진행 중·검토 필요·보류·완료), 답을 「⭐ 결과로 저장」 → 그 장소 자료함에 .md 파일(3 PC 동기화). 대화창 작업함(검색·상태별), 지도 위 업무함(장소·상태·날짜별, 선박별, 이어서 맡기기 → 그 장소 건물·대화창으로). Claude 로그인 노트북 실기 재확인(실제 응답 4초).' },
       { type:'완료', title:'G35 (11-06) 선박 축소·위치 표지 + G34 미비분 보완 + Claude 로그인 수정', desc:'선박 모형 축소(부산 0.28·한반도 0.25·세계 가변), 모든 지도에 선단 색 위치 표지(장소 이름표 위, 누르면 그 배로)·지도 이동 시 즉시 표시. G34 검사 미완분 실제 실패 3건 정정(광안대교 끼임=실제 결함). 구름·부산 바다 물결·해안 거품. Claude 로그인: 예전 Claude Code 자동 업데이트·로그인 창 실행 방식 교체·실패 이유 표시.' },
       { type:'이슈', title:'사무실 PC Claude 로그인 실기 확인 대기', desc:'노트북에서는 재현 안 됨(정상). 사무실 PC에서 업데이트 후 「로그인」 → 안 되면 화면에 뜨는 이유 문구 확인.' },
       { type:'완료', title:'1차 빌드 — 부산 지도 + 에이전트 고르고', desc:'지형·오브젝트 1094개 생성, 업무 존 2곳(센텀 사무실 / 부산출입국·외국인청) 배치, 헤드리스 브라우저 실검증(콘솔 오류 0).' },
