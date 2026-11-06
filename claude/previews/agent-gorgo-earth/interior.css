@@ -77,3 +77,4 @@ body.concierge-on #interior .in-top{right:440px}body.concierge-on #interior .in-
 .cg-model{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:7px 14px;border-bottom:1px solid #efe8d8;background:#f7f4ea;font-size:11.5px;color:#4f6158}.cg-model[hidden],.cg-model label[hidden]{display:none}
 .cg-model label{display:flex;gap:5px;align-items:center;font-weight:700}.cg-model select{font:inherit;font-size:11.5px;font-weight:700;padding:4px 6px;border-radius:8px;border:1px solid #d9d1bd;background:#fff;color:#2f4c45;max-width:230px}
 .cg-model button{font:inherit;font-size:10.5px;padding:3px 8px;border-radius:10px;border:1px solid #d9d1bd;background:#fff;cursor:pointer;color:#2f4c45}.cg-model small{font-size:10px;color:#8a978e}
+.cg-files{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.cg-file-open{font:inherit;font-size:11px;font-weight:700;padding:4px 10px;border-radius:11px;border:1px solid #9cc8a4;background:#e5f1e6;color:#2f6b45;cursor:pointer}
