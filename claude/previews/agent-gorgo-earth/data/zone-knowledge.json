@@ -1,0 +1,146 @@
+{
+  "_note": "AGENT-GORGO-34 장소 간 업무 연관과 장소별 필요 서류. 안내원이 같은 선박의 서류를 장소를 넘어 이어 쓰고, 이 장소에서 아직 안 다룬 서류를 먼저 짚는 데 쓴다.",
+  "zoneNames": {
+    "skybiz": "센텀 사무실",
+    "imm-jungang": "출입국 중앙동",
+    "imm-gamcheon": "출입국 감천",
+    "customs": "부산세관",
+    "bpa": "부산항만공사",
+    "mof-busan": "해양수산청",
+    "quarantine": "검역소",
+    "intergis-7": "북항 7부두",
+    "newport-cfs": "신항 CFS",
+    "jindo-wind": "진도 풍력",
+    "cheomseongdae": "경주 첨성대",
+    "cheongwadae": "청와대",
+    "icheon-semi": "이천 반도체",
+    "asan-display": "아산 디스플레이",
+    "pohang-steel": "포항제철소",
+    "ulsan-battery": "울산 2차전지",
+    "busan-science": "부산과학관",
+    "kori-nuclear": "고리원자력",
+    "pnu": "부산대",
+    "sajik": "사직",
+    "asiad": "아시아드",
+    "hrdk-busan": "산업인력공단",
+    "bifc": "BIFC",
+    "cinema-center": "영화의전당",
+    "concert-hall": "콘서트홀"
+  },
+  "groups": [
+    {
+      "id": "arrival",
+      "name": "외항선 입항 서류 흐름",
+      "zones": [
+        "skybiz",
+        "imm-jungang",
+        "imm-gamcheon",
+        "customs",
+        "quarantine",
+        "mof-busan",
+        "bpa"
+      ]
+    },
+    {
+      "id": "cargo",
+      "name": "화물 반입·반출 흐름",
+      "zones": [
+        "intergis-7",
+        "newport-cfs",
+        "customs",
+        "skybiz"
+      ]
+    },
+    {
+      "id": "wind",
+      "name": "해상풍력 프로젝트",
+      "zones": [
+        "jindo-wind"
+      ]
+    },
+    {
+      "id": "industry",
+      "name": "산업 이해(Knowledgeverse)",
+      "zones": [
+        "icheon-semi",
+        "asan-display",
+        "pohang-steel",
+        "ulsan-battery",
+        "kori-nuclear",
+        "busan-science"
+      ]
+    },
+    {
+      "id": "culture",
+      "name": "문화·역사",
+      "zones": [
+        "cheomseongdae",
+        "cheongwadae",
+        "cinema-center",
+        "concert-hall",
+        "pnu"
+      ]
+    },
+    {
+      "id": "sports-learning",
+      "name": "체육·교육·금융",
+      "zones": [
+        "sajik",
+        "asiad",
+        "hrdk-busan",
+        "bifc"
+      ]
+    }
+  ],
+  "needs": {
+    "skybiz": [
+      "IMO CREW LIST",
+      "PORT OF CALL",
+      "인보이스"
+    ],
+    "imm-jungang": [
+      "선원명부",
+      "EDI 전송 정정",
+      "승선신고서"
+    ],
+    "imm-gamcheon": [
+      "선원명부",
+      "승선신고서",
+      "하선 인원"
+    ],
+    "customs": [
+      "선용품 신고서",
+      "선원 휴대품",
+      "NIL LIST"
+    ],
+    "quarantine": [
+      "선박 보건",
+      "평형수",
+      "체온"
+    ],
+    "mof-busan": [
+      "입항 신고",
+      "선박 증서",
+      "PORT OF CALL"
+    ],
+    "bpa": [
+      "선석 배정",
+      "항만시설 사용"
+    ],
+    "intergis-7": [
+      "컨테이너 번호",
+      "B/L",
+      "씰"
+    ],
+    "newport-cfs": [
+      "반입",
+      "적재",
+      "창고"
+    ],
+    "jindo-wind": [
+      "도면",
+      "일정",
+      "보고서"
+    ]
+  }
+}

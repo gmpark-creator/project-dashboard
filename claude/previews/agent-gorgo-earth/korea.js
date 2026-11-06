@@ -5,10 +5,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { initAiUI } from './ai-ui.js';
+import { initShips } from './ships.js';
+import { addClouds } from './clouds.js';
 import { initRecordsUI, openZoneRecords } from './records-ui.js';
 import { buildCar, buildKTX, Ride, shortestPath } from './ride.js';
 import { openInterior } from './interior.js';
-import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked } from './concierge.js';
+import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked, hasPersonas } from './concierge.js';
 
 const $=id=>document.getElementById(id);
 const clamp=THREE.MathUtils.clamp;
@@ -19,7 +21,7 @@ const KEY_FALLBACK={w:'up','ㅈ':'up',arrowup:'up',s:'down','ㄴ':'down',arrowdo
 const MAX_DT=.5,CLICK_SLOP=6,CLICK_MS=450,EDGE=.3,NEAR=1.1;
 // 지리 지명 라벨(행정 중심 대략 위치). 업무 장소가 아니라 지도 읽기용 지명이다.
 const CITY_LABELS=[['서울',126.978,37.566,'major'],['인천',126.705,37.456,''],['수원',127.029,37.263,''],['춘천',127.730,37.881,''],['강릉',128.876,37.752,''],['청주',127.489,36.642,''],['대전',127.385,36.351,'major'],['전주',127.148,35.824,''],['광주',126.853,35.160,'major'],['목포',126.392,34.812,''],['여수',127.662,34.760,''],['대구',128.601,35.871,'major'],['안동',128.729,36.568,''],['울산',129.311,35.539,''],['창원',128.681,35.228,''],['제주',126.531,33.500,'major'],['울릉도',130.866,37.500,''],['독도',131.866,37.242,''],['백령도',124.680,37.960,''],['평양',125.754,39.039,'major'],['개성',126.554,37.971,''],['원산',127.443,39.153,''],['함흥',127.536,39.918,''],['신의주',124.398,40.100,''],['청진',129.776,41.795,''],['백두산',128.077,42.006,''],['한라산',126.533,33.362,''],['지리산',127.731,35.337,''],['설악산',128.465,38.119,''],['동해',130.6,36.6,'water'],['서해',124.9,36.4,'water'],['남해',127.8,33.9,'water']];
-let scene,camera,renderer,controls,terrain,heights,land,meta,places={},catalog,agent,legs=[],arms=[],targetMark,flight=null,last=0,gait=0,toastTimer,nearby=null,moveTarget=null;
+let scene,camera,renderer,controls,terrain,heights,land,meta,places={},catalog,agent,legs=[],arms=[],targetMark,flight=null,last=0,gait=0,toastTimer,nearby=null,moveTarget=null,shipsLayer=null,cloudLayer=null;
 let widthU,depthU,leaders,busanBounds=null,busanOutline=null,landmarkList=[];
 // AGENT-GORGO-15/16: 전국 지도에서 고르고는 걷지 않는다. 방향키로 다닐 때는 자동차, 지도·핀을 눌러 갈 때는 고속열차.
 // agent(보이지 않음)가 탈것 머리 위치이고, 열차의 객차는 지나온 자취를 따라간다.
@@ -36,6 +38,11 @@ function elevation(x,z){const {u,v,out}=cell(x,z);if(out)return -50;if(!land[Mat
  return Math.max(2,THREE.MathUtils.lerp(THREE.MathUtils.lerp(heights[iz*s+ix],heights[iz*s+ix+1],fx),THREE.MathUtils.lerp(heights[(iz+1)*s+ix],heights[(iz+1)*s+ix+1],fx),fz));}
 const H=h=>h<=.5?-.06:.05+h*.00085; // 세로 과장: 1000m ≈ 0.9 단위(9km) — 미니어처 느낌
 function groundHeight(x,z){return H(elevation(x,z));}
+// AGENT-GORGO-34 (owner 2026-11-05): 육지 위만 이동(바다 불가). 광안대교·부산항대교는 다리라서 지나갈 수 있다.
+const bridges=[];
+function addBridge(aLL,bLL,half=.2){bridges.push({a:project(...aLL),b:project(...bLL),half});}
+function onBridge(x,z){for(const s of bridges){const dx=s.b.x-s.a.x,dz=s.b.z-s.a.z,l2=dx*dx+dz*dz;let t=l2?((x-s.a.x)*dx+(z-s.a.z)*dz)/l2:0;t=t<0?0:t>1?1:t;if(Math.hypot(x-s.a.x-dx*t,z-s.a.z-dz*t)<s.half)return true;}return false;}
+const onLand=(x,z)=>elevation(x,z)>-40;
 function geoPoint(lon,lat,lift=0){const p=project(lon,lat);p.y=Math.max(.06,groundHeight(p.x,p.z))+lift;return p;}
 function cube(parent,w,h,d,x,y,z,color,extra={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color,extra));m.position.set(x,y,z);parent.add(m);return m;}
 function cylinder(parent,rt,rb,h,x,y,z,color,n=10){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n),material(color));m.position.set(x,y,z);parent.add(m);return m;}
@@ -107,7 +114,7 @@ function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연
 function openPlace(id){if(id==='busan-station'){enterBusan();return;}const p=places[id];if(!p)return;clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();
  // AGENT-GORGO-20: 장소에 들어가면 건물 안(로비)으로 — 키오스크 화면에는 제목만
  const items=itemsFor(id).map(it=>({title:it.title,disabled:!it.zone&&!contentUrl(it),open:()=>{if(it.zone)openZoneRecords(it.zone);else openContent(it);}}));
- openInterior({id,name:p.name,theme:'office',items,records:p.zone&&!itemsFor(id).some(x=>x.zone===p.zone)?()=>openZoneRecords(p.zone):null,npcs:p.zone?{initial:npcCached(),checked:npcChecked(),refresh:npcInfo}:null,onConcierge:provider=>openConcierge({zone:p.zone,name:p.name,provider}),onExit:()=>{closeConcierge();nearby=null;}});}
+ openInterior({id,name:p.name,theme:'office',items,records:p.zone&&!itemsFor(id).some(x=>x.zone===p.zone)?()=>openZoneRecords(p.zone):null,npcs:(p.zone||hasPersonas(id))?{initial:npcCached(p.zone||id),checked:npcChecked(),refresh:()=>npcInfo(p.zone||id)}:null,onConcierge:provider=>openConcierge({zone:p.zone||id,name:p.name,provider}),onExit:()=>{closeConcierge();nearby=null;}});}
 
 // ── AGENT-GORGO-14: 핀을 누르면 고르고가 기차를 타고 간다 ─────────────────────
 // 노선은 실제 철도 데이터가 아니라 주요 철도 축(경부·호남·전라·동해·경강·중앙 등)을 도시 지명 좌표(CITY_LABELS)와
@@ -179,14 +186,19 @@ function updateAgent(dt){let x=0,z=0;if(keys.has('up')||mobileKeys.has('up'))z--
  const moving=(!!(x||z)||!!moveTarget)&&!blocked();if(moving){let v,speed;
   if(moveTarget){const d=to.length();v=to.normalize();speed=Math.min(d,Math.max(2.5,Math.min(9,d*1.6))*speedMultiplier()*dt);}
   else{const dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.y=0;dir.normalize();const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0));v=right.multiplyScalar(x).addScaledVector(dir,-z).normalize();speed=(keys.has('shift')?9:5)*speedMultiplier()*dt;}
-  agent.position.x=clamp(agent.position.x+v.x*speed,-widthU/2+EDGE,widthU/2-EDGE);agent.position.z=clamp(agent.position.z+v.z*speed,-depthU/2+EDGE,depthU/2-EDGE);agent.position.y+=(Math.max(.08,groundHeight(agent.position.x,agent.position.z))+.02-agent.position.y)*Math.min(1,dt*5);agent.rotation.y=Math.atan2(v.x,v.z);gait+=dt*9;
+  const cx=agent.position.x,cz=agent.position.z,nx=clamp(cx+v.x*speed,-widthU/2+EDGE,widthU/2-EDGE),nz=clamp(cz+v.z*speed,-depthU/2+EDGE,depthU/2-EDGE);
+  const ok=(px,pz)=>onLand(px,pz)||onBridge(px,pz),stuck=!ok(cx,cz);let px=cx,pz=cz,moved=true;if(stuck||ok(nx,nz)){px=nx;pz=nz;}
+  else{moved=false;for(const a of[.35,-.35,.7,-.7,1.05,-1.05,1.4,-1.4]){const c=Math.cos(a),s=Math.sin(a),f=speed*c*1.05,tx=clamp(cx+(v.x*c-v.z*s)*f,-widthU/2+EDGE,widthU/2-EDGE),tz=clamp(cz+(v.x*s+v.z*c)*f,-depthU/2+EDGE,depthU/2-EDGE);if(ok(tx,tz)){px=tx;pz=tz;moved=true;break;}}} // G35: 가장자리 방향으로 미끄러짐
+  if(!moved&&moveTarget){moveTarget=null;toast('바다 위로는 갈 수 없어요');}
+  agent.position.x=px;agent.position.z=pz;agent.position.y+=(Math.max(.08,groundHeight(agent.position.x,agent.position.z))+.02-agent.position.y)*Math.min(1,dt*5);agent.rotation.y=Math.atan2(v.x,v.z);gait+=dt*9;
   if(!state.follow){state.follow=true;if(camera.position.distanceTo(controls.target)>40)flyTo(agent.position.clone(),20,true);else flight=null;}}
  const swing=moving?Math.sin(gait)*.55:0;legs[0].rotation.x=swing;legs[1].rotation.x=-swing;arms[0].rotation.x=-swing;arms[1].rotation.x=swing;agent.userData.body.position.y=moving?Math.abs(Math.sin(gait))*.015:Math.sin(clock.elapsedTime*2)*.006;
  if(state.follow&&!flight){const delta=agent.position.clone().sub(controls.target);controls.target.addScaledVector(delta,Math.min(1,dt*7));camera.position.addScaledVector(delta,Math.min(1,dt*7));}}
+function enterWorld(){clearMovement();const url='./?map=world';if(window.GorgoHandoff)window.GorgoHandoff.leave(renderer.domElement,'world',url);else location.href=url;}
 function insideBusan(){if(!busanBounds)return false;const a=project(busanBounds[0],busanBounds[3]),c=project(busanBounds[2],busanBounds[1]);return agent.position.x>=a.x&&agent.position.x<=c.x&&agent.position.z>=a.z&&agent.position.z<=c.z;}
 function updateNearby(){if(state.riding)return;let next=null,best=Infinity;for(const p of Object.values(places)){const q=project(p.lon,p.lat),d=Math.hypot(agent.position.x-q.x,agent.position.z-q.z);if(d<NEAR&&d<best){best=d;next=p.id;}}
  // AGENT-GORGO-13: 부산 상세 지도 범위 안에서는 바로 옆(4km 이내) 장소가 아니면 「부산 상세 지도 · 들어가기」가 우선이다.
- if(places['busan-station']&&insideBusan()&&!(next&&next!=='busan-station'&&best<.4))next='busan-station';if(next===nearby)return;nearby=next;$('work-open').hidden=!next;if(next)$('work-open').textContent=next==='busan-station'?'부산 상세 지도 · 들어가기':places[next].name+' · 들어가기';}
+ if(places['busan-station']&&insideBusan()&&!(next&&next!=='busan-station'&&best<.4))next='busan-station';if(next===nearby)return;nearby=next;$('work-open').hidden=!next;if(next)$('work-open').textContent=(next==='busan-station'?'부산 상세 지도':places[next].name)+' · 들어가기 (스페이스)';}
 const temp=new THREE.Vector3();
 function updateLabels(){const pins=[];const distance=camera.position.distanceTo(controls.target);for(const l of labelItems){if(l.object){temp.copy(l.object.position);temp.y+=.75*l.object.scale.y;}else temp.copy(l.p);temp.project(camera);const off=temp.z>1||temp.z<-1||Math.abs(temp.x)>1.1||Math.abs(temp.y)>1.1;const hide=off||(l.kind===''&&distance>140)||(l.kind==='water'&&distance<25);l.el.style.display=hide?'none':'';if(hide)continue;const x=(temp.x*.5+.5)*innerWidth,y=(-temp.y*.5+.5)*innerHeight;if(l.kind==='pin'){pins.push({l,x,y,w:l.el.offsetWidth,h:l.el.offsetHeight});continue;}l.el.style.left=x+'px';l.el.style.top=y+'px';}pins.sort((a,b)=>a.y-b.y);const placed=[],lines=[];for(const p of pins){let box=null;for(let k=0;k<14&&!box;k++){const dy=(k%2?1:-1)*Math.ceil(k/2)*(p.h+4);const b={x:p.x-p.w/2,y:p.y-p.h-10+dy,w:p.w,h:p.h};if(!placed.some(o=>b.x<o.x+o.w+4&&b.x+b.w+4>o.x&&b.y<o.y+o.h+2&&b.y+b.h+2>o.y))box=b;}box||={x:p.x-p.w/2,y:p.y-p.h-10,w:p.w,h:p.h};placed.push(box);p.l.el.style.transform='none';p.l.el.style.left=box.x+'px';p.l.el.style.top=box.y+'px';const ln=document.createElementNS('http://www.w3.org/2000/svg','line');ln.setAttribute('x1',p.x);ln.setAttribute('y1',p.y);ln.setAttribute('x2',p.x);ln.setAttribute('y2',clamp(p.y,box.y,box.y+box.h));lines.push(ln);}leaders.replaceChildren(...lines);}
 function animate(now){requestAnimationFrame(animate);if(window.__gorgoInteriorOpen){last=now;return;}const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
@@ -194,13 +206,13 @@ function animate(now){requestAnimationFrame(animate);if(window.__gorgoInteriorOp
  if(state.riding)stepRide(dt);
  // 부산과 이어지는 동안에는 고르고·랜드마크를 거리에 맞춰 줄인다. 부산 구도(거리≈5)에서 전국 축척 그대로면 화면을 가린다.
  if(state.leaving||state.arriving){const f=clamp(camera.position.distanceTo(controls.target)/26,.08,1);agent.scale.setScalar(1.25*f);scaleF=f;for(const g of landmarkList)g.scale.setScalar(.95*f);if(state.arriving&&f>=1&&!flight)state.arriving=false;}
- updateAgent(dt);placeTrain();controls.update();for(const s of spinners)s.rotor.rotation.z+=dt*s.speed;
+ shipsLayer?.update(dt,t);cloudLayer?.update(dt);updateAgent(dt);placeTrain();controls.update();for(const s of spinners)s.rotor.rotation.z+=dt*s.speed;
  renderer.render(scene,camera);
  if(state.leaving&&!flight&&!state.left){state.left=true;window.GorgoHandoff?window.GorgoHandoff.leave(renderer.domElement,'busan','./?map=busan'):location.href='./?map=busan';}
  if(!state.firstFrame){state.firstFrame=true;requestAnimationFrame(()=>window.GorgoHandoff?.finish());}
  updateLabels();updateNearby();state.frames++;state.elapsed+=dt;if(state.elapsed>1){state.fps=Math.round(state.frames/state.elapsed);state.frames=0;state.elapsed=0;}}
 function setupEvents(zonesForPins){
- initAiUI({clearMovement});setSpeedMode(state.speedMode);$('speed-mode').onclick=()=>setSpeedMode(state.speedMode==='fast'?'normal':'fast');
+ initAiUI({clearMovement,toast});setSpeedMode(state.speedMode);$('speed-mode').onclick=()=>setSpeedMode(state.speedMode==='fast'?'normal':'fast');
  $('work-open').onclick=()=>{if(nearby==='busan-station')enterBusan();else if(nearby)openPlace(nearby);};
  const far=new THREE.Vector3(1e6,0,1e6);
  initRecordsUI({clearMovement,toast,getPosition:()=>agent.position,project:z=>{const p=Object.values(places).find(p=>p.zone===z.id);return p?project(p.lon,p.lat):far;},pickPoint:(cx,cy)=>{const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(cx/innerWidth*2-1,-cy/innerHeight*2+1),camera);return ray.intersectObject(terrain,false)[0]?.point;},
@@ -212,9 +224,10 @@ function setupEvents(zonesForPins){
  document.querySelector('#travel-title').textContent='어디로 갈까요? · 한반도';
  // 전국 지도의 이동은 기차다: 목록에서 장소를 고르면 그 장소까지 기차로 달린다.
  list.querySelectorAll('[data-travel]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.travel;if(id==='home')travelTo('home');else{$('travel-dialog').close();rideTo(id);}}));
+ const ws=document.createElement('button');ws.id='world-switch';ws.className='map-switch world-switch';ws.textContent='세계 지도로';ws.setAttribute('aria-label','세계 지도로 전환');ws.onclick=()=>enterWorld();document.body.append(ws);
  $('map-switch').textContent='부산 상세 지도로';$('map-switch').setAttribute('aria-label','부산 상세 지도로 전환');$('map-switch').onclick=()=>enterBusan();
  $('travel-open').onclick=()=>{clearMovement();$('travel-dialog').showModal();};$('travel-close').onclick=()=>$('travel-dialog').close();
- addEventListener('keydown',e=>{const k=moveKey(e);inputLog.push({t:Math.round(performance.now()),code:e.code,k});if(inputLog.length>40)inputLog.shift();if(blocked()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable)return;if(k){e.preventDefault();keys.add(k);moveTarget=null;}});
+ addEventListener('keydown',e=>{const k=moveKey(e);inputLog.push({t:Math.round(performance.now()),code:e.code,k});if(inputLog.length>40)inputLog.shift();if(blocked()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable)return;if(k){e.preventDefault();keys.add(k);moveTarget=null;}else if(e.code==='Space'){e.preventDefault();if(!e.repeat&&nearby&&!$('work-open').hidden)$('work-open').click();}});
  addEventListener('keyup',e=>{const k=moveKey(e);if(k)keys.delete(k);});addEventListener('blur',()=>{keys.clear();mobileKeys.clear();});document.addEventListener('visibilitychange',()=>{keys.clear();mobileKeys.clear();last=performance.now();});
  const el=renderer.domElement,downs=new Map();
  // 창을 활성화하려고 누른 첫 클릭(로드 직후·창 포커스 직후)은 걷기 명령으로 받지 않는다.
@@ -231,7 +244,7 @@ export async function initKorea(){
   const load=async(u,bin)=>{const r=await fetch(u);if(!r.ok)throw Error(u+' '+r.status);return bin?r.arrayBuffer():r.json();};
   const [m,hb,lb,pl,cat,zones,bm,wps]=await Promise.all([load('data/korea-meta.json'),load('data/korea-terrain.bin',1),load('data/korea-land.bin',1),load('data/korea-places.json'),load('data/content-catalog.json'),load('data/zones.json'),load('data/sources.json'),load('data/workpoints.json')]);
   if(Array.isArray(bm?.bounds)&&bm.bounds.length===4)busanBounds=bm.bounds;
-  meta=m;heights=new Int16Array(hb);land=new Uint8Array(lb);catalog=cat;if(heights.length!==(meta.nx+1)*(meta.nz+1)||land.length!==heights.length)throw Error('Korea terrain size mismatch');
+  meta=m;heights=new Int16Array(hb);land=new Uint8Array(lb);catalog=cat;if(heights.length!==(meta.nx+1)*(meta.nz+1)||land.length!==heights.length)throw Error('Korea terrain size mismatch');addBridge([129.114,35.138],[129.144,35.158]);addBridge([129.053,35.098],[129.075,35.111]);
   const regions={cheomseongdae:'경북 경주',cheongwadae:'서울 종로','icheon-semi':'경기 이천','asan-display':'충남 아산','pohang-steel':'경북 포항','ulsan-battery':'울산 울주','busan-science':'부산 기장','kori-nuclear':'부산 기장','busan-station':'부산',jindo:'전남 진도'};
   for(const p of pl){if(typeof p.lon!=='number'||typeof p.lat!=='number')continue;places[p.id]={...p,region:regions[p.id]||''};}
   for(const z of zones)if(z.map==='korea'&&places[z.place])places[z.place].zone=z.id;
@@ -257,7 +270,9 @@ export async function initKorea(){
   const fromBusan=window.GorgoHandoff?.pending?.from==='busan'&&busanBounds;
   if(fromBusan){state.arriving=true;const f=busanFrame();controls.target.copy(f.target);camera.position.copy(f.target).add(new THREE.Vector3(f.distance*.14,f.distance*.72,f.distance*.76));}
   else{const d=26;controls.target.copy(agent.position);camera.position.copy(agent.position).add(new THREE.Vector3(d*.14,d*.72,d*.76));state.follow=true;}controls.update();
-  state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,project,elevation,groundHeight,travelTo,openPlace,openContent,catalog,inputLog,walkTo,landmarks,enterBusan,busanFrame,busanBounds,rideTo,train:()=>veh&&{mode,parts:veh.parts.length,scale:vehScale(),head:veh.parts[0].position.toArray()},trainTo,riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,extent:()=>({hw:widthU/2,hd:depthU/2}),map:'korea'};
+  state.ready=true;window.__gorgoEarth={enterWorld,onLand,bridgeAt:typeof bridgeAt==='function'?bridgeAt:undefined,onBridge:typeof onBridge==='function'?onBridge:undefined,state,places,agent,camera,controls,project,elevation,groundHeight,travelTo,openPlace,openContent,catalog,inputLog,walkTo,landmarks,enterBusan,busanFrame,busanBounds,rideTo,train:()=>veh&&{mode,parts:veh.parts.length,scale:vehScale(),head:veh.parts[0].position.toArray()},trainTo,riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,extent:()=>({hw:widthU/2,hd:depthU/2}),map:'korea'};
+  cloudLayer=addClouds(scene,{width:widthU,depth:depthU,count:26,y:7,size:2.4,opacity:.8,camera,fadeNear:13,fadeFar:42});
+  shipsLayer=initShips({scene,project,seaY:-.05,length:.25,labelDist:120,markerPx:16,camera,bounds:meta.bounds,focus:p=>flyTo(p,26,false),openWorld:s=>{clearMovement();const url='./?map=world&ship='+encodeURIComponent(s.mmsi);if(window.GorgoHandoff)window.GorgoHandoff.leave(renderer.domElement,'world',url);else location.href=url;},clearMovement,toast});window.__gorgoEarth.ships=shipsLayer;
   $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);
   if(fromBusan){setTimeout(()=>flyTo(agent.position.clone(),26,true,2.2,true),650);toast('전국 지도 · 부산으로 돌아가려면 부산 핀에서 들어가기');}
   else{toast('전국 지도 · 방향키 = 자동차 · 지도나 장소 핀을 누르면 고속열차로 갑니다');}

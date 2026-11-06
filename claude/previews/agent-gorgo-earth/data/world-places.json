@@ -1,0 +1,51 @@
+{
+  "_note": "AGENT-GORGO-34 세계 지도 지명·항만 도시(지도 읽기용, 업무 장소 아님). 좌표는 도시 중심 대략 위치.",
+  "places": [
+    {"id": "korea", "name": "한반도 (들어가기)", "lon": 127.8, "lat": 36.3, "region": "대한민국", "enter": "korea", "major": true},
+    {"id": "seoul", "name": "서울", "lon": 126.98, "lat": 37.57, "region": "대한민국"},
+    {"id": "busan", "name": "부산", "lon": 129.04, "lat": 35.1, "region": "대한민국 · 컨테이너 항만", "enter": "korea"},
+    {"id": "vladivostok", "name": "블라디보스토크", "lon": 131.89, "lat": 43.12, "region": "러시아 · 극동 항만"},
+    {"id": "tokyo", "name": "도쿄", "lon": 139.69, "lat": 35.69, "region": "일본"},
+    {"id": "shanghai", "name": "상하이", "lon": 121.47, "lat": 31.23, "region": "중국 · 세계 최대 컨테이너항", "major": true},
+    {"id": "beijing", "name": "베이징", "lon": 116.4, "lat": 39.9, "region": "중국"},
+    {"id": "hongkong", "name": "홍콩", "lon": 114.17, "lat": 22.32, "region": "중국"},
+    {"id": "manila", "name": "마닐라", "lon": 120.98, "lat": 14.6, "region": "필리핀"},
+    {"id": "hochiminh", "name": "호치민", "lon": 106.66, "lat": 10.82, "region": "베트남"},
+    {"id": "bangkok", "name": "방콕", "lon": 100.5, "lat": 13.76, "region": "태국"},
+    {"id": "singapore", "name": "싱가포르", "lon": 103.82, "lat": 1.35, "region": "싱가포르 · 환적 허브", "major": true},
+    {"id": "jakarta", "name": "자카르타", "lon": 106.85, "lat": -6.21, "region": "인도네시아"},
+    {"id": "sydney", "name": "시드니", "lon": 151.21, "lat": -33.87, "region": "호주"},
+    {"id": "auckland", "name": "오클랜드", "lon": 174.76, "lat": -36.85, "region": "뉴질랜드"},
+    {"id": "mumbai", "name": "뭄바이", "lon": 72.88, "lat": 19.08, "region": "인도"},
+    {"id": "dubai", "name": "두바이", "lon": 55.27, "lat": 25.2, "region": "아랍에미리트 · 제벨알리항", "major": true},
+    {"id": "istanbul", "name": "이스탄불", "lon": 28.98, "lat": 41.01, "region": "튀르키예 · 보스포루스"},
+    {"id": "moscow", "name": "모스크바", "lon": 37.62, "lat": 55.75, "region": "러시아"},
+    {"id": "cairo", "name": "카이로", "lon": 31.24, "lat": 30.04, "region": "이집트 · 수에즈 운하 인근"},
+    {"id": "capetown", "name": "케이프타운", "lon": 18.42, "lat": -33.92, "region": "남아프리카공화국"},
+    {"id": "lagos", "name": "라고스", "lon": 3.38, "lat": 6.52, "region": "나이지리아"},
+    {"id": "london", "name": "런던", "lon": -0.13, "lat": 51.51, "region": "영국"},
+    {"id": "paris", "name": "파리", "lon": 2.35, "lat": 48.86, "region": "프랑스"},
+    {"id": "rotterdam", "name": "로테르담", "lon": 4.48, "lat": 51.92, "region": "네덜란드 · 유럽 최대 항만", "major": true},
+    {"id": "reykjavik", "name": "레이캬비크", "lon": -21.9, "lat": 64.15, "region": "아이슬란드"},
+    {"id": "newyork", "name": "뉴욕", "lon": -74.0, "lat": 40.71, "region": "미국", "major": true},
+    {"id": "losangeles", "name": "로스앤젤레스", "lon": -118.24, "lat": 34.05, "region": "미국 · 태평양 항만"},
+    {"id": "vancouver", "name": "밴쿠버", "lon": -123.12, "lat": 49.28, "region": "캐나다"},
+    {"id": "anchorage", "name": "앵커리지", "lon": -149.9, "lat": 61.22, "region": "미국 알래스카"},
+    {"id": "honolulu", "name": "호놀룰루", "lon": -157.86, "lat": 21.31, "region": "미국 하와이"},
+    {"id": "mexicocity", "name": "멕시코시티", "lon": -99.13, "lat": 19.43, "region": "멕시코"},
+    {"id": "panama", "name": "파나마 운하", "lon": -79.52, "lat": 8.98, "region": "파나마 · 대서양↔태평양", "major": true},
+    {"id": "saopaulo", "name": "상파울루", "lon": -46.63, "lat": -23.55, "region": "브라질"},
+    {"id": "buenosaires", "name": "부에노스아이레스", "lon": -58.38, "lat": -34.6, "region": "아르헨티나"}
+  ],
+  "oceans": [
+    {"name": "태평양", "lon": -150, "lat": 5}, {"name": "태평양", "lon": 165, "lat": 0},
+    {"name": "대서양", "lon": -35, "lat": 20}, {"name": "인도양", "lon": 80, "lat": -22},
+    {"name": "북극해", "lon": 0, "lat": 82}, {"name": "남극해", "lon": 20, "lat": -66},
+    {"name": "동해", "lon": 133, "lat": 40}, {"name": "동중국해", "lon": 125, "lat": 28}, {"name": "남중국해", "lon": 114, "lat": 14},
+    {"name": "지중해", "lon": 17, "lat": 35}, {"name": "카리브해", "lon": -73, "lat": 15}
+  ],
+  "continents": [
+    {"name": "아시아", "lon": 90, "lat": 48}, {"name": "유럽", "lon": 18, "lat": 52}, {"name": "아프리카", "lon": 20, "lat": 5},
+    {"name": "북아메리카", "lon": -100, "lat": 45}, {"name": "남아메리카", "lon": -60, "lat": -12}, {"name": "오세아니아", "lon": 134, "lat": -25}, {"name": "남극", "lon": 0, "lat": -78}
+  ]
+}

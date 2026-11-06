@@ -23,3 +23,6 @@
 .map-handoff-active #loading{opacity:0}
 body.map-leaving #labels,body.map-leaving .travel-open,body.map-leaving .ai-open,body.map-leaving .map-switch,body.map-leaving .speed-mode,body.map-leaving #sync-dot,body.map-leaving .work-open,body.map-leaving #mobile-pad{opacity:0;pointer-events:none;transition:opacity .5s}
 @media(max-width:700px){.map-switch{top:62px;right:14px;padding:8px 13px;font-size:11px}}
+
+.world-switch{top:122px}.world-switch:before{content:'\2708'!important}
+@media(max-width:700px){.world-switch{top:104px}}

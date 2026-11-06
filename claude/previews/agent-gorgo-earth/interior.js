@@ -3,6 +3,9 @@
 // 콘텐츠 = 벽 앞 안내 키오스크(화면에 제목만), 자료 = 자료함 캐비닛, 나가기 = 왼쪽 벽 출입문.
 // 지도 화면과 별개의 캔버스·렌더러를 쓰고, 열려 있는 동안 지도는 그리지 않는다(window.__gorgoInteriorOpen).
 import * as THREE from 'three';
+import {makePerson} from './people.js';
+import {themeOf,floorTexture,rugTexture,viewTexture,decorate} from './rooms.js';
+import './rooms-places.js';
 
 const W=10,D=7,WALL=3.4; // 방 폭(x), 깊이(z), 벽 높이 — 1단위 ≈ 1m
 const FONT="'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif";
@@ -21,8 +24,8 @@ function woodFloor(){return canvasTex(1024,1024,(g,w,h)=>{const rows=14,rh=h/row
   g.strokeStyle='rgba(90,60,30,.08)';for(let k=0;k<5;k++){g.beginPath();const yy=r*rh+4+rnd(x,k)*(rh-8);g.moveTo(x+4,yy);g.bezierCurveTo(x+len*.3,yy+3,x+len*.6,yy-3,x+len-6,yy);g.stroke();}x+=len;}}});}
 function rugTex(){return canvasTex(512,320,(g,w,h)=>{g.fillStyle='#3f6653';g.fillRect(0,0,w,h);g.strokeStyle='#e8d9b3';g.lineWidth=10;g.strokeRect(22,22,w-44,h-44);g.lineWidth=3;g.strokeRect(42,42,w-84,h-84);
   g.fillStyle='#e8784e';for(let i=0;i<5;i++){g.save();g.translate(w/2+(i-2)*70,h/2);g.rotate(Math.PI/4);g.fillRect(-14,-14,28,28);g.restore();}});}
-function signTex(name){return canvasTex(1024,256,(g,w,h)=>{const grd=g.createLinearGradient(0,0,w,0);grd.addColorStop(0,'#2f4c45');grd.addColorStop(1,'#3f6653');g.fillStyle=grd;g.fillRect(0,0,w,h);
-  g.fillStyle='#e8784e';g.fillRect(0,h-14,w,14);g.fillStyle='#fffef4';let fs=96;g.font=`800 ${fs}px ${FONT}`;while(g.measureText(name).width>w-120&&fs>40){fs-=4;g.font=`800 ${fs}px ${FONT}`;}g.textAlign='center';g.textBaseline='middle';g.fillText(name,w/2,h/2-4);});}
+function signTex(name,cols=['#2f4c45','#3f6653','#e8784e']){return canvasTex(1024,256,(g,w,h)=>{const grd=g.createLinearGradient(0,0,w,0);grd.addColorStop(0,cols[0]);grd.addColorStop(1,cols[1]);g.fillStyle=grd;g.fillRect(0,0,w,h);
+  g.fillStyle=cols[2];g.fillRect(0,h-14,w,14);g.fillStyle='#fffef4';let fs=96;g.font=`800 ${fs}px ${FONT}`;while(g.measureText(name).width>w-120&&fs>40){fs-=4;g.font=`800 ${fs}px ${FONT}`;}g.textAlign='center';g.textBaseline='middle';g.fillText(name,w/2,h/2-4);});}
 function screenTex(title,idx,disabled){return canvasTex(512,768,(g,w,h)=>{const hues=[160,200,24,280,340,120];const hue=hues[idx%hues.length];
   const grd=g.createLinearGradient(0,0,0,h);grd.addColorStop(0,`hsl(${hue},38%,22%)`);grd.addColorStop(1,`hsl(${hue},45%,12%)`);g.fillStyle=grd;g.fillRect(0,0,w,h);
   g.fillStyle=`hsla(${hue},70%,60%,.18)`;for(let i=0;i<6;i++){g.beginPath();g.arc(rnd(i,idx)*w,rnd(idx,i)*h*.5,40+rnd(i)*90,0,7);g.fill();}
@@ -38,19 +41,19 @@ function skyTex(){return canvasTex(256,256,(g,w,h)=>{const grd=g.createLinearGra
 
 // ── 방 짓기 ─────────────────────────────────────────
 function buildRoom(o){
-  root=new THREE.Group();scene.add(root);kiosks=[];
+  root=new THREE.Group();scene.add(root);kiosks=[];const T=themeOf(o.id);
   // 바닥 · 러그
-  const ft=woodFloor();ft.wrapS=ft.wrapT=THREE.RepeatWrapping;ft.repeat.set(1.6,1.1);
+  const ft=(T.floor?floorTexture(...T.floor):woodFloor());ft.wrapS=ft.wrapT=THREE.RepeatWrapping;ft.repeat.set(1.6,1.1);
   const floor=new THREE.Mesh(new THREE.BoxGeometry(W,.2,D),new THREE.MeshStandardMaterial({map:ft,roughness:.62,metalness:.02}));floor.position.y=-.1;floor.receiveShadow=true;floor.name='floor';root.add(floor);
-  const rug=new THREE.Mesh(new THREE.PlaneGeometry(4.2,2.6),new THREE.MeshStandardMaterial({map:rugTex(),roughness:.95}));rug.rotation.x=-Math.PI/2;rug.position.set(.6,.004,.7);rug.receiveShadow=true;root.add(rug);
+  if(T.rug){const rug=new THREE.Mesh(new THREE.PlaneGeometry(4.2,2.6),new THREE.MeshStandardMaterial({map:rugTexture(...T.rug),roughness:.95}));rug.rotation.x=-Math.PI/2;rug.position.set(.6,.004,.7);rug.receiveShadow=true;root.add(rug);}
   // 벽(뒤 · 왼쪽) + 굽도리 + 징두리
-  const wallM=mat('#f3ecdc',{roughness:.92}),wainM=mat('#c9b48c',{roughness:.7});
+  const wallM=mat(T.wall,{roughness:.92}),wainM=mat(T.wain,{roughness:.7});
   box(root,W,WALL,.2,0,WALL/2,-D/2-.1,wallM);box(root,.2,WALL,D,-W/2-.1,WALL/2,0,wallM);
   box(root,W,1,.06,0,.5,-D/2+.03,wainM);box(root,.06,1,D,-W/2+.03,.5,0,wainM);
   box(root,W,.08,.1,0,1.02,-D/2+.06,'#a88f63');box(root,.1,.08,D,-W/2+.06,1.02,0,'#a88f63');
   box(root,W,.12,.08,0,.06,-D/2+.05,'#5d4a36');box(root,.08,.12,D,-W/2+.05,.06,0,'#5d4a36');
   // 뒤 벽 큰 창 3개(바깥 하늘 + 창틀)
-  const sky=new THREE.MeshBasicMaterial({map:skyTex()});
+  const sky=new THREE.MeshBasicMaterial({map:viewTexture(T.view)});
   // 간판이 걸린 왼쪽 벽면에는 창을 두지 않는다(창틀이 간판을 가리지 않게)
   for(const x of[.95,3.55]){const win=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.7),sky);win.position.set(x,2.15,-D/2+.07);root.add(win);
     const fr='#4a5a58';box(root,2.24,.1,.1,x,3.04,-D/2+.1,fr);box(root,2.24,.1,.1,x,1.26,-D/2+.1,fr);box(root,.1,1.88,.1,x-1.07,2.15,-D/2+.1,fr);box(root,.1,1.88,.1,x+1.07,2.15,-D/2+.1,fr);box(root,.05,1.7,.06,x,2.15,-D/2+.1,fr);
@@ -60,14 +63,14 @@ function buildRoom(o){
   const desk=new THREE.Group();desk.position.set(-2.6,0,-2.1);root.add(desk);
   box(desk,2.6,.95,.7,0,.475,0,'#e9e2d0');box(desk,2.75,.07,.82,0,.98,0,'#6b5640');box(desk,2.6,.2,.04,0,.75,.37,'#3f6653');box(desk,.7,.95,1.5,-1.0,.475,.75,'#e9e2d0');box(desk,.82,.07,1.6,-1.0,.98,.75,'#6b5640');
   box(desk,.5,.32,.04,.85,1.18,-.1,'#1d2a30');box(desk,.08,.16,.08,.85,1.06,-.1,'#59636a');
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshStandardMaterial({map:signTex(o.name),roughness:.5}));sign.position.set(-2.4,2.95,-D/2+.08);root.add(sign);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshStandardMaterial({map:signTex(o.name,T.sign),roughness:.5}));sign.position.set(-2.4,2.95,-D/2+.08);root.add(sign);
   // 화분
   const plant=(x,z,s=1)=>{const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);root.add(g);cyl(g,.26,.2,.5,0,.25,0,'#d9cbb0');cyl(g,.24,.24,.04,0,.5,0,'#5d4a36');
     for(let i=0;i<7;i++){const a=i/7*6.28;const l=sph(g,.22,Math.cos(a)*.16,.78+rnd(i,x)*.35,Math.sin(a)*.16,i%2?'#5f9a6a':'#77ad73');l.scale.set(1,1.4,1);}sph(g,.25,0,1.12,0,'#6aa36d');};
-  plant(-4.4,-3.0,1.15);plant(4.4,-3.0,1.15);plant(-4.4,3.0,.9);
+  if(T.sofa!==false){plant(-4.4,-3.0,1.15);plant(4.4,-3.0,1.15);plant(-4.4,3.0,.9);}
   // 소파 + 낮은 탁자
-  const sofa=new THREE.Group();sofa.position.set(.6,0,2.35);root.add(sofa);box(sofa,2.6,.42,.9,0,.21,0,'#7f9c94');box(sofa,2.6,.6,.22,0,.6,.36,'#6f8c84');box(sofa,.22,.55,.9,-1.3,.4,0,'#6f8c84');box(sofa,.22,.55,.9,1.3,.4,0,'#6f8c84');
-  box(root,1.3,.06,.7,.6,.42,1.25,'#6b5640');for(const [x,z] of[[-.55,-.28],[.55,-.28],[-.55,.28],[.55,.28]])cyl(root,.03,.03,.4,.6+x,.2,1.25+z,'#3a3430',8);
+  if(T.sofa!==false){const sofa=new THREE.Group();sofa.position.set(.6,0,2.35);root.add(sofa);box(sofa,2.6,.42,.9,0,.21,0,'#7f9c94');box(sofa,2.6,.6,.22,0,.6,.36,'#6f8c84');box(sofa,.22,.55,.9,-1.3,.4,0,'#6f8c84');box(sofa,.22,.55,.9,1.3,.4,0,'#6f8c84');
+  box(root,1.3,.06,.7,.6,.42,1.25,'#6b5640');for(const [x,z] of[[-.55,-.28],[.55,-.28],[-.55,.28],[.55,.28]])cyl(root,.03,.03,.4,.6+x,.2,1.25+z,'#3a3430',8);}
   // 펜던트 조명
   for(const [x,z] of[[-1.4,.9],[1.9,1.4]]){cyl(root,.01,.01,.55,x,WALL+.18,z,'#3a3430',6);const shade=cyl(root,.08,.34,.32,x,WALL-.8,z,'#2f4c45',24);shade.material=mat('#2f4c45',{roughness:.5,metalness:.3,side:THREE.DoubleSide});
     const bulb=sph(root,.09,x,WALL-.95,z,new THREE.MeshStandardMaterial({color:'#fff5d6',emissive:'#ffe9b0',emissiveIntensity:2.2}));bulb.castShadow=false;const pl=new THREE.PointLight('#ffe2b0',2.2,7,1.6);pl.position.set(x,WALL-1.05,z);root.add(pl);}
@@ -87,32 +90,22 @@ function buildRoom(o){
     k.userData={kind:'kiosk',index:i};kiosks.push(k);});
   // AGENT-GORGO-32 안내원 2명(데스크 뒤 상주): 1번 GPT · 2번 Claude — 로그인된 AI만 보인다
   npcs=[];setNpcs(o.npcs?.initial||[]);
+  decorate(root,o.id); // 장소 컨셉 소품(rooms.js)
   // 빛
   scene.add(root);
 }
-function makeGorgo(){return makePerson({});}
+function makeGorgo(){const g=makePerson({});legs=g.userData.legs;arms=g.userData.arms;return g;}
 // 자리: 1번(GPT) 데스크 왼쪽 · 2번(Claude) 데스크 오른쪽. spot = 고르고가 서서 말을 거는 데스크 앞 자리
 const NPC_SEAT={1:{x:-3.4,spot:new THREE.Vector3(-2.95,0,-1.15)},2:{x:-2.05,spot:new THREE.Vector3(-1.75,0,-1.15)}};
-const LOOKS={1:{hair:'#2b2a33',tie:'#e8f3ec',bun:false},2:{hair:'#4a3328',tie:'#f6efe0',bun:true}};
 function josa(w){const c=w.charCodeAt(w.length-1);return c>=0xac00&&c<=0xd7a3&&(c-0xac00)%28?'과':'와';}
 // list = [{slot, provider, name, ai, color}] — 살아 있는(로그인된) 안내원만
 function setNpcs(list){if(!root)return;for(const n of npcs){root.remove(n);n.traverse(m=>{m.geometry?.dispose?.();if(m.material?.map)m.material.map.dispose();});}npcs=[];
-  for(const c of list||[]){const seat=NPC_SEAT[c.slot];if(!seat)continue;const L=LOOKS[c.slot]||LOOKS[2];
-   const n=makePerson({npc:true,suit:c.color,sleeve:c.color,pants:'#3a4247',...L});n.position.set(seat.x,0,-2.85);n.userData.kind='concierge';n.userData.provider=c.provider;n.userData.name=c.name;n.userData.spot=seat.spot;root.add(n);n.traverse(m=>{if(m.isMesh)m.castShadow=true;});
-   const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:labelTex(c.slot+' · '+c.name+' · '+c.ai,'#2f4c45'),depthTest:false}));tag.scale.set(.46,.144,1);tag.position.set(0,.84,0);tag.renderOrder=20;n.add(tag);
+  for(const c of list||[]){const seat=NPC_SEAT[c.slot];if(!seat)continue;
+   const n=makePerson({npc:true,suit:c.color,sleeve:c.color,pants:'#3a4247',...(c.look||{})});n.position.set(seat.x,0,-2.85);n.userData.kind='concierge';n.userData.provider=c.provider;n.userData.name=c.name;n.userData.spot=seat.spot;root.add(n);n.traverse(m=>{if(m.isMesh)m.castShadow=true;});
+   const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:labelTex(c.slot+' · '+c.name+(c.title?' · '+c.title:' · '+c.ai),'#2f4c45'),depthTest:false}));tag.scale.set(.46,.144,1);tag.position.set(0,.84,0);tag.renderOrder=20;n.add(tag);
    const bub=new THREE.Sprite(new THREE.SpriteMaterial({map:labelTex('무엇을 도와드릴까요?','#fffef4','#2f4c45'),depthTest:false}));bub.scale.set(.5,.156,1);bub.position.set(0,.99,0);bub.renderOrder=20;n.add(bub);n.userData.bubble=bub;npcs.push(n);}
   const h=$('in-npc');if(h)h.hidden=!opts?.npcs?.checked||npcs.length>0;}
-// AGENT-GORGO-26: 같은 미니어처 화풍의 사람 모형(고르고·안내원 공용). look = {suit, hair, tie, bun}
-function makePerson(look){const L={suit:'#344959',sleeve:'#3b4f5e',pants:'#324452',hair:'#3c3b49',tie:'#cf7359',...look};const g=new THREE.Group();const body=new THREE.Group();g.add(body);const myLegs=[],myArms=[];
-  const c=(w,h,d,x,y,z,col)=>box(body,w,h,d,x,y,z,col),s=(r,x,y,z,col)=>sph(body,r,x,y,z,col);
-  c(.18,.21,.12,0,.27,0,L.suit);c(.07,.15,.015,0,.30,.071,'#f5eddf');c(.028,.12,.02,0,.28,.084,L.tie);
-  s(.139,0,.49,.015,'#f1c8a7');const hair=s(.145,0,.535,-.012,L.hair);hair.scale.y=.72;c(.26,.04,.10,0,.58,.04,L.hair);if(L.bun){s(.07,0,.6,-.11,L.hair);}
-  for(const k of[-1,1]){s(.012,k*.048,.49,.144,'#35404a');const ch=s(.019,k*.081,.462,.13,'#e79e8e');ch.scale.set(1,.5,.3);c(.078,.035,.018,k*.064,.592,.11,'#384758');c(.052,.016,.022,k*.064,.595,.123,'#7faaa9');}
-  c(.035,.009,.012,0,.449,.148,'#bb7f70');
-  for(const k of[-1,1]){const leg=new THREE.Group();leg.position.set(k*.054,.19,0);box(leg,.065,.14,.07,0,-.065,0,L.pants);box(leg,.075,.035,.11,0,-.14,.018,'#41414a');body.add(leg);myLegs.push(leg);
-    const arm=new THREE.Group();arm.position.set(k*.12,.35,0);box(arm,.052,.15,.065,0,-.065,0,L.sleeve);sph(arm,.031,0,-.15,.004,'#f1c8a7');body.add(arm);myArms.push(arm);}
-  const sh=new THREE.Mesh(new THREE.CircleGeometry(.2,24),new THREE.MeshBasicMaterial({color:'#31554b',transparent:true,opacity:.2,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.005;g.add(sh);
-  g.scale.setScalar(2.2);g.userData={body,legs:myLegs,arms:myArms};if(!look.npc){legs=myLegs;arms=myArms;}return g;}
+// 사람 모형은 people.js(고르고·안내원 공용)
 
 // ── UI ─────────────────────────────────────────────
 function buildUI(){
@@ -172,6 +165,6 @@ export function openInterior(o){if(opts)return;if(!renderer)buildUI();opts=o;win
     $('in-place').textContent=o.name;if(o.npcs){const refresh=()=>o.npcs.refresh?.().then(list=>{if(opts===o&&list){o.npcs.checked=true;setNpcs(list);}}).catch(()=>{});refresh();clearInterval(npcTimer);npcTimer=setInterval(refresh,30000);setTimeout(()=>{if(opts===o&&npcs.length)walkTo(-2.35,-.55,null);},900);}keys.clear();target=new THREE.Vector3(-W/2+2.2,0,1.6);pendingOpen=null;near=null;
     document.body.classList.add('in-interior');ui.classList.add('on');resize();clock.getDelta();cancelAnimationFrame(raf);loop();
     requestAnimationFrame(()=>fade.classList.remove('on'));},280);
-  window.__gorgoInterior={open:()=>!!opts,id:()=>opts?.id,name:()=>opts?.name,items:()=>opts?opts.items.map(i=>i.title):[],openItem:i=>{const it=opts?.items[i];if(it&&!it.disabled)it.open();return !!it;},records:()=>{if(opts?.records){opts.records();return true;}return false;},hasRecords:()=>!!opts?.records,hasConcierge:()=>npcs.length>0,npcs:()=>npcs.map(n=>n.userData.provider),concierge:p=>{const n=npcs.find(n=>!p||n.userData.provider===p);if(n)opts?.onConcierge?.(n.userData.provider);return !!n;},setNpcs:list=>{setNpcs(list);return npcs.length;},exit:()=>closeInterior(),agent:()=>agent?.position.toArray()};}
+  window.__gorgoInterior={open:()=>!!opts,id:()=>opts?.id,name:()=>opts?.name,items:()=>opts?opts.items.map(i=>i.title):[],openItem:i=>{const it=opts?.items[i];if(it&&!it.disabled)it.open();return !!it;},records:()=>{if(opts?.records){opts.records();return true;}return false;},hasRecords:()=>!!opts?.records,hasConcierge:()=>npcs.length>0,npcs:()=>npcs.map(n=>n.userData.provider),npcNames:()=>npcs.map(n=>n.userData.name),concierge:p=>{const n=npcs.find(n=>!p||n.userData.provider===p);if(n)opts?.onConcierge?.(n.userData.provider);return !!n;},setNpcs:list=>{setNpcs(list);return npcs.length;},exit:()=>closeInterior(),agent:()=>agent?.position.toArray()};}
 export function closeInterior(){if(!opts)return;const o=opts;clearInterval(npcTimer);fade.classList.add('on');setTimeout(()=>{cancelAnimationFrame(raf);ui.classList.remove('on');document.body.classList.remove('in-interior');opts=null;window.__gorgoInteriorOpen=false;keys.clear();
   requestAnimationFrame(()=>fade.classList.remove('on'));o.onExit?.();},280);}

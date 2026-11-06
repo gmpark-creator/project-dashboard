@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import {initAiUI} from './ai-ui.js';
+import {initShips} from './ships.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { initCrewWorkbench, openCrewWorkbench } from './crew-workbench.js';
 import { initRecordsUI, openZoneRecords, hasRecordZone } from './records-ui.js';
 import { buildCar, Ride, shortestPath } from './ride.js';
 import { openInterior } from './interior.js';
-import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked } from './concierge.js';
+import { openConcierge, closeConcierge, conciergeInfo, npcInfo, npcCached, npcChecked, hasPersonas } from './concierge.js';
 
 const $ = id => document.getElementById(id);
 const clamp = THREE.MathUtils.clamp;
@@ -13,7 +14,7 @@ const state = { ready:false, follow:false, labels:true, selected:null, frames:0,
 try { if(localStorage.getItem('gorgo.speedMode')==='fast')state.speedMode='fast'; } catch {}
 const WORK_POINTS={},places={};
 const LEGACY_PLACES={jungang:'imm-jungang',gamcheon:'imm-gamcheon',centum:'skybiz'};
-let nearbyWork=null;
+let nearbyWork=null,shipsLayer=null,seaFx=null;
 function workpointName(p){return p.name+(p.unverified?' (위치 확인 필요)':'');}
 function configureWorkpoints(points){
   const list=document.querySelector('.travel-list');
@@ -57,6 +58,13 @@ function canWalk(x,z){
   const nearby=buildingGrid.get(Math.floor(x/.25)+','+Math.floor(z/.25))||[];
   return !nearby.some(r=>{const dx=x-r.x,dz=z-r.z;return Math.abs(dx*r.c-dz*r.s)<r.w+.025&&Math.abs(dx*r.s+dz*r.c)<r.d+.025;});
 }
+// AGENT-GORGO-34 (owner 2026-11-05): 육지 위만 이동. 바다는 못 가고, 다리(OSM bridge 도로 + 광안대교·부산항대교) 위는 지나갈 수 있다.
+const bridgeGrid=new Map();
+function addBridgeSeg(a,b,y,half){const s={ax:a.x,az:a.z,bx:b.x,bz:b.z,y,half},minX=Math.min(a.x,b.x)-half,maxX=Math.max(a.x,b.x)+half,minZ=Math.min(a.z,b.z)-half,maxZ=Math.max(a.z,b.z)+half;
+  for(let iz=Math.floor(minZ/.25);iz<=Math.floor(maxZ/.25);iz++)for(let ix=Math.floor(minX/.25);ix<=Math.floor(maxX/.25);ix++){const k=ix+','+iz;if(!bridgeGrid.has(k))bridgeGrid.set(k,[]);bridgeGrid.get(k).push(s);}}
+function bridgeAt(x,z){const list=bridgeGrid.get(Math.floor(x/.25)+','+Math.floor(z/.25));if(!list)return null;let best=null;
+  for(const s of list){const dx=s.bx-s.ax,dz=s.bz-s.az,l2=dx*dx+dz*dz;let t=l2?((x-s.ax)*dx+(z-s.az)*dz)/l2:0;t=t<0?0:t>1?1:t;if(Math.hypot(x-s.ax-dx*t,z-s.az-dz*t)<s.half&&(best===null||s.y>best))best=s.y;}return best;}
+const onLand=(x,z)=>elevation(x,z)>1;
 function geoPoint(lon,lat,lift=0){const p=project(lon,lat);p.y=Math.max(.045,groundHeight(p.x,p.z))+lift;return p;}
 function cube(parent,w,h,d,x,y,z,color,extra={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color,extra));m.position.set(x,y,z);parent.add(m);return m;}
 function cylinder(parent,rt,rb,h,x,y,z,color,n=8){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n),material(color));m.position.set(x,y,z);parent.add(m);return m;}
@@ -76,9 +84,32 @@ function makeTerrain(){
   geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();
   terrain=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));terrain.receiveShadow=true;scene.add(terrain);
   const water=new THREE.Mesh(new THREE.PlaneGeometry(150,150,1,1),new THREE.MeshStandardMaterial({color:'#8ac8c6',roughness:.52,metalness:.08}));water.rotation.x=-Math.PI/2;water.position.y=-.007;scene.add(water);
+  seaFx=makeSeaFx(water);
   // Small, restrained glints make the harbour feel alive without obscuring its outline.
   const glints=[];for(let i=0;i<450;i++){const x=(rand(i,1)-.5)*widthKm,z=(rand(i,2)-.5)*depthKm;if(elevation(x,z)>.5)continue;const l=.06+rand(i,3)*.13;glints.push(x,.006,z,x+l,.006,z);}
   const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(glints,3));scene.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:'#c2e4dc',transparent:true,opacity:.45})));
+}
+
+// G35 바다 고급화: 수면에 느리게 흐르는 잔물결 무늬(셰이더) + 해안을 따라 숨 쉬듯 밀려오는 흰 거품 띠(육지 격자에서 해안선을 뽑아 그린 텍스처).
+function makeSeaFx(water){
+  const uTime={value:0};
+  water.material.onBeforeCompile=sh=>{sh.uniforms.uTime=uTime;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vSeaW;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvSeaW=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uTime;varying vec3 vSeaW;')
+      .replace('#include <color_fragment>',`#include <color_fragment>
+      {vec2 q=vSeaW.xz;float a=sin(q.x*9.0+q.y*3.0+uTime*.9)*sin(q.y*7.0-q.x*2.0-uTime*.7);float b=sin((q.x-q.y)*23.0+uTime*1.6)*sin((q.x+q.y)*17.0-uTime*1.2);
+       float r=smoothstep(.55,.95,a*.6+b*.4);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.86,.95,.93),r*.32);diffuseColor.rgb*=.97+.05*sin(q.x*1.3+q.y*.9+uTime*.25);}`);};
+  water.material.needsUpdate=true;
+  // 해안 거품: 바다 칸 중 육지에서 1~3칸 안을 밝게, 부드럽게 번지게.
+  const W=meta.nx+1,Hh=meta.nz+1,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),img=x.createImageData(W,Hh),dist=new Uint8Array(W*Hh).fill(255),q=[];
+  for(let i=0;i<W*Hh;i++)if(landMask[i]){dist[i]=0;q.push(i);}
+  for(let h=0;h<q.length;h++){const i=q[h],d=dist[i];if(d>=3)continue;const cx=i%W,cy=(i/W)|0;for(const [dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){const X=cx+dx,Y=cy+dy;if(X<0||Y<0||X>=W||Y>=Hh)continue;const k=Y*W+X;if(dist[k]>d+1){dist[k]=d+1;q.push(k);}}}
+  for(let i=0;i<W*Hh;i++){const d=dist[i],a=d===1?255:d===2?150:d===3?60:0;img.data[i*4]=255;img.data[i*4+1]=255;img.data[i*4+2]=250;img.data[i*4+3]=a;}
+  x.putImageData(img,0,0);const c2=document.createElement('canvas');c2.width=W*2;c2.height=Hh*2;const x2=c2.getContext('2d');x2.filter='blur(1.2px)';x2.drawImage(c,0,0,c2.width,c2.height);
+  const tex=new THREE.CanvasTexture(c2);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearFilter;
+  const foamMat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,opacity:.5,color:'#ffffff'});
+  const foam=new THREE.Mesh(new THREE.PlaneGeometry(widthKm,depthKm,1,1),foamMat);foam.rotation.x=-Math.PI/2;foam.position.y=-.005;foam.renderOrder=1;foam.raycast=()=>{};foam.name='shore-foam';scene.add(foam);
+  return {update(t){uTime.value=t;foamMat.opacity=.42+.16*Math.sin(t*1.1);},foam};
 }
 
 function makeRoads(){
@@ -92,7 +123,7 @@ function makeRoads(){
     if(r.tunnel)continue;const major=['motorway','trunk','primary'].includes(r.kind);const arr=major?arrays.main:arrays.small;
     for(let i=1;i<r.points.length;i++){
       const a=geoPoint(...r.points[i-1]),b=geoPoint(...r.points[i]);if(Math.abs(a.x)>widthKm/2||Math.abs(a.z)>depthKm/2||Math.abs(b.x)>widthKm/2||Math.abs(b.z)>depthKm/2)continue;
-      strip(a,b,major?.047:.025,arr,r.bridge);
+      strip(a,b,major?.047:.025,arr,r.bridge);if(r.bridge)addBridgeSeg(a,b,Math.max(.11,(a.y+b.y)/2+.01),major?.05:.035);
     }
   }
   for(const [k,arr]of Object.entries(arrays)){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));g.computeVertexNormals();const mesh=new THREE.Mesh(g,material(k==='main'?'#f6ead3':'#eee5cc',{side:THREE.DoubleSide}));scene.add(mesh);}
@@ -146,6 +177,7 @@ function addLandmark(lon,lat,type){
 function line(points,color,radius=.008){const curve=new THREE.CatmullRomCurve3(points);const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(8,points.length*5),radius,4,false),material(color));scene.add(m);return m;}
 function bridge(aLL,bLL,type){
   const a=project(...aLL),b=project(...bLL);a.y=b.y=.19;const len=a.distanceTo(b),dir=b.clone().sub(a).normalize(),side=new THREE.Vector3(-dir.z,0,dir.x);
+  addBridgeSeg(a,b,.19,.075);
   const deck=new THREE.Mesh(new THREE.BoxGeometry(.10,.055,len),material('#e9e2c9'));deck.position.copy(a).add(b).multiplyScalar(.5);deck.lookAt(b);scene.add(deck);
   for(const t of[.32,.68]){
     const p=a.clone().lerp(b,t);for(const s of[-1,1]){const q=p.clone().addScaledVector(side,s*.065);const g=new THREE.Group();g.position.copy(q);scene.add(g);cube(g,.035,.72,.045,0,.23,0,'#eae5d1');}
@@ -284,10 +316,10 @@ function buildPlaceDialogs(){
 }
 function openContent(item){const url=contentUrl(item);if(!url){toast('아직 연결된 화면이 없습니다.');return;}clearMovement();$('content-title').textContent=item.title;$('content-external').href=url;$('content-frame').src=url;for(const d of document.querySelectorAll('dialog[open]'))d.close();$('content-dialog').showModal();}
 // 장소에 도착했을 때(AGENT-GORGO-20): 콘텐츠가 있으면 건물 안(로비)으로 들어가 키오스크에서 연다. 없으면 예전처럼 자료 창.
-function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;const zoned=hasRecordZone(id);if(!items.length&&!zoned){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
+function openSpot(id){const p=places[id],items=contentsFor(id);if(!p)return;const zoned=hasRecordZone(id),npcZone=zoned?id:(hasPersonas(id)?id:null);if(!items.length&&!zoned){if(!openZoneRecords(id)&&p.spot)toast(p.name+' · 아직 연결된 콘텐츠가 없습니다');return;}
   // AGENT-GORGO-26: 자료 존이 있는 장소(설치형 서버)에는 안내원이 상주한다
   clearMovement();for(const d of document.querySelectorAll('dialog[open]'))d.close();$('work-open').hidden=true;
-  openInterior({id,name:p.name,theme:p.spot?'hall':'office',items:items.map(it=>({title:it.title,disabled:!contentUrl(it),open:()=>openContent(it)})),records:zoned?()=>openZoneRecords(id):null,npcs:zoned?{initial:npcCached(),checked:npcChecked(),refresh:npcInfo}:null,onConcierge:provider=>openConcierge({zone:id,name:p.name,provider}),onExit:()=>{closeConcierge();nearbyWork=null;updateWorkPoint();}});}
+  openInterior({id,name:p.name,theme:p.spot?'hall':'office',items:items.map(it=>({title:it.title,disabled:!contentUrl(it),open:()=>openContent(it)})),records:zoned?()=>openZoneRecords(id):null,npcs:npcZone?{initial:npcCached(npcZone),checked:npcChecked(),refresh:()=>npcInfo(npcZone)}:null,onConcierge:provider=>openConcierge({zone:npcZone||id,name:p.name,provider}),onExit:()=>{closeConcierge();nearbyWork=null;updateWorkPoint();}});}
 function addSpots(list){const b=meta.bounds,m=.0015;
   for(const s of list){if(typeof s.lon!=='number')continue;const lon=clamp(s.lon,b[0]+m,b[2]-m),lat=clamp(s.lat,b[1]+m,b[3]-m);
     const p={id:s.id,name:s.name,lon,lat,spawn:[lon,lat],spot:true,unverified:!!s.unverified,locationNote:s.locationNote||'',source:s.source};places[s.id]=p;SPOTS[s.id]=p;WORK_POINTS[s.id]={name:s.name,radius:.75};
@@ -317,10 +349,10 @@ function updateWorkPoint(){
   for(const [id,w]of Object.entries(WORK_POINTS)){const p=project(places[id].lon,places[id].lat),d=Math.hypot(agent.position.x-p.x,agent.position.z-p.z);if(d<=w.radius&&d<best){next=id;best=d;}}
   if(state.selected&&WORK_POINTS[state.selected]){const p=project(places[state.selected].lon,places[state.selected].lat);if(Math.hypot(agent.position.x-p.x,agent.position.z-p.z)<=WORK_POINTS[state.selected].radius)next=state.selected;}
   if(next===nearbyWork)return;nearbyWork=next;$('work-open').hidden=!next;
-  if(next)$('work-open').textContent=WORK_POINTS[next].name+(contentsFor(next).length?' · 들어가기':' · 자료');
+  if(next)$('work-open').textContent=WORK_POINTS[next].name+(contentsFor(next).length?' · 들어가기':' · 자료')+' (스페이스)';
 }
 function setupEvents(){
-  initAiUI({clearMovement});
+  initAiUI({clearMovement,toast});
   setSpeedMode(state.speedMode);$('speed-mode').onclick=()=>setSpeedMode(state.speedMode==='fast'?'normal':'fast');
   initCrewWorkbench({beforeOpen:clearMovement});
   $('work-open').onclick=()=>{if(nearbyWork)openSpot(nearbyWork);};
@@ -329,7 +361,7 @@ function setupEvents(){
   document.querySelectorAll('[data-travel]').forEach(b=>b.addEventListener('click',()=>travelTo(b.dataset.travel)));
   $('travel-open').onclick=()=>{keys.clear();mobileKeys.clear();$('travel-dialog').showModal();};$('travel-close').onclick=()=>$('travel-dialog').close();
   // FIX-2 (Codex ddc5c83 review #1): physical key position (e.code), so the Korean IME state (key 'ㅈ'/'Process') cannot drop or stick a key.
-  addEventListener('keydown',e=>{const k=moveKey(e);logInput('down',e,k);if(movementBlocked()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable)return;if(k){e.preventDefault();keys.add(k);moveTarget=null;}});
+  addEventListener('keydown',e=>{const k=moveKey(e);logInput('down',e,k);if(movementBlocked()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable)return;if(k){e.preventDefault();keys.add(k);moveTarget=null;}else if(e.code==='Space'){e.preventDefault();if(!e.repeat&&nearbyWork&&!$('work-open').hidden)openSpot(nearbyWork);}});
   addEventListener('keyup',e=>{const k=moveKey(e);logInput('up',e,k);if(k)keys.delete(k);});addEventListener('blur',()=>{keys.clear();mobileKeys.clear();});document.addEventListener('visibilitychange',()=>{keys.clear();mobileKeys.clear();last=performance.now();});
   // Click / tap on the map walks Gorgo there (old 2D behaviour). A drag, a long press or a second finger stays a camera gesture.
   const el=renderer.domElement,downs=new Map();
@@ -367,9 +399,15 @@ function updateAgent(dt){
     let v,speed;
     if(moveTarget){const d=toTarget.length();v=toTarget.normalize();speed=Math.min(d,(d>2?.8:.32)*speedMultiplier()*dt);}
     else{const direction=new THREE.Vector3();camera.getWorldDirection(direction);direction.y=0;direction.normalize();const right=new THREE.Vector3().crossVectors(direction,new THREE.Vector3(0,1,0));v=right.multiplyScalar(x).addScaledVector(direction,-z).normalize();speed=(keys.has('shift')?.8:.32)*speedMultiplier()*dt;}
-    // AGENT-GORGO-4 (owner 2026-11-04): free movement — water, buildings and terrain do not block; only the map edge clamps.
-    agent.position.x=clamp(agent.position.x+v.x*speed,-widthKm/2+EDGE,widthKm/2-EDGE);agent.position.z=clamp(agent.position.z+v.z*speed,-depthKm/2+EDGE,depthKm/2-EDGE);
-    agent.position.y=groundHeight(agent.position.x,agent.position.z)+.01;agent.rotation.y=Math.atan2(v.x,v.z);gait+=dt*(keys.has('shift')?15:9);
+    // AGENT-GORGO-34 (owner 2026-11-05): 육지와 다리 위만 걸을 수 있다(건물은 막지 않는다). 막히면 벽을 따라 미끄러진다.
+    const cx=agent.position.x,cz=agent.position.z,nx=clamp(cx+v.x*speed,-widthKm/2+EDGE,widthKm/2-EDGE),nz=clamp(cz+v.z*speed,-depthKm/2+EDGE,depthKm/2-EDGE);
+    const ok=(px,pz)=>onLand(px,pz)||bridgeAt(px,pz)!==null,stuck=!ok(cx,cz); // 바다 한가운데에 있으면(시작·순간이동 직후) 자유롭게 빠져나온다
+    let px=cx,pz=cz,moved=true;if(stuck||ok(nx,nz)){px=nx;pz=nz;}
+    else{ // G35: 막히면 가장자리 방향으로 미끄러진다(비스듬한 다리·해안에서 끼지 않게 진행 방향을 ±20°씩 돌려 본다)
+      moved=false;for(const a of[.35,-.35,.7,-.7,1.05,-1.05,1.4,-1.4]){const c=Math.cos(a),s=Math.sin(a),f=speed*c*1.05,tx=clamp(cx+(v.x*c-v.z*s)*f,-widthKm/2+EDGE,widthKm/2-EDGE),tz=clamp(cz+(v.x*s+v.z*c)*f,-depthKm/2+EDGE,depthKm/2-EDGE);if(ok(tx,tz)){px=tx;pz=tz;moved=true;break;}}}
+    if(!moved||(moveTarget&&Math.hypot(px-cx,pz-cz)<speed*.2&&!ok(moveTarget.x,moveTarget.z))){if(moveTarget){moveTarget=null;targetMark.visible=false;toast('바다 위로는 갈 수 없어요');}}
+    agent.position.x=px;agent.position.z=pz;const br=bridgeAt(px,pz);
+    agent.position.y=(br!==null&&!onLand(px,pz)?br:groundHeight(px,pz))+.01;agent.rotation.y=Math.atan2(v.x,v.z);gait+=dt*(keys.has('shift')?15:9);
     // Walking keeps the camera on Gorgo; dragging the map releases it until the next step.
     if(!state.follow){state.follow=true;if(camera.position.distanceTo(controls.target)>10)flyTo(agent.position.clone(),5,false,true);else flight=null;}
   }
@@ -409,7 +447,7 @@ function animate(now){
   requestAnimationFrame(animate);if(window.__gorgoInteriorOpen){last=now;return;}const dt=Math.min(MAX_DT,Math.max(0,(now-last)/1000||.016));last=now;const t=clock.getElapsedTime();
   if(flight)stepFlight(t);
   if(state.riding)stepRide(dt);
-  updateAgent(dt);controls.update();agent.scale.setScalar(clamp(camera.position.distanceTo(controls.target)/10,.45,1));
+  shipsLayer?.update(dt,t);seaFx?.update(t);updateAgent(dt);controls.update();agent.scale.setScalar(clamp(camera.position.distanceTo(controls.target)/10,.45,1));
   boats.forEach(({g,base,phase})=>{g.position.y=.025+Math.sin(t*1.5+phase)*.004;const dx=Math.sin(t*.03+phase)*.06,dz=Math.cos(t*.03+phase)*.06;if(elevation(base.x+dx,base.z+dz)<.5){g.position.x=base.x+dx;g.position.z=base.z+dz;}});
   renderer.render(scene,camera);
   if(state.leaving&&!flight&&!state.left){state.left=true;window.GorgoHandoff?window.GorgoHandoff.leave(renderer.domElement,'korea','./'):location.href='./';}
@@ -420,7 +458,8 @@ function animate(now){
 async function init(){
   // AGENT-GORGO-11: ?map=korea opens the Korean-peninsula layer (korea.js) in the same page and dialogs; Busan stays the detailed map.
   // AGENT-GORGO-12: 처음 화면은 전국 지도. 부산 상세 지도는 ?map=busan 이며, 전국 지도에서 부산으로 들어가면 확대되며 이어진다.
-  if(new URLSearchParams(location.search).get('map')!=='busan'){(await import('./korea.js')).initKorea();return;}
+  const mapParam=new URLSearchParams(location.search).get('map');if(mapParam==='world'){(await import('./world.js')).initWorld();return;}
+  if(mapParam!=='busan'){(await import('./korea.js')).initKorea();return;}
   try{
     const results=await Promise.all(['data/sources.json','data/terrain.bin','data/roads.json','data/land.bin','data/workpoints.json'].map(async(url)=>{const r=await fetch(url);if(!r.ok)throw new Error(url+' '+r.status);return url.endsWith('.bin')?r.arrayBuffer():r.json();}));
     configureWorkpoints(results[4]);[meta,,roadData]=results;heights=new Int16Array(results[1]);landMask=new Uint8Array(results[3]);if(heights.length!==(meta.nx+1)*(meta.nz+1)||landMask.length!==heights.length)throw new Error('Terrain size mismatch');
@@ -440,7 +479,8 @@ async function init(){
     landmarks.office=landmarks.skybiz;landmarks.immigration=landmarks['imm-jungang'];landmarks.gamcheon=landmarks['imm-gamcheon'];
     bridge([129.114,35.138],[129.144,35.158],'suspension');bridge([129.053,35.098],[129.075,35.111],'cable');
     buildPlaceDialogs();makeHarbor();makeAgent();targetMark=new THREE.Mesh(new THREE.RingGeometry(.035,.05,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:"#ff7a45",transparent:true,opacity:.85,depthTest:false}));targetMark.renderOrder=11;targetMark.visible=false;targetMark.raycast=()=>{};scene.add(targetMark);makeLabels();setupEvents();
-    state.ready=true;window.__gorgoEarth={state,places,agent,camera,controls,elevation,groundHeight,canWalk,project,travelTo,landingSpot,home,homeDistance,leaveToKorea,driveTo,openSpot,contentsFor,spots:()=>Object.keys(SPOTS),riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,map:'busan',meta,setXray,xrayGhosts,EDGE,extent:()=>({hw:widthKm/2,hd:depthKm/2}),landmarks,renderer,terrain,inputLog,walkTo,MAX_DT,setSpeedMode,speedMultiplier,WORK_POINTS,nearbyWork:()=>nearbyWork,target:()=>moveTarget&&[moveTarget.x,moveTarget.z]};
+    state.ready=true;window.__gorgoEarth={onLand,bridgeAt:typeof bridgeAt==='function'?bridgeAt:undefined,onBridge:typeof onBridge==='function'?onBridge:undefined,state,places,agent,camera,controls,elevation,groundHeight,canWalk,project,travelTo,landingSpot,home,homeDistance,leaveToKorea,driveTo,openSpot,contentsFor,spots:()=>Object.keys(SPOTS),riding:()=>state.riding&&{id:state.riding.id},lastRide:()=>state.lastRide,map:'busan',meta,setXray,xrayGhosts,EDGE,extent:()=>({hw:widthKm/2,hd:depthKm/2}),landmarks,renderer,terrain,inputLog,walkTo,MAX_DT,setSpeedMode,speedMultiplier,WORK_POINTS,nearbyWork:()=>nearbyWork,target:()=>moveTarget&&[moveTarget.x,moveTarget.z]};
+    shipsLayer=initShips({scene,project,seaY:-.03,length:.28,labelDist:70,markerPx:18,camera,bounds:meta.bounds,focus:p=>flyTo(p,2.6,false,false),openWorld:s=>{clearMovement();const url='./?map=world&ship='+encodeURIComponent(s.mmsi);if(window.GorgoHandoff)window.GorgoHandoff.leave(renderer.domElement,'world',url);else location.href=url;},clearMovement,toast});window.__gorgoEarth.ships=shipsLayer;
     $('loading').classList.add('done');last=performance.now();requestAnimationFrame(animate);toast('지도 클릭으로 이동 · WASD/방향키');
   }catch(error){console.error(error);$('loading-status').textContent='지도를 불러오지 못했어요. 새로고침해 주세요. ('+error.message+')';$('loading').dataset.error=error.message;}
 }

@@ -1,0 +1,20 @@
+{
+  "accessed": "2026-11-05",
+  "bounds": [
+    -180.0,
+    -85.0,
+    180.0,
+    85.0
+  ],
+  "nx": 720,
+  "nz": 340,
+  "unitDeg": 1,
+  "terrain": {
+    "source": "Mapzen Terrain Tiles / AWS Open Data",
+    "url": "https://registry.opendata.aws/terrain-tiles/",
+    "attribution": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "zoom": 4,
+    "tiles": 256,
+    "encoding": "world-terrain.bin little-endian int16 metres, north-to-south rows, 721x341 samples at 0.5 degrees; negative = sea depth"
+  }
+}

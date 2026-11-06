@@ -116,5 +116,155 @@
       "기타"
     ],
     "map": "korea"
+  },
+  {
+    "id": "cheomseongdae",
+    "name": "경주 첨성대",
+    "place": "cheomseongdae",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "cheongwadae",
+    "name": "서울 청와대",
+    "place": "cheongwadae",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "icheon-semi",
+    "name": "이천 반도체 단지",
+    "place": "icheon-semi",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "asan-display",
+    "name": "아산 탕정 디스플레이 단지",
+    "place": "asan-display",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "pohang-steel",
+    "name": "포항제철소",
+    "place": "pohang-steel",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "ulsan-battery",
+    "name": "울산 2차전지 공장 단지",
+    "place": "ulsan-battery",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "busan-science",
+    "name": "국립부산과학관",
+    "place": "busan-science",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "kori-nuclear",
+    "name": "고리원자력본부",
+    "place": "kori-nuclear",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "pnu",
+    "name": "부산대학교",
+    "place": "pnu",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "sajik",
+    "name": "사직 종합운동장",
+    "place": "sajik",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "asiad",
+    "name": "부산아시아드주경기장",
+    "place": "asiad",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "hrdk-busan",
+    "name": "한국산업인력공단 부산지역본부",
+    "place": "hrdk-busan",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "bifc",
+    "name": "부산국제금융센터(BIFC)",
+    "place": "bifc",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "cinema-center",
+    "name": "영화의전당",
+    "place": "cinema-center",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
+  },
+  {
+    "id": "concert-hall",
+    "name": "부산콘서트홀",
+    "place": "concert-hall",
+    "docTypes": [
+      "자료",
+      "기타"
+    ],
+    "hidden": true
   }
 ]

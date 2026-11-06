@@ -4,12 +4,12 @@
 // 일반(classic) 스크립트로 모듈보다 먼저 실행돼 로딩 화면이 번쩍이지 않게 한다. 저장소를 못 쓰면 평소처럼 로딩 화면이 보일 뿐이다.
 (function(){
   var KEY='gorgo.mapHandoff',MAX_AGE=30000;
-  var map=new URLSearchParams(location.search).get('map')==='busan'?'busan':'korea';
+  var q=new URLSearchParams(location.search).get('map'),map=q==='busan'?'busan':q==='world'?'world':'korea';
   var pending=null,cover=null;
   try{var raw=sessionStorage.getItem(KEY);sessionStorage.removeItem(KEY);if(raw){var h=JSON.parse(raw);if(h&&h.to===map&&Date.now()-h.t<MAX_AGE&&typeof h.img==='string'&&h.img.indexOf('data:image/')===0)pending=h;}}catch(e){pending=null;}
   if(pending){
     cover=document.createElement('div');cover.id='map-handoff';cover.setAttribute('aria-hidden','true');cover.style.backgroundImage='url("'+pending.img+'")';
-    var cap=document.createElement('span');cap.textContent=map==='busan'?'부산 상세 지도를 펼치는 중':'전국 지도로 나가는 중';cover.appendChild(cap);
+    var cap=document.createElement('span');cap.textContent=map==='busan'?'부산 상세 지도를 펼치는 중':map==='world'?'세계 지도를 펼치는 중':'전국 지도로 나가는 중';cover.appendChild(cap);
     document.body.appendChild(cover);document.documentElement.classList.add('map-handoff-active');
   }
   window.GorgoHandoff={
