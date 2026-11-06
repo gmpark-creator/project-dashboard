@@ -38,6 +38,7 @@ function build(){
  <header class="cg-head"><span class="cg-avatar" id="cg-avatar"></span><div class="cg-who"><b id="cg-name"></b><small id="cg-state"></small></div>
   <button type="button" class="cg-close" id="cg-close" aria-label="대화창 닫기">×</button></header>
  <div class="cg-npcs" id="cg-npcs"></div>
+ <div class="cg-model" id="cg-model-row" hidden><label>모델 <select id="cg-model" aria-label="이 안내원이 쓸 AI 모델"></select></label><label id="cg-effort-wrap" hidden>생각 깊이 <select id="cg-effort" aria-label="생각 깊이"></select></label><button type="button" id="cg-model-all" title="이 선택을 모든 장소의 같은 AI 안내원 기본값으로">모든 장소에 적용</button><small id="cg-model-note"></small></div>
  <div class="cg-bar"><button type="button" id="cg-tasks" class="cg-tasks-btn" aria-haspopup="true">📂 작업함 <b id="cg-task-count"></b></button><button type="button" id="cg-new">＋ 새 작업</button><button type="button" id="cg-notes">작업 노트</button><select id="cg-cases" aria-label="작업 목록" hidden></select></div>
  <div class="cg-task" id="cg-task" hidden><button type="button" id="cg-title" class="cg-title" title="눌러서 작업 제목 바꾸기"></button><select id="cg-status" aria-label="진행 상태"><option value="progress">진행 중</option><option value="review">검토 필요</option><option value="hold">보류</option><option value="done">완료</option></select></div>
  <div class="cg-results" id="cg-results" hidden></div>
@@ -58,7 +59,7 @@ function build(){
  <div class="cg-modal" id="cg-pinm" hidden><div class="cg-modal-box"><h3>결과로 저장</h3><p class="cg-memsub">이 답을 작업의 결과물로 표시합니다. 체크하면 이 장소 자료함에도 글 파일로 남아 다른 PC에서도 열 수 있어요.</p><input id="cg-pin-label" maxlength="120" class="cg-pin-label" aria-label="결과 이름"><label class="cg-pin-save"><input type="checkbox" id="cg-pin-file" checked> 자료함에 파일(.md)로도 저장</label><div class="cg-modal-actions"><button type="button" id="cg-pin-cancel">취소</button><button type="button" id="cg-pin-ok" class="primary">저장</button></div></div></div>
  <div class="cg-modal" id="cg-pickm" hidden><div class="cg-modal-box"><h3>자료함에서 대화에 첨부</h3><ul class="cg-pick" id="cg-pick"></ul><div class="cg-modal-actions"><button type="button" id="cg-pick-cancel">취소</button><button type="button" id="cg-pick-save" class="primary">첨부</button></div></div></div>`;
  document.body.append(ui);
- $('cg-close').onclick=()=>closeConcierge();$('cg-new').onclick=()=>{state.caseId=null;state.current=null;$('cg-cases').value='';$('cg-drawer').hidden=true;render(null);$('cg-text').focus();};
+ $('cg-close').onclick=()=>closeConcierge();$('cg-model').onchange=()=>{paintEffort();saveModel(false);};$('cg-effort').onchange=()=>saveModel(false);$('cg-model-all').onclick=()=>saveModel(true);$('cg-new').onclick=()=>{state.caseId=null;state.current=null;$('cg-cases').value='';$('cg-drawer').hidden=true;render(null);$('cg-text').focus();};
  // AGENT-GORGO-36 작업함: 이 장소에서 맡긴 일 목록(상태별·검색) · 제목/상태 바꾸기 · 결과물
  $('cg-tasks').onclick=()=>{const d=$('cg-drawer');d.hidden=!d.hidden;if(!d.hidden){paintTaskList();$('cg-search').focus();}};$('cg-drawer-close').onclick=()=>{$('cg-drawer').hidden=true;};
  $('cg-search').oninput=()=>paintTaskList();$('cg-all-tasks').onclick=()=>{$('cg-drawer').hidden=true;window.GorgoTasks?.open({zone:ctx?.zone});};
@@ -82,17 +83,29 @@ function build(){
 }
 function note(text){const m=$('cg-msgs');m.append(el('p',{className:'cg-note',textContent:text}));m.scrollTop=m.scrollHeight;}
 function ready(){return (alive||[]).some(n=>n.provider===state.provider);}
+// AGENT-GORGO-37 안내원 모델 선택: 장소+AI마다 이 PC에 저장(서버 /api/models). Claude 기본 = Opus 5.5.
+const EFFORT={low:'낮음',medium:'보통',high:'높음',xhigh:'매우 높음',max:'최대',ultra:'울트라'};
+let models=null;const gptName=id=>models?.chatgpt?.options?.find(o=>o.id===id)?.name||id;const shortModel=m=>String(m||'').replace(/^chatgpt \((.+)\)$/,(x,id)=>gptName(id)).replace(/^chatgpt \((.+)\)$/,'$1').replace(/^claude-(opus|sonnet|haiku|fable)-(\d+)-(\d+).*$/,(x,a,b,c)=>a[0].toUpperCase()+a.slice(1)+' '+b+'.'+c);
+async function loadModels(){const row=$('cg-model-row');const p=state.provider;if(!['claudecode','chatgpt'].includes(p)||!ready()){row.hidden=true;return;}
+ try{models=await api('/api/models?zone='+encodeURIComponent(ctx.zone));}catch{row.hidden=true;return;}const m=models[p];if(!m){row.hidden=true;return;}
+ const sel=$('cg-model');sel.replaceChildren();if(p==='chatgpt')sel.append(new Option('기본 (ChatGPT 권장)',''));for(const o of m.options)sel.append(new Option(o.name+(o.note?' — '+o.note:'')+(o.isDefault?' · 기본':''),o.id));
+ if(m.current.model&&!m.options.some(o=>o.id===m.current.model))sel.append(new Option(m.current.model,m.current.model));sel.value=m.current.model;paintEffort();
+ $('cg-model-note').textContent=m.scope==='zone'?'이 안내원 전용':m.scope==='all'?'모든 장소 기본':'기본값';row.hidden=false;}
+function paintEffort(){const p=state.provider,m=models?.[p],w=$('cg-effort-wrap'),e=$('cg-effort');if(p!=='chatgpt'||!m){w.hidden=true;return;}const o=m.options.find(x=>x.id===$('cg-model').value)||m.options.find(x=>x.isDefault);const list=o?.efforts||[];
+ e.replaceChildren(new Option('기본'+(o?.defaultEffort?' ('+(EFFORT[o.defaultEffort]||o.defaultEffort)+')':''),''));for(const k of list)e.append(new Option(EFFORT[k]||k,k));e.value=list.includes(m.current.effort)?m.current.effort:'';w.hidden=!list.length;}
+async function saveModel(all){const p=state.provider;try{models=await api('/api/models',{zone:ctx.zone,provider:p,model:$('cg-model').value,effort:p==='chatgpt'?$('cg-effort').value:'',all:!!all});
+  const name=$('cg-model').selectedOptions[0]?.textContent.split(' — ')[0]||'기본';note((all?'모든 장소의 ':'')+personaFor(ctx.zone,p).name+'('+(p==='chatgpt'?'GPT':'Claude')+') 안내원이 이제부터 '+name+(p==='chatgpt'&&$('cg-effort').value?' · 생각 깊이 '+EFFORT[$('cg-effort').value]:'')+'(으)로 답합니다.');await loadModels();}catch(e){note(e.message);await loadModels();}}
 function showPersona(){const p=personaFor(ctx?.zone,state.provider),me=(alive||[]).find(n=>n.provider===state.provider);
  $('cg-avatar').style.background=p.color;$('cg-avatar').textContent=p.name.slice(0,1);$('cg-name').textContent=p.slot+'번 '+p.name+(p.title?' · '+p.title:'');
  $('cg-state').textContent=p.ai+' · '+(me?('로그인 유지됨'+(me.account?' · '+me.account:'')):'이 PC에서 로그인 필요');$('cg-state').dataset.ready=String(!!me);
  $('cg-login').hidden=!!me;$('cg-login-text').textContent=p.ai+' 로그인이 필요합니다. 한 번 로그인하면 이 PC에서 계속 유지됩니다.';
  // 다른 살아 있는 안내원으로 바꾸기(같은 대화를 이어서 맡긴다)
- const box=$('cg-npcs');box.replaceChildren();const list=alive||[];if(list.length>1)for(const n of list)box.append(el('button',{type:'button',className:n.provider===state.provider?'on':'',textContent:n.slot+'번 '+n.name+' ('+n.ai+')',onclick:()=>{state.provider=n.provider;showPersona();ctx?.onPersona?.(n.provider);}}));
+ const box=$('cg-npcs');box.replaceChildren();const list=alive||[];if(list.length>1)for(const n of list)box.append(el('button',{type:'button',className:n.provider===state.provider?'on':'',textContent:n.slot+'번 '+n.name+' ('+n.ai+')',onclick:()=>{state.provider=n.provider;showPersona();loadModels();ctx?.onPersona?.(n.provider);}}));
  box.hidden=list.length<2;}
 function render(c){state.current=c;const m=$('cg-msgs');m.replaceChildren();const p=personaFor(ctx.zone,state.provider);
  if(!c||!c.messages?.length){m.append(el('div',{className:'cg-msg agent'},[el('b',{textContent:p.name}),el('p',{textContent:(p.greeting||('안녕하세요, '+ctx.name+' '+p.slot+'번 '+p.name+'('+p.ai+')입니다.'))+'\n서류를 이 창에 끌어다 놓거나 「자료함에서 첨부」로 고른 뒤, 할 일을 말씀해 주세요.'})]));}
  for(const msg of c?.messages||[]){const who=msg.role==='user'?'박사':(personaFor(ctx.zone,msg.provider).name||'안내원');const res=(c.results||[]).find(r=>r.messageId===msg.id);
-  m.append(el('div',{className:'cg-msg '+(msg.role==='user'?'user':'agent')+(res?' pinned':''),id:'cg-m-'+msg.id},[el('b',{textContent:who+(res?' · ⭐ 결과: '+res.label:'')}),el('p',{textContent:msg.text}),...(msg.role==='agent'?[el('div',{className:'cg-msg-actions'},[el('button',{type:'button',textContent:'복사',onclick:()=>navigator.clipboard?.writeText(msg.text)}),
+  m.append(el('div',{className:'cg-msg '+(msg.role==='user'?'user':'agent')+(res?' pinned':''),id:'cg-m-'+msg.id},[el('b',{textContent:who+(msg.role==='agent'&&msg.model?' · '+shortModel(msg.model):'')+(res?' · ⭐ 결과: '+res.label:'')}),el('p',{textContent:msg.text}),...(msg.role==='agent'?[el('div',{className:'cg-msg-actions'},[el('button',{type:'button',textContent:'복사',onclick:()=>navigator.clipboard?.writeText(msg.text)}),
    res?el('button',{type:'button',textContent:'결과 표시 빼기',onclick:()=>unpin(res.id)}):el('button',{type:'button',className:'cg-pin',textContent:'⭐ 결과로 저장',onclick:()=>pinAsk(msg)})])]:[])]));}
  const at=$('cg-attach');at.replaceChildren();for(const s of c?.attachments||[])at.append(el('span',{className:'cg-chip-file',textContent:'📎 '+s.name}));
  m.scrollTop=m.scrollHeight;renderTask(c);renderChips(c);renderToday();}
@@ -137,7 +150,7 @@ async function send(){const text=$('cg-text').value.trim();if(!text||state.busy)
  // 이 PC에서 안내원 AI가 로그인 전이면 빈 대화를 만들지 않고 안내만 한다
  if(!ready()){note('먼저 「AI 연결 열기」에서 '+p.ai+' 로그인을 해주세요. 한 번 로그인하면 계속 유지됩니다.');return;}state.busy=true;$('cg-send').disabled=true;
  try{const id=await ensureCase();$('cg-text').value='';const m=$('cg-msgs');m.append(el('div',{className:'cg-msg user'},[el('b',{textContent:'박사'}),el('p',{textContent:text})]));
-  const n=state.current?.attachments?.length||0;const think=el('div',{className:'cg-msg agent thinking'},[el('b',{textContent:personaFor(ctx.zone,state.provider).name}),el('p',{textContent:n?'첨부 '+n+'건을 읽고 작업 중… (서류가 많으면 몇 분 걸릴 수 있어요)':'작업 중…'})]);m.append(think);m.scrollTop=m.scrollHeight;
+  const n=state.current?.attachments?.length||0;const think=el('div',{className:'cg-msg agent thinking'},[el('b',{textContent:personaFor(ctx.zone,state.provider).name}),el('p',{textContent:(models?.[state.provider]?.current?.model?shortModel(models[state.provider].current.model)+' · ':'')+(n?'첨부 '+n+'건을 읽고 작업 중… (서류가 많으면 몇 분 걸릴 수 있어요)':'작업 중…')})]);m.append(think);m.scrollTop=m.scrollHeight;
   try{render(await api('/api/cases/'+encodeURIComponent(id)+'/chat',{text,provider:state.provider}));}catch(e){think.remove();await loadCase();note(e.message+(e.status===409?' (AI 연결 열기에서 로그인해주세요)':''));}}
  catch(e){note(e.message);}finally{state.busy=false;$('cg-send').disabled=false;}}
 async function upload(files){for(const f of files){try{const id=await ensureCase();note('「'+f.name+'」 저장 중…');
@@ -162,6 +175,6 @@ function modal(title,text,onSave,opt={}){$('cg-modal-title').textContent=title;$
 // ctx = {zone, name, provider, onPersona} — provider = 말을 건 안내원의 AI
 export async function openConcierge(c){if(!ui)build();ctx=c;state.caseId=c.caseId||null;$('cg-drawer').hidden=true;state.current=null;state.provider=c.provider||(alive||[])[0]?.provider||'claudecode';npcLoad.then(()=>{if(ui?.classList.contains('on'))showPersona();});ui.classList.add('on');document.body.classList.add('concierge-on');showPersona();
  try{const zones=await api('/api/zones');const z=zones.find(z=>z.id===c.zone);state.zoneDocType=z?.docTypes?.includes('기타')?'기타':(z?.docTypes?.at(-1)||'기타');}catch{note('설치형 프로그램에서 안내원과 대화할 수 있습니다.');return;}
- await npcInfo(c.zone);showPersona();await loadCases();if(c.caseId&&!state.cases.some(x=>x.id===c.caseId))state.caseId=state.cases[0]?.id||null;$('cg-cases').value=state.caseId||'';await loadCase();setTimeout(()=>$('cg-text')?.focus(),50);}
+ await npcInfo(c.zone);showPersona();loadModels();await loadCases();if(c.caseId&&!state.cases.some(x=>x.id===c.caseId))state.caseId=state.cases[0]?.id||null;$('cg-cases').value=state.caseId||'';await loadCase();setTimeout(()=>$('cg-text')?.focus(),50);}
 export function closeConcierge(){if(!ui)return;ui.classList.remove('on');document.body.classList.remove('concierge-on');$('cg-modal').hidden=true;$('cg-pickm').hidden=true;$('cg-memm').hidden=true;$('cg-pinm').hidden=true;$('cg-drawer').hidden=true;}
 export function isConciergeOpen(){return !!ui?.classList.contains('on');}
