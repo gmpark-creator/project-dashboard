@@ -882,7 +882,7 @@ const PROJECTS = [
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'790e815'+') — G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'bcfa605'+') — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -901,6 +901,8 @@ const PROJECTS = [
       { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
     ],
     issues: [
+      { type:'완료', title:'G44 (11-06) 안내원이 엑셀 원본을 직접 본다', desc:'엑셀 첨부를 칸 정보(값·수식·음영·글자색·병합·열 너비·숨김)와 엑셀처럼 그린 시트 화면 그림으로 함께 전달(엑셀 없는 PC도). 실제 Claude·GPT가 수식·색·병합·숨긴 열 6문항 모두 정답.' },
+      { type:'계획', title:'G43 (설계) SNC LOGIX 패치 센터 · MATT PARK', desc:'서울 영등포구 선유로 130 에이스하이테크시티3차. 고르고 안에서 요청→계획→구현→검사→GPT 검수→박사 배포→되돌리기. 박사 결정 대기(구현 전).' },
       { type:'완료', title:'G42 (11-06) 첨부 때문에 대화가 막히는 악순환 해결', desc:'사무실 출입국 작업이 .xls 첨부를 못 읽어 계속 실패 → 못 읽는 첨부는 건너뛰고 이유 안내, 첨부 × 빼기, .xls를 엑셀 없이 직접 읽기(실제 파일 299칸 일치), 엑셀 음영 보기·칠하기(.xls 양식 포함), 엑셀 잠금 파일 동기화 제외. 실제 Claude·GPT 확인.' },
       { type:'완료', title:'G41 (11-06, 사무실 GPT) 3PC×2AI 공통 작업 규칙', desc:'어느 PC·AI든 같은 순서로 이어받고 배포하는 WORKFLOW.md·준비 스크립트.' },
       { type:'완료', title:'G40 (11-06) 안내원 파일 만들기 + Claude 생각 깊이', desc:'안내원이 엑셀(새로·첨부 양식 칸 채우기, 서식 유지)·워드·PPT·PDF를 만들어 자료함에 저장, 답 아래 열기 단추. 실제 Claude Opus·GPT로 양식 채우기+PPT+PDF 생성 후 엑셀로 열어 확인. Claude도 생각 깊이(낮음~최대) 선택.' },
