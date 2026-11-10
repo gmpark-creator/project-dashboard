@@ -878,11 +878,11 @@ const PROJECTS = [
     platform: '웹 앱 + Windows 설치형 · Three.js 3D (빌드 없음)',
     status: 'in-progress',
     start: '2026-11-03',
-    latest: '2026-11-06',
+    latest: '2026-11-10',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'최신 (newton '+'bcfa605'+') — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 28ec2b2 (11-10) — 그 뒤 기능(G45~G53·세계 사무실·선박 브릿지 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -901,6 +901,16 @@ const PROJECTS = [
       { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
     ],
     issues: [
+      { type:'이슈', title:'박사 확인 대기 (11-07~10 누적)', desc:'① 설치 앱 업데이트 후 G50 「AppData」 창이 사라졌는지 ② Gemini 웹 로그인 1회(Antigravity 설치→로그인 — G51·3번 NPC 실응답 미확인) ③ 설치 앱에서 패치 1건 실사용(G52) ④ 해운대도서관에 넣을 소설 파일 경로(등록 대기) ⑤ 모스크바 본사 표기 HEAD OFFICE vs HEADQUARTERS ⑥ 양식 칸 채우기(G30)용 박사 양식 파일.' },
+      { type:'이슈', title:'알려진 실패 검사 (환경/기존 문제)', desc:'models-qa·records-qa(이 PC git 푸시 시간)·korea-qa(안내원 표시 대기)·movement-qa(CDP) — 변경 전 기준 커밋에서도 동일 실패로 확인, 회귀 아님. 다른 PC 실제 실행·물리 GPU FPS는 Codex 항목 전부 미검증.' },
+      { type:'완료', title:'선박 클릭 → 브릿지 내부 입장 (11-10 Codex, 0b4bed7)', desc:'부산·대한민국·세계 지도 선박 표지를 누르면 그 배의 조타실(12×8, 파노라마 선창·조타륜·항해 콘솔·레이더·해도 테이블)로 입장. 선박 목록에서 브릿지 입장/위치 보기. 3지도 실제 클릭·모바일 390px·28척 6선종 검사 PASS, 설치 앱 업데이트 후 AKADEMIK KAZANIN 브릿지 실화면 확인. 장비 화면은 공간 연출(실제 항해 데이터 아님).' },
+      { type:'완료', title:'센텀 학교·스카이비즈 35층 통합 (11-10 Codex, 846224b)', desc:'기초과학/TOEIC → 센텀고등학교 위치의 「센텀초중고」, 통관·보세사·위험물산업기사·PANDA·MAGE → 「센텀스카이비즈 35층」(240㎡, 기본의 3.43배, 업무 스테이션 7개). 국내 AI NPC = 아인슈타인 GPT · 뉴턴 Claude · 뤄지 Gemini. 빈 장소 5곳 제거, 번호 부산14·전국10·세계9=33개 연속, 기존 ID는 alias로 보존(자료·대화·기억 유지). 선박 목적지 줄 추가(cff31cf).' },
+      { type:'완료', title:'AIS 최신 28척·6개 선단 연동 (11-10 Codex, 4ae73b9)', desc:'AIS Ship Tracker 변경 반영 — 22척 MMSI 필터 제거, 운영 API 일반 20+교와 8 = 28척. BOSKALIS·NORTH LNG 등 신규 선단, IMO/MMSI/호출부호/기국 표시. 오래된 위치를 현재 운항으로 단정하지 않음. 설치 서버 실제 API 28척 확인(목적지는 미수신 0).' },
+      { type:'완료', title:'해외 사무실 8곳·현지 NPC·지역 건축 (11-09 Codex, 7d9d122·87f84b0)', desc:'모스크바·블라디보스토크·런던·파펜드레흐트·무르만스크·상하이·도쿄·바르셀로나에 실제 업무 사무실과 독립 현지 안내원 8명, 각 지역 건축 양식 내부. 설치 앱 실화면 확인.' },
+      { type:'완료', title:'세계 지도 연출·품질 일괄 (11-08 Codex)', desc:'NASA 지구 렌더러(d1656d6) · 국가 간 이동=지구 궤도 비행(fe5ba1e) · 귀여운 비행기+국가별 3D 미니어처(38e8470) · 국내 지도 화풍 통일·크렘린·일본식 건축(43e67e1). 박사가 「유아스럽다」 평가 후 무광·석재 톤으로 교정. 설치 앱 숨김 창 문제(Hidden 실행이 원인) 복구.' },
+      { type:'완료', title:'G52+ 작업 배정 옵션 1·2·3 · 왼쪽 장소 목록 · 상단 한 줄 메뉴 (11-08 Claude, 4cc2479·f7a4091·c5ab2c8)', desc:'MATT PARK 작업 배정 3슬롯+「검수 하지 않음」. GPT 구현이 Windows에서 조용히 read-only로 떨어지던 문제 수정(windows.sandbox=unelevated, 쓰기 범위 밖 차단 실측). 왼쪽 장소 목록(부산→대한민국→국가 번호 연속·접기/펼치기)과 오른쪽 위 한 줄 메뉴.' },
+      { type:'완료', title:'G50~G53 (11-07 Claude Sonnet 5.5) + Gemini 3번 NPC', desc:'G50 「AppData」 창 제거(네이티브 codex.exe 직접 실행) · G53 AIS 선박 운항/정박 크기 차등 · G51 Gemini 웹 로그인(공식 Antigravity CLI agy, 약관 동의) · G52 MATT PARK 단계별 AI×모델×생각깊이 배정(구현은 GPT·Gemini도 허용) · 모든 장소 NPC를 GPT·Claude·Gemini 3명(78명). 병행 Codex: 자료함 검색·정렬, 해운대도서관, 내부 유형별 인테리어, 구형 지구·번호 목록.' },
+      { type:'완료', title:'G45~G49 (11-06~07 Claude)', desc:'G45 바다 클릭 이동 차단·실제 KTX 선로로만 열차 주행 · G46 「대한민국」 표기·세계 핀 9곳(비행기 변신 비행) · G47 이름표 클릭 비행 복구 · G49 SNC LOGIX 「패치 센터」(MATT PARK) — 요청→계획→승인→구현→검사→GPT 검수→배포→되돌리기.' },
       { type:'완료', title:'G44 (11-06) 안내원이 엑셀 원본을 직접 본다', desc:'엑셀 첨부를 칸 정보(값·수식·음영·글자색·병합·열 너비·숨김)와 엑셀처럼 그린 시트 화면 그림으로 함께 전달(엑셀 없는 PC도). 실제 Claude·GPT가 수식·색·병합·숨긴 열 6문항 모두 정답.' },
       { type:'계획', title:'G43 (설계) SNC LOGIX 패치 센터 · MATT PARK', desc:'서울 영등포구 선유로 130 에이스하이테크시티3차. 고르고 안에서 요청→계획→구현→검사→GPT 검수→박사 배포→되돌리기. 박사 결정 대기(구현 전).' },
       { type:'완료', title:'G42 (11-06) 첨부 때문에 대화가 막히는 악순환 해결', desc:'사무실 출입국 작업이 .xls 첨부를 못 읽어 계속 실패 → 못 읽는 첨부는 건너뛰고 이유 안내, 첨부 × 빼기, .xls를 엑셀 없이 직접 읽기(실제 파일 299칸 일치), 엑셀 음영 보기·칠하기(.xls 양식 포함), 엑셀 잠금 파일 동기화 제외. 실제 Claude·GPT 확인.' },
@@ -940,7 +950,10 @@ const PROJECTS = [
       { date:'2026-11-03', title:'프로젝트 #14 신설 — AGENT GORGO WORLD 부산편', desc:'디렉터 지시로 지도·캐릭터 미적 부분 먼저 구현. 업무 모듈은 순차 추가 예정.', isCore:true },
       { date:'2026-11-04', title:'기준 버전 GORGO EARTH 3D 채택 · 설치형 배포', desc:'Windows 설치 ZIP(private Release), 3대 PC 자료 동기화, AI 연결 창.', isCore:true },
       { date:'2026-11-05', title:'Claude 전면 인수 · 전국 기차 ⇄ 부산 확대 전환', desc:'G12~G15: 전국 지도 시작, 확대·축소 이음새, 센텀 시작, 부산 자동차·전국 기차, 메뉴 전환 버튼.', isCore:true },
-      { date:'2026-11-05', title:'안내원에게 말 걸어 일 맡기기 — 1번 GPT · 2번 Claude', desc:'G26~G32: 로비 상주 안내원, AI 대화 작업, 엑셀·워드·한글·PDF 서류 읽기. 실제 입항 서류 8건으로 두 AI 모두 정상 동작 확인.', isCore:true }
+      { date:'2026-11-05', title:'안내원에게 말 걸어 일 맡기기 — 1번 GPT · 2번 Claude', desc:'G26~G32: 로비 상주 안내원, AI 대화 작업, 엑셀·워드·한글·PDF 서류 읽기. 실제 입항 서류 8건으로 두 AI 모두 정상 동작 확인.', isCore:true },
+      { date:'2026-11-07', title:'G50~G53 · Gemini 3번 NPC · MATT PARK 작업 배정', desc:'AppData 창 제거, 선박 크기 차등, Gemini 웹 로그인, 단계별 AI/모델 배정.', isCore:true },
+      { date:'2026-11-08', title:'NASA 지구 · 궤도 비행 · 장소 목록 · 국내 화풍 통일', desc:'Codex 지구/비행/미니어처, Claude 장소 목록·상단 메뉴·작업 배정 옵션.', isCore:true },
+      { date:'2026-11-10', title:'센텀 통합 · AIS 28척 · 선박 브릿지 · 해외 사무실 8곳', desc:'Codex 연속 배포(codex 28ec2b2). 이후 작업은 이 기준에서 이어받는다.', isCore:true }
     ]
   }
 ];
