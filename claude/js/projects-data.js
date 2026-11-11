@@ -878,11 +878,11 @@ const PROJECTS = [
     platform: '웹 앱 + Windows 설치형 · Three.js 3D (빌드 없음)',
     status: 'in-progress',
     start: '2026-11-03',
-    latest: '2026-11-10',
+    latest: '2026-11-11',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 28ec2b2 (11-10) — 그 뒤 기능(G45~G53·세계 사무실·선박 브릿지 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 02852ed (11-11) — 그 뒤 기능(G45~G53·세계 사무실·선박 브릿지·SNC LOGIX 경영진 사무실·선박 자동차 이동 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -901,6 +901,8 @@ const PROJECTS = [
       { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
     ],
     issues: [
+      { type:'완료', title:'GREAT WENWU 추가 · 선박 크기 복구 · 자동차로 선박 이동 · 열차 직행 · 입장 연출 통일 (11-11 Claude, 02852ed)', desc:'AIS Ship Tracker에 GREAT WENWU(Vanuatu · IMO 9196826 · MMSI 577740000)를 OCEAN ACE 카테고리로 추가(clavef/ais PR #15 — main 머지는 Matt 승인 대기) · 고르고 29척 반영(실시간 API에 잡히기 전엔 위치 미수신) · 대한민국 지도: 지나다니는 선박은 원래 크기, 정박·접안만 작게 · 부산: 선박 클릭 시 고르고가 자동차로 선박 쪽 도로까지 이동 → 이동 연출 → 브릿지 · 대한민국: 열차가 자동차 환승 없이 그대로 장소로 진입 · 선박 입장 연출을 부산·대한민국·세계 모든 장소 입장에 동일 적용. 새 검사 entry-fx-qa 포함 관련 검사 PASS(korea-qa·movement-qa는 변경 전에도 동일 실패). 이 PC 설치 앱 fbf0d7f→02852ed 업데이트 확인.' },
+      { type:'완료', title:'SNC LOGIX 경영진 사무실 · MATT PARK 단상 자리 (11-11 Claude, fbf0d7f)', desc:'스카이비즈 35층보다 넓은 24×14m·벽 4.8m 경영진 방, 단상 책상에 MATT PARK(차콜 정장·조끼·버건디 타이·금 배지). 열린 일: patch-ui-qa 불안정(Windows rename 경합 추정), library-rooms-qa 기대값 갱신.' },
       { type:'완료', title:'선박 이동 연출 · 호버 상세 카드 · 부산↔세계 이동 · 접안 선박 표시 (11-10 Claude)', desc:'선박 클릭 시 배를 향해 다가가는 연출 뒤 브릿지 입장 · 장소/선박에 마우스를 올리면 번호·이름·설명·업무 종류 카드 · 부산 「세계 지도로」/세계 「부산 지도로」 버튼 · 대한민국 지도 접안 선박은 ⚓ 표지+큰 이름표(호버로 접안 항구) · 부산 지도 접안 선박 고르고 크기로 확대, 겹치는 크레인은 비켜 세움. 한국 NPC 이름도 원래대로 복원(스카이비즈 35층만 아인슈타인·뉴턴·뤄지).' },
       { type:'이슈', title:'박사 확인 대기 (11-07~10 누적)', desc:'① 설치 앱 업데이트 후 G50 「AppData」 창이 사라졌는지 ② Gemini 웹 로그인 1회(Antigravity 설치→로그인 — G51·3번 NPC 실응답 미확인) ③ 설치 앱에서 패치 1건 실사용(G52) ④ 해운대도서관에 넣을 소설 파일 경로(등록 대기) ⑤ 모스크바 본사 표기 HEAD OFFICE vs HEADQUARTERS ⑥ 양식 칸 채우기(G30)용 박사 양식 파일.' },
       { type:'이슈', title:'알려진 실패 검사 (환경/기존 문제)', desc:'models-qa·records-qa(이 PC git 푸시 시간)·korea-qa(안내원 표시 대기)·movement-qa(CDP) — 변경 전 기준 커밋에서도 동일 실패로 확인, 회귀 아님. 다른 PC 실제 실행·물리 GPU FPS는 Codex 항목 전부 미검증.' },
@@ -954,7 +956,8 @@ const PROJECTS = [
       { date:'2026-11-05', title:'안내원에게 말 걸어 일 맡기기 — 1번 GPT · 2번 Claude', desc:'G26~G32: 로비 상주 안내원, AI 대화 작업, 엑셀·워드·한글·PDF 서류 읽기. 실제 입항 서류 8건으로 두 AI 모두 정상 동작 확인.', isCore:true },
       { date:'2026-11-07', title:'G50~G53 · Gemini 3번 NPC · MATT PARK 작업 배정', desc:'AppData 창 제거, 선박 크기 차등, Gemini 웹 로그인, 단계별 AI/모델 배정.', isCore:true },
       { date:'2026-11-08', title:'NASA 지구 · 궤도 비행 · 장소 목록 · 국내 화풍 통일', desc:'Codex 지구/비행/미니어처, Claude 장소 목록·상단 메뉴·작업 배정 옵션.', isCore:true },
-      { date:'2026-11-10', title:'센텀 통합 · AIS 28척 · 선박 브릿지 · 해외 사무실 8곳', desc:'Codex 연속 배포(codex 28ec2b2). 이후 작업은 이 기준에서 이어받는다.', isCore:true }
+      { date:'2026-11-10', title:'센텀 통합 · AIS 28척 · 선박 브릿지 · 해외 사무실 8곳', desc:'Codex 연속 배포(codex 28ec2b2). 이후 작업은 이 기준에서 이어받는다.', isCore:true },
+      { date:'2026-11-11', title:'AIS 29척(GREAT WENWU) · 선박 자동차 이동 · 열차 직행 · 입장 연출 통일', desc:'Claude 배포(codex 02852ed): 부산 선박 클릭=자동차로 이동, 대한민국 열차 그대로 장소 진입, 모든 지도 장소 입장에 선박 이동 연출. SNC LOGIX 경영진 사무실(fbf0d7f).', isCore:true }
     ]
   }
 ];
