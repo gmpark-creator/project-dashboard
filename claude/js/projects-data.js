@@ -959,6 +959,36 @@ const PROJECTS = [
       { date:'2026-11-10', title:'센텀 통합 · AIS 28척 · 선박 브릿지 · 해외 사무실 8곳', desc:'Codex 연속 배포(codex 28ec2b2). 이후 작업은 이 기준에서 이어받는다.', isCore:true },
       { date:'2026-11-11', title:'AIS 29척(GREAT WENWU) · 선박 자동차 이동 · 열차 직행 · 입장 연출 통일', desc:'Claude 배포(codex 02852ed): 부산 선박 클릭=자동차로 이동, 대한민국 열차 그대로 장소 진입, 모든 지도 장소 입장에 선박 이동 연출. SNC LOGIX 경영진 사무실(fbf0d7f).', isCore:true }
     ]
+  },
+  {
+    id: 'ai-question-logger',
+    no: 15,
+    name: 'AI 질문 기록기',
+    subtitle: '내 PC 브라우저에서 AI 웹 서비스에 보낸 질문을 시각·카테고리·주제로 기록하고, 근무시간 외 사용을 표시하는 브라우저 확장',
+    icon: 'shield',
+    platform: '브라우저 확장 (Chrome · Edge, Manifest V3, 압축해제 로드) · 외부 전송 없음',
+    status: 'in-progress',
+    start: '2026-11-12',
+    latest: '2026-11-12',
+    progress: 80,
+    summary: 'Claude·ChatGPT·Gemini 등 AI 웹 서비스에서 실제로 전송된 질문만 골라 날짜·시각(KST)·카테고리·주제(앞 80자)·사이트를 이 PC 브라우저 저장소에만 기록한다.\n'
+           + '평일 08:30~18:00 밖(출근 전·퇴근 후·주말·고정 공휴일)에 쓰이면 화면 경고창·윈도우 알림·빨간 배지로 표시해 개인 AI 계정의 무단 사용을 알아챈다.\n'
+           + '노트북에서 만들고 사무실 데스크탑 Chrome·Edge 양쪽에 설치. 바탕화면 「AI 질문 기록기」 바로가기로 전체 기록 화면을 바로 연다.',
+    method: '콘텐츠 스크립트가 Enter·전송 버튼 뒤 0.7초 내 입력창이 비면 「전송됨」으로 판정(한글 IME 대응, 5초 중복 제거) → 키워드 점수제 로컬 분류(13개 카테고리) → Asia/Seoul 기준 근무시간 판정. 기록 화면에서 날짜·카테고리·검색 필터, CSV(엑셀 한글 BOM) 내보내기.',
+    stack: ['JavaScript', 'Chrome Extension MV3', 'chrome.storage', 'Notifications API'],
+    stackDetail: [
+      { area: '전송 감지', tech: 'Content Script (Vanilla JS)', how: '입력창(textarea·contenteditable) 스냅샷과 전송 후 입력창 변화로 실제 전송만 기록. 사이트 구조가 바뀌면 선택자(COMPOSER_SEL/SEND_SEL)만 보정.' },
+      { area: '시간 판정', tech: 'Intl.DateTimeFormat (Asia/Seoul)', how: 'PC 시간대와 무관하게 한국시간으로 근무시간·주말·고정 양력 공휴일 판정.' },
+      { area: '저장·알림', tech: 'chrome.storage.local · chrome.notifications', how: '기록은 브라우저 안에만 저장(브라우저별 별도), 근무시간 외 사용 시 윈도우 알림 + 아이콘 배지 카운트.' }
+    ],
+    issues: [
+      { type:'완료', title:'사무실 데스크탑 Chrome·Edge 설치', desc:'두 브라우저에 압축해제 확장으로 로드, 소유자 번호(가림 표시용) 저장. 바탕화면 바로가기(Edge 기록 화면) 생성.' },
+      { type:'완료', title:'Claude 웹 전송 감지 실사용 확인', desc:'Edge의 claude.ai에서 질문 전송 → 기록 화면에 표시 확인(2026-11-12).' },
+      { type:'예정', title:'ChatGPT·Gemini 등 나머지 사이트 실사용 확인', desc:'대상 9개 사이트 중 Claude 외에는 아직 실제 전송으로 확인 전. 브라우저 내장 사이드 패널(Edge Copilot·Chrome Gemini 버튼)은 대상 아님.' }
+    ],
+    milestones: [
+      { date:'2026-11-12', title:'프로젝트 #15 신설 — AI 질문 기록기 v1.2.0', desc:'노트북 Claude 세션에서 제작 → 사무실 데스크탑 Chrome·Edge 설치, Claude 웹 기록 동작 확인.', isCore:true }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */

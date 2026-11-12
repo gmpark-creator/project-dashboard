@@ -53,6 +53,11 @@
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<path d="M2 12h4l2.5-6 4 13 2.5-7H22"/>' +
       '</svg>',
+    // 방패 + 체크 (15 · AI 질문 기록기)
+    'shield':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>' +
+      '</svg>',
     // AI 영상 제작 — 비디오 프레임 + 재생 (11 · Cutpilot, currentColor=rose 자동)
     'film':
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
