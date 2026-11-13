@@ -772,6 +772,8 @@
 
           ${meta}
 
+          ${p.id === 'ai-question-logger' ? '<div id="ai-question-history"></div>' : ''}
+
           ${p.summary ? (p.summary.indexOf('\n') >= 0
             ? `<div class="proj-summary proj-summary--fit">${p.summary.split('\n').map(l => l.replace(/\s+$/, '')).filter(l => l !== '').map(l => `<span class="psum-line">${escapeHtml(l)}</span>`).join('')}</div>`
             : `<p class="proj-summary">${escapeHtml(p.summary)}</p>`) : ''}
@@ -1097,6 +1099,8 @@
       root.innerHTML = renderHome(projects);
       document.title = 'Project Reports — G.M.PARK';
     }
+
+    if (window.AIQuestionHistory) window.AIQuestionHistory.mount(document.getElementById('ai-question-history'));
 
     // scroll to top on route change (instant)
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });

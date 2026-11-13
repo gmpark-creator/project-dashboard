@@ -969,7 +969,7 @@ const PROJECTS = [
     platform: '브라우저 확장 (Chrome · Edge, Manifest V3, 압축해제 로드) · 외부 전송 없음',
     status: 'in-progress',
     start: '2026-11-12',
-    latest: '2026-11-12',
+    latest: '2026-11-13',
     progress: 80,
     summary: 'Claude·ChatGPT·Gemini 등 AI 웹 서비스에서 실제로 전송된 질문만 골라 날짜·시각(KST)·카테고리·주제(앞 80자)·사이트를 이 PC 브라우저 저장소에만 기록한다.\n'
            + '평일 08:30~18:00 밖(출근 전·퇴근 후·주말·고정 공휴일)에 쓰이면 화면 경고창·윈도우 알림·빨간 배지로 표시해 개인 AI 계정의 무단 사용을 알아챈다.\n'
@@ -982,11 +982,13 @@ const PROJECTS = [
       { area: '저장·알림', tech: 'chrome.storage.local · chrome.notifications', how: '기록은 브라우저 안에만 저장(브라우저별 별도), 근무시간 외 사용 시 윈도우 알림 + 아이콘 배지 카운트.' }
     ],
     issues: [
+      { type:'완료', title:'대시보드 질문 내역 화면', desc:'프로젝트 상단에서 CSV/JSON 가져오기, 날짜·사이트·카테고리·질문 검색, 근무시간 외 필터, 페이지 이동, CSV 저장. 가져온 기록은 현재 브라우저에 보관. 실제 기록기 자동 연결은 설치 PC에서 연결 코드 추가 후 확인 필요.' },
       { type:'완료', title:'사무실 데스크탑 Chrome·Edge 설치', desc:'두 브라우저에 압축해제 확장으로 로드, 소유자 번호(가림 표시용) 저장. 바탕화면 바로가기(Edge 기록 화면) 생성.' },
       { type:'완료', title:'Claude 웹 전송 감지 실사용 확인', desc:'Edge의 claude.ai에서 질문 전송 → 기록 화면에 표시 확인(2026-11-12).' },
       { type:'예정', title:'ChatGPT·Gemini 등 나머지 사이트 실사용 확인', desc:'대상 9개 사이트 중 Claude 외에는 아직 실제 전송으로 확인 전. 브라우저 내장 사이드 패널(Edge Copilot·Chrome Gemini 버튼)은 대상 아님.' }
     ],
     milestones: [
+      { date:'2026-11-13', title:'대시보드 질문 내역 조회 구현', desc:'파일 가져오기와 검색·필터·CSV 저장 브라우저 검증 완료. 기존 확장용 읽기 연결 코드와 설치 도구 제공. 실제 확장 소스 부재로 설치 PC 자동 연결은 검증 전.', isCore:true },
       { date:'2026-11-12', title:'프로젝트 #15 신설 — AI 질문 기록기 v1.2.0', desc:'노트북 Claude 세션에서 제작 → 사무실 데스크탑 Chrome·Edge 설치, Claude 웹 기록 동작 확인.', isCore:true }
     ]
   }
