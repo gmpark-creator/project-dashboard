@@ -1,5 +1,7 @@
 # Project Dashboard
 
+AI 질문 기록기 **사무실 PC → 집 대시보드 동기화** 후속 작업은 [Codex 인계 문서](AI_QUESTION_LOGGER_HANDOFF.md)를 먼저 확인하세요. 현재 배포는 조회 UI·파일 가져오기·같은 브라우저 연결 단계이며 PC 간 동기화는 아직 미구현입니다.
+
 공개 프로젝트 운영 리포트 저장소.
 
 ## 주요 URL
