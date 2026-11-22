@@ -712,26 +712,19 @@ const PROJECTS = [
     id: 'aivideo',
     no: 11,
     name: 'Cutpilot',
-    subtitle: 'AI 영상 제작 — 아이디어 한 줄이면 스토리보드→컷별 후보 생성→비교 선택→자막/사운드/보이스→완성 MP4. Runway·Luma·Veo를 엔진으로 깔되 모델명 없이 「빠른 미리보기 / 게시용 품질」 티어로. 변증법 협업(Claude UX·프론트 ↔ Codex 아키텍처·백엔드). 정식명 미정(가칭 Cutpilot).',
+    subtitle: '아이디어에서 스토리보드, 컷 생성, 편집, MP4 내보내기까지 연결하려던 AI 영상 제작 프로젝트. PC에서 실행하는 로컬 영상 화질 개선기도 개발했다.',
     icon: 'film',
-    platform: '웹 애플리케이션 (Next.js · TypeScript · 정적 mock vertical slice → 실 provider 연결 예정)',
-    // 박사 지시 2026-06-14 — 「미해결 프로젝트」로 분류(미해결 3건 모두 paused로 통일). 실패/난관 사유 표기.
-    status: 'paused',
-    unresolved: true,
-    stallReason: '비용 모델 불일치 blocker + 영상 재생기(렌더러) 미구현으로 실 provider 연결 단계에서 막힘.',
+    platform: '웹 프로토타입 (Next.js · TypeScript) · 로컬 화질 개선기 (FFmpeg · Real-ESRGAN)',
+    status: 'archived',
+    stallReason: '비용 모델을 확정하지 못했고 영상 렌더러가 구현되지 않아 실제 영상 생성 서비스 연동 단계에서 중단. 2026-11-22에 실패로 폐기 결정.',
     blockers: [
       'Codex 비용 모델 3중 불일치(design/35) blocker 미해소 — 엔진 라우팅·예산 정책 확정 불가.',
       '영상 렌더러(자막 삽입·오디오 믹스·다중 길이컷) 미구현 — mock vertical slice에서 실제 영상 출력으로 진입 못 함.',
       'Runway·Luma·Veo 등 고비용 외부 영상생성 API 의존 — 실 provider adapter 연결의 비용·리스크가 큼.'
     ],
     start: '2026-06-06',
-    latest: '2026-06-07',
+    latest: '2026-11-22',
     progress: 1,
-    link: 'https://gmpark-creator.github.io/project-dashboard/ai-video-studio/mock-app/',
-    preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/ai-video-studio/mock-app/', label:'기능 데모(mock vertical slice) — 새 영상→스토리보드→전체 생성→컷별 후보 비교/선택→실패 컷 재시도→게시용 품질로 다듬기→내보내기(6/15/30s 렌더). 정적 페이지에서 Project/Shot/Take/Job 상태머신이 도는 mock backend(실 provider 미연결).' },
-      { url:'https://gmpark-creator.github.io/project-dashboard/ai-video-studio/prototype/', label:'설계 클릭형 목업 — 6화면(대시보드·새영상·스토리보드·비교선택·다듬기·내보내기) 프론트엔드 방향 시각화.' }
-    ]},
     summary: '지식 대시보드 시리즈 11번 — Runway·Luma·Veo 등 영상 생성 엔진을 *직접 고르는 앱이 아니라*, 요구(의도·티어·샷 조건)를 받아 가능한 엔진을 자동 선택하는 오케스트레이션 레이어를 올려 비전문가가 "아이디어→완성 영상"을 끝까지 만들게 하는 앱.\n'
            + '사용자는 모델명을 모른 채 「빠른 미리보기 / 게시용 품질 / 저비용」 티어와 목적만 고르고, 컷별 후보를 비교·선택하며, 실패/불만 컷만 다시 시도(이전 후보 보존)한다.\n'
            + '클로드(UX/제품·프론트엔드 방향) ↔ 코덱스(아키텍처·백엔드·모델 어댑터·렌더/큐·검증) 변증법으로 진행: R1 설계·프로토타입 → Codex R1 계약(OpenAPI·schema·routing) → R2 UX보정 → Codex R2 mock vertical slice → R3 QA(23건) → Codex Next.js 앱화 + R3 UX 통합. 설계·계약 산출물은 ai-video-studio/.',
@@ -753,7 +746,8 @@ const PROJECTS = [
     ],
     milestones: [
       { date:'2026-06-06', title:'프로젝트 착수 — 변증법 R1~R3', desc:'Claude R1 설계·프로토타입 → Codex R1 계약 → R2 UX보정 → Codex R2 mock slice → R3 QA. 모델명 비노출·티어 추상화·오케스트레이션 방향 확립.' },
-      { date:'2026-06-07', title:'대시보드 #11 등록 + Next.js 앱화/R3 통합', desc:'박사 지시로 AI 영상 제작 앱(가칭 Cutpilot)을 프로젝트 11번으로 대시보드 등록(라이브 mock-app·프로토타입 프리뷰). Codex가 Next.js 앱(studio-app)에 Claude R3 QA 핵심 항목을 반영. rose 테마·film 아이콘 등록.' }
+      { date:'2026-06-07', title:'대시보드 #11 등록 + Next.js 앱화/R3 통합', desc:'박사 지시로 AI 영상 제작 앱(가칭 Cutpilot)을 프로젝트 11번으로 대시보드 등록(라이브 mock-app·프로토타입 프리뷰). Codex가 Next.js 앱(studio-app)에 Claude R3 QA 핵심 항목을 반영. rose 테마·film 아이콘 등록.' },
+      { date:'2026-11-22', title:'실패로 폐기', desc:'Cutpilot AI 영상 제작 앱과 로컬 영상 화질 개선기 개발을 종료. 비용 정책과 실제 렌더링 연동 문제를 종료 사유로 기록.' }
     ]
   },
   {
@@ -1002,7 +996,9 @@ const STATUS = {
   'in-progress': { label:'진행 중', en:'In Progress', dot:'bg-amber-500',
     badge:'bg-amber-50 text-amber-700 ring-1 ring-amber-200',       bar:'from-amber-500 to-orange-400' },
   'paused':      { label:'보류',    en:'Paused',      dot:'bg-violet-500',
-    badge:'bg-violet-50 text-violet-700 ring-1 ring-violet-200',    bar:'from-violet-500 to-fuchsia-400' }
+    badge:'bg-violet-50 text-violet-700 ring-1 ring-violet-200',    bar:'from-violet-500 to-fuchsia-400' },
+  'archived':    { label:'실패로 폐기', en:'Archived', dot:'bg-slate-500',
+    badge:'bg-slate-100 text-slate-700 ring-1 ring-slate-200', bar:'from-slate-500 to-slate-400' }
 };
 const ITYPE = {
   '완료': { cls:'bg-emerald-50 text-emerald-700 ring-emerald-200',       icon:'check-circle-2' },

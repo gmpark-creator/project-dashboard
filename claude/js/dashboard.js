@@ -31,6 +31,7 @@
   function statusLabel(st) {
     return st === 'completed' ? 'COMPLETED'
          : st === 'in-progress' ? 'IN PROGRESS'
+         : st === 'archived' ? window.STATUS.archived.label
          : st === 'paused' ? 'PAUSED' : st.toUpperCase();
   }
   function pad2(n) { return String(n).padStart(2, '0'); }
@@ -40,7 +41,7 @@
      · unresolved   : 「미해결 프로젝트」 섹션 — 실패·난관에 봉착해 보류 (사이드바·홈 그리드 제외)
      · hideFromGrid : 그리드·사이드바 비노출 (예: Tech Stack Collection = 홈 전용 섹션, FitRx = Knowledgeverse 편입)
      · homeFeature  : 홈 하단 전용 섹션으로 렌더 (예: 'tech-stack') */
-  function gridProjects(projects)   { return projects.filter(p => !p.unresolved && !p.hideFromGrid); }
+  function gridProjects(projects)   { return projects.filter(p => p.status !== 'archived' && !p.unresolved && !p.hideFromGrid); }
   function unresolvedList(projects) { return projects.filter(p => p.unresolved); }
   function featureProject(projects, key) { return projects.find(p => p.homeFeature === key); }
 
@@ -629,10 +630,11 @@
      ============================================================ */
   function renderProjectDetail(p, idx) {
     const num = pad2(p.no || (idx + 1));
-    const numLabel = p.unresolved ? '미해결' : ('+ ' + num);   // 미해결/번호 미부여 프로젝트는 번호 대신 라벨
-    const blockerBox = (p.unresolved && (p.stallReason || (p.blockers && p.blockers.length))) ? `
+    const archived = p.status === 'archived';
+    const numLabel = p.unresolved ? '미해결' : ('+ ' + num);
+    const blockerBox = ((p.unresolved || archived) && (p.stallReason || (p.blockers && p.blockers.length))) ? `
       <div class="proj-blockers">
-        <div class="blockers-head"><strong>+ 미해결 · 실패/난관 사유</strong><span class="count">STALLED</span></div>
+        <div class="blockers-head"><strong>+ ${archived ? '폐기 사유' : '미해결 · 실패/난관 사유'}</strong><span class="count">${archived ? 'ARCHIVED' : 'STALLED'}</span></div>
         ${p.stallReason ? `<p class="blockers-reason">${escapeHtml(p.stallReason)}</p>` : ''}
         ${(p.blockers && p.blockers.length) ? `<ul class="blockers-list">${p.blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
       </div>` : '';
@@ -889,7 +891,7 @@
       </div>`).join('');
 
     return `
-      <section class="stack-atlas" data-index="03" data-theme="dark" id="stack-atlas">
+      <section class="stack-atlas" data-index="04" data-theme="dark" id="stack-atlas">
         <div class="container">
           <div class="atlas-head reveal-up">
             <h3>기술 스택 총집합</h3>
@@ -906,12 +908,13 @@
   }
 
   /* ============================================================
-     RENDER — 미해결 프로젝트 (홈, 메인 그리드 아래) · 박사 지시 2026-06-14
-     실패·난관에 봉착해 보류된 프로젝트(DDUIM·2026 PRESIDENT KOREA·Cutpilot)를
-     사유와 함께 별도 섹션으로 노출. unresolved:true 데이터로 구동.
+     RENDER — 보류 및 폐기 기록 (홈, 메인 그리드 아래)
      ============================================================ */
-  function renderUnresolved(list) {
+  function renderProjectRecords(list, archived = false) {
     if (!list || !list.length) return '';
+    const title = archived ? '폐기한 프로젝트' : '미해결 프로젝트';
+    const badge = archived ? statusLabel('archived') : '미해결';
+    const reason = archived ? '폐기 사유' : '난관';
     const cards = list.map(p => `
       <article class="unresolved-card">
         <div class="unresolved-top">
@@ -920,20 +923,20 @@
             <span class="tag">${p.no ? '#' + pad2(p.no) + ' · ' : ''}${escapeHtml(p.id.toUpperCase())}</span>
             <h4 class="unresolved-name">${escapeHtml(p.name)}</h4>
           </div>
-          <span class="unresolved-badge">미해결</span>
+          <span class="unresolved-badge">${badge}</span>
         </div>
         <p class="unresolved-sub">${escapeHtml(p.subtitle || '')}</p>
-        ${p.stallReason ? `<p class="unresolved-reason"><strong>난관 ·</strong> ${escapeHtml(p.stallReason)}</p>` : ''}
+        ${p.stallReason ? `<p class="unresolved-reason"><strong>${reason} ·</strong> ${escapeHtml(p.stallReason)}</p>` : ''}
         ${(p.blockers && p.blockers.length) ? `<ul class="unresolved-blockers">${p.blockers.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
         <a class="unresolved-cta" href="#/p/${escapeHtml(p.id)}">자세히 보기 <span aria-hidden="true">→</span></a>
       </article>
     `).join('');
     return `
-      <section class="s-unresolved" data-index="02" data-theme="dark" id="unresolved">
+      <section class="s-unresolved" data-index="${archived ? '03' : '02'}" data-theme="dark" id="${archived ? 'archived' : 'unresolved'}">
         <div class="container">
           <div class="home-grid-head">
-            <h3>미해결 프로젝트</h3>
-            <p class="note"><strong>+ ${pad2(list.length)}</strong> · 실패·난관에 봉착해 보류된 프로젝트</p>
+            <h3>${title}</h3>
+            <p class="note"><strong>+ ${pad2(list.length)}</strong>${archived ? '' : ' · 실패·난관에 봉착해 보류된 프로젝트'}</p>
           </div>
           <div class="unresolved-grid">${cards}</div>
         </div>
@@ -951,7 +954,7 @@
       ? `<p class="techstack-summary">${escapeHtml(p.summary).replace(/\n/g, '<br>')}</p>`
       : '';
     return `
-      <section class="s-techstack" data-index="04" data-theme="dark" id="tech-stack-collection">
+      <section class="s-techstack" data-index="05" data-theme="dark" id="tech-stack-collection">
         <div class="container">
           <div class="home-grid-head">
             <h3>${escapeHtml(p.name)}</h3>
@@ -1047,7 +1050,9 @@
         </div>
       </section>
 
-      ${renderUnresolved(unresolvedList(projects))}
+      ${renderProjectRecords(unresolvedList(projects))}
+
+      ${renderProjectRecords(projects.filter(p => p.status === 'archived'), true)}
 
       ${renderStackAtlas(projects.filter(p => p.id !== 'tech-stack'))}
 
