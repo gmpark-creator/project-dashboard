@@ -12,12 +12,13 @@ const PROJECTS = [
     platform: '웹 앱 · Vercel 배포',
     status: 'completed',
     start: '2025-09-15',          // ← 예시 날짜 (실제 값으로 수정)
-    latest: '2025-12-20',         // ← 예시 날짜 (실제 값으로 수정)
+    latest: '2026-11-17',
     progress: 100,
     link: 'https://ais.vercel.co.kr/ops-main',
     preview: { type:'embed', items:[
       { url:'https://ais.vercel.co.kr/ops-main',       label:'ops-main — PEL · MAGE · OCEAN ACE' },
-      { url:'https://ais.vercel.co.kr/kyowa-line-ops', label:'kyowa-line-ops — KYOWA LINE' }
+      { url:'https://ais.vercel.co.kr/kyowa-line-ops', label:'kyowa-line-ops — KYOWA LINE' },
+      { url:'https://www.vercel.co.kr/all-fleets',     label:'all-fleets — 일반 21척 + 교와 8척 통합 (11-17 PR #16)' }
     ]},
     summary: '관리 대상 선단의 선박들을 지도 위에 실시간으로 추적·표시하는 웹 앱.\n'
            + '운영 노선에 따라 두 가지 버전으로 배포돼 있다.',
@@ -35,19 +36,22 @@ const PROJECTS = [
     ],
     versions: [
       { name: 'ops-main', desc: 'PEL · MAGE · OCEAN ACE 선단 추적 — ais.vercel.co.kr/ops-main' },
-      { name: 'kyowa-line-ops', desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' }
+      { name: 'kyowa-line-ops', desc: 'KYOWA LINE 선박 추적 — ais.vercel.co.kr/kyowa-line-ops' },
+      { name: 'all-fleets', desc: '일반·교와 전체 선단 통합 — www.vercel.co.kr/all-fleets' }
     ],
     issues: [
       { type:'완료', title:'지도 기반 실시간 선박 추적 구현', desc:'Leaflet 지도에 선박 마커·항행 정보를 실시간 표시.' },
       { type:'완료', title:'2개 노선 버전 Vercel 배포', desc:'ops-main / kyowa-line-ops 두 버전을 웹에 배포해 운영 중.' },
       { type:'이슈', title:'위치 데이터 소스 정식화 검토', desc:'추후 정식 서비스로 다듬을 경우 합법적 AIS 데이터 API 연동을 함께 검토 예정.' },
-      { type:'완료', title:'협업 권한 확보 — gmpark 브랜치 작업 가능 (2026-06-05)', desc:'형(clavef)이 ship-ais-tracker 브랜치/배포 구조를 정비 — 박사(gmpark-creator)에게 WRITE 권한 + gmpark 전용 브랜치 부여. gmpark에 push하면 ais.vercel.co.kr에 자동 미리보기(public), railway-poller 백엔드도 gmpark-preview Railway 환경에 자동 재배포. main=production은 보호(직접 push 차단, PR→형 승인·CODEOWNERS 머지)라 실서비스와 완전 격리. 이제 막힘없이 수정 작업 가능 — 로컬 클론 ../ship-ais-tracker, gmpark 브랜치 셋업 완료.' }
+      { type:'완료', title:'협업 권한 확보 — gmpark 브랜치 작업 가능 (2026-06-05)', desc:'형(clavef)이 ship-ais-tracker 브랜치/배포 구조를 정비 — 박사(gmpark-creator)에게 WRITE 권한 + gmpark 전용 브랜치 부여. gmpark에 push하면 ais.vercel.co.kr에 자동 미리보기(public), railway-poller 백엔드도 gmpark-preview Railway 환경에 자동 재배포. main=production은 보호(직접 push 차단, PR→형 승인·CODEOWNERS 머지)라 실서비스와 완전 격리. 이제 막힘없이 수정 작업 가능 — 로컬 클론 ../ship-ais-tracker, gmpark 브랜치 셋업 완료.' },
+      { type:'완료', title:'GREAT WENWU 추가(PR #15) · 일반·교와 통합 화면(PR #16) 운영 반영 (2026-11-17 병합)', desc:'OCEAN ACE 선단에 GREAT WENWU 추가. 일반 21척과 교와 8척의 전체 AIS 캐시를 한 지도에서 보는 통합 화면 all-fleets 신설. 11-26 통합·일반·교와 세 운영 주소 HTTP 200 확인(ais.vercel.co.kr은 www.vercel.co.kr로 연결).' }
     ],
     milestones: [
       { date:'2025-09-15', title:'프로젝트 시작', desc:'선단 선박 목록·데이터 구조 정의' },
       { date:'2025-10-10', title:'지도 + 선박 마커', desc:'Leaflet 지도에 선박 렌더링' },
       { date:'2025-11-15', title:'상세 사이드바 + 자동 갱신', desc:'선박별 정보 패널·주기적 위치 갱신' },
-      { date:'2025-12-20', title:'2개 노선 버전 배포', desc:'ops-main / kyowa-line-ops Vercel 배포' }
+      { date:'2025-12-20', title:'2개 노선 버전 배포', desc:'ops-main / kyowa-line-ops Vercel 배포' },
+      { date:'2026-11-17', title:'GREAT WENWU 추가 · 일반·교와 통합 화면', desc:'clavef/ais PR #15·#16 병합 — all-fleets 신설' }
     ]
   },
   {
@@ -872,11 +876,11 @@ const PROJECTS = [
     platform: '웹 앱 + Windows 설치형 · Three.js 3D (빌드 없음)',
     status: 'in-progress',
     start: '2026-11-03',
-    latest: '2026-11-11',
+    latest: '2026-11-24',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 02852ed (11-11) — 그 뒤 기능(G45~G53·세계 사무실·선박 브릿지·SNC LOGIX 경영진 사무실·선박 자동차 이동 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 5628b74 (11-24) — 그 뒤 기능(G45~G53·세계 사무실·선박 브릿지·SNC LOGIX 경영진 사무실·선박 자동차 이동·해운대 도서관 열람실·부산 7부두 3D 하역·센텀 VesselCore 실행·세계지도 장소 모형 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -895,6 +899,12 @@ const PROJECTS = [
       { area: '게임 루프 · UI', tech: 'Vanilla JS, HTML5 · CSS', how: 'game.js — 키보드/클릭/모바일 조이스틱 이동, 충돌, 카메라, y정렬, 배·갈매기, 현수교 케이블, 미니맵, 업무 존 패널.' },
     ],
     issues: [
+      { type:'이슈', title:'다음 할 일 (11-26 Codex → Claude 인계)', desc:'① 같은 seed·화물 수로 7부두 선적 처리량과 빈 셔틀 반복을 다시 재고 병목 개선 ② N8 검수: 두 선석·여러 회차·저장 복원·AIS 전환·실제 GPU 30분 이상 ③ AIS 접안 추정·이탈, 승선 중 출항 시 하선 안내를 현재 구현과 자료로 확인. 인원 대기·화물 장부·장비 예약·해치 관문은 회귀 확인에 포함.' },
+      { type:'완료', title:'세계지도 장소 9곳 3D 모형 · 확대 이미지 (11-24 Codex, 5517a89)', desc:'한국 포함 세계지도 장소 9곳 모형에 외벽·지붕·길·정원·수변 디테일. 번호 핀이나 장소 목록에 마우스를 올리면 같은 모형의 확대 이미지. 실제 페이지 5종과 집 PC 설치 화면 확인.' },
+      { type:'완료', title:'센텀 VesselCore 실행 · 7부두 입항/출항 보기 · 크레인 경로 재시도 (11-24 Codex, 7bc5855·7db1e60)', desc:'센텀스카이비즈 35층에서 Windows 설치본 VesselCore를 연다. 7부두에 입항 보기·출항 보기, 두 크레인 경로 재시도, 회차를 넘길 때 끝난 운송·빈 야드 예약 정리. 저장본 재생에서 양하·선적 226개씩과 다음 회차 양하 6개 확인.' },
+      { type:'완료', title:'7부두 현장 인원·검수 화면 N7B (11-17 Codex, c8419ce)', desc:'포맨 2·안전관리자 1·입출항 도선사, 인원 카드와 가까이 보기, 검수 기록(최근 300건·누적·현 회차 합계), 담당 크레인 표시, 손상 표시·포맨 알림, 인원이 가까우면 장비 대기.' },
+      { type:'완료', title:'부산 7부두 3D 하역 N1~N7 (11-13~15 Claude, 592ed9f~dd40a0e)', desc:'부산 지도 7부두 진입·3D 부두(공통 ZLFZ 선박 모형), 실측 배치도, 고르고 1인칭·전체 보기, AIS 접안 선박 세션(없으면 72·73번 선석 무작위), 걸어서 오르는 갱웨이, 크레인 2기·창내 화물·폰툰/유압 해치, 야드 1,350칸, 에이프런 리치스태커 중계, 터그·도선선 입출항, 신호수·검수원·계류 인원, 작업 속도 1~8배.' },
+      { type:'완료', title:'해운대 도서관 열람실 · 새 버전 시작 실패 시 되돌리기 (11-11~13 Claude, 5827310~1df65cf)', desc:'열람실 화면 보기/책 보기·확대, 회차별 소설 올리기(형식 무관·자동 쪽 나누기), 데미안·삼국지·초한지 연재. 새 버전이 켜지지 않으면 마지막으로 동작한 버전으로 자동 복귀.' },
       { type:'완료', title:'GREAT WENWU 추가 · 선박 크기 복구 · 자동차로 선박 이동 · 열차 직행 · 입장 연출 통일 (11-11 Claude, 02852ed)', desc:'AIS Ship Tracker에 GREAT WENWU(Vanuatu · IMO 9196826 · MMSI 577740000)를 OCEAN ACE 카테고리로 추가(clavef/ais PR #15 — main 머지는 Matt 승인 대기) · 고르고 29척 반영(실시간 API에 잡히기 전엔 위치 미수신) · 대한민국 지도: 지나다니는 선박은 원래 크기, 정박·접안만 작게 · 부산: 선박 클릭 시 고르고가 자동차로 선박 쪽 도로까지 이동 → 이동 연출 → 브릿지 · 대한민국: 열차가 자동차 환승 없이 그대로 장소로 진입 · 선박 입장 연출을 부산·대한민국·세계 모든 장소 입장에 동일 적용. 새 검사 entry-fx-qa 포함 관련 검사 PASS(korea-qa·movement-qa는 변경 전에도 동일 실패). 이 PC 설치 앱 fbf0d7f→02852ed 업데이트 확인.' },
       { type:'완료', title:'SNC LOGIX 경영진 사무실 · MATT PARK 단상 자리 (11-11 Claude, fbf0d7f)', desc:'스카이비즈 35층보다 넓은 24×14m·벽 4.8m 경영진 방, 단상 책상에 MATT PARK(차콜 정장·조끼·버건디 타이·금 배지). 열린 일: patch-ui-qa 불안정(Windows rename 경합 추정), library-rooms-qa 기대값 갱신.' },
       { type:'완료', title:'선박 이동 연출 · 호버 상세 카드 · 부산↔세계 이동 · 접안 선박 표시 (11-10 Claude)', desc:'선박 클릭 시 배를 향해 다가가는 연출 뒤 브릿지 입장 · 장소/선박에 마우스를 올리면 번호·이름·설명·업무 종류 카드 · 부산 「세계 지도로」/세계 「부산 지도로」 버튼 · 대한민국 지도 접안 선박은 ⚓ 표지+큰 이름표(호버로 접안 항구) · 부산 지도 접안 선박 고르고 크기로 확대, 겹치는 크레인은 비켜 세움. 한국 NPC 이름도 원래대로 복원(스카이비즈 35층만 아인슈타인·뉴턴·뤄지).' },
@@ -951,7 +961,10 @@ const PROJECTS = [
       { date:'2026-11-07', title:'G50~G53 · Gemini 3번 NPC · MATT PARK 작업 배정', desc:'AppData 창 제거, 선박 크기 차등, Gemini 웹 로그인, 단계별 AI/모델 배정.', isCore:true },
       { date:'2026-11-08', title:'NASA 지구 · 궤도 비행 · 장소 목록 · 국내 화풍 통일', desc:'Codex 지구/비행/미니어처, Claude 장소 목록·상단 메뉴·작업 배정 옵션.', isCore:true },
       { date:'2026-11-10', title:'센텀 통합 · AIS 28척 · 선박 브릿지 · 해외 사무실 8곳', desc:'Codex 연속 배포(codex 28ec2b2). 이후 작업은 이 기준에서 이어받는다.', isCore:true },
-      { date:'2026-11-11', title:'AIS 29척(GREAT WENWU) · 선박 자동차 이동 · 열차 직행 · 입장 연출 통일', desc:'Claude 배포(codex 02852ed): 부산 선박 클릭=자동차로 이동, 대한민국 열차 그대로 장소 진입, 모든 지도 장소 입장에 선박 이동 연출. SNC LOGIX 경영진 사무실(fbf0d7f).', isCore:true }
+      { date:'2026-11-11', title:'AIS 29척(GREAT WENWU) · 선박 자동차 이동 · 열차 직행 · 입장 연출 통일', desc:'Claude 배포(codex 02852ed): 부산 선박 클릭=자동차로 이동, 대한민국 열차 그대로 장소 진입, 모든 지도 장소 입장에 선박 이동 연출. SNC LOGIX 경영진 사무실(fbf0d7f).', isCore:true },
+      { date:'2026-11-15', title:'부산 7부두 3D 하역 N1~N7', desc:'Claude(집 PC): 크레인 2기·창내 화물·해치 덮개·야드·에이프런 중계·터그/도선선 입출항·현장 인원(newton dd40a0e).', isCore:true },
+      { date:'2026-11-17', title:'7부두 현장 인원·검수 화면 N7B', desc:'Codex: 포맨·안전관리자·도선사, 검수 기록, 손상 표시(codex c8419ce).', isCore:true },
+      { date:'2026-11-24', title:'센텀 VesselCore 실행 · 7부두 입출항 보기 · 세계지도 장소 모형', desc:'Codex 배포(codex 5628b74). 11-26 Claude가 newton을 이 기준으로 맞추고 이어받음.', isCore:true }
     ]
   },
   {
