@@ -876,11 +876,11 @@ const PROJECTS = [
     platform: '웹 앱 + Windows 설치형 · Three.js 3D (빌드 없음)',
     status: 'in-progress',
     start: '2026-11-03',
-    latest: '2026-11-27',
+    latest: '2026-11-28',
     progress: 1,
     link: 'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/',
     preview: { type:'embed', height:640, items:[
-      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex 4c1604f (11-27) — 그 뒤 기능(부산 7부두 VesselCore 접안 선박 보기: 외관·화물창·탱크 액체 · G45~G53·세계 사무실·선박 브릿지·SNC LOGIX 경영진 사무실·선박 자동차 이동·해운대 도서관 열람실·부산 7부두 3D 하역·센텀 VesselCore 실행·세계지도 장소 모형 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
+      { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/', label:'정적 미리보기 (newton '+'bcfa605'+', G44 시점) · ★설치 앱 최신은 codex ad91810 (11-28) — 그 뒤 기능(부산 7부두 VesselCore 접안 선박 보기: 외관·화물창·탱크 액체·밤 조명·계류줄·이 배로 입출항 보기 · G45~G53·세계 사무실·선박 브릿지·SNC LOGIX 경영진 사무실·선박 자동차 이동·해운대 도서관 열람실·부산 7부두 3D 하역·센텀 VesselCore 실행·세계지도 장소 모형 등)은 설치 앱에서만 — G44: 안내원이 엑셀 원본 직접 보기(칸 정보+화면 그림) · G42: 첨부가 대화를 막지 않음·첨부 빼기·.xls 직접 읽기·엑셀 음영 · G40: 안내원이 엑셀·양식 채우기·워드·PPT·PDF 파일 생성, Claude 생각 깊이 · G39: 늘 보이는 업데이트 단추 · G38: 스캔 PDF(여권 사본) 인식 · G37: 안내원 모델 선택(Claude 기본 Opus 5.5) · G36: 안내원 작업함·지도 위 업무함(설치형에서 동작) · G35: 선박 작게 + 어느 지도에서든 현재 위치 표지(미리보기는 AIS 저장본) · 광안대교 끼임 수정 · 구름·바다 물결 · G34: 세계 지도·룸 25곳·안내원 50명' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=world', label:'세계 지도 바로 열기 — AIS 선박 22척 실위치 · 핀 = 비행기' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo-earth/?map=busan', label:'부산 상세 지도 바로 열기 — 센텀 스카이비즈에서 시작 · 걷기 · 업무 거점 9곳' },
       { url:'https://gmpark-creator.github.io/project-dashboard/claude/previews/agent-gorgo/', label:'(이전) 11-03 2D 도트 부산 필드맵' }
@@ -900,7 +900,8 @@ const PROJECTS = [
     ],
     issues: [
       { type:'완료', title:'7부두 VesselCore 접안 선박 보기 P0~P4 (11-27 집 데스크탑·노트북 Claude, 9f4a51f~4c1604f)', desc:'7부두 「VesselCore 선박」 단추 → VesselCore에 등록된 배를 72·73번 선석에 실제 크기로 접안(우현/좌현). 외관·보는 자리 5곳(P2) · 화물창 모드: 유리 선체·덮개 들기·창 껍데기·칸 격자·베이 번호·창 고르기·안벽 쪽 단면(P3) · 탱크 모드(P4, 노트북): 평형수·연료유·경유·청수·전체 탱크 단추, 채운 탱크에 물·기름이 찬 모습(액면 = VesselCore 측심표와 같은 계산), 이름표 「B3 · 65% · 105 m³ · 108 t」·구분별 합계, VesselCore 적하 상태 읽기 + 보기용 막대(저장 안 함). 보기 동안 하역 장부는 쓰지 않음. VesselCore 0.13.0 이상 필요. 시험 128항목 PASS, 노트북 설치 앱 4c1604f 확인.' },
-      { type:'이슈', title:'다음: 7부두 VesselCore 보기 P5 다듬기 (박사 확인 후)', desc:'AIS IMO 자동 맞춤(실제 배가 VesselCore에 있으면 그 모델로 접안)·입항 보기·계류줄·선명·흘수 표시·밤 조명·탱크 눌러 고르기 카드. 실제 배 5척은 아직 저장된 적하 상태가 0개 — VesselCore Ship Technical에서 저장하면 고르고에 바로 나옴. 노트북 7부두 기본 시험 1종(pier7-qa 브릿지 복귀 프레임)은 변경 전에도 이 노트북에서 실패(느린 시험 그리기 시간 문제).' },
+      { type:'완료', title:'7부두 VesselCore 보기 P5 다듬기 (11-28 노트북 Claude, 14aa3c9)', desc:'VesselCore 선박 보기를 열면 72·73번에 보이는 배의 IMO가 VesselCore에 있을 때 그 배로 자동 접안(평소 7부두 장면·하역은 그대로) · 흘수 눈금(선수·중앙·선미 양현) · 밤 조명(갑판등·거주구 창·항해등) · 계류줄 4개 · 「이 배로 입항/출항 보기」(VesselCore 배 모델로 시뮬레이션, 돌아가면 같은 배로 보기) · 탱크 눌러 정보 카드. 흘수는 설계 흘수(AIS 자료에 흘수 없음). 시험 147항목·7부두 회귀 31종 PASS, 노트북 설치 앱 확인.' },
+      { type:'이슈', title:'다음: 7부두 VesselCore 보기 P6 — 3대 PC 설치 확인 (박사 확인 후)', desc:'집·사무실 PC 설치 앱 업데이트 후 JI YUN 16 접안·화물창·평형수 화면 확인(노트북은 확인 완료). 실제 배는 아직 저장된 적하 상태 0개 — VesselCore Ship Technical에서 저장하면 고르고에 바로 나옴. 적하 상태 흘수·트림은 본선 복원성 자료가 오면. 노트북 pier7-qa 1종은 변경 전부터 실패(느린 시험 그리기).' },
       { type:'이슈', title:'다음 할 일 (11-26 Codex → Claude 인계)', desc:'① 같은 seed·화물 수로 7부두 선적 처리량과 빈 셔틀 반복을 다시 재고 병목 개선 ② N8 검수: 두 선석·여러 회차·저장 복원·AIS 전환·실제 GPU 30분 이상 ③ AIS 접안 추정·이탈, 승선 중 출항 시 하선 안내를 현재 구현과 자료로 확인. 인원 대기·화물 장부·장비 예약·해치 관문은 회귀 확인에 포함.' },
       { type:'완료', title:'세계지도 장소 9곳 3D 모형 · 확대 이미지 (11-24 Codex, 5517a89)', desc:'한국 포함 세계지도 장소 9곳 모형에 외벽·지붕·길·정원·수변 디테일. 번호 핀이나 장소 목록에 마우스를 올리면 같은 모형의 확대 이미지. 실제 페이지 5종과 집 PC 설치 화면 확인.' },
       { type:'완료', title:'센텀 VesselCore 실행 · 7부두 입항/출항 보기 · 크레인 경로 재시도 (11-24 Codex, 7bc5855·7db1e60)', desc:'센텀스카이비즈 35층에서 Windows 설치본 VesselCore를 연다. 7부두에 입항 보기·출항 보기, 두 크레인 경로 재시도, 회차를 넘길 때 끝난 운송·빈 야드 예약 정리. 저장본 재생에서 양하·선적 226개씩과 다음 회차 양하 6개 확인.' },
