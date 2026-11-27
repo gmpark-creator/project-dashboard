@@ -1001,6 +1001,27 @@ const PROJECTS = [
       { date:'2026-11-13', title:'대시보드 질문 내역 조회 구현', desc:'파일 가져오기와 검색·필터·CSV 저장 브라우저 검증 완료. 기존 확장용 읽기 연결 코드와 설치 도구 제공. 실제 확장 소스 부재로 설치 PC 자동 연결은 검증 전.', isCore:true },
       { date:'2026-11-12', title:'프로젝트 #15 신설 — AI 질문 기록기 v1.2.0', desc:'노트북 Claude 세션에서 제작 → 사무실 데스크탑 Chrome·Edge 설치, Claude 웹 기록 동작 확인.', isCore:true }
     ]
+  },
+  {
+    id: 'maditeo',
+    no: 16,
+    name: '마디터 (Maditeo)',
+    subtitle: '마디 단위로 비트를 만들고 곡으로 이어 붙이는 Windows용 음악 제작 앱',
+    icon: 'music',
+    platform: 'Windows 데스크탑 앱',
+    status: 'in-progress',
+    start: '2026-11-27',
+    latest: '2026-11-28',
+    summary: '가제 마디터. 마우스와 컴퓨터 키보드로 드럼과 음표를 찍고, 피아노·기타·808을 얹은 루프를 벌스와 훅으로 편곡하는 개인 작곡 도구다. 현재 아이디어와 설계를 정리하고 있다.',
+    method: '다음 설계 단계는 Windows에서 4마디 입력, 악기 교체, 반복 재생과 WAV 출력을 검증할 기준을 정하는 것이다.',
+    issues: [
+      { type:'예정', title:'첫 실사용 버전 범위 확정', desc:'피아노 롤, 드럼·808 편집, 재생 중 악기 미리 듣기를 우선 검토한다. 저장한 곡을 다시 열어 같은 소리로 편집하고 WAV로 내보내는 흐름을 수용 기준에 포함한다.' },
+      { type:'예정', title:'Windows 오디오 검증 계획', desc:'Tauri와 Web Audio를 출발점으로 SoundFont 재생, USB MIDI 입력 지연, 외부 샘플을 포함한 프로젝트 저장 방식을 검토한다.' }
+    ],
+    milestones: [
+      { date:'2026-11-28', title:'프로젝트 #16 등록 · 데스크탑 인계', desc:'설계 문서와 다음 검증 항목을 비공개 저장소에서 이어갈 수 있도록 정리했다.', isCore:true },
+      { date:'2026-11-27', title:'가제 마디터 · 초기 설계 기록', desc:'Windows용 개인 작곡 도구의 초기 제작 가능성과 MIDI·음원 확장 계획을 기록했다.' }
+    ]
   }
 ];
 /* ▲▲▲  데이터 끝  ▲▲▲ */
